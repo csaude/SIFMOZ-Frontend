@@ -1,6 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Country from 'src/store/models/country/Country'
-import City from '../city/city'
+import City from '../city/City'
 import District from '../district/District'
 
 export default class Province extends Model {
