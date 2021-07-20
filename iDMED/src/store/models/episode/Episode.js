@@ -2,6 +2,8 @@ import { Model } from '@vuex-orm/core'
 import ClinicSector from '../clinicSector/ClinicSector'
 import EpisodeType from '../episodeType/EpisodeType'
 import PatientProgramIdentifier from '../patientProgramIdentifier/PatientProgramIdentifier'
+import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
+import Prescription from '../prescription/Prescription'
 import StartStopReason from '../startStopReason/StartStopReason'
 
 export default class Episode extends Model {
@@ -22,8 +24,9 @@ export default class Episode extends Model {
       startStopReason: this.belongsTo(StartStopReason, 'startStopReason_id'),
       episodeType: this.belongsTo(EpisodeType, 'episodeType_id'),
       clinicSector: this.belongsTo(ClinicSector, 'clinicSector_id'),
-      patientProgramIdentifier: this.belongsTo(PatientProgramIdentifier, 'patientProgramIdentifier_id')
-
+      patientProgramIdentifier: this.belongsTo(PatientProgramIdentifier, 'patientProgramIdentifier_id'),
+      patientVisitDetails: this.hasMany(PatientVisitDetails, 'episode_id'),
+      prescriptions: this.hasMany(Prescription, 'prescription_id')
     }
   }
 }

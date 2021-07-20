@@ -6,7 +6,7 @@ import VuexORMAxios from '@vuex-orm/plugin-axios'
 import Country from './models/country/Country'
 import Province from './models/province/Province'
 import District from './models/district/District'
-import City from './models/city/city'
+import City from './models/city/City'
 import Appointment from './models/appointment/Appointment'
 import AttributeType from './models/attributeType/AttributeType'
 import Clinic from './models/clinic/Clinic'
@@ -27,6 +27,17 @@ import Program from './models/program/Program'
 import ProgramAttributeType from './models/programAttributeType/ProgramAttributeType'
 import StartStopReason from './models/startStopReason/StartStopReason'
 import TherapeuticRegimen from './models/therapeuticRegimen/TherapeuticRegimen'
+import Form from './models/form/Form'
+import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
+import RegimenDrug from './models/regimenDrug/RegimenDrug'
+import Prescription from './models/prescription/Prescription'
+import PrescriptionDetail from './models/prescriptionDetails/PrescriptionDetail'
+import PrescriptionDrug from './models/prescriptionDrug/PrescribedDrug'
+import PatientVisit from './models/patientVisit/PatientVisit'
+import PatientVisitDetails from './models/patientVisitDetails/PatientVisitDetails'
+import Pack from './models/packaging/Pack'
+import PackagedDrug from './models/packagedDrug/PackagedDrug'
+import Doctor from './models/doctor/Doctor'
 
 // Vue.use(Vuex)
 
@@ -63,6 +74,17 @@ database.register(Program)
 database.register(ProgramAttributeType)
 database.register(StartStopReason)
 database.register(TherapeuticRegimen)
+database.register(Form)
+database.register(TherapeuticLine)
+database.register(RegimenDrug)
+database.register(Prescription)
+database.register(PrescriptionDetail)
+database.register(PrescriptionDrug)
+database.register(PatientVisit)
+database.register(PatientVisitDetails)
+database.register(Pack)
+database.register(PackagedDrug)
+database.register(Doctor)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
