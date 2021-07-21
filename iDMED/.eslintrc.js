@@ -53,6 +53,7 @@ module.exports = {
 
   // add your custom rules here
   rules: {
+    'indent':['off',2],
     // allow async-await
     'generator-star-spacing': 'off',
     // allow paren-less arrow functions
