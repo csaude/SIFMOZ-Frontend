@@ -27,17 +27,18 @@ import Program from './models/program/Program'
 import ProgramAttributeType from './models/programAttributeType/ProgramAttributeType'
 import StartStopReason from './models/startStopReason/StartStopReason'
 import TherapeuticRegimen from './models/therapeuticRegimen/TherapeuticRegimen'
-import Form from './models/form/Form'
-import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
-import RegimenDrug from './models/regimenDrug/RegimenDrug'
-import Prescription from './models/prescription/Prescription'
-import PrescriptionDetail from './models/prescriptionDetails/PrescriptionDetail'
-import PrescriptionDrug from './models/prescriptionDrug/PrescribedDrug'
-import PatientVisit from './models/patientVisit/PatientVisit'
-import PatientVisitDetails from './models/patientVisitDetails/PatientVisitDetails'
-import Pack from './models/packaging/Pack'
-import PackagedDrug from './models/packagedDrug/PackagedDrug'
-import Doctor from './models/doctor/Doctor'
+import Stock from './models/stock/Stock'
+import StockAdjustment from './models/stockadjustment/StockAdjustment'
+import InventoryStockAdjustment from './models/stockadjustment/InventoryStockAdjustment'
+import StockDestructionAdjustment from './models/stockadjustment/StockDestructionAdjustment'
+import StockReferenceAdjustment from './models/stockadjustment/StockReferenceAdjustment'
+import StockCenter from './models/stockcenter/StockCenter'
+import DestroyedStock from './models/stockdestruction/DestroyedStock'
+import StockEntrance from './models/stockentrance/StockEntrance'
+import Inventory from './models/stockinventory/Inventory'
+import StockLevel from './models/stocklevel/StockLevel'
+import StockOperationType from './models/stockoperation/StockOperationType'
+import ReferedStockMoviment from './models/stockrefered/ReferedStockMoviment'
 
 // Vue.use(Vuex)
 
@@ -74,17 +75,18 @@ database.register(Program)
 database.register(ProgramAttributeType)
 database.register(StartStopReason)
 database.register(TherapeuticRegimen)
-database.register(Form)
-database.register(TherapeuticLine)
-database.register(RegimenDrug)
-database.register(Prescription)
-database.register(PrescriptionDetail)
-database.register(PrescriptionDrug)
-database.register(PatientVisit)
-database.register(PatientVisitDetails)
-database.register(Pack)
-database.register(PackagedDrug)
-database.register(Doctor)
+database.register(Stock)
+database.register(InventoryStockAdjustment)
+database.register(StockDestructionAdjustment)
+database.register(StockReferenceAdjustment)
+database.register(StockAdjustment)
+database.register(StockCenter)
+database.register(DestroyedStock)
+database.register(StockEntrance)
+database.register(Inventory)
+database.register(StockLevel)
+database.register(StockOperationType)
+database.register(ReferedStockMoviment)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
