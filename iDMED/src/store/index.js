@@ -39,6 +39,11 @@ import Inventory from './models/stockinventory/Inventory'
 import StockLevel from './models/stocklevel/StockLevel'
 import StockOperationType from './models/stockoperation/StockOperationType'
 import ReferedStockMoviment from './models/stockrefered/ReferedStockMoviment'
+import AdherenceScreening from './models/screening/AdherenceScreening'
+import PregnancyScreening from './models/screening/PregnancyScreening'
+import RAMScreening from './models/screening/RAMScreening'
+import VitalSignsScreening from './models/screening/VitalSignsScreening'
+import TBScreening from './models/screening/TBScreening'
 
 // Vue.use(Vuex)
 
@@ -87,6 +92,11 @@ database.register(Inventory)
 database.register(StockLevel)
 database.register(StockOperationType)
 database.register(ReferedStockMoviment)
+database.register(AdherenceScreening)
+database.register(PregnancyScreening)
+database.register(RAMScreening)
+database.register(VitalSignsScreening)
+database.register(TBScreening)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
