@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import PatientVisit from '../patientVisit/PatientVisit'
 
 export default class PregnancyScreening extends Model {
     static entity = 'pregnancyScreenings'
@@ -8,7 +9,10 @@ export default class PregnancyScreening extends Model {
             id: this.attr(null),
             pregnant: this.attr(''),
             menstruationLastTwoMonths: this.attr(''),
-            childDeliveryPrevision: this.attr('')
+            childDeliveryPrevision: this.attr(''),
+            patient_visit_id: this.attr(''),
+            // Relationships
+            patient_visit: this.belongsTo(PatientVisit, 'patient_visit_id')
         }
     }
 }

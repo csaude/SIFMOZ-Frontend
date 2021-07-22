@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import PatientVisit from '../patientVisit/PatientVisit'
 
 export default class AdherenceScreening extends Model {
     static entity = 'adherenceScreenings'
@@ -10,7 +11,10 @@ export default class AdherenceScreening extends Model {
             daysWithoutMedicine: this.attr(''),
             patientForgotMedicine: this.attr(''),
             lateDays: this.attr(''),
-            lateMotives: this.attr('')
+            lateMotives: this.attr(''),
+            patient_visit_id: this.attr(''),
+            // Relationships
+            patient_visit: this.belongsTo(PatientVisit, 'patient_visit_id')
         }
     }
 }

@@ -3,6 +3,7 @@ import StockAdjustment from '../stockadjustment/StockAdjustment'
 import StockLevel from '../stocklevel/StockLevel'
 import StockEntrance from '../stockentrance/StockEntrance'
 import StockCenter from '../stockcenter/StockCenter'
+import Drug from '../drug/Drug'
 
 export default class Stock extends Model {
     static entity = 'stocks'
@@ -20,11 +21,13 @@ export default class Stock extends Model {
             hasUnitsRemaining: this.attr(''),
             stock_entrance_id: this.attr(null),
             stock_center_id: this.attr(null),
+            drug_id: this.attr(null),
             // relationships
             adjustments: this.hasMany(StockAdjustment, 'adjusted_stock_id'),
             stockEntrance: this.belongsTo(StockEntrance, 'stock_entrance_id'),
             stockCenter: this.belongsTo(StockCenter, 'stock_center_id'),
-            stockLevel: this.hasOne(StockLevel, 'stock_id')
+            stockLevel: this.hasOne(StockLevel, 'stock_id'),
+            drugs: this.belongsTo(Drug, 'drug_id')
         }
     }
 }

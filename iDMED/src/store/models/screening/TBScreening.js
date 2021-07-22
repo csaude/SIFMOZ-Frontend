@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import PatientVisit from '../patientVisit/PatientVisit'
 
 export default class TBScreening extends Model {
     static entity = 'TBScreenings'
@@ -15,7 +16,10 @@ export default class TBScreening extends Model {
             referedToUSTB: this.attr(''),
             startTreatmentDate: this.attr(''),
             fatigueOrTirednessLastTwoWeeks: this.attr(''),
-            sweating: this.attr('')
+            sweating: this.attr(''),
+            patient_visit_id: this.attr(''),
+            // Relationships
+            patient_visit: this.belongsTo(PatientVisit, 'patient_visit_id')
         }
     }
 }
