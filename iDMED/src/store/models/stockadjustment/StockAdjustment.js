@@ -1,9 +1,18 @@
 import { Model } from '@vuex-orm/core'
 import Stock from '../stock/Stock'
 import StockOperationType from '../stockoperation/StockOperationType'
+import { InventoryStockAdjustment, StockDestructionAdjustment, StockReferenceAdjustment } from './StockAdjustmentHierarchy'
 
-export default class StockAdjustment extends Model {
+export class StockAdjustment extends Model {
     static entity = 'stockAdjustments'
+
+    static types () {
+        return {
+            INVENTORYSTOCKADJUSTMENT: InventoryStockAdjustment,
+            STOCKDESTRUCTIONADJUSTMENT: StockDestructionAdjustment,
+            STOCKREFERENCEADJUSTMENT: StockReferenceAdjustment
+        }
+    }
 
     static fields () {
         return {
@@ -16,7 +25,7 @@ export default class StockAdjustment extends Model {
             operation_id: this.attr(null),
             // relationships
             adjustedStock: this.belongsTo(Stock, 'adjusted_stock_id'),
-            operations: this.belongsTo(StockOperationType, 'operation_id')
+            operation: this.belongsTo(StockOperationType, 'operation_id')
         }
     }
 }

@@ -1,5 +1,5 @@
 import { Model } from '@vuex-orm/core'
-import StockReferenceAdjustment from '../stockadjustment/StockReferenceAdjustment'
+import { StockReferenceAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 
 export default class ReferedStockMoviment extends Model {
     static entity = 'referedStockMoviments'

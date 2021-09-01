@@ -19,8 +19,7 @@ export default class Drug extends Model {
       form: this.belongsTo(Form, 'form_id'),
       regimen_drugs: this.hasMany(RegimenDrug, 'drug_id'),
       packaged_drugs: this.hasMany(PackagedDrug, 'drug_id'),
-      stocks: this.hasMany(Stock, 'drug_id'),
-
+      stocks: this.hasMany(Stock, 'drug_id')
     }
   }
 }

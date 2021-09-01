@@ -1,8 +1,9 @@
-import StockAdjustment from './StockAdjustment'
+import { StockAdjustment } from './StockAdjustmentHierarchy'
 import ReferedStockMoviment from '../stockrefered/ReferedStockMoviment'
 
-export default class StockReferenceAdjustment extends StockAdjustment {
+export class StockReferenceAdjustment extends StockAdjustment {
     static entity = 'stockReferenceAdjustments'
+    static baseEntity = 'stockAdjustments'
 
     static fields () {
         return {
@@ -10,7 +11,7 @@ export default class StockReferenceAdjustment extends StockAdjustment {
             id: this.attr(null),
             reference_id: this.attr(null),
             // relationships
-            adjustedStock: this.belongsTo(ReferedStockMoviment, 'reference_id')
+            reference: this.belongsTo(ReferedStockMoviment, 'reference_id')
         }
     }
 }

@@ -1,5 +1,5 @@
 import { Model } from '@vuex-orm/core'
-import StockDestructionAdjustment from '../stockadjustment/StockDestructionAdjustment'
+import { StockDestructionAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 
 export default class DestroyedStock extends Model {
     static entity = 'destroyedStocks'

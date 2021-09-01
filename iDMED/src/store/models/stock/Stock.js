@@ -1,5 +1,5 @@
 import { Model } from '@vuex-orm/core'
-import StockAdjustment from '../stockadjustment/StockAdjustment'
+import { StockAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 import StockLevel from '../stocklevel/StockLevel'
 import StockEntrance from '../stockentrance/StockEntrance'
 import StockCenter from '../stockcenter/StockCenter'
