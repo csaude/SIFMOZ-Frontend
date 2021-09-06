@@ -11,8 +11,9 @@ export default class Patient extends Model {
   static fields () {
     return {
       id: this.attr(null),
-      firstnames: this.attr(''),
-      lastname: this.attr(''),
+      firstNames: this.attr(''),
+      middleNames: this.attr(''),
+      lastName: this.attr(''),
       gender: this.attr(''),
       dateofbirth: this.attr(''),
       cellphone: this.attr(''),

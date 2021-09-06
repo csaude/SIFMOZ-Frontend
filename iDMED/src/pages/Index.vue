@@ -9,7 +9,7 @@
 
                     <q-toolbar-title>SiDMED</q-toolbar-title>
 
-                    <q-tabs v-model="tab" class="absolute-center">
+                    <q-tabs v-model="tab" class="absolute-center" no-caps active-bg-color="light-green-10">
                         <q-tab name="home" icon="home" label="Inicial" />
                         <q-tab name="patients" icon="person_outline" label="Pacientes/Utentes" />
                         <q-tab name="groups" icon="groups" label="Grupos" />
@@ -42,31 +42,31 @@
         </div>
 
         <q-tab-panels v-model="tab" animated>
-          <q-tab-panel name="home">
+          <q-tab-panel name="home" class="q-pa-none">
             <home :clinic="currClinic"/>
           </q-tab-panel>
 
-          <q-tab-panel name="patients">
+          <q-tab-panel name="patients" class="q-pa-none">
             <patient :clinic="currClinic"/>
           </q-tab-panel>
 
-          <q-tab-panel name="groups">
+          <q-tab-panel name="groups" class="q-pa-none">
             <groups :clinic="currClinic"/>
           </q-tab-panel>
 
-          <q-tab-panel name="stock">
+          <q-tab-panel name="stock" class="q-pa-none">
             <stock :clinic="currClinic"/>
           </q-tab-panel>
 
-          <q-tab-panel name="dashboard">
+          <q-tab-panel name="dashboard" class="q-pa-none">
             <dashboard :clinic="currClinic"/>
           </q-tab-panel>
 
-          <q-tab-panel name="reports">
+          <q-tab-panel name="reports" class="q-pa-none">
             <reports :clinic="currClinic"/>
           </q-tab-panel>
 
-          <q-tab-panel name="settings">
+          <q-tab-panel name="settings" class="q-pa-none">
             <settings :clinic="currClinic"/>
           </q-tab-panel>
         </q-tab-panels>
@@ -79,7 +79,7 @@ export default {
     props: ['clinic'],
   data () {
         return {
-            tab: ref('home'),
+            tab: ref('patients'),
             currClinic: {}
         }
     },
