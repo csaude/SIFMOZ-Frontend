@@ -1,5 +1,6 @@
 <template>
   <div class="q-mx-xl q-mt-lg q-px-lg">
+  <TitleBar>Procurar ou adicionar Utentes/Pacientes</TitleBar>
     <div class="row items-center q-mb-md">
         <q-icon name="person_outline" size="sm"/>
         <span class="q-pl-sm text-subtitle2">Informação inicial</span>
@@ -93,10 +94,11 @@ export default {
             searchField: '',
             selected: ref([]),
             columns,
-            showPatientRegister: true
+            showPatientRegister: false
         }
     },
     components: {
+        TitleBar: require('components/Shared/TitleBar.vue').default,
         patientRegister: require('components/Patient/PatientRegister.vue').default,
         nameInput: require('components/Patient/Inputs/PatientNameInput.vue').default,
         identifierInput: require('components/Patient/Inputs/PatientIdentifierInput.vue').default,

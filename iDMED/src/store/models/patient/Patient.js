@@ -8,6 +8,10 @@ import Province from '../province/Province'
 export default class Patient extends Model {
   static entity = 'patients'
 
+  get fullName () {
+    return `${this.firstNames} ${this.middleNames} ${this.lastNames}`
+  }
+
   static fields () {
     return {
       id: this.attr(null),
@@ -15,11 +19,11 @@ export default class Patient extends Model {
       middleNames: this.attr(''),
       lastName: this.attr(''),
       gender: this.attr(''),
-      dateofbirth: this.attr(''),
+      dateOfBirth: this.attr(''),
       cellphone: this.attr(''),
       alternativeCellphone: this.attr(''),
       address: this.attr(''),
-      otherAddress: this.attr(''),
+      addressReference: this.attr(''),
       accountstatus: this.attr(''),
       province_id: this.attr(''),
 
