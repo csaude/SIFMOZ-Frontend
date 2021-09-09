@@ -1,6 +1,6 @@
 <template>
   <div class="text-center">
-    <div class="q-pa-md q-mt-lg text-subtitle1 text-grey-14"><slot></slot></div>
+    <div class="q-my-md text-subtitle1 text-grey-14"><slot></slot></div>
     <q-separator color="grey-13" size="1px"/>
   </div>
 </template>
