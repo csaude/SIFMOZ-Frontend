@@ -1,7 +1,7 @@
 <template>
   <div>
       <div class="text-center">
-            <q-icon class="profile" name="female" size="120px" color="primary"/>
+            <q-icon class="profile" :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="120px" color="primary"/>
         </div>
       <div class="q-mt-md">
           <div class="row items-center q-mb-sm">

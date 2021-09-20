@@ -1,7 +1,7 @@
 import { Model } from '@vuex-orm/core'
 
-export default class ProgramAttributeType extends Model {
-  static entity = 'programAttributeTypes'
+export default class ClinicalServiceAttributeType extends Model {
+  static entity = 'clinicalServiceAttributeTypes'
 
   static fields () {
     return {

@@ -1,7 +1,7 @@
 import { Model } from '@vuex-orm/core'
 
 export default class EpisodeType extends Model {
-  static entity = 'provincias'
+  static entity = 'episodeTypes'
 
   static fields () {
     return {

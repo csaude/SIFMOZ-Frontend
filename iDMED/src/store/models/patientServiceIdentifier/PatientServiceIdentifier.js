@@ -2,9 +2,9 @@ import { Model } from '@vuex-orm/core'
 import Episode from '../episode/Episode'
 import IdentifierType from '../identifierType/IdentifierType'
 import Patient from '../patient/Patient'
-import Program from '../program/Program'
+import ClinicalService from '../ClinicalService/ClinicalService'
 
-export default class PatientProgramIdentifier extends Model {
+export default class PatientServiceIdentifier extends Model {
   static entity = 'identifiers'
 
   static fields () {
@@ -15,12 +15,12 @@ export default class PatientProgramIdentifier extends Model {
       reopenDate: this.attr(''),
       value: this.attr(''),
       prefered: this.attr(''),
-      identifierType_id: this.attr(''),
-      program_id: this.attr(''),
+      identifier_type_id: this.attr(''),
+      clinical_service_id: this.attr(''),
       patient_id: this.attr(''),
       // Relationships
-      identifierType: this.belongsTo(IdentifierType, 'identifierType_id'),
-      program: this.belongsTo(Program, 'program_id'),
+      identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
+      clinicalService: this.belongsTo(ClinicalService, 'program_id'),
       patient: this.belongsTo(Patient, 'patient_id'),
       episodes: this.hasMany(Episode, 'patientProgramIdentifier_id')
 

@@ -56,13 +56,32 @@
                     <q-separator color="grey-13" size="1px"/>
                 </div>
                 <div class="row q-mt-md">
-                    <q-select class="col" dense outlined v-model="model" :options="options" label="Provincia" />
-                    <q-select class="col q-ml-md" dense outlined v-model="model" :options="options" label="Distrito/Cidade/Vila" />
+                    <q-select
+                      class="col" dense outlined
+                      v-model="selectedProvince"
+                      use-input
+                      input-debounce="0"
+                      hide-selected
+                      :options="provinces"
+                      option-value="id"
+                      option-label="description"
+                      label="Provincia"
+                      @filter="filterProv"/>
+                    <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      v-model="patient.district"
+                      use-input
+                      input-debounce="0"
+                      @new-value="createValue"
+                      :options="districts"
+                      @filter="filterFn"
+                      label="Distrito/Cidade/Vila" />
                     <q-select class="col q-ml-md" dense outlined v-model="model" :options="options" label="Posto Administ./Distrito Urbano" />
                 </div>
                 <div class="row q-mt-md">
                     <q-select class="col" dense outlined v-model="model" :options="options" label="Localidade/Bairro" />
-                    <TextInput v-model="patient.address" label="Morada" dense class="col col q-ml-md" />
+                    <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
                     <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
                 </div>
                 <div class="q-mt-lg">
@@ -88,12 +107,26 @@
 
 <script>
 import Province from '../../store/models/province/Province'
+import { ref } from 'vue'
+const stringOptions = [
+  'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
+]
 export default {
     props: ['clinic'],
     data () {
+      const provOptions = ref(this.provinces)
         return {
             currClinic: {},
             patient: {},
+            provOptions,
+            selectedProvince: {},
+            createValue (val, done) {
+              if (val.length > 2) {
+                if (!stringOptions.includes(val)) {
+                  done(val, 'add-unique')
+                }
+              }
+            },
             genders: [
              {
                 code: 'M',
@@ -103,7 +136,40 @@ export default {
                 code: 'F',
                 description: 'Femenino'
               }
-              ]
+              ],
+              filterFn (val, update) {
+                update(() => {
+                  if (val === '') {
+                    this.districts.value = this.districts
+                  } else {
+                    const needle = val.toLowerCase()
+                    this.districts.value = this.districts.filter(
+                      v => v.toLowerCase().indexOf(needle) > -1
+                    )
+                  }
+                })
+              },
+              filterProv (val, update, abort) {
+                const stringOptions = this.provinces
+                if (val === '') {
+                  update(() => {
+                    this.provOptions = stringOptions.map(provincia => provincia)
+                  })
+                } else if (stringOptions.length === 0) {
+                  update(() => {
+                    this.provOptions = []
+                  })
+                } else {
+                  update(() => {
+                    this.provOptions = stringOptions
+                      .map(provincia => provincia)
+                      .filter(provincia => {
+                        return provincia &&
+                            provincia.designacao.toLowerCase().indexOf(val.toLowerCase()) !== -1
+                      })
+                  })
+                }
+              }
         }
     },
     methods: {
@@ -129,6 +195,18 @@ export default {
         middleNameInput: require('components/Patient/Inputs/PatientMiddleNameInput.vue').default,
         numberInput: require('components/Shared/Input/NumberField.vue').default,
         lastNameInput: require('components/Patient/Inputs/PatientLastNameInput.vue').default
+    },
+    mounted () {
+        const offset = 0
+        this.provOptions = this.getAllProvinces(offset)
+    },
+    computed: {
+        provinces () {
+            return Province.query().with('districts').get()
+        },
+        districts () {
+          return this.selectedProvince.districts
+        }
     }
 }
 </script>
