@@ -11,14 +11,14 @@
               <q-separator/>
             </q-card-section>
             <div class="text-center text-h6">
-              <span v-if="identifier.id > 0">Actualizar</span>
+              <span v-if="episodeToEdit.id > 0">Actualizar</span>
               <span v-else>Adicionar</span>
-              Serviço de Saúde
+              Episódio
             </div>
             <div class="q-mx-lg">
               <div class="q-mt-lg">
                   <div class="row items-center q-mb-sm">
-                      <span class="text-subtitle2">Dados do serviço de Saúde</span>
+                      <span class="text-subtitle2">Dados de início no serviço de Saúde</span>
                   </div>
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
               </div>
@@ -28,6 +28,7 @@
                     dense outlined
                     v-model="identifier.clinicalService"
                     :options="options"
+                    disable
                     option-value="code"
                     option-label="description"
                     label="Serviço de Saúde" />
@@ -35,6 +36,7 @@
                   <q-input
                       dense
                       outlined
+                      disable
                       class="col q-ml-md"
                       v-model="identifier.startDate"
                       mask="date"
@@ -53,11 +55,17 @@
                           </q-icon>
                       </template>
                   </q-input>
-                  <q-select class="col q-ml-md" dense outlined v-model="identifier.estado" :options="estados" label="Estado" />
+
+                  <q-select
+                    disable class="col q-ml-md"
+                    dense outlined
+                    v-model="identifier.estado"
+                    label="Notas de início" />
               </div>
               <div class="row q-mt-md">
                   <q-select
                     class="col"
+                    disable
                     dense outlined
                     v-model="episode.clinicSector"
                     :options="options"
@@ -67,6 +75,7 @@
                   <q-input
                       dense
                       outlined
+                      disable
                       class="col q-ml-md"
                       v-model="episode.startDate"
                       mask="date"
@@ -85,32 +94,12 @@
                           </q-icon>
                       </template>
                   </q-input>
-                  <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido
-                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="true" label="Sim" />
-                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="false" label="Nao"/>
-                  </div>
-                  <div v-else class="col q-ml-md"/>
+                  <div class="col q-ml-md"/>
               </div>
-
-              <span v-if="identifierToEdit == null">
+              <span v-if="episode.id > 0">
                 <div class="q-mt-md">
                   <div class="row items-center q-mb-sm">
-                      <span class="text-subtitle2">Dados do Identificador</span>
-                  </div>
-                  <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
-                </div>
-                <div class="row">
-                    <identifierInput v-model="identifier.value"/>
-                    <div v-if="patient.identifiers.length > 0" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
-                        <q-radio keep-color color="primary"  val="true" label="Sim" />
-                        <q-radio keep-color color="primary"  val="false" label="Nao"/>
-                    </div>
-                </div>
-              </span>
-              <span v-if="identifierToEdit != null">
-                <div class="q-mt-md">
-                  <div class="row items-center q-mb-sm">
-                      <span class="text-subtitle2">Dados de Fim do serviço de Saúde</span>
+                      <span class="text-subtitle2">Dados de Fim do Episódio</span>
                   </div>
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
                 </div>
@@ -119,15 +108,14 @@
                         dense
                         outlined
                         class="col"
-                        v-model="identifier.endDate"
+                        v-model="episode.stopDate"
                         mask="date"
-                        ref="birthDate"
                         :rules="['date']"
                         label="Data de Fim">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="identifier.endDate" >
+                                <q-date v-model="episode.stopDate" >
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -145,18 +133,7 @@
                       option-label="description"
                       label="Notas de Fim" />
 
-                      <q-select
-                      class="col q-ml-md"
-                      dense outlined
-                      v-model="episode.clinicSector"
-                      :options="options"
-                      option-value="code"
-                      option-label="description"
-                      label="Farmácia de Referência/Transferência" />
-                </div>
-                <div class="row">
-                      <TextInput v-model="patient.address" label="Outras notas de fim" dense class="col" />
-                      <div class="col"></div>
+                      <TextInput v-model="episode.notes" label="Outras notas de fim" dense class="col q-ml-md" />
                 </div>
               </span>
             </div>
@@ -170,7 +147,7 @@
 
 <script>
 export default {
-    props: ['identifierToEdit', 'selectedPatient'],
+    props: ['episodeToEdit', 'curIdentifier', 'selectedPatient'],
     data () {
         return {
             patient: {},
@@ -181,14 +158,11 @@ export default {
     },
     created () {
         this.patient = Object.assign({}, this.selectedPatient)
-        if (this.identifierToEdit !== null) {
-          this.identifier = Object.assign({}, this.identifierToEdit)
-          this.episode = Object.assign({}, this.identifier.episodes[this.identifierToEdit.episodes.length - 1])
-        }
+        this.identifier = Object.assign({}, this.curIdentifier)
+        this.episode = Object.assign({}, this.episodeToEdit)
     },
     components: {
-      TextInput: require('components/Shared/Input/TextField.vue').default,
-      identifierInput: require('components/Patient/Inputs/PatientIdentifierInput.vue').default
+      TextInput: require('components/Shared/Input/TextField.vue').default
     }
 }
 </script>

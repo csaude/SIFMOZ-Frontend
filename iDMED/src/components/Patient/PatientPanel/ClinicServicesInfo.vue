@@ -4,23 +4,44 @@
       :addVisible="true"
       :mainContainer="true"
       bgColor="bg-primary"
-      @showAdd="showAddClinicService = true">
+      @showAdd="addClinicService()">
       Serviços de Saúde
     </ListHeader>
-    <EmptyList v-if="emptyList" >Nenhum Serviço de Saúde Adicionado</EmptyList>
-    <InfoContainer/>
-    <q-dialog v-model="showAddClinicService">
-        <AddClinicService @close="showAddClinicService = false" />
+    <EmptyList v-if="identifiers.length <= 0" >Nenhum Serviço de Saúde Adicionado</EmptyList>
+    <span
+      v-for="identifier in identifiers" :key="identifier.id" >
+      <InfoContainer
+        :selectedPatient="selectedPatient"
+        :identifier="identifier"
+        @editClinicService="editClinicService"/>
+    </span>
+    <q-dialog persistent v-model="showAddEditClinicalService">
+        <AddClinicService
+          :identifierToEdit="selectedIdentifier"
+          :selectedPatient="selectedPatient"
+          @close="showAddEditClinicalService = false" />
     </q-dialog>
   </div>
 </template>
 
 <script>
 export default {
+  props: ['identifiers', 'selectedPatient'],
   data () {
     return {
-      showAddClinicService: false,
-      emptyList: false
+      showAddEditClinicalService: false,
+      emptyList: false,
+      selectedIdentifier: {}
+    }
+  },
+  methods: {
+    editClinicService (curIdentifier) {
+      this.selectedIdentifier = Object.assign({}, curIdentifier)
+      this.showAddEditClinicalService = true
+    },
+    addClinicService () {
+      this.selectedIdentifier = null
+      this.showAddEditClinicalService = true
     }
   },
   components: {

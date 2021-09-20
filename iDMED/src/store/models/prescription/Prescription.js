@@ -1,6 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Doctor from '../doctor/Doctor'
-import Episode from '../episode/Episode'
+import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug'
 
@@ -17,12 +17,12 @@ export default class Prescription extends Model {
         prescriptionSeq: this.attr(''),
         modified: this.attr(''),
         doctor_id: this.attr(''),
-        episode_id: this.attr(''),
+        patientVisitDetails_id: this.attr(''),
         // Relationships
         doctor: this.belongsTo(Doctor, 'doctor_id'),
-        episode: this.belongsTo(Episode, 'episode_id'),
-        prescription_detail: this.hasOne(PrescriptionDetail, 'prescription_id'),
-        prescribed_drugs: this.hasMany(PrescribedDrug, 'prescription_id')
+        patientVisitDetails: this.belongsTo(PatientVisitDetails, 'prescription_id'),
+        prescriptionDetail: this.hasOne(PrescriptionDetail, 'prescription_id'),
+        prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id')
       }
     }
 }

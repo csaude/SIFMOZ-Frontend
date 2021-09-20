@@ -1,7 +1,6 @@
 <template>
   <div>
     <search :clinic="clinic" v-if="isSearch" @showSelected="showSelected"/>
-    <PatientPanel :selectedPatient="currPatient" v-if="isPatientDetails"/>
   </div>
 </template>
 
@@ -10,8 +9,8 @@ export default {
     props: ['clinic'],
     setup () {
       return {
-        isSearch: false,
-        isPatientDetails: true,
+        isSearch: true,
+        isPatientDetails: false,
         currPatient: {}
       }
     },
@@ -19,8 +18,7 @@ export default {
       showSelected (patient) {}
     },
     components: {
-        search: require('components/Patient/Search.vue').default,
-        PatientPanel: require('components/Patient/PatientPanel/PatientPanel.vue').default
+        search: require('components/Patient/Search.vue').default
     }
 }
 </script>

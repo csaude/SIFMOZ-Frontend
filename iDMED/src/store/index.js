@@ -22,9 +22,8 @@ import IdentifierType from './models/identifierType/IdentifierType'
 import NationalClinic from './models/nationalClinic/NationalClinic'
 import Patient from './models/patient/Patient'
 import PatientAttribute from './models/patientAttribute/PatientAttribute'
-import PatientProgramIdentifier from './models/patientProgramIdentifier/PatientProgramIdentifier'
-import Program from './models/program/Program'
-import ProgramAttributeType from './models/programAttributeType/ProgramAttributeType'
+import PatientServiceIdentifier from './models/patientServiceIdentifier/PatientServiceIdentifier'
+import ClinicalService from './models/ClinicalService/ClinicalService'
 import StartStopReason from './models/startStopReason/StartStopReason'
 import TherapeuticRegimen from './models/therapeuticRegimen/TherapeuticRegimen'
 import Stock from './models/stock/Stock'
@@ -41,6 +40,10 @@ import PregnancyScreening from './models/screening/PregnancyScreening'
 import RAMScreening from './models/screening/RAMScreening'
 import VitalSignsScreening from './models/screening/VitalSignsScreening'
 import TBScreening from './models/screening/TBScreening'
+import Localidade from './models/Localidade/Localidade'
+import PostoAdministrativo from './models/PostoAdministrativo/PostoAdministrativo'
+import ClinicalServiceAttributeType from './models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
+import ClinicalServiceAttribute from './models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 
 // Vue.use(Vuex)
 
@@ -49,7 +52,7 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://localhost:8081/api'
+  baseURL: 'http://localhost:8080'
 })
 
 const database = new VuexORM.Database()
@@ -72,9 +75,8 @@ database.register(IdentifierType)
 database.register(NationalClinic)
 database.register(Patient)
 database.register(PatientAttribute)
-database.register(PatientProgramIdentifier)
-database.register(Program)
-database.register(ProgramAttributeType)
+database.register(PatientServiceIdentifier)
+database.register(ClinicalService)
 database.register(StartStopReason)
 database.register(TherapeuticRegimen)
 database.register(Stock)
@@ -94,6 +96,10 @@ database.register(PregnancyScreening)
 database.register(RAMScreening)
 database.register(VitalSignsScreening)
 database.register(TBScreening)
+database.register(Localidade)
+database.register(PostoAdministrativo)
+database.register(ClinicalServiceAttributeType)
+database.register(ClinicalServiceAttribute)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
