@@ -11,7 +11,7 @@
       </q-card-section>
 
       <q-card-section>
-        <div class="text-center">Prescrição</div>
+        <div class="text-center text-subtitle1">Prescrição</div>
         <div class="row q-mt-md">
           <div class="col-3 panel">
             <ListHeader
@@ -25,6 +25,7 @@
                 dense
                 outlined
                 class="col"
+                v-model="curPatientVisitDetail.prescription.prescriptionDate"
                 mask="date"
                 ref="birthDate"
                 :rules="['date']"
@@ -32,7 +33,7 @@
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date >
+                        <q-date v-model="curPatientVisitDetail.prescription.prescriptionDate">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -46,34 +47,38 @@
                   dense outlined
                   options-dense
                   :options="clinicalServices"
-                  @blur="checkSelectedServiceAttr"
                   v-model="selectedClinicalService"
-                  option-value="code"
+                  option-value="id"
                   option-label="description"
                   label="Serviço de Saúde e Sector Associado" />
               <q-select
                   v-if="hasTherapeuticalRegimen"
                   class="col q-mb-md"
                   dense outlined
-                  option-value="code"
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticRegimen"
+                  :options="selectedClinicalService.therapeuticRegimens"
+                  option-value="id"
                   option-label="description"
                   label="Regime Terapêutico" />
               <q-select
                   v-if="hasTherapeuticalLine"
                   class="col q-mb-md"
                   dense outlined
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticLine"
                   option-value="code"
                   option-label="description"
                   label="Linha Terapêutica" />
               <q-select
                   class="col q-mb-md"
                   dense outlined
+                  v-model="selectedDuration"
                   option-value="code"
                   option-label="description"
                   label="Duração [1S, 2S, 1M, 2M, ...]" />
               <q-select
                   class="col q-mb-md"
                   dense outlined
+                  v-model="curPatientVisitDetail.prescription.doctor"
                   option-value="code"
                   option-label="description"
                   label="Clínico" />
@@ -95,11 +100,14 @@
                   class="col q-mb-md"
                   dense outlined
                   option-value="code"
+                  :options="reasonsForUpdate"
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.reasonForUpdate"
                   option-label="description"
                   label="Motivo Alteração [FT, Alergia ...]" />
                 <q-select
                   class="col q-mb-md"
                   dense outlined
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.dispenseType"
                   option-value="code"
                   option-label="description"
                   label="Paciente em [DM, DT, DS]" />
@@ -115,13 +123,28 @@
             </div>
           </div>
           <div class="col q-mx-md">
-            <div
-              v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
-              <ServiceDrugsManagement
-                v-if="selectedClinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
-                :selectedClinicalService="selectedClinicalService"
-                @addEditDrugs="addEditDrugs"
-                :visitDetails="visitDetails"/>
+          <span
+              v-if="selectedClinicalService !==''">
+              <div
+                v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
+                <ServiceDrugsManagement
+                  v-if="selectedClinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
+                  :selectedClinicalService="selectedClinicalService"
+                  @addEditDrugs="addEditDrugs"
+                  :visitDetails="visitDetails"/>
+              </div>
+          </span>
+          <div v-else class="vertical-middle">
+            <q-banner rounded class="bg-orange-1 text-left text-orange-10">
+              Nenhum Serviço de Saúde foi Seleccionado!.
+            </q-banner>
+          </div>
+          <div
+            v-if="selectedClinicalService !==''"
+            class="row text-right absolute-bottom q-mb-lg q-mr-lg">
+            <q-space/>
+              <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
+              <q-btn type="submit" label="Dispensar" color="primary" class="q-ml-md" />
             </div>
           </div>
         </div>
@@ -145,10 +168,13 @@ export default {
       patientVisit: {},
       curPatientVisitDetails: [],
       curPatientVisitDetail: {
-        prescription: {}
+        prescription: {
+          prescriptionDetail: {}
+        }
       },
       clinicalServices: [],
-      selectedClinicalService: ''
+      selectedClinicalService: '',
+      reasonsForUpdate: ['FT', 'Alergia']
     }
   },
   methods: {
@@ -183,12 +209,6 @@ export default {
       curPatientVisitDetail.episode = episode
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
-    },
-    checkSelectedServiceAttr () {
-      this.checkTherapeuticalRegimenAttr()
-      this.checkTherapeuticalLineAttr()
-      this.checkPatientTypeAttr()
-      this.checkPrescriptionChangeMotiveAttr()
     },
     checkClinicalServiceAttr (attributes, attr) {
       let v

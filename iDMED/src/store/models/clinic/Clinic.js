@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import ClinicSector from '../clinicSector/ClinicSector'
 import District from '../district/District'
 import NationalClinic from '../nationalClinic/NationalClinic'
+import Patient from '../patient/Patient'
 import Province from '../province/Province'
 
 export default class Clinic extends Model {
@@ -22,7 +23,8 @@ export default class Clinic extends Model {
       province: this.belongsTo(Province, 'province_id'),
       district: this.belongsTo(District, 'district_id'),
       nationalClinic: this.belongsTo(NationalClinic, 'nationalClinic_id'),
-      sectors: this.hasMany(ClinicSector, 'clinic_id')
+      sectors: this.hasMany(ClinicSector, 'clinic_id'),
+      patients: this.hasMany(Patient, 'patients')
 
     }
   }

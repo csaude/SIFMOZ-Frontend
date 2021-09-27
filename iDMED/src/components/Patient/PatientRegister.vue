@@ -13,7 +13,7 @@
                     <div class="row">
                         <nameInput v-model="patient.firstNames"/>
                         <middleNameInput v-model="patient.middleNames" class="q-ml-md"/>
-                        <lastNameInput v-model="patient.lastName" class="q-ml-md"/>
+                        <lastNameInput v-model="patient.lastNames" class="q-ml-md"/>
                     </div>
                     <div class="row">
                           <q-input
@@ -37,14 +37,12 @@
                                   </q-icon>
                               </template>
                           </q-input>
-                            <numberInput label="Idade" class="q-ml-md"/>
+                            <numberInput v-model="patient.age" label="Idade" class="q-ml-md"/>
                         <q-select
                           class="col q-ml-md"
                           dense outlined
                           v-model="patient.gender"
                           :options="genders"
-                          option-value="code"
-                          option-label="description"
                           label="Género" />
                     </div>
                 </div>
@@ -97,27 +95,27 @@
                 </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
-                <q-btn label="Cancelar" color="primary" @click="$emit('close')"/>
+                <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
-        <pre>{{patient}}</pre>
     </q-card>
 </template>
 
 <script>
 import Province from '../../store/models/province/Province'
 import { ref } from 'vue'
+import Patient from '../../store/models/patient/Patient'
 const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
 export default {
-    props: ['clinic'],
+    props: ['clinic', 'selectedPatient'],
     data () {
       const provOptions = ref(this.provinces)
         return {
             currClinic: {},
-            patient: {},
+            patient: new Patient(),
             provOptions,
             selectedProvince: {},
             createValue (val, done) {
@@ -127,16 +125,7 @@ export default {
                 }
               }
             },
-            genders: [
-             {
-                code: 'M',
-                description: 'Masculino'
-              },
-              {
-                code: 'F',
-                description: 'Femenino'
-              }
-              ],
+            genders: ['Masculino', 'Femenino'],
               filterFn (val, update) {
                 update(() => {
                   if (val === '') {
@@ -186,7 +175,11 @@ export default {
     },
     created () {
         this.currClinic = Object.assign({}, this.clinic)
-        this.patient.clinic = Object.assign({}, this.clinic)
+        if (this.selectedPatient !== '') {
+          this.patient = Object.assign({}, this.selectedPatient)
+        } else {
+          this.patient.clinic = Object.assign({}, this.clinic)
+        }
     },
     components: {
         TextInput: require('components/Shared/Input/TextField.vue').default,

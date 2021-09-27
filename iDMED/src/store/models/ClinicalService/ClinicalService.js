@@ -11,7 +11,7 @@ export default class ClinicalService extends Model {
       code: this.attr(''),
       description: this.attr(''),
       attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),
-      therapeuticRegimen: this.hasMany(TherapeuticRegimen, 'clinical_service_id')
+      therapeuticRegimens: this.hasMany(TherapeuticRegimen, 'clinical_service_id')
     }
   }
 }

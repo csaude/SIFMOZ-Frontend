@@ -105,6 +105,7 @@ export default {
             clinicalService: {
               code: 'TARV',
               description: 'TARV',
+              currPatientVisitDetail: {},
               attributes: [
                 {
                   id: '',
@@ -137,6 +138,18 @@ export default {
                     code: 'PRESCRIPTION_CHANGE_MOTIVE',
                     description: 'Motivo da alteração'
                   }
+                }
+              ],
+              therapeuticRegimens: [
+                {
+                  id: '5044237e-ceba-4dc8-8368-bc54c5c82b84',
+                  description: 'TDF+ABC+LPV/r',
+                  regimenDrugs: []
+                },
+                {
+                  id: '6097bea4-dbf6-4fca-aee8-00a71e49e4ec',
+                  description: 'TDF+AZT+3TC+LPV/r',
+                  regimenDrugs: []
                 }
               ]
             },
@@ -218,6 +231,7 @@ export default {
             clinicalService: {
               code: 'TB',
               description: 'TB',
+              currPatientVisitDetail: {},
               attributes: [
                 {
                   id: '',
@@ -243,6 +257,18 @@ export default {
                     description: 'Motivo da alteração'
                   }
                 }
+              ],
+              therapeuticRegimens: [
+                {
+                  id: '7dbbd087-c9df-4465-9188-cc10b3c23e35',
+                  description: 'ABC+3TC+RAL',
+                  regimenDrugs: []
+                },
+                {
+                  id: '78419317-cdda-42e9-92a3-13cb0cbf0020',
+                  description: 'ABC+3TC+EFV',
+                  regimenDrugs: []
+                }
               ]
             },
             id: 2,
@@ -255,6 +281,8 @@ export default {
         ]
       }
     }
+  },
+  computed: {
   },
   components: {
       TitleBar: require('components/Shared/TitleBar.vue').default,
