@@ -84,7 +84,6 @@ export default {
       }
     },
     editEpisode (episode) {
-      console.log('episodio', episode)
       this.selectedEpisode = Object.assign({}, episode)
       this.showAddEditEpisode = true
     }

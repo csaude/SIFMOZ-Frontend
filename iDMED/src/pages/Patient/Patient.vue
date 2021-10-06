@@ -12,7 +12,7 @@
 
 <script>
 import { LocalStorage } from 'quasar'
-import Patient from '../store/models/patient/Patient'
+import Patient from '../../store/models/patient/Patient'
 export default {
     data () {
       return {
@@ -34,8 +34,7 @@ export default {
       }
     },
     components: {
-        search: require('components/Patient/Search.vue').default,
-        PatientPanel: require('components/Patient/PatientPanel/PatientPanel.vue').default
+        search: require('components/Patient/Search.vue').default
     }
 }
 </script>

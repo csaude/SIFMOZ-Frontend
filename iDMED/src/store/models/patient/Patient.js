@@ -8,6 +8,7 @@ import Province from '../province/Province'
 import District from '../district/District'
 import Clinic from '../clinic/Clinic'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
+import Localidade from '../Localidade/Localidade'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -43,7 +44,7 @@ export default class Patient extends Model {
       members: this.hasMany(GroupMember, 'patient_id'),
       district: this.belongsTo(District, 'district_id'),
       postoAdministrativo: this.belongsTo(PostoAdministrativo, 'postoAdministrativo_id'),
-      bairro: this.belongsTo(District, 'bairro_id'),
+      bairro: this.belongsTo(Localidade, 'bairro_id'),
       clinic: this.belongsTo(Clinic, 'clinic_id')
 
     }

@@ -5,7 +5,7 @@
           <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
           <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
           <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-          <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> Anos</div>
+          <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
         </div>
         <q-separator/>
       </q-card-section>
@@ -46,10 +46,10 @@
                   class="col q-mb-md"
                   dense outlined
                   options-dense
-                  :options="clinicalServices"
+                  :options="patient.identifiers"
                   v-model="selectedClinicalService"
                   option-value="id"
-                  option-label="description"
+                  option-label="id"
                   label="Serviço de Saúde e Sector Associado" />
               <q-select
                   v-if="hasTherapeuticalRegimen"
@@ -128,8 +128,8 @@
               <div
                 v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
                 <ServiceDrugsManagement
-                  v-if="selectedClinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
-                  :selectedClinicalService="selectedClinicalService"
+                  v-if="selectedClinicalService.clinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
+                  :selectedClinicalService="selectedClinicalService.clinicalService"
                   @addEditDrugs="addEditDrugs"
                   :visitDetails="visitDetails"/>
               </div>
@@ -140,11 +140,19 @@
             </q-banner>
           </div>
           <div
-            v-if="selectedClinicalService !==''"
             class="row text-right absolute-bottom q-mb-lg q-mr-lg">
             <q-space/>
-              <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-              <q-btn type="submit" label="Dispensar" color="primary" class="q-ml-md" />
+              <q-btn
+                label="Cancelar"
+                color="red"
+                @click="$emit('close')"/>
+
+              <q-btn
+                v-if="selectedClinicalService !==''"
+                type="submit"
+                label="Dispensar"
+                color="primary"
+                class="q-ml-md" />
             </div>
           </div>
         </div>
@@ -159,8 +167,9 @@
 
 <script>
 
+import { SessionStorage } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
 export default {
-  props: ['patient'],
   data () {
     return {
       showAddEditDrug: false,
@@ -186,6 +195,7 @@ export default {
       this.patientVisit.visitDate = new Date()
     },
     init () {
+      console.log(this.identifiers[0].curEpisode())
       this.initPatientVisit()
       Object.keys(this.identifiers).forEach(function (key) {
         if (this.identifiers[key].endDate === '') {
@@ -224,19 +234,22 @@ export default {
   computed: {
     hasTherapeuticalRegimen () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
     },
     hasTherapeuticalLine () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_LINE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'THERAPEUTICAL_LINE')
     },
     hasPatientType () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PATIENT_TYPE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'PATIENT_TYPE')
     },
     hasPrescriptionChangeMotive () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
+    },
+    patient () {
+      return new Patient(SessionStorage.getItem('selectedPatient'))
     }
   },
   mounted () {

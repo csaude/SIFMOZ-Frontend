@@ -26,4 +26,30 @@ export default class PatientServiceIdentifier extends Model {
 
     }
   }
+
+  curEpisode () {
+    let curEpisode = ''
+    Object.keys(this.episodes).forEach(function (k) {
+      const id = this.episodes[k]
+      if (!id.closed()) {
+        curEpisode = id
+      }
+    }.bind(this))
+    return curEpisode
+  }
+
+  lastVisit () {
+    return this.curEpisode().lastVisit()
+  }
+
+  lastEpisodeWithVisit () {
+    let curEpisode = ''
+    Object.keys(this.episodes).forEach(function (k) {
+      const ep = this.episodes[k]
+      if (ep.patientVisitDetails != null) {
+        curEpisode = ep
+      }
+    }.bind(this))
+    return curEpisode
+  }
 }

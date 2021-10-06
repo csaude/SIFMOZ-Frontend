@@ -103,9 +103,9 @@
 </template>
 
 <script>
-import Province from '../../store/models/province/Province'
+import Province from '../../../store/models/province/Province'
 import { ref } from 'vue'
-import Patient from '../../store/models/patient/Patient'
+import Patient from '../../../store/models/patient/Patient'
 const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]

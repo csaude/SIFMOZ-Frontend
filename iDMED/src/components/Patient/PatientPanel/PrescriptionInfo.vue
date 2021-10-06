@@ -6,7 +6,13 @@
     bgColor="bg-primary"
     @showAdd="showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList >Nenhuma Prescrição Adicionada</EmptyList>
+  <EmptyList v-if="patient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
+  <span
+      v-for="identifier in patient.identifiers" :key="identifier.id" >
+      <PrescriptionInfoContainer
+        :identifier="identifier"
+        @editClinicService="editClinicService"/>
+    </span>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
         <AddEditPrescription
@@ -17,6 +23,8 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
 export default {
   props: ['selectedPatient'],
   data () {
@@ -24,10 +32,16 @@ export default {
       showAddPrescription: false
     }
   },
+  computed: {
+    patient () {
+      return new Patient(SessionStorage.getItem('selectedPatient'))
+    }
+  },
   components: {
       AddEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default,
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      EmptyList: require('components/Shared/ListEmpty.vue').default
+      EmptyList: require('components/Shared/ListEmpty.vue').default,
+      PrescriptionInfoContainer: require('components/Patient/Prescription/PrescriptionInfoContainer.vue').default
   }
 }
 </script>

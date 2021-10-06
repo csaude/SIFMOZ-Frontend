@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" :mainContainer="true" bgColor="bg-primary" @showAdd="showAddPharmAttention = true">Atenção Farmacêutica</ListHeader>
+    <ListHeader :addVisible="true" :mainContainer="true" bgColor="bg-primary" @showAdd="showAddPharmAttention = true">Atenção Farmacêutica</ListHeader>
     <EmptyList >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
   </div>
 </template>

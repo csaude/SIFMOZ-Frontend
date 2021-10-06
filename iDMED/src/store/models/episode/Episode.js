@@ -16,13 +16,32 @@ export default class Episode extends Model {
       notes: this.attr(''),
       episodeType_id: this.attr(''),
       clinicSector_id: this.attr(''),
-      patientProgramIdentifier_id: this.attr(''),
+      patientServiceIdentifier_id: this.attr(''),
       // Relationships
-      startStopReasons: this.hasMany(StartStopReason, 'episode_id'),
+      startStopReasons: this.hasOne(StartStopReason, 'episode_id'),
       episodeType: this.belongsTo(EpisodeType, 'episodeType_id'),
       clinicSector: this.belongsTo(ClinicSector, 'clinicSector_id'),
-      patientProgramIdentifier: this.belongsTo(PatientProgramIdentifier, 'patientProgramIdentifier_id'),
+      patientServiceIdentifier: this.belongsTo(PatientProgramIdentifier, 'patientServiceIdentifier_id'),
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'episode_id')
     }
+  }
+
+  closed () {
+    return this.stopDate !== ''
+  }
+
+  lastVisit () {
+    let lastVisit = ''
+    Object.keys(this.patientVisitDetails).forEach(function (k) {
+      const id = this.patientVisitDetails[k]
+      if (lastVisit === '') {
+        lastVisit = id
+      } else if (lastVisit.id !== '') {
+        if (new Date(lastVisit.patientVisit.visitDate) < new Date(id.patientVisit.visitDate)) {
+          lastVisit = id
+        }
+      }
+    }.bind(this))
+    return lastVisit
   }
 }

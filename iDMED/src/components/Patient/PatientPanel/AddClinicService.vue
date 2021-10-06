@@ -140,7 +140,7 @@
                       class="col q-ml-md"
                       dense outlined
                       v-model="episode.clinicSector"
-                      :options="options"
+                      :options="episodeEndNotes"
                       option-value="code"
                       option-label="description"
                       label="Notas de Fim" />
@@ -176,7 +176,8 @@ export default {
             patient: {},
             identifier: {},
             episode: {},
-            estados: ['Activo', 'Curado']
+            estados: ['Activo', 'Curado'],
+            episodeEndNotes: ['Curado']
         }
     },
     created () {
