@@ -16,9 +16,9 @@ export default class PrescriptionDetail extends Model {
         dispense_type_id: this.attr(''),
         // Relationships
         prescription: this.belongsTo(Prescription, 'prescription_id'),
-        therapeutic_line: this.belongsTo(TherapeuticLine, 'therapeutic_line_id'),
-        therapeutic_regimen: this.belongsTo(TherapeuticRegimen, 'therapeutic_regimen_id'),
-        dispense_type: this.belongsTo(DispenseType, 'dispense_type_id')
+        therapeuticLine: this.belongsTo(TherapeuticLine, 'therapeutic_line_id'),
+        therapeuticRegimen: this.belongsTo(TherapeuticRegimen, 'therapeutic_regimen_id'),
+        dispenseType: this.belongsTo(DispenseType, 'dispense_type_id')
       }
     }
 }

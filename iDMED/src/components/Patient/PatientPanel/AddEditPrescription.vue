@@ -5,13 +5,13 @@
           <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
           <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
           <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-          <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> Anos</div>
+          <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
         </div>
         <q-separator/>
       </q-card-section>
 
       <q-card-section>
-        <div class="text-center">Prescrição</div>
+        <div class="text-center text-subtitle1">Prescrição</div>
         <div class="row q-mt-md">
           <div class="col-3 panel">
             <ListHeader
@@ -25,6 +25,7 @@
                 dense
                 outlined
                 class="col"
+                v-model="curPatientVisitDetail.prescription.prescriptionDate"
                 mask="date"
                 ref="birthDate"
                 :rules="['date']"
@@ -32,7 +33,7 @@
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date >
+                        <q-date v-model="curPatientVisitDetail.prescription.prescriptionDate">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -45,35 +46,39 @@
                   class="col q-mb-md"
                   dense outlined
                   options-dense
-                  :options="clinicalServices"
-                  @blur="checkSelectedServiceAttr"
+                  :options="patient.identifiers"
                   v-model="selectedClinicalService"
-                  option-value="code"
-                  option-label="description"
+                  option-value="id"
+                  option-label="id"
                   label="Serviço de Saúde e Sector Associado" />
               <q-select
                   v-if="hasTherapeuticalRegimen"
                   class="col q-mb-md"
                   dense outlined
-                  option-value="code"
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticRegimen"
+                  :options="selectedClinicalService.therapeuticRegimens"
+                  option-value="id"
                   option-label="description"
                   label="Regime Terapêutico" />
               <q-select
                   v-if="hasTherapeuticalLine"
                   class="col q-mb-md"
                   dense outlined
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticLine"
                   option-value="code"
                   option-label="description"
                   label="Linha Terapêutica" />
               <q-select
                   class="col q-mb-md"
                   dense outlined
+                  v-model="selectedDuration"
                   option-value="code"
                   option-label="description"
                   label="Duração [1S, 2S, 1M, 2M, ...]" />
               <q-select
                   class="col q-mb-md"
                   dense outlined
+                  v-model="curPatientVisitDetail.prescription.doctor"
                   option-value="code"
                   option-label="description"
                   label="Clínico" />
@@ -95,11 +100,14 @@
                   class="col q-mb-md"
                   dense outlined
                   option-value="code"
+                  :options="reasonsForUpdate"
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.reasonForUpdate"
                   option-label="description"
                   label="Motivo Alteração [FT, Alergia ...]" />
                 <q-select
                   class="col q-mb-md"
                   dense outlined
+                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.dispenseType"
                   option-value="code"
                   option-label="description"
                   label="Paciente em [DM, DT, DS]" />
@@ -115,13 +123,36 @@
             </div>
           </div>
           <div class="col q-mx-md">
-            <div
-              v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
-              <ServiceDrugsManagement
-                v-if="selectedClinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
-                :selectedClinicalService="selectedClinicalService"
-                @addEditDrugs="addEditDrugs"
-                :visitDetails="visitDetails"/>
+          <span
+              v-if="selectedClinicalService !==''">
+              <div
+                v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
+                <ServiceDrugsManagement
+                  v-if="selectedClinicalService.clinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
+                  :selectedClinicalService="selectedClinicalService.clinicalService"
+                  @addEditDrugs="addEditDrugs"
+                  :visitDetails="visitDetails"/>
+              </div>
+          </span>
+          <div v-else class="vertical-middle">
+            <q-banner rounded class="bg-orange-1 text-left text-orange-10">
+              Nenhum Serviço de Saúde foi Seleccionado!.
+            </q-banner>
+          </div>
+          <div
+            class="row text-right absolute-bottom q-mb-lg q-mr-lg">
+            <q-space/>
+              <q-btn
+                label="Cancelar"
+                color="red"
+                @click="$emit('close')"/>
+
+              <q-btn
+                v-if="selectedClinicalService !==''"
+                type="submit"
+                label="Dispensar"
+                color="primary"
+                class="q-ml-md" />
             </div>
           </div>
         </div>
@@ -136,8 +167,9 @@
 
 <script>
 
+import { SessionStorage } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
 export default {
-  props: ['patient'],
   data () {
     return {
       showAddEditDrug: false,
@@ -145,10 +177,13 @@ export default {
       patientVisit: {},
       curPatientVisitDetails: [],
       curPatientVisitDetail: {
-        prescription: {}
+        prescription: {
+          prescriptionDetail: {}
+        }
       },
       clinicalServices: [],
-      selectedClinicalService: ''
+      selectedClinicalService: '',
+      reasonsForUpdate: ['FT', 'Alergia']
     }
   },
   methods: {
@@ -160,6 +195,7 @@ export default {
       this.patientVisit.visitDate = new Date()
     },
     init () {
+      console.log(this.identifiers[0].curEpisode())
       this.initPatientVisit()
       Object.keys(this.identifiers).forEach(function (key) {
         if (this.identifiers[key].endDate === '') {
@@ -184,12 +220,6 @@ export default {
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
     },
-    checkSelectedServiceAttr () {
-      this.checkTherapeuticalRegimenAttr()
-      this.checkTherapeuticalLineAttr()
-      this.checkPatientTypeAttr()
-      this.checkPrescriptionChangeMotiveAttr()
-    },
     checkClinicalServiceAttr (attributes, attr) {
       let v
       Object.keys(attributes).forEach(function (k) {
@@ -204,19 +234,22 @@ export default {
   computed: {
     hasTherapeuticalRegimen () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
     },
     hasTherapeuticalLine () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_LINE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'THERAPEUTICAL_LINE')
     },
     hasPatientType () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PATIENT_TYPE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'PATIENT_TYPE')
     },
     hasPrescriptionChangeMotive () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
+    },
+    patient () {
+      return new Patient(SessionStorage.getItem('selectedPatient'))
     }
   },
   mounted () {

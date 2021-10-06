@@ -8,13 +8,15 @@
       Serviços de Saúde
     </ListHeader>
     <EmptyList v-if="identifiers.length <= 0" >Nenhum Serviço de Saúde Adicionado</EmptyList>
-    <span
-      v-for="identifier in identifiers" :key="identifier.id" >
-      <InfoContainer
-        :selectedPatient="selectedPatient"
-        :identifier="identifier"
-        @editClinicService="editClinicService"/>
-    </span>
+    <div v-show="false">
+      <span
+        v-for="identifier in identifiers" :key="identifier.id" >
+        <InfoContainer
+          :selectedPatient="selectedPatient"
+          :identifier="identifier"
+          @editClinicService="editClinicService"/>
+      </span>
+    </div>
     <q-dialog persistent v-model="showAddEditClinicalService">
         <AddClinicService
           :identifierToEdit="selectedIdentifier"

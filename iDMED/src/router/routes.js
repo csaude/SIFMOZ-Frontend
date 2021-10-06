@@ -4,8 +4,15 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/Index.vue') },
-      { path: '/patientpanel', component: () => import('pages/PatientPanel.vue') }
+      { path: '', component: () => import('pages/Patient/Patient.vue') },
+      { path: 'patients', component: () => import('pages/Patient/Patient.vue') },
+      { path: 'patientpanel', component: () => import('pages/Patient/Panel/PatientPanel.vue') },
+      { path: 'groups', component: () => import('pages/Groups/Groups.vue') },
+      { path: 'stock', component: () => import('pages/Stock/Stock.vue') },
+      { path: 'dashboard', component: () => import('pages/Dashboard/Dashboard.vue') },
+      { path: 'reports', component: () => import('pages/Reports/Reports.vue') },
+      { path: 'settings', component: () => import('pages/Settings/Settings.vue') },
+      { path: 'home', component: () => import('pages/Home/Home.vue') }
     ]
   },
 
