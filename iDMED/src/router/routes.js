@@ -12,7 +12,8 @@ const routes = [
       { path: 'dashboard', component: () => import('pages/Dashboard/Dashboard.vue') },
       { path: 'reports', component: () => import('pages/Reports/Reports.vue') },
       { path: 'settings', component: () => import('pages/Settings/Settings.vue') },
-      { path: 'home', component: () => import('pages/Home/Home.vue') }
+      { path: 'home', component: () => import('pages/Home/Home.vue') },
+      { path: 'add-clinic', component: () => import('components/Settings/Clinic/AddClinic.vue') }
     ]
   },
 
