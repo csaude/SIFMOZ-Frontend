@@ -52,4 +52,9 @@ export default class PatientServiceIdentifier extends Model {
     }.bind(this))
     return curEpisode
   }
+
+  static async apiSave (identifier) {
+    identifier.startDate = new Date(identifier.startDate)
+    return await this.api().post('/patientServiceIdentifier', identifier)
+  }
 }

@@ -28,4 +28,8 @@ export default class Clinic extends Model {
 
     }
   }
+
+  static apiFetchById (id) {
+    return this.api().get(`/clinic/${id}`)
+  }
 }

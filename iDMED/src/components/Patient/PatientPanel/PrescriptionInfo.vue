@@ -4,21 +4,24 @@
     :addVisible="true"
     :mainContainer="true"
     bgColor="bg-primary"
+    @expandLess="expandLess"
     @showAdd="showAddPrescription = true">Prescrição
   </ListHeader>
   <EmptyList v-if="patient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
-  <span
+  <div v-show="infoVisible" >
+    <span
       v-for="identifier in patient.identifiers" :key="identifier.id" >
       <PrescriptionInfoContainer
         :identifier="identifier"
         @editClinicService="editClinicService"/>
     </span>
+  </div>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
-        <AddEditPrescription
-        :patient="selectedPatient"
-          @close="showAddPrescription = false" />
-    </q-dialog>
+      <AddEditPrescription
+      :patient="selectedPatient"
+        @close="showAddPrescription = false" />
+  </q-dialog>
 </div>
 </template>
 
@@ -29,7 +32,13 @@ export default {
   props: ['selectedPatient'],
   data () {
     return {
-      showAddPrescription: false
+      showAddPrescription: false,
+      infoVisible: false
+    }
+  },
+  methods: {
+    expandLess (value) {
+      this.infoVisible = value
     }
   },
   computed: {

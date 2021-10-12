@@ -4,11 +4,12 @@
       :addVisible="true"
       :mainContainer="true"
       bgColor="bg-primary"
+      @expandLess="expandLess"
       @showAdd="addClinicService()">
       Serviços de Saúde
     </ListHeader>
     <EmptyList v-if="identifiers.length <= 0" >Nenhum Serviço de Saúde Adicionado</EmptyList>
-    <div v-show="false">
+    <div v-show="serviceInfoVisible">
       <span
         v-for="identifier in identifiers" :key="identifier.id" >
         <InfoContainer
@@ -27,13 +28,17 @@
 </template>
 
 <script>
+import { LocalStorage, SessionStorage } from 'quasar'
+import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import Patient from '../../../store/models/patient/Patient'
 export default {
-  props: ['identifiers', 'selectedPatient'],
+  props: ['selectedPatient'],
   data () {
     return {
       showAddEditClinicalService: false,
       emptyList: false,
-      selectedIdentifier: {}
+      selectedIdentifier: new PatientServiceIdentifier(),
+      serviceInfoVisible: false
     }
   },
   methods: {
@@ -44,6 +49,21 @@ export default {
     addClinicService () {
       this.selectedIdentifier = null
       this.showAddEditClinicalService = true
+    },
+    expandLess (value) {
+      this.serviceInfoVisible = value
+      LocalStorage.set('clinicServiceInfoVisible', value)
+    }
+  },
+  computed: {
+    clinicServiceInfoVisible () {
+      return LocalStorage.getItem('clinicServiceInfoVisible')
+    },
+    identifiers () {
+      return PatientServiceIdentifier.query().with('identifierType|clinicalService|episodes').where('patient_id', this.patient.id).get()
+    },
+    patient () {
+      return new Patient(SessionStorage.getItem('selectedPatient'))
     }
   },
   components: {

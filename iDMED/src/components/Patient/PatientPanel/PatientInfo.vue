@@ -30,19 +30,19 @@
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Província</div>
-          <div class="col text-grey-10">Maputo Provincia</div>
+          <div class="col text-grey-10">{{patient.province.description}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Distrito</div>
-          <div class="col text-grey-10">Boane</div>
+          <div class="col text-grey-10">{{patient.district.description}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Posto Administrativo</div>
-          <div class="col text-grey-10">Vila de Boane</div>
+          <div class="col text-grey-10">{{patient.postoAdministrativoName()}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Bairro</div>
-          <div class="col text-grey-10">Massaca 1</div>
+          <div class="col text-grey-10">{{patient.bairroName()}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Local Referência</div>
@@ -100,9 +100,6 @@ export default {
     patient () {
         return new Patient(SessionStorage.getItem('selectedPatient'))
       }
-  },
-  created () {
-        this.patient = Object.assign({}, this.selectedPatient)
   },
   components: {
     patientRegister: require('components/Patient/Register/PatientRegister.vue').default
