@@ -6,18 +6,20 @@
     class="text-white q-pa-none">
         <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
         <template v-slot:action>
-          <q-btn dense flat round color="white" icon="expand_less" class="float-right" @click="$emit('expandLess')"/>
+          <q-btn dense flat round color="white" :icon="expanded ? 'expand_less' : 'expand_more'" class="float-right" @click="expand"/>
           <q-btn dense v-if="addVisible" flat round color="white" icon="add" class="float-right" @click="$emit('showAdd')"/>
         </template>
     </q-banner>
 </template>
 
 <script>
+import { ref } from 'vue'
 export default {
     props: ['addVisible', 'bgColor', 'mainContainer'],
     setup () {
       return {
-        headerClass: ''
+        headerClass: '',
+        expanded: ref(false)
       }
     },
     methods: {
@@ -27,6 +29,10 @@ export default {
         } else {
           this.headerClass = ''
         }
+      },
+      expand () {
+        this.expanded = !this.expanded
+        this.$emit('expandLess', this.expanded)
       }
     },
     created () {

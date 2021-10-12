@@ -37,11 +37,10 @@
         <div class="col q-py-md">
           <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEpisode = true">Dispensa</ListHeader>
           <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum registo de Levantamentos</EmptyList>
-          <span
-            v-for="episode in curIdentifier.episodes" :key="episode.id" >
-            <Episode
-              @editEpisode="editEpisode"
-              :episode="episode"/>
+          <span>
+            <PackInfo
+              @editPack="editPack"
+              :pack="curIdentifier.lastVisit().pack"/>
           </span>
         </div>
       </q-card-section>
@@ -67,7 +66,7 @@ export default {
   components: {
     ListHeader: require('components/Shared/ListHeader.vue').default,
     EmptyList: require('components/Shared/ListEmpty.vue').default,
-    Episode: require('components/Patient/PatientPanel/Episode.vue').default
+    PackInfo: require('components/Patient/Prescription/PackInfo.vue').default
   },
   methods: {
     checkPatientStatusOnService () {
@@ -75,7 +74,7 @@ export default {
         this.isPatientActive = true
       }
     },
-    editEpisode (episode) {
+    editPack (episode) {
       this.selectedEpisode = Object.assign({}, episode)
       this.showAddEditEpisode = true
     }

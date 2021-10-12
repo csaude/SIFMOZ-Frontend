@@ -9,14 +9,18 @@
 
                     <q-toolbar-title>SiDMED</q-toolbar-title>
 
-                    <q-tabs class="absolute-center" no-caps active-bg-color="light-green-10">
-                        <q-route-tab :to="'/home'" name="home" icon="home" label="Inicial" />
-                        <q-route-tab default :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
-                        <q-route-tab :to="'/groups'" name="groups" icon="groups" label="Grupos" />
-                        <q-route-tab :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
-                        <q-route-tab :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
-                        <q-route-tab :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />
-                        <q-route-tab :to="'/settings'" name="settings" icon="settings" label="Administração" />
+                    <q-tabs
+                      class="absolute-center"
+                      no-caps
+                      v-model="tab"
+                      active-bg-color="light-green-10">
+                        <q-route-tab exact :to="'/home'" name="home" icon="home" label="Inicial" />
+                        <q-route-tab exact default :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
+                        <q-route-tab exact :to="'/groups'" name="groups" icon="groups" label="Grupos" />
+                        <q-route-tab exact :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
+                        <q-route-tab exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
+                        <q-route-tab exact :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />
+                        <q-route-tab exact :to="'/settings'" name="settings" icon="settings" label="Administração" />
                     </q-tabs>
 
                     <div class="absolute-right items-center q-mt-sm">
@@ -49,9 +53,14 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 export default defineComponent({
   name: 'MainLayout',
+  setup () {
+    return {
+      tab: ref('patients')
+    }
+  },
   components: { }
 })
 </script>

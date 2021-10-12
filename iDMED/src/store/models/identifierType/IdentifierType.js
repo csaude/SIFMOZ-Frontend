@@ -11,4 +11,12 @@ export default class IdentifierType extends Model {
 
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/identifierType')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/identifierType/${id}`)
+  }
 }

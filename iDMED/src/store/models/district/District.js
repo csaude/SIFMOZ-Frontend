@@ -17,4 +17,8 @@ export default class District extends Model {
       postosAdministrativos: this.hasMany(PostoAdministrativo, 'district_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/district')
+  }
 }
