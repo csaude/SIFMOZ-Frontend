@@ -6,9 +6,17 @@
         <PatientInfo :selectedPatient="patient"/>
       </div>
       <div class="col q-mr-lg">
-        <ClinicServiceInfo :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
-        <PrescriptionInfo :selectedPatient="patient" class="q-mb-lg"/>
-        <PharmaceuticalAtentionInfo />
+        <q-scroll-area
+          :thumb-style="thumbStyle"
+          :content-style="contentStyle"
+          :content-active-style="contentActiveStyle"
+          style="height: 700px;"
+          class="q-pr-md"
+        >
+          <ClinicServiceInfo :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
+          <PrescriptionInfo :selectedPatient="patient" class="q-mb-lg"/>
+          <PharmaceuticalAtentionInfo />
+        </q-scroll-area>
       </div>
     </div>
   </div>
@@ -21,6 +29,23 @@ import Clinic from '../../../store/models/clinic/Clinic'
 export default {
   setup () {
     return {
+      contentStyle: {
+        backgroundColor: 'rgba(0,0,0,0.02)',
+        color: '#555'
+      },
+
+      contentActiveStyle: {
+        backgroundColor: '#eee',
+        color: 'black'
+      },
+
+      thumbStyle: {
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#0ba58b',
+        width: '5px',
+        opacity: 0.75
+      }
     }
   },
   computed: {

@@ -15,4 +15,12 @@ export default class ClinicSector extends Model {
 
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/clinicSector')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/clinicSector/${id}`)
+  }
 }

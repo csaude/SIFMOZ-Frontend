@@ -37,9 +37,51 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import Clinic from '../../store/models/clinic/Clinic'
+import District from '../../store/models/district/District'
+import Province from '../../store/models/province/Province'
+import Patient from '../../store/models/patient/Patient'
 export default {
-    props: ['clinic'],
     components: {
+    },
+    methods: {
+      loadAppParameters () {
+        Province.apiGetAll()
+        District.apiGetAll()
+      },
+      saveCurrClinic () {
+        Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
+          SessionStorage.set('currClinic', resp.response.data)
+        })
+      },
+      getAllPatientsOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPatientGet(this.clinic.id, offset, max)
+      },
+      doPatientGet (clinicId, offset, max) {
+        Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doPatientGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      }
+    },
+    mounted () {
+      this.loadAppParameters()
+      this.getAllPatientsOfClinic()
+    },
+    created () {
+      this.saveCurrClinic()
+    },
+    computed: {
+      clinic () {
+        return new Clinic(SessionStorage.getItem('currClinic'))
+      }
     }
 }
 </script>

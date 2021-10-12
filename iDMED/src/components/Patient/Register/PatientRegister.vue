@@ -1,6 +1,6 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <form @submit.prevent="submitMobilizer" >
+        <form @submit.prevent="savePatient" >
             <q-card-section class="q-px-md">
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
@@ -20,7 +20,7 @@
                               dense
                               outlined
                               class="col"
-                              v-model="patient.dateOfBirth"
+                              v-model="dateOfBirth"
                               mask="date"
                               ref="birthDate"
                               :rules="['date']"
@@ -28,7 +28,7 @@
                               <template v-slot:append>
                                   <q-icon name="event" class="cursor-pointer">
                                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                      <q-date v-model="patient.dateOfBirth" >
+                                      <q-date v-model="dateOfBirth" >
                                       <div class="row items-center justify-end">
                                           <q-btn v-close-popup label="Close" color="primary" flat />
                                       </div>
@@ -37,7 +37,7 @@
                                   </q-icon>
                               </template>
                           </q-input>
-                            <numberInput v-model="patient.age" label="Idade" class="q-ml-md"/>
+                            <numberInput value="patient.age()" label="Idade" class="q-ml-md"/>
                         <q-select
                           class="col q-ml-md"
                           dense outlined
@@ -56,26 +56,25 @@
                 <div class="row q-mt-md">
                     <q-select
                       class="col" dense outlined
-                      v-model="selectedProvince"
+                      v-model="patient.province"
                       use-input
                       input-debounce="0"
-                      hide-selected
                       :options="provinces"
                       option-value="id"
                       option-label="description"
-                      label="Provincia"
-                      @filter="filterProv"/>
+                      label="Provincia"/>
                     <q-select
                       class="col q-ml-md"
                       dense outlined
                       v-model="patient.district"
                       use-input
+                      option-value="id"
+                      option-label="description"
                       input-debounce="0"
                       @new-value="createValue"
                       :options="districts"
-                      @filter="filterFn"
-                      label="Distrito/Cidade/Vila" />
-                    <q-select class="col q-ml-md" dense outlined v-model="model" :options="options" label="Posto Administ./Distrito Urbano" />
+                      label="Distrito/Cidade" />
+                    <q-select class="col q-ml-md" dense outlined v-model="model" :options="options" label="Posto Administivo" />
                 </div>
                 <div class="row q-mt-md">
                     <q-select class="col" dense outlined v-model="model" :options="options" label="Localidade/Bairro" />
@@ -99,6 +98,12 @@
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
+        <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
 </template>
 
@@ -106,6 +111,8 @@
 import Province from '../../../store/models/province/Province'
 import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
+import { SessionStorage } from 'quasar'
+import Clinic from '../../../store/models/clinic/Clinic'
 const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
@@ -114,7 +121,12 @@ export default {
     data () {
       const provOptions = ref(this.provinces)
         return {
-            currClinic: {},
+            alert: ref({
+              type: '',
+              visible: false,
+              msg: ''
+            }),
+            dateOfBirth: '',
             patient: new Patient(),
             provOptions,
             selectedProvince: {},
@@ -162,23 +174,27 @@ export default {
         }
     },
     methods: {
-        getAllProvinces (offset) {
-            if (this.provinces.length <= 0) {
-                    Province.api().get('/province?offset=' + offset + '&max=100').then(resp => {
-                        offset = offset + 100
-                        if (resp.response.data.length > 0) { setTimeout(this.getAllProvinces(offset), 2) }
-                    }).catch(error => {
-                        console.log(error)
-                    })
-            }
-        }
-    },
-    created () {
-        this.currClinic = Object.assign({}, this.clinic)
-        if (this.selectedPatient !== '') {
-          this.patient = Object.assign({}, this.selectedPatient)
-        } else {
-          this.patient.clinic = Object.assign({}, this.clinic)
+        savePatient () {
+           this.patient.dateOfBirth = new Date(this.dateOfBirth)
+           this.patient.clinic = Clinic.query().with('province').where('id', this.currClinic.id).first()
+           Patient.apiSave(this.patient).then(resp => {
+             this.patient = resp.response.data
+             this.displayAlert('info', 'Paciente gravado com sucesso.')
+           }).catch(error => {
+             this.displayAlert('error', error)
+           })
+        },
+        displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+            SessionStorage.set('selectedPatient', this.patient)
+            this.$router.push('/patientpanel')
+          }
         }
     },
     components: {
@@ -187,19 +203,20 @@ export default {
         nameInput: require('components/Patient/Inputs/PatientNameInput.vue').default,
         middleNameInput: require('components/Patient/Inputs/PatientMiddleNameInput.vue').default,
         numberInput: require('components/Shared/Input/NumberField.vue').default,
+        Dialog: require('components/Shared/Dialog/Dialog.vue').default,
         lastNameInput: require('components/Patient/Inputs/PatientLastNameInput.vue').default
     },
-    mounted () {
-        const offset = 0
-        this.provOptions = this.getAllProvinces(offset)
-    },
     computed: {
-        provinces () {
-            return Province.query().with('districts').get()
-        },
-        districts () {
-          return this.selectedProvince.districts
-        }
+      provinces () {
+          return Province.query().with('districts').get()
+      },
+      districts () {
+        if (this.patient.province === null) return null
+        return this.patient.province.districts
+      },
+      currClinic () {
+        return new Clinic(SessionStorage.getItem('currClinic'))
+      }
     }
 }
 </script>

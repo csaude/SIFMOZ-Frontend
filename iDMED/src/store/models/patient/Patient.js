@@ -29,7 +29,7 @@ export default class Patient extends Model {
       alternativeCellphone: this.attr(''),
       address: this.attr(''),
       addressReference: this.attr(''),
-      accountstatus: this.attr(''),
+      accountstatus: this.boolean(true),
       province_id: this.attr(''),
       district_id: this.attr(''),
       postoAdministrativo_id: this.attr(''),
@@ -50,7 +50,18 @@ export default class Patient extends Model {
     }
   }
 
+  bairroName () {
+    if (this.bairro === null) return ''
+    return this.bairro.description
+  }
+
+  postoAdministrativoName () {
+    if (this.postoAdministrativo === null) return ''
+    return this.postoAdministrativo.description
+  }
+
   preferedIdentifier () {
+    if (this.identifiers.length <= 0) return null
     let preferedId = {}
     Object.keys(this.identifiers).forEach(function (k) {
       const id = this.identifiers[k]
@@ -61,19 +72,35 @@ export default class Patient extends Model {
     return preferedId
   }
 
+  preferedIdentifierValue () {
+    if (this.identifiers.length <= 0) return 'Sem identificador'
+    let preferedId = {}
+    Object.keys(this.identifiers).forEach(function (k) {
+      const id = this.identifiers[k]
+      if (id.prefered) {
+        preferedId = id
+      }
+    }.bind(this))
+    return preferedId.value
+  }
+
   age () {
     return date.getDateDiff(new Date(), new Date(this.dateOfBirth), 'years')
   }
 
-  static fetchById (id) {
-    return this.api().get(`/patient/${id}`)
+  static async apiFetchById (id) {
+    return await this.api().get(`/patient/${id}`)
   }
 
-  static search (patient) {
-    this.api().get('/patient/search')
+  static async apiSearch (patient) {
+    return await this.api().post('/patient/search', patient)
   }
 
-  static save () {
-    this.api().post('/patient', this)
+  static async apiSave (patient) {
+    return await this.api().post('/patient', patient)
+  }
+
+  static async apiGetAllByClinicId (clinicId, offset, max) {
+    return await this.api().get('/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 }

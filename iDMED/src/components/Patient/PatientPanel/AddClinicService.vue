@@ -1,12 +1,12 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;">
-        <form @submit.prevent="submitMobilizer" >
+        <form @submit.prevent="submitForm" >
             <q-card-section >
               <div class="row items-center text-subtitle1">
                 <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
-                <div class="text-bold text-grey-10 q-ml-sm">{{patient.firstNames}}</div>
+                <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{age}} Anos</div>
+                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos</div>
               </div>
               <q-separator/>
             </q-card-section>
@@ -27,9 +27,9 @@
                     class="col"
                     dense outlined
                     v-model="identifier.clinicalService"
-                    :options="options"
-                    option-value="code"
-                    option-label="description"
+                    :options="clinicalServices"
+                    option-value="id"
+                    option-label="code"
                     label="Serviço de Saúde" />
 
                   <q-input
@@ -60,8 +60,8 @@
                     class="col"
                     dense outlined
                     v-model="episode.clinicSector"
-                    :options="options"
-                    option-value="code"
+                    :options="clinicSerctors"
+                    option-value="id"
                     option-label="description"
                     label="Sector Clinico" />
                   <q-input
@@ -101,6 +101,14 @@
                 </div>
                 <div class="row">
                     <identifierInput v-model="identifier.value"/>
+                    <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      v-model="identifier.identifierType"
+                      :options="identifierTypes"
+                      option-value="id"
+                      option-label="description"
+                      label="Tipo de Identificador" />
                     <div v-if="patient.identifiers.length > 0" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
                         <q-radio keep-color color="primary"  val="true" label="Sim" />
                         <q-radio keep-color color="primary"  val="false" label="Nao"/>
@@ -161,34 +169,103 @@
               </span>
             </div>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
-                <q-btn label="Cancelar" color="primary" @click="$emit('close')"/>
+                <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
+        <pre>{{episode}}</pre>
+        <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import { ref } from 'vue'
+import Patient from '../../../store/models/patient/Patient'
+import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import Clinic from '../../../store/models/clinic/Clinic'
+import Episode from '../../../store/models/episode/Episode'
+import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 export default {
     props: ['identifierToEdit', 'selectedPatient'],
     data () {
         return {
-            patient: {},
-            identifier: {},
-            episode: {},
+            alert: ref({
+                type: '',
+                visible: false,
+                msg: ''
+              }),
+            identifier: new PatientServiceIdentifier(),
+            episode: new Episode(),
             estados: ['Activo', 'Curado'],
             episodeEndNotes: ['Curado']
         }
     },
+    methods: {
+      init () {
+        ClinicalService.apiGetAll()
+        ClinicSector.apiGetAll()
+        IdentifierType.apiGetAll()
+        this.identifier.patient = this.patient
+      },
+      submitForm () {
+        this.episode.startDate = new Date(this.episode.startDate)
+        this.identifier.episodes.push(this.episode)
+        console.log(this.identifier)
+        PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
+          this.identifier = resp.response.data
+          this.displayAlert('info', 'Serviço adicionado com sucesso.')
+        }).catch(error => {
+          this.displayAlert('error', error)
+        })
+      },
+      displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+          }
+        }
+    },
     created () {
-        this.patient = Object.assign({}, this.selectedPatient)
         if (this.identifierToEdit !== null) {
           this.identifier = Object.assign({}, this.identifierToEdit)
           this.episode = Object.assign({}, this.identifier.episodes[this.identifierToEdit.episodes.length - 1])
         }
     },
+    mounted () {
+      this.init()
+    },
+    computed: {
+      patient () {
+        return new Patient(SessionStorage.getItem('selectedPatient'))
+      },
+      clinicalServices () {
+        return ClinicalService.all()
+      },
+      clinicSerctors () {
+        return ClinicSector.query().where('clinic_id', this.currClinic.id).get()
+      },
+      currClinic () {
+        return new Clinic(SessionStorage.getItem('currClinic'))
+      },
+      identifierTypes () {
+        return IdentifierType.all()
+      }
+    },
     components: {
       TextInput: require('components/Shared/Input/TextField.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default,
       identifierInput: require('components/Patient/Inputs/PatientIdentifierInput.vue').default
     }
 }
