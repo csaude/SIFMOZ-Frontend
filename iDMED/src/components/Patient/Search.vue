@@ -16,10 +16,10 @@
           <span class="q-pl-sm text-subtitle2">Informação inicial</span>
       </div>
       <div class="row">
-          <identifierInput v-model="currPatient.identifiers[0].value"/>
+          <identifierInput @blur="search()" v-model="currPatient.identifiers[0].value"/>
           <nameInput @blur="search()" class="q-ml-md" v-model="currPatient.firstNames"/>
-          <TextField label="Outros Nomes" v-model="currPatient.middleNames" dense class="col q-ml-md"/>
-          <lastNameInput v-model="currPatient.lastNames" class="q-ml-md"/>
+          <TextField @blur="search()" label="Outros Nomes" v-model="currPatient.middleNames" dense class="col q-ml-md"/>
+          <lastNameInput @blur="search()" v-model="currPatient.lastNames" class="q-ml-md"/>
       </div>
       <div class="q-mt-lg q-mb-md">
           <div class="row items-center q-mb-md">
@@ -125,9 +125,8 @@ export default {
     methods: {
       init () {},
       search () {
-        this.patients = Patient.query().with('identifiers|province|attributes|appointments|district|postoAdministrativo|bairro|clinic').where((patient) => {
-          // if (patient.firstNames !== '') { }
-          return patient.firstNames.toLowerCase().includes(this.currPatient.firstNames.toLowerCase()) || patient.middleNames.toLowerCase().includes(this.currPatient.middleNames.toLowerCase()) || patient.lastNames.toLowerCase().includes(this.currPatient.lastNames.toLowerCase())
+        this.patients = Patient.query().with('identifiers').where((patient) => {
+          return this.filterPatient(patient)
         }).get()
       },
       editPatient (patient) {
@@ -137,6 +136,25 @@ export default {
       goToPatientPanel (selectedPatient) {
         SessionStorage.set('selectedPatient', selectedPatient)
         this.$router.push('/patientpanel')
+      },
+      filterPatient (patient) {
+        return this.hasIdentifierLike(patient, this.currPatient) || this.stringContains(patient.firstNames, this.currPatient.firstNames) || this.stringContains(patient.middleNames, this.currPatient.middleNames) || this.stringContains(patient.lastNames, this.currPatient.lastNames)
+      },
+      hasIdentifierLike (patientToCheck, inputPatient) {
+        if (patientToCheck.identifiers.length <= 0) return false
+
+        let check = false
+        Object.keys(patientToCheck.identifiers).forEach(function (k) {
+          const id = patientToCheck.identifiers[k]
+          if (this.stringContains(id.value, this.currPatient.identifiers[0].value)) {
+            check = true
+          }
+        }.bind(this))
+        return check
+      },
+      stringContains (stringToCheck, stringText) {
+        if (stringText === '') return false
+        return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       }
     },
     computed: {
