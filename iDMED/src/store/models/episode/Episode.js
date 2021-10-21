@@ -18,7 +18,7 @@ export default class Episode extends Model {
       clinicSector_id: this.attr(''),
       patientServiceIdentifier_id: this.attr(''),
       // Relationships
-      startStopReasons: this.hasOne(StartStopReason, 'episode_id'),
+      startStopReason: this.hasOne(StartStopReason, 'episode_id'),
       episodeType: this.belongsTo(EpisodeType, 'episodeType_id'),
       clinicSector: this.belongsTo(ClinicSector, 'clinicSector_id'),
       patientServiceIdentifier: this.belongsTo(PatientProgramIdentifier, 'patientServiceIdentifier_id'),
@@ -30,7 +30,12 @@ export default class Episode extends Model {
     return this.stopDate !== ''
   }
 
+  hasVisits () {
+    return this.patientVisitDetails.length > 0
+  }
+
   lastVisit () {
+    if (this.patientVisitDetails.length <= 0) return null
     let lastVisit = ''
     Object.keys(this.patientVisitDetails).forEach(function (k) {
       const id = this.patientVisitDetails[k]
@@ -43,5 +48,13 @@ export default class Episode extends Model {
       }
     }.bind(this))
     return lastVisit
+  }
+
+  static async apiSave (episode) {
+    return await this.api().post('/episode', episode)
+  }
+
+  static async apiGetAllByClinicId (clinicId, offset, max) {
+    return await this.api().get('/episode/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 }

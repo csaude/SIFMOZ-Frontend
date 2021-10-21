@@ -7,10 +7,10 @@
     @expandLess="expandLess"
     @showAdd="showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="patient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
+  <EmptyList v-if="selectedPatient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-show="infoVisible" >
     <span
-      v-for="identifier in patient.identifiers" :key="identifier.id" >
+      v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
       <PrescriptionInfoContainer
         :identifier="identifier"
         @editClinicService="editClinicService"/>
@@ -26,14 +26,12 @@
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
-import Patient from '../../../store/models/patient/Patient'
 export default {
   props: ['selectedPatient'],
   data () {
     return {
       showAddPrescription: false,
-      infoVisible: false
+      infoVisible: true
     }
   },
   methods: {
@@ -42,9 +40,6 @@ export default {
     }
   },
   computed: {
-    patient () {
-      return new Patient(SessionStorage.getItem('selectedPatient'))
-    }
   },
   components: {
       AddEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default,

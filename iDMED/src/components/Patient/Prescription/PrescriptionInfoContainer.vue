@@ -1,7 +1,9 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ curIdentifier.clinicalService.description }} </ListHeader>
-    <q-card class="noRadius">
+    <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ identifier.service.code }} </ListHeader>
+    <q-card
+      v-if="curIdentifier.lastVisit() !== null"
+      class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
@@ -45,6 +47,7 @@
         </div>
       </q-card-section>
     </q-card>
+    <EmptyList v-else >Nenhuma Prescrição Adicionada para o serviço {{identifier.service.code}}</EmptyList>
   </div>
 </template>
 

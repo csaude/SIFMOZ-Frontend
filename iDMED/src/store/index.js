@@ -2,6 +2,7 @@
 import Vuex from 'vuex'
 import axios from 'axios'
 import VuexORM from '@vuex-orm/core'
+import datePlugin from 'vuex-orm-plugin-date-attribute'
 import VuexORMAxios from '@vuex-orm/plugin-axios'
 import Country from './models/country/Country'
 import Province from './models/province/Province'
@@ -44,6 +45,7 @@ import Localidade from './models/Localidade/Localidade'
 import PostoAdministrativo from './models/PostoAdministrativo/PostoAdministrativo'
 import ClinicalServiceAttributeType from './models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from './models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+import PatientVisitDetails from './models/patientVisitDetails/PatientVisitDetails'
 
 // Vue.use(Vuex)
 
@@ -54,6 +56,8 @@ VuexORM.use(VuexORMAxios, {
   },
   baseURL: 'http://localhost:8080'
 })
+
+VuexORM.use(datePlugin)
 
 const database = new VuexORM.Database()
 database.register(Country)
@@ -100,6 +104,7 @@ database.register(Localidade)
 database.register(PostoAdministrativo)
 database.register(ClinicalServiceAttributeType)
 database.register(ClinicalServiceAttribute)
+database.register(PatientVisitDetails)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

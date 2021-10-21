@@ -98,7 +98,15 @@ export default {
   },
   computed: {
     patient () {
-        return new Patient(SessionStorage.getItem('selectedPatient'))
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
       }
   },
   components: {
