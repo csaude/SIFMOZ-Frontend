@@ -5,24 +5,18 @@
     >
 
       <template v-slot:before>
-        <q-tabs
-          v-model="tab"
-          vertical
-          class="text-teal"
+       <q-tabs
+          v-model="selectedTab"
+         vertical
+         class="text-teal"
         >
-        <q-tab name="national_clinic" icon="local_convenience_store" label="Clinicas Nacionais" />
-          <q-tab name="clinic" icon="local_hospital" label="Clinicas" />
-           <q-tab name="clinic_sector" icon="local_pharmacy" label="Sector Clinico" />
-          <q-tab name="drugs" icon="medication" label="Medicamentos" />
-          <q-tab name="drug_regiment" icon="healing" label="Regime Terapeutico" />
-          <q-tab name="doctor" icon="psychology" label="Clinicos" />
-          <q-tab name="users" icon="group_add" label="Utilizadores" />
+          <q-tab v-for="tab in tabs" :key="tab.name" v-bind="tab" />
         </q-tabs>
       </template>
 
       <template v-slot:after>
         <q-tab-panels
-          v-model="tab"
+          v-model="selectedTab"
           animated
           swipeable
           vertical
@@ -43,6 +37,18 @@
             <div class="text-h4 q-mb-md"></div>
              <doctor> </doctor>
           </q-tab-panel>
+            <q-tab-panel name="drugs">
+            <div class="text-h4 q-mb-md"></div>
+             <drug> </drug>
+          </q-tab-panel>
+              <q-tab-panel name="clinical_service">
+            <div class="text-h4 q-mb-md"></div>
+             <clinicalServices> </clinicalServices>
+          </q-tab-panel>
+             <q-tab-panel name="therapeutic_regimen">
+            <div class="text-h4 q-mb-md"></div>
+             <therapeuticRegimen> </therapeuticRegimen>
+          </q-tab-panel>
         </q-tab-panels>
       </template>
 
@@ -52,20 +58,34 @@
 <script>
 import { ref } from 'vue'
 
+const tabs = [
+  { name: 'national_clinic', icon: 'local_convenience_store', label: 'Clinicas Nacionais' },
+  { name: 'clinic', icon: 'local_hospital', label: 'Clinicas' },
+  { name: 'clinic_sector', icon: 'local_pharmacy', label: 'Sector Clinico' },
+  { name: 'clinical_service', icon: 'local_pharmacy', label: 'Servico Clinico' },
+  { name: 'doctor', icon: 'psychology', label: 'Clinicos' },
+ { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
+  { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapeutico' },
+  { name: 'users', icon: 'group_add', label: 'Utilizadores' }
+]
 export default {
   setup () {
     return {
-      tab: ref('mails'),
-      splitterModel: ref(10)
+    //  tabs: ref('national_clinic'),
+      selectedTab: ref('national_clinic'),
+      tabs,
+      splitterModel: ref(15)
     }
   },
    components: {
         doctor: require('components/Settings/Doctor/Doctors.vue').default,
      //    AddClinic: require('components/Settings/AddClinic.vue').default
-      //    AddDrug: require('components/Settings/AddDrug.vue').default
+          drug: require('components/Settings/Drug/Drugs.vue').default,
        //  AddClinicSector: require('components/Settings/AddClinicSector.vue').default
            nationalClinic: require('components/Settings/NationalClinic/NationalClinics.vue').default,
-      clinics: require('components/Settings/Clinic/Clinics.vue').default
+      clinics: require('components/Settings/Clinic/Clinics.vue').default,
+       clinicalServices: require('components/Settings/ClinicalService/ClinicalService.vue').default,
+       therapeuticRegimen: require('components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue').default
     }
 }
 </script>

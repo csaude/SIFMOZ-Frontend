@@ -19,7 +19,7 @@
                               dense
                               outlined
                               class="col"
-                              v-model="doctor.dateOfBirth"
+                              v-model="dateOfBirth"
                               mask="date"
                               ref="birthDate"
                               :rules="['date']"
@@ -27,7 +27,7 @@
                               <template v-slot:append>
                                   <q-icon name="event" class="cursor-pointer">
                                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                      <q-date v-model="doctor.dateOfBirth" >
+                                      <q-date v-model="dateOfBirth" >
                                       <div class="row items-center justify-end">
                                           <q-btn v-close-popup label="Close" color="primary" flat />
                                       </div>
@@ -74,6 +74,12 @@
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
+             <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
         </form>
     </q-card>
 </template>
@@ -90,10 +96,15 @@ export default {
     data () {
       const clinicOptions = ref(this.clinics)
         return {
+           alert: ref({
+              type: '',
+              visible: false,
+              msg: ''
+            }),
             currClinic: {},
             doctor: new Doctor(),
             clinicOptions,
-            selectedProvince: {},
+           dateOfBirth: '',
             createValue (val, done) {
               if (val.length > 2) {
                 if (!stringOptions.includes(val)) {
@@ -102,7 +113,7 @@ export default {
               }
             },
             genders: ['Masculino', 'Femenino'],
-              filterProv (val, update, abort) {
+              filterClinic (val, update, abort) {
                 const stringOptions = this.clinics
                 if (val === '') {
                   update(() => {
@@ -134,39 +145,50 @@ export default {
            // }
         },
         submitDoctor () {
-            console.log(this.doctor)
+          this.doctor.dateofbirth = new Date(this.dateOfBirth)
             Doctor.api().post('/doctor', this.doctor).then(resp => {
                 console.log(resp.response.data)
-                 this.$emit('close')
-                alert('Doctor Cadastrada Com Sucesso')
+                this.displayAlert('info', 'Clinico gravado com sucesso.')
             }).catch(error => {
-                console.log(error)
+                this.displayAlert('error', error)
             })
         },
-        getAllClinics (offset) {
+     async  getAllClinics (offset) {
             if (this.clinics.length <= 0) {
-                    Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
+     await Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
                         offset = offset + 100
                         if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
                     }).catch(error => {
                         console.log(error)
                     })
             }
+        },
+         displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+           // SessionStorage.set('selectedPatient', this.patient)
+           // this.$router.push('/patientpanel')
+          }
         }
     },
     created () {
-        this.currClinic = Object.assign({}, this.clinic)
+     //   this.currClinic = Object.assign({}, this.clinic)
         if (this.selectedDoctor !== '') {
           this.doctor = Object.assign({}, this.selectedDoctor)
-        } else {
-          this.doctor.clinic = Object.assign({}, this.clinic)
+          this.dateOfBirth = this.doctor.dateofbirth
         }
     },
     components: {
         PhoneField: require('components/Shared/Input/PhoneField.vue').default,
         nameInput: require('components/Shared/FirstNameInput.vue').default,
         lastNameInput: require('components/Shared/LastNameInput.vue').default,
-        emailInput: require('components/Shared/EmailInput.vue').default
+        emailInput: require('components/Shared/EmailInput.vue').default,
+        Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     mounted () {
         const offset = 0

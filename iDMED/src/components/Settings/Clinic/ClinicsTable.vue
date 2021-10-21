@@ -23,7 +23,7 @@
                 {{ props.row.province.description }}
             </q-td>
              <q-td key="district" :props="props">
-                {{ props.row.district.description }}
+              {{  props.row.district !== undefined && props.row.district !== null ? props.row.district.description : '' }}
             </q-td>
             </q-tr>
         </template>

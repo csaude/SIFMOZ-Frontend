@@ -3,7 +3,7 @@
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <q-table
-     :rows="doctors"
+     :rows="clinicServices"
       :columns="columns"
       :filter="filter"
       virtual-scroll>
@@ -16,24 +16,18 @@
         </template>
         <template v-slot:body="props">
             <q-tr :props="props">
-            <q-td key="firstnames" :props="props">
-                {{ props.row.firstnames }}
+            <q-td key="code" :props="props">
+                {{ props.row.code }}
             </q-td>
-            <q-td key="lastname" :props="props">
-                {{ props.row.lastname }}
-            </q-td>
-             <q-td key="telephone" :props="props">
-                {{ props.row.telephone }}
-            </q-td>
-            <q-td key="email" :props="props">
-                {{ props.row.email }}
+            <q-td key="description" :props="props">
+                {{ props.row.description }}
             </q-td>
                   <q-td key="options" :props="props">
                   <div class="col">
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
-                   @click="editDoctor(props.row)">
+                   @click="editClinicService(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
 
@@ -52,25 +46,23 @@
         </div>
          <div class="absolute-bottomg">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
-                <q-btn size="xl" fab icon="add" @click="addDoctor" color="primary" />
+                <q-btn size="xl" fab icon="add" @click="addClinicService" color="primary" />
              </q-page-sticky>
         </div>
-          <q-dialog persistent v-model="showDoctorRegistrationScreen">
-          <addDoctor
-          :selectedDoctor="doctor"
-            @close="showDoctorRegistrationScreen = false" />
+          <q-dialog persistent v-model="showClinicServiceRegistrationScreen">
+          <addClinicalService
+          :selectedclinicService="ClinicalService"
+            @close="showClinicServiceRegistrationScreen = false" />
       </q-dialog>
     </div>
 </template>
 <script>
 import { useQuasar } from 'quasar'
-import Doctor from '../../../store/models/doctor/Doctor'
+import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 
 const columns = [
-  { name: 'firstnames', required: true, label: 'Nome', align: 'left', field: row => row.firstnames, format: val => `${val}`, sortable: true },
-  { name: 'lastname', required: true, label: 'Codigo', align: 'left', field: row => row.lastname, format: val => `${val}`, sortable: true },
-   { name: 'telephone', required: true, label: 'Telefone', align: 'left', field: row => row.telephone, format: val => `${val}`, sortable: true },
-  { name: 'email', required: true, label: 'Email', align: 'left', field: row => row.email, format: val => `${val}`, sortable: true },
+  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
@@ -80,32 +72,32 @@ export default {
     return {
         columns,
         $q,
-         showDoctorRegistrationScreen: false
+         showClinicServiceRegistrationScreen: false
     }
   },
  computed: {
-      doctors () {
-          return Doctor.query().with('clinic').get()
+      clinicServices () {
+          return ClinicalService.query().with('attributes').get()
       }
   },
   methods: {
-  async  getDoctors () {
-          await Doctor.api().get('/doctor')
+  async  getClinicServices () {
+          await ClinicalService.api().get('/clinicalService')
        },
-       editDoctor (doctor) {
-        this.doctor = Object.assign({}, doctor)
-         this.showDoctorRegistrationScreen = true
+       editClinicService (ClinicalService) {
+        this.ClinicalService = Object.assign({}, ClinicalService)
+         this.showClinicServiceRegistrationScreen = true
       },
-        addDoctor () {
-          this.doctor = new Doctor()
-         this.showDoctorRegistrationScreen = true
+        addClinicService () {
+          this.ClinicalService = new ClinicalService()
+         this.showClinicServiceRegistrationScreen = true
       }
   },
   mounted () {
-    this.getDoctors()
+    this.getClinicServices()
   },
   components: {
-     addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default
+     addClinicalService: require('components/Settings/ClinicalService/AddClinicalService.vue').default
   //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
   }
 }

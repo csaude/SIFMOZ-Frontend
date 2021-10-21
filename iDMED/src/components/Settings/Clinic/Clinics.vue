@@ -24,7 +24,7 @@ const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
   { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
   { name: 'province', required: true, label: 'Provincia', align: 'left', field: row => row.province.description, format: val => `${val}`, sortable: true },
- { name: 'district', required: true, label: 'Districto', align: 'left', field: row => row.district.description, format: val => `${val}`, sortable: true }
+ { name: 'district', required: true, label: 'Districto', align: 'left', field: row => row.district !== undefined && row.district !== null ? row.district.description : 'Não Definido', format: val => `${val}`, sortable: true }
 ]
 export default {
   data () {
