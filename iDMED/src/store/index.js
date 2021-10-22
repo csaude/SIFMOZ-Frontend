@@ -44,7 +44,8 @@ import Localidade from './models/Localidade/Localidade'
 import PostoAdministrativo from './models/PostoAdministrativo/PostoAdministrativo'
 import ClinicalServiceAttributeType from './models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from './models/ClinicalServiceAttribute/ClinicalServiceAttribute'
-
+import Doctor from './models/doctor/Doctor'
+import Form from './models/form/Form'
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -100,6 +101,8 @@ database.register(Localidade)
 database.register(PostoAdministrativo)
 database.register(ClinicalServiceAttributeType)
 database.register(ClinicalServiceAttribute)
+database.register(Doctor)
+database.register(Form)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

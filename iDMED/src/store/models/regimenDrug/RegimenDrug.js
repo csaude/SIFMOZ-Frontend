@@ -8,10 +8,10 @@ export default class RegimenDrug extends Model {
   static fields () {
     return {
       id: this.attr(null),
-      amPerTime: this.attr(''),
-      timesPerDay: this.attr(''),
-      modified: this.attr(''),
-      notes: this.attr(''),
+      // amPerTime: this.attr(''),
+      // timesPerDay: this.attr(''),
+     // modified: this.attr(''),
+   //   notes: this.attr(''),
       drug_id: this.attr(''),
       therapeutic_regimen_id: this.attr(''),
 
