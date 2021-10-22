@@ -18,7 +18,7 @@ export default class Pack extends Model {
         packageReturned: this.attr(''),
         reasonForPackageReturn: this.attr(''),
         // Relationships
-        patientVisitDetails: this.hasOne(PatientVisitDetails, 'pack_id'),
+        patientVisitDetails: this.belongsTo(PatientVisitDetails, 'pack_id'),
         packagedDrugs: this.hasMany(PackagedDrug, 'pack_id')
       }
     }

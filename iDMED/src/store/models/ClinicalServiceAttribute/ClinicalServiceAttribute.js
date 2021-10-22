@@ -11,8 +11,16 @@ export default class ClinicalServiceAttribute extends Model {
       service_id: this.attr(null),
       service_attr_type_id: this.attr(null),
       // Relationships
-      clinicalService: this.hasOne(ClinicalService, 'service_id'),
-      clinicalServiceAttributeType: this.hasOne(ClinicalServiceAttributeType, 'service_attr_type_id')
+      clinicalService: this.belongsTo(ClinicalService, 'service_id'),
+      clinicalServiceAttributeType: this.belongsTo(ClinicalServiceAttributeType, 'service_attr_type_id')
     }
+  }
+
+  static async apiGetAll () {
+    return await this.api().get('/clinicalServiceAttribute')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/clinicalServiceAttribute/${id}`)
   }
 }

@@ -53,18 +53,25 @@ export default {
         return new Clinic(SessionStorage.getItem('currClinic'))
       },
     patient () {
-        return new Patient(SessionStorage.getItem('selectedPatient'))
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
       }
   },
   components: {
       TitleBar: require('components/Shared/TitleBar.vue').default,
       PatientInfo: require('components/Patient/PatientPanel/PatientInfo.vue').default,
       ClinicServiceInfo: require('components/Patient/PatientPanel/ClinicServicesInfo.vue').default,
-      PrescriptionInfo: require('components/Patient/PatientPanel/PrescriptionInfo.vue').default,
-      PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
+      PrescriptionInfo: require('components/Patient/PatientPanel/PrescriptionInfo.vue').default
+      // PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
   },
   created () {
-    // this.patient = Object.assign({}, this.selectedPatient)
   }
 }
 </script>

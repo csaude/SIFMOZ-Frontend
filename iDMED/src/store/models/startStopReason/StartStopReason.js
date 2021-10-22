@@ -6,10 +6,18 @@ export default class StartStopReason extends Model {
   static fields () {
     return {
       id: this.attr(null),
-      isStartReason: this.attr(''),
+      isStartReason: this.boolean(false),
       reason: this.attr(''),
       episode_id: this.attr(''),
       episode: this.belongsTo(Episode, 'episode_id')
     }
+  }
+
+  static async apiGetAll () {
+    return await this.api().get('/startStopReason')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/startStopReason/${id}`)
   }
 }

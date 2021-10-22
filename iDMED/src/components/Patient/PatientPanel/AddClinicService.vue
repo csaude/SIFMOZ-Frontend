@@ -26,7 +26,7 @@
                   <q-select
                     class="col"
                     dense outlined
-                    v-model="identifier.clinicalService"
+                    v-model="identifier.service"
                     :options="clinicalServices"
                     option-value="id"
                     option-label="code"
@@ -36,7 +36,7 @@
                       dense
                       outlined
                       class="col q-ml-md"
-                      v-model="identifier.startDate"
+                      v-model="identifierstartDate"
                       mask="date"
                       ref="birthDate"
                       :rules="['date']"
@@ -44,7 +44,7 @@
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="identifier.startDate" >
+                              <q-date v-model="identifierstartDate" >
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -54,42 +54,6 @@
                       </template>
                   </q-input>
                   <q-select class="col q-ml-md" dense outlined v-model="identifier.estado" :options="estados" label="Estado" />
-              </div>
-              <div class="row q-mt-md">
-                  <q-select
-                    class="col"
-                    dense outlined
-                    v-model="episode.clinicSector"
-                    :options="clinicSerctors"
-                    option-value="id"
-                    option-label="description"
-                    label="Sector Clinico" />
-                  <q-input
-                      dense
-                      outlined
-                      class="col q-ml-md"
-                      v-model="episode.startDate"
-                      mask="date"
-                      ref="birthDate"
-                      :rules="['date']"
-                      label="Data de Inicio">
-                      <template v-slot:append>
-                          <q-icon name="event" class="cursor-pointer">
-                          <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="episode.startDate" >
-                              <div class="row items-center justify-end">
-                                  <q-btn v-close-popup label="Close" color="primary" flat />
-                              </div>
-                              </q-date>
-                          </q-popup-proxy>
-                          </q-icon>
-                      </template>
-                  </q-input>
-                  <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido
-                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="true" label="Sim" />
-                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="false" label="Nao"/>
-                  </div>
-                  <div v-else class="col q-ml-md"/>
               </div>
 
               <span v-if="identifierToEdit == null">
@@ -101,14 +65,10 @@
                 </div>
                 <div class="row">
                     <identifierInput v-model="identifier.value"/>
-                    <q-select
-                      class="col q-ml-md"
-                      dense outlined
-                      v-model="identifier.identifierType"
-                      :options="identifierTypes"
-                      option-value="id"
-                      option-label="description"
-                      label="Tipo de Identificador" />
+                    <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido
+                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="true" label="Sim" />
+                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="false" label="Nao"/>
+                    </div>
                     <div v-if="patient.identifiers.length > 0" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
                         <q-radio keep-color color="primary"  val="true" label="Sim" />
                         <q-radio keep-color color="primary"  val="false" label="Nao"/>
@@ -173,7 +133,6 @@
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
-        <pre>{{episode}}</pre>
         <q-dialog v-model="alert.visible">
           <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
@@ -191,7 +150,6 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import Clinic from '../../../store/models/clinic/Clinic'
-import Episode from '../../../store/models/episode/Episode'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 export default {
     props: ['identifierToEdit', 'selectedPatient'],
@@ -202,26 +160,28 @@ export default {
                 visible: false,
                 msg: ''
               }),
+            identifierstartDate: '',
             identifier: new PatientServiceIdentifier(),
-            episode: new Episode(),
             estados: ['Activo', 'Curado'],
             episodeEndNotes: ['Curado']
         }
     },
     methods: {
       init () {
-        ClinicalService.apiGetAll()
-        ClinicSector.apiGetAll()
-        IdentifierType.apiGetAll()
-        this.identifier.patient = this.patient
+        this.identifier.patient = Patient.find(this.patient.id)
       },
       submitForm () {
-        this.episode.startDate = new Date(this.episode.startDate)
-        this.identifier.episodes.push(this.episode)
-        console.log(this.identifier)
+        this.doSave()
+      },
+      doSave () {
+        this.identifier.clinic = this.currClinic
+        this.identifier.startDate = new Date(this.identifierstartDate)
+        this.identifier.identifierType = this.identifier.service.identifierType
         PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
           this.identifier = resp.response.data
-          this.displayAlert('info', 'Serviço adicionado com sucesso.')
+          this.patient.identifiers.push(this.identifier)
+          PatientServiceIdentifier.insert(resp.response.data)
+          this.displayAlert('info', 'Serviço de saúde adicionado com sucesso.')
         }).catch(error => {
           this.displayAlert('error', error)
         })
@@ -233,6 +193,7 @@ export default {
         },
         closeDialog () {
           if (this.alert.type === 'info') {
+            this.$emit('createFirstEpisode', this.identifier)
             this.$emit('close')
           }
         }
@@ -240,7 +201,7 @@ export default {
     created () {
         if (this.identifierToEdit !== null) {
           this.identifier = Object.assign({}, this.identifierToEdit)
-          this.episode = Object.assign({}, this.identifier.episodes[this.identifierToEdit.episodes.length - 1])
+          // this.episode = Object.assign({}, this.identifier.episodes[this.identifierToEdit.episodes.length - 1])
         }
     },
     mounted () {
@@ -251,13 +212,13 @@ export default {
         return new Patient(SessionStorage.getItem('selectedPatient'))
       },
       clinicalServices () {
-        return ClinicalService.all()
+        return ClinicalService.query().with('identifierType').get()
       },
       clinicSerctors () {
-        return ClinicSector.query().where('clinic_id', this.currClinic.id).get()
+        return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
       },
       currClinic () {
-        return new Clinic(SessionStorage.getItem('currClinic'))
+        return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
       },
       identifierTypes () {
         return IdentifierType.all()

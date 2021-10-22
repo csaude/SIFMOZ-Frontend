@@ -15,7 +15,7 @@ export default class PatientVisitDetails extends Model {
       pack_id: this.attr(''),
       prescription_id: this.attr(''),
       // Relationships
-      pack: this.belongsTo(Pack, 'pack_id'),
+      pack: this.hasOne(Pack, 'pack_id'),
       episode: this.belongsTo(Episode, 'episode_id'),
       patientVisit: this.belongsTo(PatientVisit, 'patient_visit_id'),
       prescription: this.hasOne(Prescription, 'prescription_id')

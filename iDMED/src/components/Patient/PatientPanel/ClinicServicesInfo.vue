@@ -22,7 +22,14 @@
         <AddClinicService
           :identifierToEdit="selectedIdentifier"
           :selectedPatient="selectedPatient"
+          @createFirstEpisode="createFirstEpisode"
           @close="showAddEditClinicalService = false" />
+    </q-dialog>
+    <q-dialog persistent v-model="showAddEditEpisode">
+        <AddEditEpisode
+          :episodeToEdit="selectedEpisode"
+          :curIdentifier="selectedIdentifier"
+          @close="showAddEditEpisode = false" />
     </q-dialog>
   </div>
 </template>
@@ -38,7 +45,8 @@ export default {
       showAddEditClinicalService: false,
       emptyList: false,
       selectedIdentifier: new PatientServiceIdentifier(),
-      serviceInfoVisible: false
+      showAddEditEpisode: false,
+      serviceInfoVisible: true
     }
   },
   methods: {
@@ -53,6 +61,11 @@ export default {
     expandLess (value) {
       this.serviceInfoVisible = value
       LocalStorage.set('clinicServiceInfoVisible', value)
+    },
+    createFirstEpisode (identifier) {
+      this.showAddEditClinicalService = false
+      this.showAddEditEpisode = true
+      this.selectedIdentifier = identifier
     }
   },
   computed: {
@@ -60,16 +73,25 @@ export default {
       return LocalStorage.getItem('clinicServiceInfoVisible')
     },
     identifiers () {
-      return PatientServiceIdentifier.query().with('identifierType|clinicalService|episodes').where('patient_id', this.patient.id).get()
+      return this.patient.identifiers
     },
     patient () {
-      return new Patient(SessionStorage.getItem('selectedPatient'))
-    }
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
+      }
   },
   components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
       EmptyList: require('components/Shared/ListEmpty.vue').default,
       AddClinicService: require('components/Patient/PatientPanel/AddClinicService.vue').default,
+      AddEditEpisode: require('components/Patient/PatientPanel/AddEditEpisode.vue').default,
       InfoContainer: require('components/Patient/PatientPanel/InfoContainer.vue').default
   }
 }

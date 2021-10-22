@@ -1,17 +1,17 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;">
-        <form @submit.prevent="submitMobilizer" >
+        <form @submit.prevent="submitForm" >
             <q-card-section >
               <div class="row items-center text-subtitle1">
                 <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
-                <div class="text-bold text-grey-10 q-ml-sm">{{patient.firstNames}}</div>
+                <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{age}} Anos</div>
+                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos</div>
               </div>
               <q-separator/>
             </q-card-section>
             <div class="text-center text-h6">
-              <span v-if="episodeToEdit.id > 0">Actualizar</span>
+              <span v-if="episodeToEdit.id !== null">Actualizar</span>
               <span v-else>Adicionar</span>
               Episódio
             </div>
@@ -25,11 +25,11 @@
               <div class="row q-mt-md">
                   <q-select
                     class="col"
-                    dense outlined
-                    v-model="identifier.clinicalService"
-                    :options="options"
                     disable
-                    option-value="code"
+                    dense outlined
+                    v-model="identifier.service"
+                    :options="options"
+                    option-value="id"
                     option-label="description"
                     label="Serviço de Saúde" />
 
@@ -56,26 +56,27 @@
                       </template>
                   </q-input>
 
-                  <q-select
-                    disable class="col q-ml-md"
+                  <q-select class="col q-ml-md"
                     dense outlined
-                    v-model="identifier.estado"
+                    v-model="episode.startStopReason"
+                    :options="startReasons"
+                    option-value="id"
+                    option-label="reason"
                     label="Notas de início" />
               </div>
               <div class="row q-mt-md">
                   <q-select
                     class="col"
-                    disable
                     dense outlined
                     v-model="episode.clinicSector"
-                    :options="options"
-                    option-value="code"
+                    :options="clinicSerctors"
+                    option-value="id"
                     option-label="description"
                     label="Sector Clinico" />
                   <q-input
                       dense
                       outlined
-                      disable
+
                       class="col q-ml-md"
                       v-model="episode.startDate"
                       mask="date"
@@ -96,7 +97,7 @@
                   </q-input>
                   <div class="col q-ml-md"/>
               </div>
-              <span v-if="episode.id > 0">
+              <span v-if="episode.id !== null">
                 <div class="q-mt-md">
                   <div class="row items-center q-mb-sm">
                       <span class="text-subtitle2">Dados de Fim do Episódio</span>
@@ -127,10 +128,10 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
-                      v-model="episode.clinicSector"
-                      :options="options"
-                      option-value="code"
-                      option-label="description"
+                      v-model="episode.startStopReason"
+                      :options="stopReasons"
+                      option-value="id"
+                      option-label="reason"
                       label="Notas de Fim" />
 
                       <TextInput v-model="episode.notes" label="Outras notas de fim" dense class="col q-ml-md" />
@@ -138,7 +139,7 @@
               </span>
             </div>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
-                <q-btn label="Cancelar" color="primary" @click="$emit('close')"/>
+                <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
@@ -146,23 +147,88 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import Clinic from '../../../store/models/clinic/Clinic'
+import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import Episode from '../../../store/models/episode/Episode'
+import Patient from '../../../store/models/patient/Patient'
+import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import EpisodeType from '../../../store/models/episodeType/EpisodeType'
+import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
 export default {
-    props: ['episodeToEdit', 'curIdentifier', 'selectedPatient'],
+    props: ['episodeToEdit', 'curIdentifier'],
     data () {
         return {
-            patient: {},
-            identifier: {},
-            episode: {},
+            identifier: new PatientServiceIdentifier(),
+            episode: new Episode(),
             estados: ['Activo', 'Curado']
         }
     },
+    methods: {
+      submitForm () {
+        if (this.episode.id === null) {
+          this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
+          this.episode.notes = 'Inicio ao tratamento'
+          this.episode.clinic = this.currClinic
+        }
+
+        console.log(this.episode)
+        Episode.apiSave(this.identifier).then(resp => {
+          if (this.episode.id === null) {
+            Episode.insert(resp.response.data)
+          } else {
+            Episode.update(resp.response.data)
+          }
+          this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
+        }).catch(error => {
+          this.displayAlert('error', error)
+        })
+      },
+      displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+          }
+        }
+    },
     created () {
-        this.patient = Object.assign({}, this.selectedPatient)
         this.identifier = Object.assign({}, this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
+        this.episode.patientServiceIdentifier = this.identifier
+    },
+    mounted () {
     },
     components: {
       TextInput: require('components/Shared/Input/TextField.vue').default
+    },
+    computed: {
+      clinicSerctors () {
+        return ClinicSector.query()
+                          .with('clinic')
+                          .where('clinic_id', this.currClinic.id)
+                          .get()
+      },
+      currClinic () {
+        return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+      },
+      patient () {
+        return new Patient(SessionStorage.getItem('selectedPatient'))
+      },
+      startReasons () {
+        return StartStopReason.query()
+                              .where('isStartReason', true).get()
+      },
+      stopReasons () {
+        return StartStopReason.query()
+                              .where('isStartReason', false).get()
+      }
     }
 }
 </script>

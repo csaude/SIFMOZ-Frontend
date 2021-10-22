@@ -46,10 +46,11 @@
                   class="col q-mb-md"
                   dense outlined
                   options-dense
-                  :options="patient.identifiers"
+                  :options="clinicalServices"
                   v-model="selectedClinicalService"
+                  @blur="setCurVisitDetails"
                   option-value="id"
-                  option-label="id"
+                  option-label="code"
                   label="Serviço de Saúde e Sector Associado" />
               <q-select
                   v-if="hasTherapeuticalRegimen"
@@ -128,8 +129,8 @@
               <div
                 v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
                 <ServiceDrugsManagement
-                  v-if="selectedClinicalService.clinicalService.code === visitDetails.episode.patientProgramIdentifier.clinicalService.code"
-                  :selectedClinicalService="selectedClinicalService.clinicalService"
+                  v-if="selectedClinicalService.code === visitDetails.episode.patientServiceIdentifier.service.code"
+                  :selectedClinicalService="selectedClinicalService"
                   @addEditDrugs="addEditDrugs"
                   :visitDetails="visitDetails"/>
               </div>
@@ -159,7 +160,9 @@
       </q-card-section>
       <q-dialog persistent v-model="showAddEditDrug">
         <AddEditPrescribedDrug
+          @addPrescribedDrug="addPrescribedDrug"
           :visitDetails="curPatientVisitDetail"
+          :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
           @close="showAddEditDrug = false" />
     </q-dialog>
     </q-card>
@@ -169,38 +172,57 @@
 
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import Prescription from '../../../store/models/prescription/Prescription'
+import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
+import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import Episode from '../../../store/models/episode/Episode'
+import Pack from '../../../store/models/packaging/Pack'
 export default {
   data () {
     return {
       showAddEditDrug: false,
       identifiers: [],
-      patientVisit: {},
+      patientVisit: new PatientVisit(),
       curPatientVisitDetails: [],
-      curPatientVisitDetail: {
-        prescription: {
-          prescriptionDetail: {}
-        }
-      },
+      curPatientVisitDetail: new PatientVisitDetails({
+        patientVisit: new PatientVisit(),
+        prescription: new Prescription({
+          prescriptionDetail: new PrescriptionDetail()
+        }),
+        pack: new Pack()
+      }),
       clinicalServices: [],
       selectedClinicalService: '',
       reasonsForUpdate: ['FT', 'Alergia']
     }
   },
   methods: {
-    addEditDrugs (visitDetails) {
-      this.curPatientVisitDetail = Object.assign({}, visitDetails)
+    addEditDrugs (pickupDate) {
+      this.curPatientVisitDetail.pack.pickupDate = pickupDate
       this.showAddEditDrug = true
+    },
+    addPrescribedDrug (prescribedDrug) {
+      this.curPatientVisitDetail.prescription.prescribedDrugs.push(prescribedDrug)
     },
     initPatientVisit () {
       this.patientVisit.visitDate = new Date()
     },
+    setCurVisitDetails () {
+      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+        const visitDetails = this.curPatientVisitDetails[k]
+        if (visitDetails.episode.patientServiceIdentifier.service.id === this.selectedClinicalService.id) {
+          this.curPatientVisitDetail = visitDetails
+        }
+      }.bind(this))
+    },
     init () {
-      console.log(this.identifiers[0].curEpisode())
       this.initPatientVisit()
-      Object.keys(this.identifiers).forEach(function (key) {
-        if (this.identifiers[key].endDate === '') {
-          const identifierEpisodes = this.identifiers[key].episodes
-          this.clinicalServices.push(this.identifiers[key].clinicalService)
+      Object.keys(this.patient.identifiers).forEach(function (key) {
+        if (this.patient.identifiers[key].endDate === '') {
+          const identifierEpisodes = this.patient.identifiers[key].episodes
+          this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
           Object.keys(identifierEpisodes).forEach(function (k) {
             const episode = identifierEpisodes[k]
             if (episode.stopDate === '') {
@@ -211,12 +233,16 @@ export default {
       }.bind(this))
     },
     initPatientVisitDetails (episode) {
-      const curPatientVisitDetail = {}
-      const prescription = {}
-      prescription.prescriptionDate = new Date()
-      curPatientVisitDetail.patientVisit = this.patientVisit
-      curPatientVisitDetail.prescription = prescription
-      curPatientVisitDetail.episode = episode
+      const curPatientVisitDetail = new PatientVisitDetails({
+        patientVisit: new PatientVisit(this.patientVisit),
+        prescription: new Prescription({
+          prescriptionDate: new Date(),
+          prescriptionDetail: new PrescriptionDetail()
+        }),
+        pack: new Pack(),
+        episode: Episode.query().with('patientServiceIdentifier.service').where('id', episode.id).first()
+      })
+
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
     },
@@ -234,23 +260,31 @@ export default {
   computed: {
     hasTherapeuticalRegimen () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
     },
     hasTherapeuticalLine () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'THERAPEUTICAL_LINE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_LINE')
     },
     hasPatientType () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'PATIENT_TYPE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PATIENT_TYPE')
     },
     hasPrescriptionChangeMotive () {
       if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.clinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
+      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
     },
     patient () {
-      return new Patient(SessionStorage.getItem('selectedPatient'))
-    }
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
+      }
   },
   mounted () {
     this.init()
@@ -259,9 +293,6 @@ export default {
     ServiceDrugsManagement: require('components/Patient/PatientPanel/ServiceDrugsManagement.vue').default,
     AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,
     ListHeader: require('components/Shared/ListHeader.vue').default
-  },
-  created () {
-      this.identifiers = Object.assign({}, this.patient.identifiers)
   }
 }
 </script>

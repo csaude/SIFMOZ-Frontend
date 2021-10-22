@@ -14,17 +14,21 @@ export default class PatientServiceIdentifier extends Model {
       endDate: this.attr(''),
       reopenDate: this.attr(''),
       value: this.attr(''),
-      prefered: this.attr(''),
+      prefered: this.boolean(false),
       identifier_type_id: this.attr(''),
-      clinical_service_id: this.attr(''),
+      service_id: this.attr(''),
       patient_id: this.attr(''),
       // Relationships
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
-      clinicalService: this.belongsTo(ClinicalService, 'program_id'),
+      service: this.belongsTo(ClinicalService, 'service_id'),
       patient: this.belongsTo(Patient, 'patient_id'),
-      episodes: this.hasMany(Episode, 'patientProgramIdentifier_id')
+      episodes: this.hasMany(Episode, 'patientServiceIdentifier_id')
 
     }
+  }
+
+  hasEpisodes () {
+    return this.episodes.length > 0
   }
 
   curEpisode () {
@@ -39,6 +43,7 @@ export default class PatientServiceIdentifier extends Model {
   }
 
   lastVisit () {
+    if (this.episodes.length <= 0) return null
     return this.curEpisode().lastVisit()
   }
 
@@ -54,7 +59,10 @@ export default class PatientServiceIdentifier extends Model {
   }
 
   static async apiSave (identifier) {
-    identifier.startDate = new Date(identifier.startDate)
     return await this.api().post('/patientServiceIdentifier', identifier)
+  }
+
+  static async apiGetAllByClinicId (clinicId, offset, max) {
+    return await this.api().get('/patientServiceIdentifier/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 }

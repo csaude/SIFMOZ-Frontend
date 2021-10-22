@@ -1,14 +1,14 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ curIdentifier.clinicalService.description }} </ListHeader>
+    <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ curIdentifier.service.code }} </ListHeader>
     <q-card class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Serviço de Saúde:</div>
-            <div class="col text-grey-8">{{ curIdentifier.clinicalService.description }}</div>
+            <div class="col text-grey-8">{{ curIdentifier.service.code }}</div>
             <div class="col text-grey-9 text-weight-medium">Data de Admissão:</div>
-            <div class="col text-grey-8">{{ curIdentifier.startDate }}</div>
+            <div class="col text-grey-8">{{ formatDate(curIdentifier.startDate) }}</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Nr Identificador:</div>
@@ -20,7 +20,7 @@
             <div class="col text-grey-9 text-weight-medium">Data Fim:</div>
             <div class="col text-grey-8">{{ curIdentifier.endDate }}</div>
             <div class="col text-grey-9 text-weight-medium">Notas de Fim:</div>
-            <div class="col text-grey-8">{{ curIdentifier.clinicalService.description }}</div>
+            <div class="col text-grey-8"></div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Estado:</div>
@@ -37,7 +37,7 @@
           </div>
         </div>
         <div class="col q-py-md">
-          <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEpisode = true">Episódios</ListHeader>
+          <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEditEpisode = true">Episódios</ListHeader>
           <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum Episódio Iniciado</EmptyList>
           <span
             v-for="episode in curIdentifier.episodes" :key="episode.id" >
@@ -51,7 +51,7 @@
     <q-dialog persistent v-model="showAddEditEpisode">
         <AddEditEpisode
           :episodeToEdit="selectedEpisode"
-          :curIdentifier="identifier"
+          :curIdentifier="curIdentifier"
           :selectedPatient="selectedPatient"
           @close="showAddEditEpisode = false" />
     </q-dialog>
@@ -59,15 +59,18 @@
 </template>
 
 <script>
+import { SessionStorage, date } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
+import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import Episode from '../../../store/models/episode/Episode'
+import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 export default {
   props: ['identifier', 'selectedPatient'],
   data () {
     return {
-      curIdentifier: {},
       isPatientActive: false,
       showAddEpisode: false,
-      patient: {},
-      selectedEpisode: {},
+      selectedEpisode: new Episode(),
       showAddEditEpisode: false
     }
   },
@@ -86,11 +89,35 @@ export default {
     editEpisode (episode) {
       this.selectedEpisode = Object.assign({}, episode)
       this.showAddEditEpisode = true
+    },
+    formatDate (dateString) {
+      return date.formatDate(dateString, 'DD-MM-YYYY')
+    }
+  },
+  computed: {
+    curIdentifier () {
+      return PatientServiceIdentifier.query()
+                                      .with('identifierType')
+                                      .with('service')
+                                      .with('episodes')
+                                      .where('id', this.identifier.id).first()
+    },
+    patient () {
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
+    },
+    episodeTypes () {
+      return EpisodeType.all()
     }
   },
   created () {
-      this.curIdentifier = Object.assign({}, this.identifier)
-      this.patient = Object.assign({}, this.selectedPatient)
   }
 }
 </script>
