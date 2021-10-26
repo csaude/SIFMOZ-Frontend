@@ -1,5 +1,8 @@
 <template>
     <div>
+     <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
+        Servico Clinico
+        </div>
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <q-table
@@ -49,7 +52,7 @@
                 <q-btn size="xl" fab icon="add" @click="addClinicService" color="primary" />
              </q-page-sticky>
         </div>
-          <q-dialog persistent v-model="showClinicServiceRegistrationScreen">
+          <q-dialog persistent v-model="showClinicServiceRegistrationScreen" full-width>
           <addClinicalService
           :selectedclinicService="ClinicalService"
             @close="showClinicServiceRegistrationScreen = false" />

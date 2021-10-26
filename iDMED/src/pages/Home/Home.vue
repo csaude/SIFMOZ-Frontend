@@ -51,6 +51,7 @@ import StartStopReason from '../../store/models/startStopReason/StartStopReason'
 import Episode from '../../store/models/episode/Episode'
 import ClinicalServiceAttributeType from '../../store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from '../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+import Drug from '../../store/models/drug/Drug'
 export default {
     components: {
     },
@@ -65,6 +66,7 @@ export default {
         EpisodeType.apiGetAll()
         StartStopReason.apiGetAll()
         ClinicalServiceAttribute.apiGetAll()
+        Drug.apiGetAll()
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c7591b1017c75d9f4d4000c').then(resp => {
