@@ -10,7 +10,6 @@
           </div>
           <div class="q-px-md">
             <q-toggle
-              v-if="hasTherapeuticalRegimen"
               v-model="showOnlyOfRegimen"
               label="Visualizar apenas os medicamentos do regime selecionado" />
             <q-select
@@ -27,24 +26,13 @@
               dense outlined
               v-model="prescribedDrug.amtPerTime"
               :options="amtPerTimes"
-              option-value="code"
-              option-label="description"
               label="Toma" />
+            <TextInput v-model="prescribedDrug.timesPerDay" label="Forma" suffix="Vezes" dense class="col q-ml-md" />
             <q-select
               class="col q-ml-md"
               dense outlined
-              :options="forms"
               v-model="prescribedDrug.form"
-              option-value="code"
-              option-label="description"
-              label="Forma" />
-            <q-select
-              class="col q-ml-md"
-              dense outlined
-              v-model="prescribedDrug.timesPerDay"
               :options="timesPerDay"
-              option-value="code"
-              option-label="description"
               label="Período" />
           </div>
           </div>
@@ -67,7 +55,9 @@ export default {
     return {
       currVisitDetails: {},
       prescribedDrug: new PrescribedDrug(),
-      showOnlyOfRegimen: true
+      showOnlyOfRegimen: false,
+      amtPerTimes: ['1', '2', '3', '4'],
+      timesPerDay: ['Dia', 'Semana', 'Mês', 'Ano']
     }
   },
   methods: {
@@ -75,23 +65,25 @@ export default {
       this.$emit('addPrescribedDrug', this.prescribedDrug)
     },
     getDrugs () {
-      if (this.showOnlyOfRegimen) {
-        return Drug.query().with('regimen_drugs', (query) => {
-          query.where('id', this.currVisitDetails.prescription.prescriptionDetail.therapeuticRegimen.id)
-        }).get()
-      } else {
-        return Drug.all()
-      }
+      return Drug.query().with('form').get()
     }
   },
   computed: {
     drugs () {
       return this.getDrugs()
+    },
+    regimenDrugs () {
+      return Drug.query().where('')
     }
+  },
+  mounted () {
+      this.showOnlyOfRegimen = this.hasTherapeuticalRegimen
   },
   created () {
       this.currVisitDetails = Object.assign({}, this.visitDetails)
-      this.showOnlyOfRegimen = this.hasTherapeuticalRegimen
+  },
+  components: {
+    TextInput: require('components/Shared/Input/TextField.vue').default
   }
 }
 </script>

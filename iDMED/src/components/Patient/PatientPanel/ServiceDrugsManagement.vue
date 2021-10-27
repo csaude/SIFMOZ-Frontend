@@ -5,7 +5,8 @@
           :mainContainer="true"
           bgColor="bg-primary"
           :visitDetails="visitDetails"
-          @showAdd="addEditDrugs">Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}
+          @showAdd="addEditDrugs">
+        Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}
       </PrescriptionDrugsLestHeader>
       <div class="col prescription-box q-pa-md q-mb-md">
         <q-table
@@ -16,19 +17,19 @@
             row-key="id"
             >
             <template #body="props">
-              <q-tr :props="props">
-                <q-td key="order" :props="props">
+              <q-tr no-hover :props="props">
+                <q-td auto-width key="order" :props="props">
                   {{props.row.index}}
                 </q-td>
                 <q-td key="drug" :props="props">
                   {{props.row.drug.name}}
                 </q-td>
                 <q-td key="dosage" :props="props">
-                  {{props.row.amtPerTime}}
+                  {{props.row.amtPerTime + ' - ' + props.row.form + ' X por ' + props.row.timesPerDay}}
                 </q-td>
-                <q-td key="packs" :props="props">
+                <q-td auto-width key="packs" :props="props">
                   <q-select
-                      class="" dense outlined
+                      dense outlined
                       v-model="props.row.qtyPrescribed"
                       use-input
                       :options="nums"/>
@@ -68,6 +69,13 @@
             </template>
         </q-table>
       </div>
+      <q-dialog persistent v-model="showAddEditDrug">
+        <AddEditPrescribedDrug
+          @addPrescribedDrug="addPrescribedDrug"
+          :visitDetails="curVisitDetails"
+          :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
+          @close="showAddEditDrug = false" />
+    </q-dialog>
   </div>
 </template>
 
@@ -83,49 +91,42 @@ const columns = [
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['visitDetails'],
-  setup () {
+  props: ['visitDetails', 'hasTherapeuticalRegimen'],
+  data () {
     return {
       columns,
+      showAddEditDrug: false,
       curVisitDetails: '',
-      prescribedDrugs: ref([
-        new PrescribedDrug({
-          id: 'a334c386-1b66-11ec-9621-0242ac130002',
-          amtPerTime: '1-0-1',
-          timesPerDay: '2',
-          qtyPrescribed: '3',
-          drug: {
-            id: '08S23Z-cd-22ff-4993-9378-335cf43bd5c8',
-            name: '[[ATV/RTV] Atazanavir 300mg/Ritonavir 100mg '
-          }
-        }),
-        new PrescribedDrug({
-            id: 'ab09028e-1b66-11ec-9621-0242ac130002',
-            amtPerTime: '1-1-1',
-            timesPerDay: '3',
-            qtyPrescribed: '2',
-            drug: {
-              id: '08S18Z-da-b787-4fa1-a2d6-2fda22da6564',
-              name: '[LPV/RTV] Lopinavir/Ritonavir 200mg/50mg'
-            }
-          })
-      ]),
-      nums: Array(10).fill().map((x, i) => i + 1)
+      nextPUpDate: '',
+      pickupDate: '',
+      prescribedDrugs: ref([]),
+      nums: Array(4).fill().map((x, i) => i + 1)
     }
   },
   methods: {
+    addEditDrugs (pickupDate, nextPDate) {
+      this.nextPUpDate = nextPDate
+      this.pickupDate = new Date(pickupDate)
+      this.curVisitDetails.pack.pickupDate = this.pickupDate
+      this.showAddEditDrug = true
+    },
     deleteRow (row) {
       const i = this.prescribedDrugs.map(toRemove => toRemove.id).indexOf(row.id) // find index of your object
       this.prescribedDrugs.splice(i, 1)
+      this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
     },
-    addEditDrugs (pickupDate) {
-      this.$emit('addEditDrugs', pickupDate)
+    addPrescribedDrug (prescribedDrug) {
+      this.showAddEditDrug = false
+      prescribedDrug.nextPickUpDate = this.nextPUpDate
+      this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
+      this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
     }
   },
   created () {
     this.curVisitDetails = Object.assign({}, this.visitDetails)
   },
   components: {
+    AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,
     PrescriptionDrugsLestHeader: require('components/Patient/Prescription/PrescriptionDrugsListHeader.vue').default
   }
 }

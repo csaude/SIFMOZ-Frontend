@@ -4,9 +4,9 @@
             <q-card-section >
               <div class="row items-center text-subtitle1">
                 <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
-                <div class="text-bold text-grey-10 q-ml-sm">{{patient.firstNames}}</div>
+                <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{age}} Anos</div>
+                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
               </div>
               <q-separator/>
             </q-card-section>
@@ -105,7 +105,15 @@ export default {
     },
     computed: {
       patient () {
-        return new Patient(SessionStorage.getItem('selectedPatient'))
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
       }
     },
     components: {

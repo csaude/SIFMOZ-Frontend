@@ -12,13 +12,19 @@ export default class PatientVisitDetails extends Model {
       id: this.attr(null),
       patient_visit_id: this.attr(''),
       episode_id: this.attr(''),
-      pack_id: this.attr(''),
-      prescription_id: this.attr(''),
       // Relationships
-      pack: this.hasOne(Pack, 'pack_id'),
+      pack: this.hasOne(Pack, 'patientVisitDetails_id'),
       episode: this.belongsTo(Episode, 'episode_id'),
       patientVisit: this.belongsTo(PatientVisit, 'patient_visit_id'),
-      prescription: this.hasOne(Prescription, 'prescription_id')
+      prescription: this.hasOne(Prescription, 'patientVisitDetails_id')
     }
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/patientVisitDetail/${id}`)
+  }
+
+  static async apiSave (patientVisitDetail) {
+    return await this.api().post('/patientVisitDetail', patientVisitDetail)
   }
 }

@@ -8,6 +8,8 @@ export default class PackagedDrug extends Model {
       return {
         id: this.attr(null),
         quantitySupplied: this.attr(''),
+        nextPickUpDate: this.attr(''),
+        toContinue: this.boolean(true),
         pack_id: this.attr(''),
         drug_id: this.attr(''),
         // Relationships

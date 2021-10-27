@@ -51,6 +51,13 @@ import StartStopReason from '../../store/models/startStopReason/StartStopReason'
 import Episode from '../../store/models/episode/Episode'
 import ClinicalServiceAttributeType from '../../store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from '../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+import Drug from '../../store/models/drug/Drug'
+import TherapeuticRegimen from '../../store/models/therapeuticRegimen/TherapeuticRegimen'
+import TherapeuticLine from '../../store/models/therapeuticLine/TherapeuticLine'
+import Form from '../../store/models/form/Form'
+import Duration from '../../store/models/Duration/Duration'
+import Doctor from '../../store/models/doctor/Doctor'
+import DispenseType from '../../store/models/dispenseType/DispenseType'
 export default {
     components: {
     },
@@ -65,9 +72,16 @@ export default {
         EpisodeType.apiGetAll()
         StartStopReason.apiGetAll()
         ClinicalServiceAttribute.apiGetAll()
+        Drug.apiGetAll()
+        TherapeuticRegimen.apiGetAll()
+        TherapeuticLine.apiGetAll()
+        Form.apiGetAll()
+        Duration.apiGetAll()
+        Doctor.apiFetchByClinicId(this.clinic.id)
+        DispenseType.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('ff8081817c7591b1017c75d9f4d4000c').then(resp => {
+        Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },

@@ -1,22 +1,22 @@
 import { Model } from '@vuex-orm/core'
 
-export default class DispenseType extends Model {
-  static entity = 'dispenseTypes'
+export default class Duration extends Model {
+  static entity = 'durations'
 
   static fields () {
     return {
       id: this.attr(null),
-      code: this.attr(''),
+      weeks: this.attr(''),
       description: this.attr('')
 
     }
   }
 
   static async apiGetAll () {
-    return await this.api().get('/dispenseType')
+    return await this.api().get('/duration')
   }
 
   static async apiFetchById (id) {
-    return await this.api().get(`/dispenseType/${id}`)
+    return await this.api().get(`/duration/${id}`)
   }
 }

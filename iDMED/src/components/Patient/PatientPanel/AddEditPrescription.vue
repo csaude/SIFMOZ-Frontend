@@ -21,19 +21,31 @@
               @showAdd="showAddEpisode = true">Adicionar Prescrição
             </ListHeader>
             <div class="q-ma-md">
+              <q-select
+                  class="col"
+                  dense outlined
+                  options-dense
+                  :options="clinicalServices"
+                  ref="clinicalService"
+                  :rules="[ val => !!val || 'Por favor indicar o serviço clínico']"
+                  v-model="selectedClinicalService"
+                  @blur="setCurVisitDetails"
+                  option-value="id"
+                  option-label="code"
+                  label="Serviço de Saúde e Sector Associado" />
               <q-input
                 dense
                 outlined
                 class="col"
-                v-model="curPatientVisitDetail.prescription.prescriptionDate"
+                v-model="prescriptionDate"
                 mask="date"
-                ref="birthDate"
+                ref="prescriptionDate"
                 :rules="['date']"
                 label="Data da Prescrição">
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="curPatientVisitDetail.prescription.prescriptionDate">
+                        <q-date v-model="prescriptionDate">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -43,47 +55,48 @@
                 </template>
               </q-input>
               <q-select
-                  class="col q-mb-md"
-                  dense outlined
-                  options-dense
-                  :options="clinicalServices"
-                  v-model="selectedClinicalService"
-                  @blur="setCurVisitDetails"
-                  option-value="id"
-                  option-label="code"
-                  label="Serviço de Saúde e Sector Associado" />
-              <q-select
                   v-if="hasTherapeuticalRegimen"
-                  class="col q-mb-md"
+                  class="col"
                   dense outlined
+                  ref="therapeuticRegimen"
+                  :rules="[ val => !!val || 'Por favor indicar o regime terapêutico']"
                   v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticRegimen"
-                  :options="selectedClinicalService.therapeuticRegimens"
+                  :options="therapeuticRegimens"
                   option-value="id"
                   option-label="description"
                   label="Regime Terapêutico" />
               <q-select
                   v-if="hasTherapeuticalLine"
-                  class="col q-mb-md"
+                  class="col"
                   dense outlined
+                  ref="therapeuticLine"
+                  :rules="[ val => !!val || 'Por favor indicar a linha terapêutica']"
                   v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticLine"
-                  option-value="code"
+                  :options="therapeuticLines"
+                  option-value="id"
                   option-label="description"
                   label="Linha Terapêutica" />
               <q-select
-                  class="col q-mb-md"
+                  class="col"
                   dense outlined
-                  v-model="selectedDuration"
-                  option-value="code"
+                  v-model="curPatientVisitDetail.prescription.duration"
+                  :options="durations"
+                  ref="duration"
+                  :rules="[ val => !!val || 'Por favor indicar a duração']"
+                  option-value="id"
                   option-label="description"
                   label="Duração [1S, 2S, 1M, 2M, ...]" />
               <q-select
-                  class="col q-mb-md"
+                  class="col"
                   dense outlined
+                  ref="doctor"
+                  :rules="[ val => !!val || 'Por favor indicar o clínico']"
                   v-model="curPatientVisitDetail.prescription.doctor"
-                  option-value="code"
-                  option-label="description"
+                  :options="doctors"
+                  option-value="id"
+                  option-label="fullName"
                   label="Clínico" />
-              <div class="q-mt-md">
+              <div>
                 <div class="row items-center q-mb-sm">
                     <span class="text-subtitle2">Informação Adicional</span>
                 </div>
@@ -91,14 +104,18 @@
               </div>
               <q-select
                   v-if="hasPatientType"
-                  class="col q-mb-md"
+                  class="col"
                   dense outlined
-                  option-value="code"
-                  option-label="description"
+                  ref="patientType"
+                  :rules="[ val => !!val || 'Por favor indicar o tipo de paciente']"
+                  v-model="curPatientVisitDetail.prescription.patientType"
+                  :options="patientTypes"
                   label="Tipo Paciente [Inicio, Manter, Alterar]" />
                 <q-select
                   v-if="hasPrescriptionChangeMotive"
-                  class="col q-mb-md"
+                  class="col"
+                  ref="reasonForUpdate"
+                  :rules="[ val => !!val || 'Por favor indicar o motivo da alteração']"
                   dense outlined
                   option-value="code"
                   :options="reasonsForUpdate"
@@ -106,32 +123,38 @@
                   option-label="description"
                   label="Motivo Alteração [FT, Alergia ...]" />
                 <q-select
-                  class="col q-mb-md"
+                  class="col"
                   dense outlined
+                  ref="dispenseType"
+                  :rules="[ val => !!val || 'Por favor indicar o tipo de dispensa']"
                   v-model="curPatientVisitDetail.prescription.prescriptionDetail.dispenseType"
-                  option-value="code"
+                  :options="dispenseTypes"
+                  option-value="id"
                   option-label="description"
-                  label="Paciente em [DM, DT, DS]" />
+                  label="Paciente em [DM, DT, DS, DA]" />
                 <q-select
-                  class="col q-mb-lg"
+                  class="col"
+                  ref="patientStatus"
+                  :rules="[ val => !!val || 'Por favor indicar a ituacao do paciente (em relação aos modelos)']"
+                  v-model="curPatientVisitDetail.prescription.patientStatus"
+                  :options="patientStatus"
                   dense outlined
-                  option-value="code"
-                  option-label="description"
-                  label="[Novo, Manutenção]" />
-                <div class="q-my-md text-right">
-                  <q-btn unelevated color="primary" label="Adicionar Medicamentos" class="" />
+                  label="Situacao do paciente (em relação aos modelos)" />
+                <div class="row q-mb-sm">
+                  <q-btn unelevated color="primary" label="Adicionar Medicamentos" class="col" @click="validateForm()"/>
                 </div>
             </div>
           </div>
           <div class="col q-mx-md">
           <span
-              v-if="selectedClinicalService !==''">
+              v-if="showServiceDrugsManagement">
               <div
                 v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
                 <ServiceDrugsManagement
                   v-if="selectedClinicalService.code === visitDetails.episode.patientServiceIdentifier.service.code"
                   :selectedClinicalService="selectedClinicalService"
-                  @addEditDrugs="addEditDrugs"
+                  :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
+                  @updatePrescribedDrugs="updatePrescribedDrugs"
                   :visitDetails="visitDetails"/>
               </div>
           </span>
@@ -140,9 +163,8 @@
               Nenhum Serviço de Saúde foi Seleccionado!.
             </q-banner>
           </div>
-          <div
-            class="row text-right absolute-bottom q-mb-lg q-mr-lg">
-            <q-space/>
+          <span
+            class="text-right absolute-bottom q-mb-lg q-mr-lg q-mt-md">
               <q-btn
                 label="Cancelar"
                 color="red"
@@ -150,26 +172,30 @@
 
               <q-btn
                 v-if="selectedClinicalService !==''"
-                type="submit"
                 label="Dispensar"
+                @click="generatePacksAndDispense()"
                 color="primary"
                 class="q-ml-md" />
-            </div>
+            </span>
           </div>
         </div>
       </q-card-section>
-      <q-dialog persistent v-model="showAddEditDrug">
-        <AddEditPrescribedDrug
-          @addPrescribedDrug="addPrescribedDrug"
-          :visitDetails="curPatientVisitDetail"
-          :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
-          @close="showAddEditDrug = false" />
-    </q-dialog>
+      <q-dialog persistent v-model="showDispenseMode">
+        <DispenseMode
+          @proccedToDispense="proccedToDispense"
+          @close="showDispenseMode = false" />
+      </q-dialog>
+      <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
 </template>
 
 <script>
-
+import { ref } from 'vue'
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
@@ -179,37 +205,47 @@ import PrescriptionDetail from '../../../store/models/prescriptionDetails/Prescr
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import Episode from '../../../store/models/episode/Episode'
 import Pack from '../../../store/models/packaging/Pack'
+import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
+import Doctor from '../../../store/models/doctor/Doctor'
+import Clinic from '../../../store/models/clinic/Clinic'
+import DispenseType from '../../../store/models/dispenseType/DispenseType'
+import Duration from '../../../store/models/Duration/Duration'
+import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 export default {
   data () {
     return {
-      showAddEditDrug: false,
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       identifiers: [],
       patientVisit: new PatientVisit(),
       curPatientVisitDetails: [],
       curPatientVisitDetail: new PatientVisitDetails({
-        patientVisit: new PatientVisit(),
         prescription: new Prescription({
           prescriptionDetail: new PrescriptionDetail()
         }),
         pack: new Pack()
       }),
       clinicalServices: [],
-      selectedClinicalService: '',
-      reasonsForUpdate: ['FT', 'Alergia']
+      selectedClinicalService: new ClinicalService(),
+      reasonsForUpdate: ['FT', 'Alergia'],
+      patientStatus: ['Novo', 'Manutenção'],
+      patientTypes: ['Inicio', 'Manter', 'Alterar', 'Reinício'],
+      showServiceDrugsManagement: false,
+      prescriptionDate: '',
+      showDispenseMode: false
     }
   },
   methods: {
-    addEditDrugs (pickupDate) {
-      this.curPatientVisitDetail.pack.pickupDate = pickupDate
-      this.showAddEditDrug = true
-    },
-    addPrescribedDrug (prescribedDrug) {
-      this.curPatientVisitDetail.prescription.prescribedDrugs.push(prescribedDrug)
-    },
     initPatientVisit () {
       this.patientVisit.visitDate = new Date()
+      this.patientVisit.clinic = this.currClinic
     },
     setCurVisitDetails () {
+      this.showServiceDrugsManagement = false
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         if (visitDetails.episode.patientServiceIdentifier.service.id === this.selectedClinicalService.id) {
@@ -234,45 +270,123 @@ export default {
     },
     initPatientVisitDetails (episode) {
       const curPatientVisitDetail = new PatientVisitDetails({
-        patientVisit: new PatientVisit(this.patientVisit),
+        patientVisit: this.patientVisit,
         prescription: new Prescription({
           prescriptionDate: new Date(),
-          prescriptionDetail: new PrescriptionDetail()
+          prescriptionDetail: new PrescriptionDetail(),
+          clinic: this.currClinic
         }),
-        pack: new Pack(),
+        pack: new Pack({
+          clinic: this.currClinic
+        }),
         episode: Episode.query().with('patientServiceIdentifier.service').where('id', episode.id).first()
       })
 
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
     },
-    checkClinicalServiceAttr (attributes, attr) {
+    checkClinicalServiceAttr (attr) {
+      if (this.selectedClinicalService === '') return false
       let v
-      Object.keys(attributes).forEach(function (k) {
-          const t = attributes[k]
+      Object.keys(this.selectedClinicalService.attributes).forEach(function (k) {
+          const t = this.selectedClinicalService.attributes[k]
         if (t.clinicalServiceAttributeType.code === attr) {
           v = true
-          }
-      })
+        }
+      }.bind(this))
       return v
+    },
+    updatePrescribedDrugs (prescribedDrugs) {
+      this.curPatientVisitDetail.prescription.prescribedDrugs = prescribedDrugs
+    },
+    validateForm () {
+      this.$refs.patientStatus.validate()
+      this.$refs.clinicalService.validate()
+      this.$refs.prescriptionDate.validate()
+      if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
+      if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
+      this.$refs.duration.validate()
+      this.$refs.doctor.validate()
+      if (this.hasPatientType) this.$refs.patientType.validate()
+      this.$refs.dispenseType.validate()
+
+      if (!this.$refs.patientStatus.hasError &&
+          !this.$refs.clinicalService.hasError &&
+          !this.$refs.prescriptionDate.hasError &&
+          (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
+          (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
+          !this.$refs.duration.hasError &&
+          !this.$refs.doctor.hasError &&
+          (this.hasPatientType && !this.$refs.patientType.hasError) &&
+          !this.$refs.dispenseType.hasError) {
+            this.showServiceDrugsManagement = true
+      }
+    },
+    generatePacksAndDispense () {
+      this.curPatientVisitDetail.prescription.prescriptionDate = new Date(this.prescriptionDate)
+      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+        const visitDetails = this.curPatientVisitDetails[k]
+        if (visitDetails.prescription.prescribedDrugs.length > 0) {
+          visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription.prescriptionDate)
+          this.generatePacks(visitDetails)
+        }
+      }.bind(this))
+      this.showDispenseMode = true
+    },
+    generatePacks (visitDetails) {
+      visitDetails.pack.weeksSupply = visitDetails.prescription.duration.weeks
+      Object.keys(visitDetails.prescription.prescribedDrugs).forEach(function (k) {
+        const prescribedDrug = visitDetails.prescription.prescribedDrugs[k]
+        const packDrug = new PackagedDrug()
+        packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
+        packDrug.drug = prescribedDrug.drug
+        if (packDrug.toContinue) {
+          packDrug.nextPickUpDate = new Date(prescribedDrug.nextPickUpDate)
+        }
+        packDrug.toContinue = prescribedDrug.toContinue
+        visitDetails.pack.packagedDrugs.push(packDrug)
+      })
+    },
+    proccedToDispense (dispenseMode) {
+      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+        const visitDetails = this.curPatientVisitDetails[k]
+        if (visitDetails.prescription.prescribedDrugs.length > 0) {
+          visitDetails.pack.dispenseMode = dispenseMode
+          this.patientVisit.patientVisitDetails.push(visitDetails)
+        }
+      }.bind(this))
+
+      console.log(this.patientVisit)
+
+      PatientVisit.apiSave(this.patientVisit).then(resp => {
+        this.displayAlert('info', 'Dispensa efectuada com sucesso.')
+      }).catch(error => {
+        this.displayAlert('error', error)
+      })
+
+      console.log(this.curPatientVisitDetails)
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
     }
   },
   computed: {
     hasTherapeuticalRegimen () {
-      if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_REGIMEN')
+      return this.checkClinicalServiceAttr('THERAPEUTICAL_REGIMEN')
     },
     hasTherapeuticalLine () {
-      if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'THERAPEUTICAL_LINE')
+      return this.checkClinicalServiceAttr('THERAPEUTICAL_LINE')
     },
     hasPatientType () {
-      if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PATIENT_TYPE')
+      return this.checkClinicalServiceAttr('PATIENT_TYPE')
     },
     hasPrescriptionChangeMotive () {
-      if (this.selectedClinicalService === '') return false
-      return this.checkClinicalServiceAttr(this.selectedClinicalService.attributes, 'PRESCRIPTION_CHANGE_MOTIVE')
+      return this.checkClinicalServiceAttr('PRESCRIPTION_CHANGE_MOTIVE')
     },
     patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
@@ -284,15 +398,38 @@ export default {
                             .with('postoAdministrativo')
                             .with('bairro')
                             .with('clinic').where('id', selectedP.id).first()
-      }
+    },
+    therapeuticRegimens () {
+      return TherapeuticRegimen.query()
+                              .with('clinicalService')
+                              .where('clinical_service_id', this.selectedClinicalService.id)
+                              .get()
+    },
+    therapeuticLines () {
+      return TherapeuticLine.all()
+    },
+    doctors () {
+      return Doctor.query().where('clinic_id', this.currClinic.id)
+                   .get()
+    },
+    dispenseTypes () {
+      return DispenseType.all()
+    },
+    durations () {
+      return Duration.all()
+    },
+    currClinic () {
+      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+    }
   },
   mounted () {
     this.init()
   },
   components: {
     ServiceDrugsManagement: require('components/Patient/PatientPanel/ServiceDrugsManagement.vue').default,
-    AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,
-    ListHeader: require('components/Shared/ListHeader.vue').default
+    ListHeader: require('components/Shared/ListHeader.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
+    DispenseMode: require('components/Patient/Prescription/DispenseMode.vue').default
   }
 }
 </script>

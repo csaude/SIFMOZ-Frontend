@@ -9,17 +9,17 @@
           <q-input
               dense
               outlined
-              label-color="white"
+              bg-color="white"
               class="col q-ma-sm"
-              v-model="curVisitDetails.pack.pickupDate"
+              v-model="pickupDate"
               mask="date"
               :rules="['date']"
               ref="pickupDate"
               label="Data de Levantamento">
               <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer" color="white">
+                  <q-icon name="event" class="cursor-pointer">
                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                      <q-date v-model="curVisitDetails.pack.pickupDate" >
+                      <q-date v-model="pickupDate" >
                       <div class="row items-center justify-end">
                           <q-btn v-close-popup label="Close" color="primary" flat />
                       </div>
@@ -27,6 +27,26 @@
                   </q-popup-proxy>
                   </q-icon>
               </template>
+          </q-input>
+          <q-input
+            outlined dense
+            v-model="nextPDate"
+            label="Proximo Levantamento"
+            bg-color="white"
+            mask="date"
+            ref="nextPickupDate"
+            :rules="['date']">
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                  <q-date v-model="nextPDate">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
           </q-input>
           <q-btn dense flat round color="white" :icon="expanded ? 'expand_less' : 'expand_more'" class="float-right" @click="expand"/>
           <q-btn dense v-if="addVisible" flat round color="white" icon="add" class="float-right q-mx-sm" @click="showAdd"/>
@@ -38,12 +58,13 @@
 import { ref } from 'vue'
 export default {
     props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails'],
-    setup () {
+    data () {
       return {
         headerClass: '',
         expanded: ref(false),
         curVisitDetails: '',
-        date: ''
+        nextPDate: '',
+        pickupDate: ''
       }
     },
     methods: {
@@ -60,8 +81,9 @@ export default {
       },
       showAdd () {
         this.$refs.pickupDate.validate()
-        if (!this.$refs.pickupDate.hasError) {
-            this.$emit('showAdd', this.curVisitDetails.pack.pickupDate)
+        this.$refs.nextPickupDate.validate()
+        if (!this.$refs.pickupDate.hasError || !this.$refs.nextPickupDate.hasError) {
+            this.$emit('showAdd', this.pickupDate, this.nextPDate)
         }
       }
     },

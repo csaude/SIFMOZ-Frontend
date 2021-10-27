@@ -26,4 +26,12 @@ export default class Drug extends Model {
       stocks: this.hasMany(Stock, 'drug_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/drug')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/drug/${id}`)
+  }
 }
