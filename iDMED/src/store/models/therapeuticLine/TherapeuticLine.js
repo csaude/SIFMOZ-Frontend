@@ -11,4 +11,12 @@ export default class TherapeuticLine extends Model {
       prescriptionDetails: this.hasMany(PrescriptionDetail, 'therapeutic_line_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/therapeuticLine')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/therapeuticLine/${id}`)
+  }
 }

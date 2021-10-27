@@ -24,4 +24,12 @@ export default class TherapeuticRegimen extends Model {
       clinicalService: this.belongsTo(ClinicalService, 'clinical_service_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/therapeuticRegimen')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/therapeuticRegimen/${id}`)
+  }
 }

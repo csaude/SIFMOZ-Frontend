@@ -1,6 +1,5 @@
 import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
-import Form from '../form/Form'
 import Prescription from '../prescription/Prescription'
 
 export default class PrescribedDrug extends Model {
@@ -16,11 +15,14 @@ export default class PrescribedDrug extends Model {
         toContinue: this.boolean(true),
         prescription_id: this.attr(''),
         drug_id: this.attr(''),
-        form_id: this.attr(''),
+        form: this.attr(''),
         // Relationships
-        form: this.belongsTo(Form, 'form_id'),
         prescription: this.belongsTo(Prescription, 'prescription_id'),
         drug: this.belongsTo(Drug, 'drug_id')
       }
+    }
+
+    get takeInstructions () {
+      return `${this.amtPerTime} ${this.form} ${this.timesPerDay}`
     }
 }

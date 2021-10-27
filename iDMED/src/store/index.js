@@ -49,6 +49,9 @@ import PatientVisitDetails from './models/patientVisitDetails/PatientVisitDetail
 
 import Doctor from './models/doctor/Doctor'
 import Form from './models/form/Form'
+import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
+import DispenseType from './models/dispenseType/DispenseType'
+import Duration from './models/Duration/Duration'
 import TherapeuticRegimensDrug from './models/TherapeuticRegimensDrug/TherapeuticRegimensDrug'
 // Vue.use(Vuex)
 
@@ -110,6 +113,9 @@ database.register(ClinicalServiceAttribute)
 database.register(PatientVisitDetails)
 database.register(Doctor)
 database.register(Form)
+database.register(TherapeuticLine)
+database.register(DispenseType)
+database.register(Duration)
 database.register(TherapeuticRegimensDrug)
 
 export default new Vuex.Store({

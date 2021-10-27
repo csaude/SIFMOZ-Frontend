@@ -14,4 +14,12 @@ export default class Form extends Model {
       drugs: this.hasMany(Drug, 'form_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/form')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/form/${id}`)
+  }
 }

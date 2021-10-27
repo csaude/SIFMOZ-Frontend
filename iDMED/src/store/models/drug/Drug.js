@@ -28,6 +28,11 @@ export default class Drug extends Model {
   }
 
   static async apiGetAll () {
+    return await this.api().get('/drug')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/drug/${id}`)
     return await this.api().get('/drugs')
   }
 }
