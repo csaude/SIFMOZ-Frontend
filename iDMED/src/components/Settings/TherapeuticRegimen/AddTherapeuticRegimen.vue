@@ -13,7 +13,7 @@
                         <codeInput v-model="therapeuticRegimen.code" :disable="onlyView" />
                     </div>
                      <div class="row q-mt-md">
-                         <q-table
+       <q-table
       class="col"
       title="Medicamentos"
       :rows="drugs"
@@ -21,6 +21,15 @@
       row-key="fnmCode"
       selection="multiple"
       v-model:selected="therapeuticRegimen.drugs"
+      v-if="!onlyView"
+        />
+             <q-table
+      class="col"
+      title="Medicamentos"
+      :rows="drugs"
+      :columns="columnsDrug"
+      row-key="fnmCode"
+      v-if="onlyView"
         />
                     </div>
                 </div>
@@ -43,7 +52,7 @@
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 import { ref } from 'vue'
 import Drug from '../../../store/models/drug/Drug'
-import RegimenDrug from '../../../store/models/regimenDrug/RegimenDrug'
+// import TherapeuticRegimensDrug from '../../../store/models/therapeuticRegimen/TherapeuticRegimensDrug'
 const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
@@ -88,6 +97,7 @@ export default {
         submitTherapeuticRegimen () {
        //   this.createRegimenDrugs()
         //  this.therapeuticRegimen.regimenDrugs = this.regimenDrugs
+        this.therapeuticRegimen.active = true
             console.log(this.therapeuticRegimen)
             TherapeuticRegimen.api().post('/therapeuticRegimen', this.therapeuticRegimen).then(resp => {
                 console.log(resp.response.data)
@@ -115,19 +125,12 @@ export default {
                         console.log(error)
                     })
             }
-        },
-        createRegimenDrugs () {
-          this.selectedDrugs.forEach(drug => {
-            this.regimenDrug = new RegimenDrug()
-            this.regimenDrug.drug = drug
-           // this.regimenDrug.therapeutic_regimen = this.therapeuticRegimen
-            this.regimenDrugs.push(this.regimenDrug)
-          })
         }
     },
     created () {
         if (this.therapeuticRegimen !== '') {
-          this.therapeuticRegimen = Object.assign({}, this.selectedtherapeuticRegimen)
+          this.therapeuticRegimen = Object.assign({}, this.selectedTherapeuticRegimen)
+         // console.log(this.therapeuticRegimensDrug.id)
         }
     },
     components: {
@@ -142,8 +145,11 @@ export default {
     },
     computed: {
         drugs () {
-             return Drug.all()
+             return Drug.query().with('form').get()
       }
+    //  therapeuticRegimensDrug () {
+       // return TherapeuticRegimensDrug.query().with('drug.form').where('therapeutic_regimen_id', this.therapeuticRegimen.id)
+    //  }
     }
 }
 </script>

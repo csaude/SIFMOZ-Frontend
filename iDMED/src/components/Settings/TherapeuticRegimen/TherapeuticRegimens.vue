@@ -51,8 +51,9 @@
                       color="red"
                       icon="delete"
                       @click.stop="promptToConfirm(props.row)"
-                     />
+                     >
                       <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     </q-btn>
                   </div>
                   </q-td>
             </q-tr>
@@ -75,6 +76,7 @@
 <script>
 import { useQuasar } from 'quasar'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+// import TherapeuticRegimensDrug from '../../../store/models/therapeuticRegimen/TherapeuticRegimensDrug'
 
 const columns = [
   { name: 'regimenScheme', required: true, label: 'Esquema do Regime', align: 'left', field: row => row.regimenScheme, format: val => `${val}`, sortable: true },
@@ -95,8 +97,7 @@ export default {
   },
  computed: {
       therapeuticRegimens () {
-             return TherapeuticRegimen.all()
-         // return Drug.all()
+             return TherapeuticRegimen.query().with('drugs.form').get()
       }
   },
   methods: {
@@ -109,11 +110,14 @@ export default {
          this.showTherapeuticRegimenRegistrationScreen = true
       },
         addTherapeuticRegimen () {
+      //    this.therapeuticRegimens.drugs.forEach((drug) => {
+ // console.log(drug.pivot)
+ // })
           this.viewMode = false
           this.therapeuticRegimen = new TherapeuticRegimen()
          this.showTherapeuticRegimenRegistrationScreen = true
       },
-       visualizeDrug (therapeuticRegimen) {
+       visualizeTherapeuticRegimen (therapeuticRegimen) {
           this.therapeuticRegimen = Object.assign({}, therapeuticRegimen)
          this.viewMode = true
            this.showTherapeuticRegimenRegistrationScreen = true
