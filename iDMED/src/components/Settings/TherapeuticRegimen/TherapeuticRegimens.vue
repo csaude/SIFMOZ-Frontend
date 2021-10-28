@@ -6,9 +6,11 @@
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <q-table
+          style="height: 700px"
      :rows="therapeuticRegimens"
       :columns="columns"
       :filter="filter"
+       row-key="regimenScheme"
       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll>
@@ -65,7 +67,7 @@
                 <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" />
              </q-page-sticky>
         </div>
-          <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
+          <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen" full-width>
           <AddTherapeuticRegimen
           :selectedTherapeuticRegimen="therapeuticRegimen"
           :onlyView="viewMode"
@@ -75,6 +77,7 @@
 </template>
 <script>
 import { useQuasar } from 'quasar'
+import { ref } from 'vue'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 // import TherapeuticRegimensDrug from '../../../store/models/therapeuticRegimen/TherapeuticRegimensDrug'
 
@@ -89,6 +92,7 @@ export default {
     const $q = useQuasar()
 
     return {
+      filter: ref(''),
         columns,
         $q,
          showTherapeuticRegimenRegistrationScreen: false,

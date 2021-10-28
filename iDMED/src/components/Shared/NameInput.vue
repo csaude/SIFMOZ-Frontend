@@ -5,7 +5,7 @@
         dense
         ref="nome"
         class="col"
-        :value="name"
+        :value="nome"
         @input="(event) => $emit('update:name', event.target.value)"
         :rules="[ val => !!val || 'Por favor indicar o nome']"
         lazy-rules/>
@@ -13,7 +13,7 @@
 
 <script>
 export default {
-    props: ['name']
+    props: ['nome']
 }
 </script>
 

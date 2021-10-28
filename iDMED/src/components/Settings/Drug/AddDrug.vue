@@ -4,7 +4,7 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="drug.name" :disable="onlyView" />
+                        <nameInput v-model="drug.name" :disable="onlyView" ref="nome" />
                     </div>
                      <div class="row q-mt-md">
                         <codeInput v-model="drug.fnmCode" :disable="onlyView" label="fnmCode"/>
@@ -12,19 +12,19 @@
                     <div class="row q-mt-md">
                          <numberField v-model="drug.packSize" label="Tamanho do pacote" :disable="onlyView"/>
                     </div>
-                     <div class="row q-mt-md">
-                     <numberField v-model="drug.defaultTimes" label="N de toma"  :disable="onlyView" />
+                    <div class="q-mt-md">
+                    </div>
+                    <div class="row">
+                        <numberField v-model="drug.defaultTimes" label="N de toma"  :disable="onlyView" />
                       <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Numero de vezes a tomar"  :disable="onlyView"/>
-                     </div>
-                             <div class="row q-mt-md">
-                             <q-select
-                              class="col"
+                        <q-select
+                              class="col q-ml-md"
                           dense outlined
                           v-model="drug.defaultPeriodTreatment"
                           :options="periodsTime"
                            :disable="onlyView"
                           label="Periodo a Tomar" />
-                     </div>
+                    </div>
                         <div class="row q-mt-md">
                     <q-select
                      class="col" dense outlined
@@ -85,9 +85,10 @@ export default {
     },
     methods: {
           validateDrug () {
-           // this.$refs.nome.$refs.ref.validate()
-             // this.$refs.code.$refs.ref.validate()
-            // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
+      //      console.log(this.$refs.nome.ref.validate())
+      //      this.$refs.nome.$refs.ref.validate()
+       //      this.$refs.code.$refs.ref.validate()
+         //    if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
                 this.submitDrug()
            // }
         },
