@@ -1,8 +1,12 @@
 <template>
     <div>
+     <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
+       Medicamentos
+        </div>
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <q-table
+          style="height: 700px"
      :rows="drugs"
       :columns="columns"
       :filter="filter"
@@ -138,8 +142,9 @@ export default {
             }
         },
          promptToConfirm (drug) {
-            this.$q.dialog({ title: 'Confirm', message: 'Deseja remover o medicamento?', cancel: true, persistent: true }).onOk(() => {
-            Drug.api().delete('/drug/' + drug.id, drug).then(resp => {
+            this.$q.dialog({ title: 'Confirm', message: 'Deseja inactivar o medicamento?', cancel: true, persistent: true }).onOk(() => {
+               drug.active = false
+            Drug.api().patch('/drug/' + drug.id, drug).then(resp => {
                 this.$emit('drug', resp.response.data)
             }).catch(error => {
               console.log(drug.id)

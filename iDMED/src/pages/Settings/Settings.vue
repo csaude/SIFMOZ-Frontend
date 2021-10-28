@@ -49,6 +49,10 @@
             <div class="text-h4 q-mb-md"></div>
              <therapeuticRegimen> </therapeuticRegimen>
           </q-tab-panel>
+          <q-tab-panel name="interoperability">
+            <div class="text-h4 q-mb-md"></div>
+             <interoperability> </interoperability>
+          </q-tab-panel>
         </q-tab-panels>
       </template>
 
@@ -66,6 +70,7 @@ const tabs = [
   { name: 'doctor', icon: 'psychology', label: 'Clinicos' },
  { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
   { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapeutico' },
+  { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' },
   { name: 'users', icon: 'group_add', label: 'Utilizadores' }
 ]
 export default {
@@ -85,7 +90,8 @@ export default {
            nationalClinic: require('components/Settings/NationalClinic/NationalClinics.vue').default,
       clinics: require('components/Settings/Clinic/Clinics.vue').default,
        clinicalServices: require('components/Settings/ClinicalService/ClinicalService.vue').default,
-       therapeuticRegimen: require('components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue').default
+       therapeuticRegimen: require('components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue').default,
+       interoperability: require('components/Settings/Interoperability/His.vue').default
     }
 }
 </script>

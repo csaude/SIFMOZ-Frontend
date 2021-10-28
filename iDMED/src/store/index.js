@@ -46,13 +46,16 @@ import PostoAdministrativo from './models/PostoAdministrativo/PostoAdministrativ
 import ClinicalServiceAttributeType from './models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from './models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import PatientVisitDetails from './models/patientVisitDetails/PatientVisitDetails'
-
 import Doctor from './models/doctor/Doctor'
 import Form from './models/form/Form'
 import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
 import DispenseType from './models/dispenseType/DispenseType'
 import Duration from './models/Duration/Duration'
 import TherapeuticRegimensDrug from './models/TherapeuticRegimensDrug/TherapeuticRegimensDrug'
+import HealthInformationSystem from './models/healthInformationSystem/HealthInformationSystem'
+import InteroperbilityAttribute from './models/interoperabilityAttribute/InteroperabilityAttribute'
+import InteroperabilityType from './models/interoperabilityType/InteroperabilityType'
+
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -117,6 +120,9 @@ database.register(TherapeuticLine)
 database.register(DispenseType)
 database.register(Duration)
 database.register(TherapeuticRegimensDrug)
+database.register(HealthInformationSystem)
+database.register(InteroperbilityAttribute)
+database.register(InteroperabilityType)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
