@@ -27,7 +27,7 @@ export default class Prescription extends Model {
         clinic: this.belongsTo(Clinic, 'clinic_id'),
         doctor: this.belongsTo(Doctor, 'doctor_id'),
         patientVisitDetails: this.belongsTo(PatientVisitDetails, 'patientVisitDetails_id'),
-        prescriptionDetail: this.hasOne(PrescriptionDetail, 'prescription_id'),
+        prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id'),
         duration: this.hasOne(Duration, 'duration_id'),
         prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id')
       }

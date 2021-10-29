@@ -52,6 +52,12 @@ import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
 import DispenseType from './models/dispenseType/DispenseType'
 import Duration from './models/Duration/Duration'
 import TherapeuticRegimensDrug from './models/TherapeuticRegimensDrug/TherapeuticRegimensDrug'
+import PatientVisit from './models/patientVisit/PatientVisit'
+import Pack from './models/packaging/Pack'
+import PackagedDrug from './models/packagedDrug/PackagedDrug'
+import Prescription from './models/prescription/Prescription'
+import PrescriptionDetail from './models/prescriptionDetails/PrescriptionDetail'
+import PrescribedDrug from './models/prescriptionDrug/PrescribedDrug'
 import HealthInformationSystem from './models/healthInformationSystem/HealthInformationSystem'
 import InteroperbilityAttribute from './models/interoperabilityAttribute/InteroperabilityAttribute'
 import InteroperabilityType from './models/interoperabilityType/InteroperabilityType'
@@ -120,6 +126,12 @@ database.register(TherapeuticLine)
 database.register(DispenseType)
 database.register(Duration)
 database.register(TherapeuticRegimensDrug)
+database.register(PatientVisit)
+database.register(Pack)
+database.register(PackagedDrug)
+database.register(Prescription)
+database.register(PrescriptionDetail)
+database.register(PrescribedDrug)
 database.register(HealthInformationSystem)
 database.register(InteroperbilityAttribute)
 database.register(InteroperabilityType)
