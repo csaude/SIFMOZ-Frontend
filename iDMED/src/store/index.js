@@ -46,7 +46,6 @@ import PostoAdministrativo from './models/PostoAdministrativo/PostoAdministrativ
 import ClinicalServiceAttributeType from './models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from './models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import PatientVisitDetails from './models/patientVisitDetails/PatientVisitDetails'
-
 import Doctor from './models/doctor/Doctor'
 import Form from './models/form/Form'
 import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
@@ -59,6 +58,10 @@ import PackagedDrug from './models/packagedDrug/PackagedDrug'
 import Prescription from './models/prescription/Prescription'
 import PrescriptionDetail from './models/prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from './models/prescriptionDrug/PrescribedDrug'
+import HealthInformationSystem from './models/healthInformationSystem/HealthInformationSystem'
+import InteroperbilityAttribute from './models/interoperabilityAttribute/InteroperabilityAttribute'
+import InteroperabilityType from './models/interoperabilityType/InteroperabilityType'
+
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -129,6 +132,9 @@ database.register(PackagedDrug)
 database.register(Prescription)
 database.register(PrescriptionDetail)
 database.register(PrescribedDrug)
+database.register(HealthInformationSystem)
+database.register(InteroperbilityAttribute)
+database.register(InteroperabilityType)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

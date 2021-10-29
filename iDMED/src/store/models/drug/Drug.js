@@ -18,6 +18,7 @@ export default class Drug extends Model {
       defaultTimes: this.attr(''),
       defaultTreatment: this.attr(''),
       defaultPeriodTreatment: this.attr(''),
+      active: this.attr(''),
       form_id: this.attr(''),
       // Relationships
       form: this.belongsTo(Form, 'form_id'),

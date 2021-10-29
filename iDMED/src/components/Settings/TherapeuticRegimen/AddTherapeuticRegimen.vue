@@ -7,7 +7,7 @@
                         <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime" />
                     </div>
                      <div class="row q-mt-md">
-                       <nameInput v-model="therapeuticRegimen.description" :disable="onlyView" />
+                       <nameInput v-model="therapeuticRegimen.description" :disable="onlyView" :nome="nome" />
                     </div>
                     <div class="row q-mt-md">
                         <codeInput v-model="therapeuticRegimen.code" :disable="onlyView" />
@@ -18,11 +18,22 @@
       title="Medicamentos"
       :rows="drugs"
       :columns="columnsDrug"
+      :filter="filter"
+      :rows-per-page-options="[0]"
+      virtual-scroll
       row-key="fnmCode"
       selection="multiple"
       v-model:selected="therapeuticRegimen.drugs"
       v-if="!onlyView"
-        />
+        >
+         <template v-slot:top-right>
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+            <template v-slot:append>
+                <q-icon name="search" />
+            </template>
+                </q-input>
+        </template>
+       </q-table>
              <q-table
       class="col"
       title="Medicamentos"
@@ -66,6 +77,7 @@ export default {
       const formOptions = ref(this.forms)
         return {
           columnsDrug,
+          filter: ref(''),
            alert: ref({
               type: '',
               visible: false,
@@ -88,7 +100,7 @@ export default {
     },
     methods: {
           validateTherapeuticRegimen () {
-           // this.$refs.nome.$refs.ref.validate()
+            this.$refs.nome.$refs.ref.validate()
              // this.$refs.code.$refs.ref.validate()
             // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
                 this.submitTherapeuticRegimen()
@@ -145,7 +157,7 @@ export default {
     },
     computed: {
         drugs () {
-             return Drug.query().with('form').get()
+             return Drug.query().with('form').where('active', true).get()
       }
     //  therapeuticRegimensDrug () {
        // return TherapeuticRegimensDrug.query().with('drug.form').where('therapeutic_regimen_id', this.therapeuticRegimen.id)
