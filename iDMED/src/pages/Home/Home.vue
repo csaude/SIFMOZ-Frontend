@@ -81,7 +81,7 @@ export default {
         DispenseType.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
+        Clinic.apiFetchById('1').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },

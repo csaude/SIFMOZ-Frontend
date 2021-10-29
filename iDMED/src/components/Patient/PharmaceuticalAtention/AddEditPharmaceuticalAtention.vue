@@ -28,9 +28,18 @@
                   icon="settings"
                   :done="step > 1"
                 >
-                  For each ad campaign that you create, you can control how much you're willing to
-                  spend on clicks and conversions, which networks and geographical locations you want
-                  your ads to show on, and more.
+                  <div class="row">
+                        <numberField v-model="drug.defaultTimes" label="Altura"  :disable="onlyView" suffix="[Metros]" />
+                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Peso"  suffix="[Kg]" :disable="onlyView"/>
+                    </div>
+                    <div class="row">
+                        <numberField v-model="drug.defaultTimes" label="IMC" filled :disable="onlyView" />
+                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" filled label="IMC-Descricao"  :disable="onlyView"/>
+                    </div>
+                    <div class="row">
+                        <numberField v-model="drug.defaultTimes" label="Sistole"  :disable="onlyView"  suffix="[mmHg]"/>
+                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Diastole" suffix="[mmHg]" :disable="onlyView"/>
+                    </div>
                 </q-step>
 
                 <q-step
