@@ -53,6 +53,12 @@ import TherapeuticLine from './models/therapeuticLine/TherapeuticLine'
 import DispenseType from './models/dispenseType/DispenseType'
 import Duration from './models/Duration/Duration'
 import TherapeuticRegimensDrug from './models/TherapeuticRegimensDrug/TherapeuticRegimensDrug'
+import PatientVisit from './models/patientVisit/PatientVisit'
+import Pack from './models/packaging/Pack'
+import PackagedDrug from './models/packagedDrug/PackagedDrug'
+import Prescription from './models/prescription/Prescription'
+import PrescriptionDetail from './models/prescriptionDetails/PrescriptionDetail'
+import PrescribedDrug from './models/prescriptionDrug/PrescribedDrug'
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -117,6 +123,12 @@ database.register(TherapeuticLine)
 database.register(DispenseType)
 database.register(Duration)
 database.register(TherapeuticRegimensDrug)
+database.register(PatientVisit)
+database.register(Pack)
+database.register(PackagedDrug)
+database.register(Prescription)
+database.register(PrescriptionDetail)
+database.register(PrescribedDrug)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

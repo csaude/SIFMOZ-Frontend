@@ -183,6 +183,7 @@ export default {
            }).catch(error => {
              this.displayAlert('error', error)
            })
+           console.log(this.patient)
         },
         displayAlert (type, msg) {
           this.alert.type = type
@@ -208,7 +209,7 @@ export default {
     },
     computed: {
       provinces () {
-          return Province.query().with('districts').get()
+          return Province.query().with('districts.*').get()
       },
       districts () {
         if (this.patient.province === null) return null

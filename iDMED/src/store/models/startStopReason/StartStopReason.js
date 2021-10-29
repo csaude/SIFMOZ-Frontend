@@ -8,8 +8,7 @@ export default class StartStopReason extends Model {
       id: this.attr(null),
       isStartReason: this.boolean(false),
       reason: this.attr(''),
-      episode_id: this.attr(''),
-      episode: this.belongsTo(Episode, 'episode_id')
+      episode: this.hasMany(Episode, 'startStopReason_id')
     }
   }
 

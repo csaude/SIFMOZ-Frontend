@@ -60,7 +60,7 @@
                   dense outlined
                   ref="therapeuticRegimen"
                   :rules="[ val => !!val || 'Por favor indicar o regime terapêutico']"
-                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticRegimen"
+                  v-model="curPrescriptionDetails.therapeuticRegimen"
                   :options="therapeuticRegimens"
                   option-value="id"
                   option-label="description"
@@ -71,7 +71,7 @@
                   dense outlined
                   ref="therapeuticLine"
                   :rules="[ val => !!val || 'Por favor indicar a linha terapêutica']"
-                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.therapeuticLine"
+                  v-model="curPrescriptionDetails.therapeuticLine"
                   :options="therapeuticLines"
                   option-value="id"
                   option-label="description"
@@ -79,7 +79,7 @@
               <q-select
                   class="col"
                   dense outlined
-                  v-model="curPatientVisitDetail.prescription.duration"
+                  v-model="curPrescription.duration"
                   :options="durations"
                   ref="duration"
                   :rules="[ val => !!val || 'Por favor indicar a duração']"
@@ -91,7 +91,7 @@
                   dense outlined
                   ref="doctor"
                   :rules="[ val => !!val || 'Por favor indicar o clínico']"
-                  v-model="curPatientVisitDetail.prescription.doctor"
+                  v-model="curPrescription.doctor"
                   :options="doctors"
                   option-value="id"
                   option-label="fullName"
@@ -108,18 +108,17 @@
                   dense outlined
                   ref="patientType"
                   :rules="[ val => !!val || 'Por favor indicar o tipo de paciente']"
-                  v-model="curPatientVisitDetail.prescription.patientType"
+                  v-model="curPrescription.patientType"
                   :options="patientTypes"
                   label="Tipo Paciente [Inicio, Manter, Alterar]" />
                 <q-select
                   v-if="hasPrescriptionChangeMotive"
-                  class="col"
+                  class="col q-mb-sm"
                   ref="reasonForUpdate"
-                  :rules="[ val => !!val || 'Por favor indicar o motivo da alteração']"
                   dense outlined
                   option-value="code"
                   :options="reasonsForUpdate"
-                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.reasonForUpdate"
+                  v-model="curPrescriptionDetails.reasonForUpdate"
                   option-label="description"
                   label="Motivo Alteração [FT, Alergia ...]" />
                 <q-select
@@ -127,7 +126,7 @@
                   dense outlined
                   ref="dispenseType"
                   :rules="[ val => !!val || 'Por favor indicar o tipo de dispensa']"
-                  v-model="curPatientVisitDetail.prescription.prescriptionDetail.dispenseType"
+                  v-model="curPrescriptionDetails.dispenseType"
                   :options="dispenseTypes"
                   option-value="id"
                   option-label="description"
@@ -136,7 +135,7 @@
                   class="col"
                   ref="patientStatus"
                   :rules="[ val => !!val || 'Por favor indicar a ituacao do paciente (em relação aos modelos)']"
-                  v-model="curPatientVisitDetail.prescription.patientStatus"
+                  v-model="curPrescription.patientStatus"
                   :options="patientStatus"
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
@@ -191,6 +190,7 @@
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
         </q-dialog>
+        <pre>{{curPatientVisitDetails}}</pre>
     </q-card>
 </template>
 
@@ -223,12 +223,7 @@ export default {
       identifiers: [],
       patientVisit: new PatientVisit(),
       curPatientVisitDetails: [],
-      curPatientVisitDetail: new PatientVisitDetails({
-        prescription: new Prescription({
-          prescriptionDetail: new PrescriptionDetail()
-        }),
-        pack: new Pack()
-      }),
+      curPatientVisitDetail: new PatientVisitDetails(),
       clinicalServices: [],
       selectedClinicalService: new ClinicalService(),
       reasonsForUpdate: ['FT', 'Alergia'],
@@ -253,6 +248,22 @@ export default {
         }
       }.bind(this))
     },
+    initCurrPatientVisitDetails () {
+      const pack = new Pack({
+        clinic: this.currClinic
+      })
+
+      const prescription = new Prescription({
+        prescriptionDate: new Date(),
+        clinic: this.currClinic
+      })
+
+      const prescriptionDetail = new PrescriptionDetail()
+      prescription.prescriptionDetails.push(prescriptionDetail)
+
+      this.curPatientVisitDetail.packs.push(pack)
+      this.curPatientVisitDetail.prescriptions.push(prescription)
+    },
     init () {
       this.initPatientVisit()
       Object.keys(this.patient.identifiers).forEach(function (key) {
@@ -269,18 +280,25 @@ export default {
       }.bind(this))
     },
     initPatientVisitDetails (episode) {
+      const pack = new Pack({
+        clinic: this.currClinic
+      })
+
+      const prescription = new Prescription({
+        prescriptionDate: new Date(),
+        clinic: this.currClinic
+      })
+
+      const prescriptionDetail = new PrescriptionDetail()
+      prescription.prescriptionDetails.push(prescriptionDetail)
+
       const curPatientVisitDetail = new PatientVisitDetails({
         patientVisit: this.patientVisit,
-        prescription: new Prescription({
-          prescriptionDate: new Date(),
-          prescriptionDetail: new PrescriptionDetail(),
-          clinic: this.currClinic
-        }),
-        pack: new Pack({
-          clinic: this.currClinic
-        }),
         episode: Episode.query().with('patientServiceIdentifier.service').where('id', episode.id).first()
       })
+
+      curPatientVisitDetail.packs.push(pack)
+      curPatientVisitDetail.prescriptions.push(prescription)
 
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
@@ -297,7 +315,7 @@ export default {
       return v
     },
     updatePrescribedDrugs (prescribedDrugs) {
-      this.curPatientVisitDetail.prescription.prescribedDrugs = prescribedDrugs
+      this.curPrescription.prescribedDrugs = prescribedDrugs
     },
     validateForm () {
       this.$refs.patientStatus.validate()
@@ -323,48 +341,43 @@ export default {
       }
     },
     generatePacksAndDispense () {
-      this.curPatientVisitDetail.prescription.prescriptionDate = new Date(this.prescriptionDate)
+      // this.curPatientVisitDetail.prescription.prescriptionDate = new Date(this.prescriptionDate)
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
-        if (visitDetails.prescription.prescribedDrugs.length > 0) {
-          visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription.prescriptionDate)
+        if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
+          // visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription[0].prescriptionDate)
+          visitDetails.patientVisit = null
           this.generatePacks(visitDetails)
         }
       }.bind(this))
       this.showDispenseMode = true
     },
     generatePacks (visitDetails) {
-      visitDetails.pack.weeksSupply = visitDetails.prescription.duration.weeks
-      Object.keys(visitDetails.prescription.prescribedDrugs).forEach(function (k) {
-        const prescribedDrug = visitDetails.prescription.prescribedDrugs[k]
+      visitDetails.packs[0].weeksSupply = visitDetails.prescriptions[0].duration.weeks
+      Object.keys(visitDetails.prescriptions[0].prescribedDrugs).forEach(function (k) {
+        const prescribedDrug = visitDetails.prescriptions[0].prescribedDrugs[k]
         const packDrug = new PackagedDrug()
         packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
         packDrug.drug = prescribedDrug.drug
-        if (packDrug.toContinue) {
-          packDrug.nextPickUpDate = new Date(prescribedDrug.nextPickUpDate)
-        }
         packDrug.toContinue = prescribedDrug.toContinue
-        visitDetails.pack.packagedDrugs.push(packDrug)
+        visitDetails.packs[0].packagedDrugs.push(packDrug)
       })
     },
     proccedToDispense (dispenseMode) {
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
-        if (visitDetails.prescription.prescribedDrugs.length > 0) {
-          visitDetails.pack.dispenseMode = dispenseMode
+        if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
+          visitDetails.packs[0].dispenseMode = dispenseMode
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
 
-      console.log(this.patientVisit)
-
       PatientVisit.apiSave(this.patientVisit).then(resp => {
+        this.showDispenseMode = false
         this.displayAlert('info', 'Dispensa efectuada com sucesso.')
       }).catch(error => {
         this.displayAlert('error', error)
       })
-
-      console.log(this.curPatientVisitDetails)
     },
     displayAlert (type, msg) {
       this.alert.type = type
@@ -373,9 +386,19 @@ export default {
     },
     closeDialog () {
       this.alert.visible = false
+      if (this.alert.type === 'info') this.$emit('close')
     }
   },
   computed: {
+    curPrescription () {
+      return this.curPatientVisitDetail.prescriptions[0]
+    },
+    curPack () {
+      return this.curPatientVisitDetail.packs[0]
+    },
+    curPrescriptionDetails () {
+      return this.curPrescription.prescriptionDetails[0]
+    },
     hasTherapeuticalRegimen () {
       return this.checkClinicalServiceAttr('THERAPEUTICAL_REGIMEN')
     },
@@ -421,6 +444,9 @@ export default {
     currClinic () {
       return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
     }
+  },
+  created () {
+    this.initCurrPatientVisitDetails()
   },
   mounted () {
     this.init()

@@ -17,8 +17,9 @@ export default class Episode extends Model {
       episodeType_id: this.attr(''),
       clinicSector_id: this.attr(''),
       patientServiceIdentifier_id: this.attr(''),
+      startStopReason_id: this.attr(''),
       // Relationships
-      startStopReason: this.hasOne(StartStopReason, 'episode_id'),
+      startStopReason: this.belongsTo(StartStopReason, 'startStopReason_id'),
       episodeType: this.belongsTo(EpisodeType, 'episodeType_id'),
       clinicSector: this.belongsTo(ClinicSector, 'clinicSector_id'),
       patientServiceIdentifier: this.belongsTo(PatientProgramIdentifier, 'patientServiceIdentifier_id'),
