@@ -8,25 +8,25 @@
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Regime Terapêutico:</div>
-            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescription.prescriptionDetail.therapeuticRegimen.description }}</div>
+            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticRegimen.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Tipo Paciente:</div>
             <div class="col text-grey-8">Manutenção</div>
           </div>
           <div class="row ">
-            <div v-if="curIdentifier.lastVisit().prescription.prescriptionDetail.therapeuticLine !== null" class="col text-grey-9 text-weight-medium">Linha Terapêutica:</div>
-            <div v-if="curIdentifier.lastVisit().prescription.prescriptionDetail.therapeuticLine !== null" class="col text-grey-8">{{ curIdentifier.lastVisit().prescription.prescriptionDetail.therapeuticLine.description }}</div>
+            <div v-if="curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticLine !== null" class="col text-grey-9 text-weight-medium">Linha Terapêutica:</div>
+            <div v-if="curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticLine !== null" class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticLine.description }}</div>
             <div class="col text-grey-10">Clínico:</div>
             <div class="col text-grey-10">Generico</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Tipo Dispensa:</div>
-            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescription.prescriptionDetail.dispenseType.description }}</div>
+            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].dispenseType.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Validade:</div>
-            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescription.duration }}</div>
+            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].duration }}</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Duração:</div>
-            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescription.duration }}</div>
+            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].duration }}</div>
             <div class="col text-grey-9 text-weight-medium"></div>
             <div class="col text-grey-8"></div>
           </div>
@@ -42,7 +42,7 @@
           <span>
             <PackInfo
               @editPack="editPack"
-              :pack="curIdentifier.lastVisit().pack"/>
+              :pack="curIdentifier.lastVisit().packs[0]"/>
           </span>
         </div>
       </q-card-section>
@@ -59,7 +59,6 @@ export default {
   props: ['identifier'],
   data () {
     return {
-      curIdentifier: {},
       isPatientActive: false,
       showAddEpisode: false,
       selectedEpisode: {},
@@ -85,10 +84,13 @@ export default {
   computed: {
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
+    },
+    curIdentifier () {
+      return PatientServiceIdentifier.query().withAllRecursive(6).where('id', this.identifier.id).first()
     }
   },
   created () {
-      this.curIdentifier = new PatientServiceIdentifier(this.identifier)
+      // this.curIdentifier = new PatientServiceIdentifier(this.identifier)
       this.patient = Object.assign({}, this.selectedPatient)
   }
 }

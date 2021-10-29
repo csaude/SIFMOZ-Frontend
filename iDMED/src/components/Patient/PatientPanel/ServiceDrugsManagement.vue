@@ -107,7 +107,7 @@ export default {
     addEditDrugs (pickupDate, nextPDate) {
       this.nextPUpDate = nextPDate
       this.pickupDate = new Date(pickupDate)
-      this.curVisitDetails.pack.pickupDate = this.pickupDate
+      this.curVisitDetails.packs[0].pickupDate = this.pickupDate
       this.showAddEditDrug = true
     },
     deleteRow (row) {

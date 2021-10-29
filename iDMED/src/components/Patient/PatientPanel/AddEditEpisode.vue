@@ -78,7 +78,7 @@
                       outlined
 
                       class="col q-ml-md"
-                      v-model="episode.startDate"
+                      v-model="startDate"
                       mask="date"
                       ref="birthDate"
                       :rules="['date']"
@@ -86,7 +86,7 @@
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="episode.startDate" >
+                              <q-date v-model="startDate" >
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -147,6 +147,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
@@ -159,9 +160,15 @@ export default {
     props: ['episodeToEdit', 'curIdentifier'],
     data () {
         return {
+          alert: ref({
+              type: '',
+              visible: false,
+              msg: ''
+            }),
             identifier: new PatientServiceIdentifier(),
             episode: new Episode(),
-            estados: ['Activo', 'Curado']
+            estados: ['Activo', 'Curado'],
+            startDate: ''
         }
     },
     methods: {
@@ -172,6 +179,7 @@ export default {
           this.episode.clinic = this.currClinic
         }
 
+        this.episode.startDate = new Date(this.startDate)
         console.log(this.episode)
         Episode.apiSave(this.identifier).then(resp => {
           if (this.episode.id === null) {
