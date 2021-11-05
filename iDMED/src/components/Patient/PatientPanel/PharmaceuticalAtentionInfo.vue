@@ -1,7 +1,7 @@
 <template>
   <div>
     <ListHeader
-      :addVisible="true"
+      :addVisible="showAddButton"
       :mainContainer="true"
       bgColor="bg-primary"
       @showAdd="showAddPharmaceuticalAtention = true">
@@ -19,6 +19,7 @@
 
 <script>
 export default {
+  props: ['selectedPatient'],
   data () {
     return {
       showAddPharmAttention: false,
@@ -29,6 +30,11 @@ export default {
   methods: {
     expandLess (value) {
       this.infoVisible = value
+    }
+  },
+  computed: {
+    showAddButton () {
+      return this.selectedPatient.identifiers.length > 0
     }
   },
   components: {

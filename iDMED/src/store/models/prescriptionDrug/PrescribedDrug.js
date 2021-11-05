@@ -25,4 +25,12 @@ export default class PrescribedDrug extends Model {
     get takeInstructions () {
       return `${this.amtPerTime} ${this.form} ${this.timesPerDay}`
     }
+
+    static async apiGetAllByPrescriptionId (prescriptionId) {
+      return await this.api().get('/prescribedDrug/prescription/' + prescriptionId)
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/prescribedDrug')
+    }
 }

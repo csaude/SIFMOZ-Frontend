@@ -11,9 +11,9 @@ export default class Episode extends Model {
   static fields () {
     return {
       id: this.attr(null),
-      startDate: this.attr(''),
-      stopDate: this.attr(''),
+      episodeDate: this.attr(''),
       notes: this.attr(''),
+      creationDate: this.attr(''),
       episodeType_id: this.attr(''),
       clinicSector_id: this.attr(''),
       patientServiceIdentifier_id: this.attr(''),
@@ -28,7 +28,15 @@ export default class Episode extends Model {
   }
 
   closed () {
-    return this.stopDate !== ''
+    return this.episodeType.code === 'FIM'
+  }
+
+  isStartEpisode () {
+    return this.episodeType.code === 'INICIO'
+  }
+
+  isCloseEpisode () {
+    return this.episodeType.code === 'FIM'
   }
 
   hasVisits () {

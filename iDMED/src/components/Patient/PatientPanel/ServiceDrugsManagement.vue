@@ -25,41 +25,22 @@
                   {{props.row.drug.name}}
                 </q-td>
                 <q-td key="dosage" :props="props">
-                  {{props.row.amtPerTime + ' - ' + props.row.form + ' X por ' + props.row.timesPerDay}}
+                  {{props.row.amtPerTime + ' - ' + props.row.timesPerDay + ' X por ' + props.row.form}}
                 </q-td>
                 <q-td auto-width key="packs" :props="props">
                   <q-select
-                      dense outlined
-                      v-model="props.row.qtyPrescribed"
-                      use-input
-                      :options="nums"/>
+                    style="width: 70px;"
+                    class="q-pa-none"
+                    dense outlined
+                    v-model="props.row.qtyPrescribed"
+                    :options="nums"/>
                 </q-td>
                 <q-td key="nextPickUpDate" :props="props">
                   <div class="row">
-                    <q-input
-                    v-if="props.row.toContinue"
-                      dense
-                      outlined
-                      class="input-color q-ma-sm"
-                      v-model="props.row.nextPickUpDate"
-                      mask="date"
-                      label="Proximo Levantamento">
-                      <template v-slot:append>
-                          <q-icon name="event" class="cursor-pointer" color="primary">
-                          <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="props.row.nextPickUpDate" >
-                              <div class="row items-center justify-end">
-                                  <q-btn v-close-popup label="Close" color="primary" flat />
-                              </div>
-                              </q-date>
-                          </q-popup-proxy>
-                          </q-icon>
-                      </template>
-                    </q-input>
                     <q-toggle v-model="props.row.toContinue" label="Continua" />
                   </div>
                 </q-td>
-                <q-td key="packs" :props="props">
+                <q-td key="options" :props="props">
                   <q-btn flat round
                     color="red"
                     icon="delete"
@@ -87,7 +68,7 @@ const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
   { name: 'packs', align: 'center', style: 'width: 20px', field: 'row.qtyPrescribed', label: 'Quantidade em (Frascos)', sortable: false },
-  { name: 'nextPickUpDate', align: 'left', abel: 'Próximo Levantamento', sortable: false },
+  { name: 'nextPickUpDate', align: 'left', field: 'row.toContinue', label: 'Próx. Levantamento', sortable: false },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
@@ -108,6 +89,7 @@ export default {
       this.nextPUpDate = nextPDate
       this.pickupDate = new Date(pickupDate)
       this.curVisitDetails.packs[0].pickupDate = this.pickupDate
+      this.curVisitDetails.packs[0].nextPickUpDate = this.nextPUpDate
       this.showAddEditDrug = true
     },
     deleteRow (row) {

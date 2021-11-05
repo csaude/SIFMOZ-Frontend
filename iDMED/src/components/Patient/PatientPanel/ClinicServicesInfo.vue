@@ -15,6 +15,8 @@
         <InfoContainer
           :selectedPatient="selectedPatient"
           :identifier="identifier"
+          @reopenClinicService="reopenClinicService"
+          @closeClinicService="closeClinicService"
           @editClinicService="editClinicService"/>
       </span>
     </div>
@@ -22,6 +24,7 @@
         <AddClinicService
           :identifierToEdit="selectedIdentifier"
           :selectedPatient="selectedPatient"
+          :step="step"
           @createFirstEpisode="createFirstEpisode"
           @close="showAddEditClinicalService = false" />
     </q-dialog>
@@ -46,16 +49,29 @@ export default {
       emptyList: false,
       selectedIdentifier: new PatientServiceIdentifier(),
       showAddEditEpisode: false,
-      serviceInfoVisible: true
+      serviceInfoVisible: true,
+      step: ''
     }
   },
   methods: {
     editClinicService (curIdentifier) {
       this.selectedIdentifier = Object.assign({}, curIdentifier)
+      this.step = 'edit'
+      this.showAddEditClinicalService = true
+    },
+    closeClinicService (curIdentifier) {
+      this.selectedIdentifier = Object.assign({}, curIdentifier)
+      this.step = 'close'
+      this.showAddEditClinicalService = true
+    },
+    reopenClinicService (curIdentifier) {
+      this.selectedIdentifier = Object.assign({}, curIdentifier)
+      this.step = 'reOpen'
       this.showAddEditClinicalService = true
     },
     addClinicService () {
       this.selectedIdentifier = null
+      this.step = 'create'
       this.showAddEditClinicalService = true
     },
     expandLess (value) {
@@ -63,9 +79,9 @@ export default {
       LocalStorage.set('clinicServiceInfoVisible', value)
     },
     createFirstEpisode (identifier) {
+      this.selectedIdentifier = identifier
       this.showAddEditClinicalService = false
       this.showAddEditEpisode = true
-      this.selectedIdentifier = identifier
     }
   },
   computed: {

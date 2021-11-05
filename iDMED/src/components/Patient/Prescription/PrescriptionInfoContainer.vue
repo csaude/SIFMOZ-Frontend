@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ identifier.service.code }} </ListHeader>
+  <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ identifier.service.code }} </ListHeader>
     <q-card
       v-if="curIdentifier.lastVisit() !== null"
       class="noRadius">
@@ -8,19 +8,19 @@
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Regime Terapêutico:</div>
-            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticRegimen.description }}</div>
+            <div class="col text-grey-8">{{ prescriptionDetails.therapeuticRegimen.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Tipo Paciente:</div>
             <div class="col text-grey-8">Manutenção</div>
           </div>
           <div class="row ">
-            <div v-if="curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticLine !== null" class="col text-grey-9 text-weight-medium">Linha Terapêutica:</div>
-            <div v-if="curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticLine !== null" class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].therapeuticLine.description }}</div>
+            <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-9 text-weight-medium">Linha Terapêutica:</div>
+            <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-8">{{ prescriptionDetails.therapeuticLine.description }}</div>
             <div class="col text-grey-10">Clínico:</div>
-            <div class="col text-grey-10">Generico</div>
+            <div class="col text-grey-10">{{ curIdentifier.lastVisit().prescriptions[0].doctor.fullName }}</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Tipo Dispensa:</div>
-            <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].prescriptionDetails[0].dispenseType.description }}</div>
+            <div class="col text-grey-8">{{ prescriptionDetails.dispenseType.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Validade:</div>
             <div class="col text-grey-8">{{ curIdentifier.lastVisit().prescriptions[0].duration }}</div>
           </div>
@@ -55,6 +55,7 @@
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
 export default {
   props: ['identifier'],
   data () {
@@ -86,12 +87,17 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     curIdentifier () {
-      return PatientServiceIdentifier.query().withAllRecursive(6).where('id', this.identifier.id).first()
+      return PatientServiceIdentifier.query().withAllRecursive().where('id', this.identifier.id).first()
+    },
+    prescriptionDetails () {
+      return PrescriptionDetail.query().withAll().where('prescription_id', this.curIdentifier.lastVisit().prescriptions[0].id).first()
     }
   },
   created () {
       // this.curIdentifier = new PatientServiceIdentifier(this.identifier)
       this.patient = Object.assign({}, this.selectedPatient)
+  },
+  mounted () {
   }
 }
 </script>

@@ -109,14 +109,14 @@
                         dense
                         outlined
                         class="col"
-                        v-model="episode.stopDate"
+                        v-model="stopDate"
                         mask="date"
                         :rules="['date']"
                         label="Data de Fim">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="episode.stopDate" >
+                                <q-date v-model="stopDate" >
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -128,13 +128,13 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
-                      v-model="episode.startStopReason"
+                      v-model="closureEpisode.startStopReason"
                       :options="stopReasons"
                       option-value="id"
                       option-label="reason"
                       label="Notas de Fim" />
 
-                      <TextInput v-model="episode.notes" label="Outras notas de fim" dense class="col q-ml-md" />
+                      <TextInput v-model="closureEpisode.notes" label="Outras notas de fim" dense class="col q-ml-md" />
                 </div>
               </span>
             </div>
@@ -143,6 +143,12 @@
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
+        <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
 </template>
 
@@ -167,8 +173,11 @@ export default {
             }),
             identifier: new PatientServiceIdentifier(),
             episode: new Episode(),
+            closureEpisode: new Episode(),
             estados: ['Activo', 'Curado'],
-            startDate: ''
+            startDate: '',
+            stopDate: '',
+            step: ''
         }
     },
     methods: {
@@ -177,20 +186,34 @@ export default {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
           this.episode.clinic = this.currClinic
+          this.episode.episodeDate = new Date(this.startDate)
+          this.episode.creationDate = new Date()
+        } else {
+          if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
+            this.step = 'close'
+            this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
+            this.closureEpisode.clinic = this.currClinic
+            this.closureEpisode.episodeDate = new Date(this.stopDate)
+            this.closureEpisode.creationDate = new Date()
+            this.closureEpisode.patientServiceIdentifier = this.identifier
+
+            Episode.apiSave(this.closureEpisode).then(resp => {
+              // Episode.insert({ data: resp.response.data })
+              this.displayAlert('info', 'Episódio actualizado com sucesso.')
+            }).catch(error => {
+              this.displayAlert('error', error)
+            })
+          }
         }
 
-        this.episode.startDate = new Date(this.startDate)
-        console.log(this.episode)
-        Episode.apiSave(this.identifier).then(resp => {
-          if (this.episode.id === null) {
-            Episode.insert(resp.response.data)
-          } else {
-            Episode.update(resp.response.data)
-          }
-          this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
-        }).catch(error => {
-          this.displayAlert('error', error)
-        })
+        if (!this.isCloseStep) {
+          Episode.apiSave(this.episode).then(resp => {
+            // Episode.insert({ data: resp.response.data })
+            this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
+          }).catch(error => {
+            this.displayAlert('error', error)
+          })
+        }
       },
       displayAlert (type, msg) {
           this.alert.type = type
@@ -198,6 +221,7 @@ export default {
           this.alert.visible = true
         },
         closeDialog () {
+          this.alert.visible = false
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
@@ -207,10 +231,12 @@ export default {
         this.identifier = Object.assign({}, this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
         this.episode.patientServiceIdentifier = this.identifier
+        if (this.episode.id !== null) this.startDate = this.episode.episodeDate
     },
     mounted () {
     },
     components: {
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default,
       TextInput: require('components/Shared/Input/TextField.vue').default
     },
     computed: {
@@ -236,6 +262,15 @@ export default {
       stopReasons () {
         return StartStopReason.query()
                               .where('isStartReason', false).get()
+      },
+      isEditStep () {
+        return this.step === 'edit'
+      },
+      isCreateStep () {
+        return this.step === 'create'
+      },
+      isCloseStep () {
+        return this.step === 'close'
       }
     }
 }
