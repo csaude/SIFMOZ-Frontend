@@ -1,5 +1,12 @@
 import { Model } from '@vuex-orm/core'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
+import PregnancyScreening from '../screening/PregnancyScreening'
+import RAMScreening from '../screening/RAMScreening'
+import TBScreening from '../screening/TBScreening'
+import AdherenceScreening from '../screening/AdherenceScreening'
+import VitalSignsScreening from '../screening/VitalSignsScreening'
+import Clinic from '../clinic/Clinic'
+import Patient from '../patient/Patient'
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits'
@@ -8,8 +15,17 @@ export default class PatientVisit extends Model {
     return {
       id: this.attr(null),
       visitDate: this.attr(''),
+      clinic_id: this.attr(''),
+      patient_id: this.attr(''),
       // Relationships
-      patientVisitDetails: this.hasMany(PatientVisitDetails, 'patient_visit_id')
+      patientVisitDetails: this.hasMany(PatientVisitDetails, 'patient_visit_id'),
+      vitalSigns: this.hasMany(VitalSignsScreening, 'patient_visit_id'),
+      tbScreening: this.hasMany(TBScreening, 'patient_visit_id'),
+      pregnancyScreening: this.hasMany(PregnancyScreening, 'patient_visit_id'),
+      adherenceScreening: this.hasMany(AdherenceScreening, 'patient_visit_id'),
+      ramScreening: this.hasMany(RAMScreening, 'patient_visit_id'),
+      clinic: this.belongsTo(Clinic, 'clinic_id'),
+      patient: this.belongsTo(Patient, 'patient_id')
     }
   }
 
@@ -19,5 +35,13 @@ export default class PatientVisit extends Model {
 
   static async apiSave (patientVisit) {
     return await this.api().post('/patientVisit', patientVisit)
+  }
+
+  static async apiRemove (patientVisit) {
+    return await this.api().delete('/patientVisit', patientVisit)
+  }
+
+  static async apiGetAllByPatientId (patientId) {
+    return await this.api().get('/patientVisit/patient/' + patientId)
   }
 }
