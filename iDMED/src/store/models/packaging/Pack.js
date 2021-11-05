@@ -13,6 +13,7 @@ export default class Pack extends Model {
         modified: this.boolean(false),
         packDate: this.attr(''),
         pickupDate: this.attr(''),
+        nextPickUpDate: this.attr(''),
         weeksSupply: this.attr(''),
         dispenseMode: this.attr(''),
         dateReturned: this.attr(''),
@@ -30,5 +31,18 @@ export default class Pack extends Model {
 
     static async apiSave (pack) {
       return await this.api().post('/pack', pack)
+    }
+
+    static async apiGetAllByClinicId (clinicId, offset, max) {
+      return await this.api().get('/pack/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+    }
+
+    getDrugsString () {
+      let drugsString = ''
+      Object.keys(this.packagedDrugs).forEach(function (k) {
+        const presDrug = this.packagedDrugs[k]
+        drugsString = drugsString + presDrug.drug.name
+      }.bind(this))
+      return drugsString
     }
 }

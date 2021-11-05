@@ -17,9 +17,9 @@
       </div>
       <div class="row">
           <identifierInput @blur="search()" v-model="currPatient.identifiers[0].value"/>
-          <nameInput @blur="search()" class="q-ml-md" v-model="currPatient.firstNames"/>
-          <TextField @blur="search()" label="Outros Nomes" v-model="currPatient.middleNames" dense class="col q-ml-md"/>
-          <lastNameInput @blur="search()" v-model="currPatient.lastNames" class="q-ml-md"/>
+          <nameInput @update:model-value="search()" class="q-ml-md" v-model="currPatient.firstNames"/>
+          <TextField @update:model-value="search()" label="Outros Nomes" v-model="currPatient.middleNames" dense class="col q-ml-md"/>
+          <lastNameInput @update:model-value="search()" v-model="currPatient.lastNames" class="q-ml-md"/>
       </div>
       <div class="q-mt-lg q-mb-md">
           <div class="row items-center q-mb-md">

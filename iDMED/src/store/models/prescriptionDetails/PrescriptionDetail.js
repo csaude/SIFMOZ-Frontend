@@ -21,4 +21,12 @@ export default class PrescriptionDetail extends Model {
         dispenseType: this.belongsTo(DispenseType, 'dispense_type_id')
       }
     }
+
+    static async apiGetAllByPrescriptionId (prescriptionId) {
+      return await this.api().get('/prescriptionDetail/prescription/' + prescriptionId)
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/prescriptionDetail')
+    }
 }
