@@ -14,6 +14,7 @@ export default class PatientServiceIdentifier extends Model {
       endDate: this.attr(''),
       reopenDate: this.attr(''),
       value: this.attr(''),
+      state: this.attr(''),
       prefered: this.boolean(false),
       identifier_type_id: this.attr(''),
       service_id: this.attr(''),

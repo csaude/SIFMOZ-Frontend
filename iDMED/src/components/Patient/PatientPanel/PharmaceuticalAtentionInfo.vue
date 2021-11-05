@@ -1,7 +1,7 @@
 <template>
   <div>
     <ListHeader
-      :addVisible="true"
+      :addVisible="showAddButton"
       :mainContainer="true"
       bgColor="bg-primary"
       @showAdd="showAddPharmaceuticalAtention = true">
@@ -27,7 +27,7 @@ import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
  import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
- // props: ['patientVisits'],
+  props: ['selectedPatient'],
   data () {
     return {
       showAddPharmAttention: false,
@@ -55,6 +55,9 @@ export default {
                           .with('ramScreening')
                           .with('patientVisitDetails')
                           .with('clinic').where('patient_id', this.patient.id).get()
+    },
+    showAddButton () {
+      return this.selectedPatient.identifiers.length > 0
     }
   },
   components: {

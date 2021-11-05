@@ -190,7 +190,6 @@
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
         </q-dialog>
-        <pre>{{curPatientVisitDetails}}</pre>
     </q-card>
 </template>
 
@@ -294,6 +293,7 @@ export default {
 
       const curPatientVisitDetail = new PatientVisitDetails({
         patientVisit: this.patientVisit,
+        clinic: this.currClinic,
         episode: Episode.query().with('patientServiceIdentifier.service').where('id', episode.id).first()
       })
 
@@ -337,15 +337,21 @@ export default {
           !this.$refs.doctor.hasError &&
           (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
-            this.showServiceDrugsManagement = true
+            if (new Date(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
+              this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
+            } else if (new Date(this.pickupDate) > new Date()) {
+              this.displayAlert('error', 'A data da prescrição indicada é maior que a data da corrente')
+            } else {
+              this.curPatientVisitDetail.prescriptions[0].prescriptionDate = new Date(this.prescriptionDate)
+              this.showServiceDrugsManagement = true
+            }
       }
     },
     generatePacksAndDispense () {
-      // this.curPatientVisitDetail.prescription.prescriptionDate = new Date(this.prescriptionDate)
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
-          // visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription[0].prescriptionDate)
+          visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription[0].prescriptionDate)
           visitDetails.patientVisit = null
           this.generatePacks(visitDetails)
         }

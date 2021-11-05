@@ -32,4 +32,8 @@ export default class Clinic extends Model {
   static apiFetchById (id) {
     return this.api().get(`/clinic/${id}`)
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/clinic')
+  }
 }

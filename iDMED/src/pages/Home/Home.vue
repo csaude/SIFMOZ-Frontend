@@ -58,6 +58,13 @@ import Form from '../../store/models/form/Form'
 import Duration from '../../store/models/Duration/Duration'
 import Doctor from '../../store/models/doctor/Doctor'
 import DispenseType from '../../store/models/dispenseType/DispenseType'
+import PatientVisit from '../../store/models/patientVisit/PatientVisit'
+import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
+import Pack from '../../store/models/packaging/Pack'
+import Prescription from '../../store/models/prescription/Prescription'
+import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
+import PrescribedDrug from '../../store/models/prescriptionDrug/PrescribedDrug'
+import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
 export default {
     components: {
     },
@@ -79,11 +86,32 @@ export default {
         Duration.apiGetAll()
         Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll()
+        Clinic.apiGetAll()
       },
       saveCurrClinic () {
         Clinic.apiFetchById('1').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
+      },
+      getAllPacksOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPackGet(this.clinic.id, offset, max)
+      },
+      getAllPrescriptionOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPrescriptionkGet(this.clinic.id, offset, max)
+      },
+      getAllPatientVisitsOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPatientVisitGet(this.clinic.id, offset, max)
+      },
+      getAlPatientVisitDetailsOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPatientVisitDetailsGet(this.clinic.id, offset, max)
       },
       getAllPatientsOfClinic () {
         const offset = 0
@@ -100,6 +128,26 @@ export default {
         const max = 100
         this.doEpisodeGet(this.clinic.id, offset, max)
       },
+      doPackGet (clinicId, offset, max) {
+        Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doPackGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      },
+      doPrescriptionkGet (clinicId, offset, max) {
+        Prescription.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doPrescriptionkGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      },
       doEpisodeGet (clinicId, offset, max) {
         Episode.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
@@ -110,11 +158,31 @@ export default {
               console.log(error)
           })
       },
+      doPatientVisitDetailsGet (clinicId, offset, max) {
+        PatientVisitDetails.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doPatientVisitDetailsGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      },
+      doPatientVisitGet (clinicId, offset, max) {
+        PatientVisit.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
               }
           }).catch(error => {
               console.log(error)
@@ -133,9 +201,16 @@ export default {
     },
     mounted () {
       this.loadAppParameters()
+      this.getAllPrescriptionOfClinic()
       this.getAllPatientsOfClinic()
       this.getAllIdentifiersOfClinic()
       this.getAllEpisodesOfClinic()
+      this.getAllPatientVisitsOfClinic()
+      this.getAllPacksOfClinic()
+      this.getAlPatientVisitDetailsOfClinic()
+      PackagedDrug.apiGetAll()
+      PrescribedDrug.apiGetAll()
+      PrescriptionDetail.apiGetAll()
     },
     created () {
       this.saveCurrClinic()

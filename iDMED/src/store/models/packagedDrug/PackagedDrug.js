@@ -17,4 +17,12 @@ export default class PackagedDrug extends Model {
         drug: this.belongsTo(Drug, 'drug_id')
       }
     }
+
+    static async apiGetAllByPackId (packId) {
+      return await this.api().get('/packagedDrug/pack/' + packId)
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/packagedDrug')
+    }
 }

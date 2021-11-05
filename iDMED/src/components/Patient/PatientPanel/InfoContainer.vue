@@ -5,42 +5,42 @@
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
-            <div class="col text-grey-9 text-weight-medium">Serviço de Saúde:</div>
-            <div class="col text-grey-8">{{ curIdentifier.service.code }}</div>
-            <div class="col text-grey-9 text-weight-medium">Data de Admissão:</div>
+            <div class="col-4 text-grey-9 text-weight-medium">Serviço de Saúde:</div>
+            <div class="col text-grey-8">{{ curIdentifier.service.description }}</div>
+          </div>
+          <div class="row ">
+            <div class="col-4 text-grey-9 text-weight-medium">Data de Admissão:</div>
             <div class="col text-grey-8">{{ formatDate(curIdentifier.startDate) }}</div>
           </div>
           <div class="row ">
-            <div class="col text-grey-9 text-weight-medium">Nr Identificador:</div>
+            <div class="col-4 text-grey-9 text-weight-medium">Nr Identificador:</div>
             <div class="col text-grey-8">{{ curIdentifier.value }}</div>
-            <div class="col text-grey-10"></div>
-            <div class="col text-grey-10"></div>
           </div>
           <div class="row ">
-            <div class="col text-grey-9 text-weight-medium">Data Fim:</div>
-            <div class="col text-grey-8">{{ curIdentifier.endDate }}</div>
-            <div class="col text-grey-9 text-weight-medium">Notas de Fim:</div>
-            <div class="col text-grey-8"></div>
+            <div class="col-4 text-grey-9 text-weight-medium">Data Fim:</div>
+            <div class="col text-grey-8">{{ formatDate(curIdentifier.endDate) }}</div>
           </div>
           <div class="row ">
-            <div class="col text-grey-9 text-weight-medium">Estado:</div>
+            <div class="col-4 text-grey-9 text-weight-medium">Notas de Fim:</div>
+            <div class="col text-grey-8">{{lastEpisode !== null && lastEpisode.isCloseEpisode() ? lastEpisode.startStopReason.reason : ''}}</div>
+          </div>
+          <div class="row ">
+            <div class="col-4 text-grey-9 text-weight-medium">Estado:</div>
             <div class="col text-grey-8">{{ !isPatientActive ? 'Activo no Serviço' : 'Curado'}}</div>
-            <div class="col text-grey-9 text-weight-medium"></div>
-            <div class="col text-grey-8"></div>
           </div>
           <q-separator/>
           <div class="row q-my-md">
             <q-space/>
             <q-btn v-if="curIdentifier.endDate === ''" unelevated color="orange-5" label="Editar" @click="$emit('editClinicService', curIdentifier)" class="float-right" />
-            <q-btn v-if="curIdentifier.endDate === ''" unelevated color="red" label="Fechar" class="float-right q-ml-sm" />
-            <q-btn v-if="curIdentifier.endDate !== ''" unelevated color="blue" label="Reabrir" class="float-right q-ml-sm" />
+            <q-btn v-if="curIdentifier.endDate === ''" unelevated color="red" label="Fechar" @click="$emit('closeClinicService', curIdentifier)" class="float-right q-ml-sm" />
+            <q-btn v-if="curIdentifier.endDate !== ''" unelevated color="blue" label="Reabrir" @click="$emit('reopenClinicService', curIdentifier)" class="float-right q-ml-sm" />
           </div>
         </div>
         <div class="col q-py-md">
           <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEditEpisode = true">Episódios</ListHeader>
           <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum Episódio Iniciado</EmptyList>
           <span
-            v-for="episode in curIdentifier.episodes" :key="episode.id" >
+            v-for="episode in episodes" :key="episode.id" >
             <Episode
               @editEpisode="editEpisode"
               :episode="episode"/>
@@ -64,6 +64,7 @@ import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from '../../../store/models/episode/Episode'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
+import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 export default {
   props: ['identifier', 'selectedPatient'],
   data () {
@@ -99,8 +100,20 @@ export default {
       return PatientServiceIdentifier.query()
                                       .with('identifierType')
                                       .with('service')
-                                      .with('episodes')
+                                      .with('episodes.*', (query) => {
+                                              query.orderBy('creationDate', 'desc')
+                                            })
                                       .where('id', this.identifier.id).first()
+    },
+    episodes () {
+      return Episode.query()
+                    .withAll()
+                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                    .orderBy('creationDate', 'desc')
+                    .get()
+    },
+    services () {
+      return ClinicalService.query().hasNot('code').get()
     },
     patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
@@ -115,6 +128,13 @@ export default {
     },
     episodeTypes () {
       return EpisodeType.all()
+    },
+    lastEpisode () {
+      return Episode.query()
+                    .withAll()
+                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                    .orderBy('creationDate', 'desc')
+                    .first()
     }
   },
   created () {

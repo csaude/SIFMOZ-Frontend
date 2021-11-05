@@ -1,7 +1,7 @@
 <template>
 <div>
   <ListHeader
-    :addVisible="true"
+    :addVisible="showAddButton"
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
@@ -19,7 +19,7 @@
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
       <AddEditPrescription
-      :patient="selectedPatient"
+        :patient="selectedPatient"
         @close="showAddPrescription = false" />
   </q-dialog>
 </div>
@@ -40,6 +40,9 @@ export default {
     }
   },
   computed: {
+    showAddButton () {
+      return this.selectedPatient.identifiers.length > 0
+    }
   },
   components: {
       AddEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default,
