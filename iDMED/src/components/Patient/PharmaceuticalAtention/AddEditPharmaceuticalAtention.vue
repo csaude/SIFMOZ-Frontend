@@ -13,76 +13,110 @@
             <div class="text-center text-h6">
               Atenção Farmacêutica
             </div>
+             <div class="text-left text-h6 bold q-ml-sm">
+             Data de Registo
+            </div>
+            <div class="text-left text-h7 bold q-ml-sm q-pa-md">
+           <q-input
+                        dense
+                        outlined
+                        class="col q-pa-md"
+                        v-model="visitDate"
+                        mask="date"
+                        filled
+                        :rules="[ date => !!date  || 'A data da Consulta e obrigatoria']"
+                        label="Data da Visita">
+                        <template v-slot:append>
+                            <q-icon name="event" class="cursor-pointer">
+                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                <q-date v-model="visitDate" >
+                                <div class="row items-center justify-end">
+                                    <q-btn v-close-popup label="Close" color="primary" flat />
+                                </div>
+                                </q-date>
+                            </q-popup-proxy>
+                            </q-icon>
+                        </template>
+                    </q-input>
+            </div>
             <div class="q-mx-lg">
               <q-stepper
                 v-model="step"
                 ref="stepper"
-                vertical
                 color="primary"
-                header-nav
                 animated
+                header-nav
               >
                 <q-step
                   :name="1"
                   title="Dados Vitais"
-                  icon="settings"
+                  icon="show_chart"
                   :done="step > 1"
                 >
-                  For each ad campaign that you create, you can control how much you're willing to
-                  spend on clicks and conversions, which networks and geographical locations you want
-                  your ads to show on, and more.
+                  <div class="row q-mt-md">
+                        <numberField v-model="vitalSigns.height" label="Altura"  :disable="onlyView" suffix="[Metros]" ref="height" @update:model-value="getImcValue()"/>
+                      <numberField v-model="vitalSigns.weight" class="q-ml-md" label="Peso"  suffix="[Kg]" :disable="onlyView" ref="weight" @update:model-value="getImcValue()"/>
+                    </div>
+                    <div class="row q-mt-md">
+                        <numberField v-model="vitalSigns.imc" label="IMC" filled disable ref="imc"/>
+                      <TextInput v-model="imcDescription" class="col q-ml-xs" filled label="IMC-Descricao"  disable />
+                    </div>
+                    <div class="row">
+                        <numberField v-model="vitalSigns.systole" label="Sistole"  :disable="onlyView"  suffix="[mmHg]" ref="systole"/>
+                      <numberField v-model="vitalSigns.distort" class="q-ml-md" label="Diastole" suffix="[mmHg]" :disable="onlyView" ref="distort"/>
+                    </div>
                 </q-step>
 
                 <q-step
                   :name="2"
                   title="Rastreio de Tuberculose"
-                  icon="create_new_folder"
+                  icon="show_chart"
                   :done="step > 2"
                 >
-                  An ad group contains one or more ads which target a shared set of keywords.
+                 <tbTable  @tbScreening="TBScreening = $event" :selectedTbTracing="patientVisit.tbScreening[0]"/>
                 </q-step>
 
                 <q-step
                   :name="3"
                   title="Rastreio de Gravidez"
-                  icon="add_comment"
+                  v-if="this.patient.gender === 'Feminino'"
+                  icon="show_chart"
                   :done="step > 3"
                 >
-                  Try out different ad text to see what brings in the most customers, and learn how to
-                  enhance your ads using features like ad extensions. If you run into any problems with
-                  your ads, find out how to tell if they're running and how to resolve approval issues.
-
-                  Try out different ad text to see what brings in the most customers, and learn how to
-                  enhance your ads using features like ad extensions. If you run into any problems with
-                  your ads, find out how to tell if they're running and how to resolve approval issues.
+                   <pregnancyTable  @pregnancyScreening="pregnancyScreening = $event" :selectedPregnancyTracing="patientVisit.pregnancyScreening[0]"/>
                 </q-step>
 
                 <q-step
                   :name="4"
                   title="Monitoria e Reforço à Adesão"
-                  icon="add_comment"
+                  icon="show_chart"
                   :done="step > 4"
                 >
-                  Try out different ad text to see what brings in the most customers, and learn how to
-                  enhance your ads using features like ad extensions. If you run into any problems with
-                  your ads, find out how to tell if they're running and how to resolve approval issues.
+                  <adherenceTable  @adherenceScreening="adherenceScreening = $event" :selectedAdherenceTracing="patientVisit.adherenceScreening[0]"/>
                 </q-step>
 
                 <q-step
                   :name="5"
                   title="Reações Adversas"
-                  icon="add_comment"
+                  icon="show_chart"
                 >
-                  Try out different ad text to see what brings in the most customers, and learn how to
-                  enhance your ads using features like ad extensions. If you run into any problems with
-                  your ads, find out how to tell if they're running and how to resolve approval issues.
+                 <ramTable  @rAMScreening="rAMScreening = $event" :selectedRamTracing="patientVisit.ramScreening[0]"/>
                 </q-step>
               </q-stepper>
             </div>
-           <q-card-actions align="right" class="q-mb-md q-mr-sm">
-                <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary" />
+             <q-card-actions align="right" class="q-mb-md">
+                <q-stepper-navigation >
+                <q-btn label="Cancelar" color="red" @click="$emit('close')" />
+                 <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+          <q-btn @click="goToNextStep" color="primary" :label="step === 5 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
+        </q-stepper-navigation>
             </q-card-actions>
+             <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
         </form>
     </q-card>
 </template>
@@ -92,16 +126,39 @@ import { SessionStorage } from 'quasar'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import Patient from '../../../store/models/patient/Patient'
 import { ref } from 'vue'
+import VitalSignsScreening from '../../../store/models/screening/VitalSignsScreening'
+import TBScreening from '../../../store/models/screening/TBScreening'
+import PregnancyScreening from '../../../store/models/screening/PregnancyScreening'
+import AdherenceScreening from '../../../store/models/screening/AdherenceScreening'
+import RAMScreening from '../../../store/models/screening/RAMScreening'
+import Clinic from '../../../store/models/clinic/Clinic'
 export default {
-    props: ['currVisit'],
+    props: ['editPatientVisit'],
     data () {
         return {
+          alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+          }),
             patientVisit: new PatientVisit(),
-            step: ref(2)
+            vitalSigns: new VitalSignsScreening(),
+            TBScreening: new TBScreening(),
+            pregnancyScreening: new PregnancyScreening(),
+            adherenceScreening: new AdherenceScreening(),
+             rAMScreening: new RAMScreening(),
+            step: ref(1),
+             visitDate: '',
+             imcDescription: ''
         }
     },
     created () {
-        // this.patientVisit = Object.assign({}, this.currVisit)
+        if (this.editPatientVisit) {
+        this.patientVisit = Object.assign({}, this.editPatientVisit)
+        this.visitDate = this.editPatientVisit.visitDate
+        this.vitalSigns = Object.assign({}, this.editPatientVisit.vitalSigns[0])
+        this.TBScreening = Object.assign({}, this.editPatientVisit.tbScreening[0])
+        }
     },
     computed: {
       patient () {
@@ -113,11 +170,124 @@ export default {
                             .with('district')
                             .with('postoAdministrativo')
                             .with('bairro')
-                            .with('clinic').where('id', selectedP.id).first()
+                            .with('clinic.province').where('id', selectedP.id).first()
+      },
+      currClinic () {
+      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+    },
+     patientVisitsByDate (visitDate) {
+     return PatientVisit.query().with('patient.*')
+                          .with('vitalSigns')
+                          .with('tbScreening')
+                          .with('pregnancyScreening')
+                          .with('adherenceScreening')
+                          .with('ramScreening')
+                          .with('clinic').where('patient_id', this.patient.id).where('visitDate', visitDate).get()
+    }
+    },
+    methods: {
+       goToNextStep () {
+          if (this.step === 1) {
+           // this.patientVisit.TBScreening = this.TBScreening
+           // this.patientVisit.pregnancyScreening = this.pregnancyScreening
+            this.$refs.height.$refs.ref.validate()
+            this.$refs.weight.$refs.ref.validate()
+            this.$refs.systole.$refs.ref.validate()
+            this.$refs.distort.$refs.ref.validate()
+            if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
+             !this.$refs.systole.$refs.ref.hasError && !this.$refs.distort.$refs.ref.hasError) {
+              this.$refs.stepper.next()
+            }
+          } else if (this.step === 2) {
+            if (this.TBScreening.treatmentTB === 'true' && this.TBScreening.startTreatmentDate === '') {
+                this.displayAlert('error', 'Deve Preencher a Data de inicio de Tratamento uma vez que esta em Tratamento TB.')
+            } else if (this.patient.gender === 'Masculino') {
+              this.$refs.stepper.goTo(4)
+            } else {
+              this.$refs.stepper.next()
+            }
+          } else if (this.step === 3) {
+           this.$refs.stepper.next()
+          } else if (this.step === 4) {
+            if ((this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine === '') ||
+             (this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine <= 0)) {
+               this.displayAlert('error', 'Por Favor Indique quantos dias de atraso completou o paciente')
+          } if ((this.adherenceScreening.patientForgotMedicine === 'true' && this.adherenceScreening.lateDays === '') ||
+             (this.adherenceScreening.patientForgotMedicine === 'true' && this.adherenceScreening.lateDays <= 0)) {
+               this.displayAlert('error', 'Por Favor Indique quantos dias passou da hora sem tomar os Medicamentos')
+          } else {
+             this.$refs.stepper.next()
+          }
+          } else if (this.step === 5) {
+             if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
+                this.displayAlert('error', 'Por Favor Indique as reacoes adversas')
+             } else {
+                this.verifyHasSameDay()
+            this.patientVisit.clinic = this.currClinic
+            this.patientVisit.patient = this.patient
+             this.patientVisit.visitDate = new Date(this.visitDate)
+            this.patientVisit.vitalSigns.push(this.vitalSigns)
+            this.patientVisit.tbScreening.push(this.TBScreening)
+            this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
+            this.patientVisit.adherenceScreening.push(this.adherenceScreening)
+            this.patientVisit.ramScreening.push(this.rAMScreening)
+
+            PatientVisit.apiSave(this.patientVisit).then(resp => {
+             this.displayAlert('info', 'Atencao Farmaceutica efectuada com sucesso.')
+             }).catch(error => {
+             this.displayAlert('error', error)
+          })
+             }
+          }
+          },
+          displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+      if (this.alert.type === 'info') this.$emit('close')
+    },
+       getImcValue () {
+        if (this.vitalSigns.height !== 0.0 && this.vitalSigns.weight !== 0) {
+          this.vitalSigns.imc = this.vitalSigns.weight / ((this.vitalSigns.height) * (this.vitalSigns.height))
+           this.getImcDescription()
+        }
+        },
+         verifyHasSameDay () {
+         const visit = PatientVisit.query().with('patient.*')
+                          .with('vitalSigns')
+                          .with('tbScreening')
+                          .with('pregnancyScreening')
+                          .with('adherenceScreening')
+                          .with('ramScreening')
+                          .with('patientVisitDetails')
+                          .with('clinic').where('patient_id', this.patient.id).where('visitDate', this.patientVisit.visitDate).get()
+                  console.log(visit)
+         },
+    getImcDescription () {
+        const imc = this.vitalSigns.imc
+      if (imc >= 16 && imc <= 16.9) {
+         this.imcDescription = 'Muito abaixo do peso'
+      } else if (imc >= 17 && imc <= 18.4) {
+         this.imcDescription = 'Abaixo do peso'
+      } else if (imc >= 18.5 && imc <= 24.9) {
+         this.imcDescription = 'Peso normal'
+      } else if (imc >= 25 && imc <= 29.9) {
+         this.imcDescription = 'Acima do peso'
       }
+      return this.imcDescription
+    }
     },
     components: {
-      // TextInput: require('components/Shared/Input/TextField.vue').default
+       TextInput: require('components/Shared/Input/TextField.vue').default,
+       numberField: require('components/Shared/Input/NumberField.vue').default,
+       tbTable: require('components/Patient/PharmaceuticalAtention/TbQuestionsTable.vue').default,
+       pregnancyTable: require('components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue').default,
+        adherenceTable: require('components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue').default,
+        ramTable: require('components/Patient/PharmaceuticalAtention/AdverseReactionQuestiosTable.vue').default,
+           Dialog: require('components/Shared/Dialog/Dialog.vue').default
     }
 }
 </script>

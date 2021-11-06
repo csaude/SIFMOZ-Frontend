@@ -15,7 +15,7 @@
         >
           <ClinicServiceInfo :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
           <PrescriptionInfo :selectedPatient="patient" class="q-mb-lg"/>
-          <PharmaceuticalAtentionInfo :selectedPatient="patient" />
+          <PharmaceuticalAtentionInfo :patientVisits="patientVisits" />
         </q-scroll-area>
       </div>
     </div>
@@ -26,6 +26,7 @@
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import Clinic from '../../../store/models/clinic/Clinic'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   setup () {
     return {
@@ -47,6 +48,14 @@ export default {
         opacity: 0.75
       }
     }
+  },
+  methods: {
+       getPatientVisits () {
+        PatientVisit.apiGetAllByPatientId(this.patient.id)
+       }
+  },
+  mounted () {
+    // this.getPatientVisits()
   },
   computed: {
     clinic () {
@@ -72,6 +81,8 @@ export default {
       PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
   },
   created () {
+     this.getPatientVisits()
+   //  console.log(this.getPatientVisits())
   }
 }
 </script>

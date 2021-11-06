@@ -13,7 +13,7 @@ export default class TBScreening extends Model {
             losingWeight: this.attr(''),
             treatmentTB: this.attr(''),
             treatmentTPI: this.attr(''),
-            referedToUSTB: this.attr(''),
+           // referedToUSTB: this.attr(''),
             startTreatmentDate: this.attr(''),
             fatigueOrTirednessLastTwoWeeks: this.attr(''),
             sweating: this.attr(''),
