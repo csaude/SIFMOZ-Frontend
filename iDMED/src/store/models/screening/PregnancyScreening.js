@@ -9,7 +9,7 @@ export default class PregnancyScreening extends Model {
             id: this.attr(null),
             pregnant: this.attr(''),
             menstruationLastTwoMonths: this.attr(''),
-            childDeliveryPrevision: this.attr(''),
+            lastMenstruation: this.attr(''),
             patient_visit_id: this.attr(''),
             // Relationships
             patient_visit: this.belongsTo(PatientVisit, 'patient_visit_id')

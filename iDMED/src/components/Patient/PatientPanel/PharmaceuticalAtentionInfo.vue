@@ -7,10 +7,15 @@
       @showAdd="showAddPharmaceuticalAtention = true">
       Atenção Farmacêutica
     </ListHeader>
-    <EmptyList >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
+    <EmptyList v-if="patientVisits.length <= 0" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
     <div v-show="infoVisible" >
+     <span
+        v-for="patientVisit in patientVisits" :key="patientVisit.id" >
+        <PharmaceuticalAtentionContainer
+          :patientVisit="patientVisit"/>
+      </span>
     </div>
-    <q-dialog persistent v-model="showAddPharmaceuticalAtention">
+    <q-dialog persistent v-model="showAddPharmaceuticalAtention" full-width>
       <AddEditPharmaceuticalAtention
         @close="showAddPharmaceuticalAtention= false" />
   </q-dialog>
@@ -18,12 +23,15 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
+ import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   props: ['selectedPatient'],
   data () {
     return {
       showAddPharmAttention: false,
-      infoVisible: false,
+      infoVisible: true,
       showAddPharmaceuticalAtention: false
     }
   },
@@ -32,7 +40,22 @@ export default {
       this.infoVisible = value
     }
   },
+  created () {
+  },
   computed: {
+    patient () {
+      return new Patient(SessionStorage.getItem('selectedPatient'))
+    },
+    patientVisits () {
+     return PatientVisit.query().with('patient.*')
+                          .with('vitalSigns')
+                          .with('tbScreening')
+                          .with('pregnancyScreening')
+                          .with('adherenceScreening')
+                          .with('ramScreening')
+                          .with('patientVisitDetails')
+                          .with('clinic').where('patient_id', this.patient.id).get()
+    },
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0
     }
@@ -40,7 +63,8 @@ export default {
   components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
       EmptyList: require('components/Shared/ListEmpty.vue').default,
-      AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default
+      AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default,
+      PharmaceuticalAtentionContainer: require('components/Patient/PharmaceuticalAtention/PharmaceuticalAtentionContainer.vue').default
   }
 }
 </script>
