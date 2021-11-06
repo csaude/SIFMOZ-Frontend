@@ -153,6 +153,7 @@
                   v-if="selectedClinicalService.code === visitDetails.episode.patientServiceIdentifier.service.code"
                   :selectedClinicalService="selectedClinicalService"
                   :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
+                  :oldPrescribedDrugs="prescribedDrugs"
                   @updatePrescribedDrugs="updatePrescribedDrugs"
                   :visitDetails="visitDetails"/>
               </div>
@@ -211,7 +212,9 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import Duration from '../../../store/models/Duration/Duration'
 import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
+import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 export default {
+  props: ['selectedVisitDetails'],
   data () {
     return {
       alert: ref({
@@ -230,7 +233,8 @@ export default {
       patientTypes: ['Inicio', 'Manter', 'Alterar', 'Reinício'],
       showServiceDrugsManagement: false,
       prescriptionDate: '',
-      showDispenseMode: false
+      showDispenseMode: false,
+      prescribedDrugs: []
     }
   },
   methods: {
@@ -248,36 +252,83 @@ export default {
       }.bind(this))
     },
     initCurrPatientVisitDetails () {
-      const pack = new Pack({
-        clinic: this.currClinic
-      })
+      if (!this.isNewPackStep) {
+        const pack = new Pack({
+          clinic: this.currClinic
+        })
 
-      const prescription = new Prescription({
-        prescriptionDate: new Date(),
-        clinic: this.currClinic
-      })
+        const prescription = new Prescription({
+          prescriptionDate: new Date(),
+          clinic: this.currClinic
+        })
 
-      const prescriptionDetail = new PrescriptionDetail()
-      prescription.prescriptionDetails.push(prescriptionDetail)
+        const prescriptionDetail = new PrescriptionDetail()
+        prescription.prescriptionDetails.push(prescriptionDetail)
 
-      this.curPatientVisitDetail.packs.push(pack)
-      this.curPatientVisitDetail.prescriptions.push(prescription)
+        this.curPatientVisitDetail.packs.push(pack)
+        this.curPatientVisitDetail.prescriptions.push(prescription)
+      } else {
+        this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
+                                                                .with('episode.patientServiceIdentifier.service')
+                                                                .with('patientVisit')
+                                                                .with('packs.*')
+                                                                .with('prescriptions.*')
+                                                                .where('id', this.selectedVisitDetails.id)
+                                                                .first()
+        this.curPatientVisitDetail.prescriptions[0].prescriptionDetails = PrescriptionDetail.query()
+                                                                                            .withAll()
+                                                                                            .where('id', this.curPatientVisitDetail.prescriptions[0].prescriptionDetails[0].id)
+                                                                                            .get()
+        this.prescriptionDate = this.curPatientVisitDetail.prescriptions[0].prescriptionDate
+
+        this.selectedClinicalService = ClinicalService.query()
+                                                      .with('attributes.*')
+                                                      .with('therapeuticRegimens')
+                                                      .with('identifierType')
+                                                      .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.service.id)
+                                                      .first()
+        this.curPatientVisitDetail.prescriptions[0].prescribedDrugs = PrescribedDrug.query()
+                                                                                    .withAll()
+                                                                                    .where('prescription_id', this.curPatientVisitDetail.prescriptions[0].id)
+                                                                                    .get()
+        this.curPatientVisitDetail.packs[0].packagedDrugs = PackagedDrug.query()
+                                                                        .withAll()
+                                                                        .where('pack_id', this.curPatientVisitDetail.packs[0].id)
+                                                                        .get()
+
+        const prescribedDrugs = this.curPatientVisitDetail.prescriptions[0].prescribedDrugs
+        const packagedDrugs = this.curPatientVisitDetail.packs[0].packagedDrugs
+
+        Object.keys(prescribedDrugs).forEach(function (k) {
+          const prescribedDrug = prescribedDrugs[k]
+            Object.keys(packagedDrugs).forEach(function (k) {
+              const packagedDrug = packagedDrugs[k]
+              if (prescribedDrug.drug.id === packagedDrug.drug.id && packagedDrug.toContinue) {
+                this.prescribedDrugs.push(prescribedDrug)
+              }
+            }.bind(this))
+        }.bind(this))
+        this.curPatientVisitDetails.push(this.curPatientVisitDetail)
+        this.showServiceDrugsManagement = true
+      }
     },
     init () {
-      this.initPatientVisit()
-      Object.keys(this.patient.identifiers).forEach(function (key) {
-        if (this.patient.identifiers[key].endDate === '') {
-          const episode = Episode.query()
-                                  .withAll()
-                                  .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
-                                  .orderBy('creationDate', 'desc')
-                                  .first()
-          this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
-          if (!episode.closed()) {
-            this.initPatientVisitDetails(episode)
+      if (!this.isNewPackStep) {
+        this.initPatientVisit()
+        Object.keys(this.patient.identifiers).forEach(function (key) {
+          if (this.patient.identifiers[key].endDate === '') {
+            const episode = Episode.query()
+                                    .withAll()
+                                    .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
+                                    .orderBy('creationDate', 'desc')
+                                    .first()
+            this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
+            if (!episode.closed()) {
+              this.initPatientVisitDetails(episode)
+            }
           }
-        }
-      }.bind(this))
+        }.bind(this))
+      }
     },
     initPatientVisitDetails (episode) {
       const pack = new Pack({
@@ -397,6 +448,9 @@ export default {
     }
   },
   computed: {
+    isNewPackStep () {
+      return this.selectedVisitDetails !== ''
+    },
     curPrescription () {
       return this.curPatientVisitDetail.prescriptions[0]
     },

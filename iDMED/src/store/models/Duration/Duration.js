@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import Prescription from '../prescription/Prescription'
 
 export default class Duration extends Model {
   static entity = 'durations'
@@ -7,8 +8,8 @@ export default class Duration extends Model {
     return {
       id: this.attr(null),
       weeks: this.attr(''),
-      description: this.attr('')
-
+      description: this.attr(''),
+      prescriptions: this.hasMany(Prescription, 'duration_id')
     }
   }
 
