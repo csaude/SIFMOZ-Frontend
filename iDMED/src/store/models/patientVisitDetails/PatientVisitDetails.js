@@ -23,6 +23,16 @@ export default class PatientVisitDetails extends Model {
     }
   }
 
+  getPrescriptionRemainigDuration () {
+    const prescriptionDuration = Number(this.prescriptions[0].duration.weeks)
+    let packagedWeeks = 0
+    Object.keys(this.packs).forEach(function (k) {
+      const pack = this.packs[k]
+      packagedWeeks = Number(packagedWeeks + pack.weeksSupply)
+    }.bind(this))
+    return Number((prescriptionDuration - packagedWeeks) / 4)
+  }
+
   static async apiFetchById (id) {
     return await this.api().get(`/patientVisitDetails/${id}`)
   }

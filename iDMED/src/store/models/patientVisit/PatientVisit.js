@@ -1,5 +1,4 @@
 import { Model } from '@vuex-orm/core'
-import Clinic from '../clinic/Clinic'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PregnancyScreening from '../screening/PregnancyScreening'
 import RAMScreening from '../screening/RAMScreening'
@@ -45,6 +44,7 @@ export default class PatientVisit extends Model {
   static async apiGetAllByPatientId (patientId) {
     return await this.api().get('/patientVisit/patient/' + patientId)
   }
+
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patientVisit/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }

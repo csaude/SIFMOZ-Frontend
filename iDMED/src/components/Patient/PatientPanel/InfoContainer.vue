@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ curIdentifier.service.code }} </ListHeader>
+    <ListHeader :addVisible="false" :bgColor="clinicalServiceHeaderColor" >{{ curIdentifier.service.code }} </ListHeader>
     <q-card class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
@@ -16,11 +16,11 @@
             <div class="col-4 text-grey-9 text-weight-medium">Nr Identificador:</div>
             <div class="col text-grey-8">{{ curIdentifier.value }}</div>
           </div>
-          <div class="row ">
+          <div v-show="showEndDetails" class="row ">
             <div class="col-4 text-grey-9 text-weight-medium">Data Fim:</div>
             <div class="col text-grey-8">{{ formatDate(curIdentifier.endDate) }}</div>
           </div>
-          <div class="row ">
+          <div v-show="showEndDetails" class="row ">
             <div class="col-4 text-grey-9 text-weight-medium">Notas de Fim:</div>
             <div class="col text-grey-8">{{lastEpisode !== null && lastEpisode.isCloseEpisode() ? lastEpisode.startStopReason.reason : ''}}</div>
           </div>
@@ -105,6 +105,13 @@ export default {
                                             })
                                       .where('id', this.identifier.id).first()
     },
+    clinicalServiceHeaderColor () {
+      if (this.curIdentifier.endDate === '') {
+        return 'bg-grey-4'
+      } else {
+        return 'bg-red-7'
+      }
+    },
     episodes () {
       return Episode.query()
                     .withAll()
@@ -135,6 +142,9 @@ export default {
                     .where('patientServiceIdentifier_id', this.curIdentifier.id)
                     .orderBy('creationDate', 'desc')
                     .first()
+    },
+    showEndDetails () {
+      return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
     }
   },
   created () {
