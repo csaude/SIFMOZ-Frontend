@@ -267,14 +267,15 @@ export default {
       this.initPatientVisit()
       Object.keys(this.patient.identifiers).forEach(function (key) {
         if (this.patient.identifiers[key].endDate === '') {
-          const identifierEpisodes = this.patient.identifiers[key].episodes
+          const episode = Episode.query()
+                                  .withAll()
+                                  .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
+                                  .orderBy('creationDate', 'desc')
+                                  .first()
           this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
-          Object.keys(identifierEpisodes).forEach(function (k) {
-            const episode = identifierEpisodes[k]
-            if (episode.stopDate === '') {
-                this.initPatientVisitDetails(episode)
-              }
-          }.bind(this))
+          if (!episode.closed()) {
+            this.initPatientVisitDetails(episode)
+          }
         }
       }.bind(this))
     },

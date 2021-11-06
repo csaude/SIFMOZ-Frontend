@@ -265,7 +265,7 @@ export default {
         }
         console.log(this.identifier)
         PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
-          // PatientServiceIdentifier.insert({ data: resp.response.data })
+          if (!this.isCreateStep) PatientServiceIdentifier.update({ data: resp.response.data })
           let msg = ''
           if (this.isCloseStep) {
             msg = 'Serviço de saúde fechado com sucesso.'
