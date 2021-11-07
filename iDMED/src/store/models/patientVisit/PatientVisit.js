@@ -6,7 +6,6 @@ import RAMScreening from '../screening/RAMScreening'
 import TBScreening from '../screening/TBScreening'
 import AdherenceScreening from '../screening/AdherenceScreening'
 import VitalSignsScreening from '../screening/VitalSignsScreening'
-import Clinic from '../clinic/Clinic'
 import Patient from '../patient/Patient'
 
 export default class PatientVisit extends Model {
@@ -38,13 +37,18 @@ export default class PatientVisit extends Model {
     return await this.api().post('/patientVisit', patientVisit)
   }
 
-  static async apiRemove (patientVisit) {
-    return await this.api().delete('/patientVisit', patientVisit)
+  static async apiUpdate (patientVisit) {
+    return await this.api().patch('/patientVisit', patientVisit)
+  }
+
+  static async apiRemove (id) {
+    return await this.api().delete(`/patientVisit/${id}`)
   }
 
   static async apiGetAllByPatientId (patientId) {
     return await this.api().get('/patientVisit/patient/' + patientId)
   }
+
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patientVisit/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
