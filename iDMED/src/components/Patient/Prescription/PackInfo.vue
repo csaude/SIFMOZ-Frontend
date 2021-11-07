@@ -21,7 +21,7 @@
                   {{props.row.quantitySupplied}} Frasco(s)
                 </q-td>
                 <q-td auto-width key="nextPickUpDate" :props="props">
-                  {{props.row.toContinue ? currPack.nextPickUpDate : 'Não continua'}}
+                  {{props.row.toContinue ? formatDate(currPack.nextPickUpDate) : 'Não continua'}}
                 </q-td>
               </q-tr>
             </template>

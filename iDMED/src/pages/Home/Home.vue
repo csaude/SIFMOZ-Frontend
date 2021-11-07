@@ -70,6 +70,7 @@ export default {
     },
     methods: {
       loadAppParameters () {
+        Duration.apiGetAll()
         Province.apiGetAll()
         District.apiGetAll()
         ClinicalServiceAttributeType.apiGetAll()
@@ -83,13 +84,12 @@ export default {
         TherapeuticRegimen.apiGetAll()
         TherapeuticLine.apiGetAll()
         Form.apiGetAll()
-        Duration.apiGetAll()
         Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll()
         Clinic.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('1').then(resp => {
+        Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },
@@ -201,9 +201,9 @@ export default {
     },
     mounted () {
       this.loadAppParameters()
-      this.getAllPrescriptionOfClinic()
       this.getAllPatientsOfClinic()
       this.getAllIdentifiersOfClinic()
+      this.getAllPrescriptionOfClinic()
       this.getAllEpisodesOfClinic()
       this.getAllPatientVisitsOfClinic()
       this.getAllPacksOfClinic()

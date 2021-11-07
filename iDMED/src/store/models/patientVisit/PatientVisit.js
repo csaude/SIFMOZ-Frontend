@@ -1,5 +1,4 @@
 import { Model } from '@vuex-orm/core'
-import Clinic from '../clinic/Clinic'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PregnancyScreening from '../screening/PregnancyScreening'
 import RAMScreening from '../screening/RAMScreening'

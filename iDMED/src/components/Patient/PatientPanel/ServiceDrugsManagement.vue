@@ -72,7 +72,7 @@ const columns = [
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['visitDetails', 'hasTherapeuticalRegimen'],
+  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs'],
   data () {
     return {
       columns,
@@ -103,6 +103,9 @@ export default {
       this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
     }
+  },
+  mounted () {
+    if (this.oldPrescribedDrugs !== null) this.prescribedDrugs = this.oldPrescribedDrugs
   },
   created () {
     this.curVisitDetails = Object.assign({}, this.visitDetails)

@@ -13,6 +13,7 @@
       v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
       <PrescriptionInfoContainer
         :identifier="identifier"
+        @addNewPack="addNewPack"
         @editClinicService="editClinicService"/>
     </span>
   </div>
@@ -20,6 +21,7 @@
   <q-dialog persistent v-model="showAddPrescription" full-width>
       <AddEditPrescription
         :patient="selectedPatient"
+        :selectedVisitDetails="selectedVisitDetails"
         @close="showAddPrescription = false" />
   </q-dialog>
 </div>
@@ -31,12 +33,17 @@ export default {
   data () {
     return {
       showAddPrescription: false,
-      infoVisible: true
+      infoVisible: true,
+      selectedVisitDetails: ''
     }
   },
   methods: {
     expandLess (value) {
       this.infoVisible = value
+    },
+    addNewPack (patientVisitDetails) {
+      this.selectedVisitDetails = patientVisitDetails
+      this.showAddPrescription = true
     }
   },
   computed: {
