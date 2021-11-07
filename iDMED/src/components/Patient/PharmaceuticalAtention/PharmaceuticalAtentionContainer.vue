@@ -19,7 +19,7 @@
           <div class="column ">
             <div class="col text-grey-9 text-weight-medium">Rastreio TB</div>
             <div class="col text-grey-4">
-            <q-btn unelevated text-color="green"  icon="search" @click=" viewTb = true"/>
+            <q-btn unelevated text-color="green"  icon="view_headline" label="Ver Detalhes" @click=" viewTb = true"/>
             </div>
           </div>
           </div>
@@ -27,7 +27,7 @@
           <div class="column ">
             <div class="col text-grey-9 text-weight-medium">R. Gravidez</div>
             <div class="col text-grey-8">
-            <q-btn unelevated text-color="green" icon="search" @click=" viewPregnancy = true"/>
+            <q-btn unelevated text-color="green" icon="view_headline" label="Ver Detalhes" @click=" viewPregnancy = true"/>
             </div>
           </div>
           </div>
@@ -35,7 +35,7 @@
           <div class="column ">
             <div class="col text-grey-9 text-weight-medium">Monitoria e Reforco a Adesao</div>
             <div class="col text-grey-8">
-            <q-btn unelevated text-color="green" icon="search" @click=" viewAdherence = true"/>
+            <q-btn unelevated text-color="green" icon="view_headline" label="Ver Detalhes" @click=" viewAdherence = true"/>
             </div>
           </div>
           </div>
@@ -43,7 +43,7 @@
           <div class="column ">
             <div class="col text-grey-9 text-weight-medium">Reacoes Adversas</div>
             <div class="col text-grey-8">
-             <q-btn unelevated text-color="green" icon="search" @click=" viewRam = true"/>
+             <q-btn unelevated text-color="green" icon="view_headline" label="Ver Detalhes" @click=" viewRam = true"/>
             </div>
           </div>
           </div>
