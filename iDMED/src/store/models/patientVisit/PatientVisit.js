@@ -6,6 +6,7 @@ import TBScreening from '../screening/TBScreening'
 import AdherenceScreening from '../screening/AdherenceScreening'
 import VitalSignsScreening from '../screening/VitalSignsScreening'
 import Patient from '../patient/Patient'
+import Clinic from '../clinic/Clinic'
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits'
