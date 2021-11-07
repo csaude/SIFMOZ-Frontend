@@ -24,7 +24,9 @@
                         v-model="visitDate"
                         mask="date"
                         filled
-                        :rules="[ date => !!date  || 'A data da Consulta e obrigatoria']"
+                        ref="data"
+                        :disable="this.editMode"
+                        :rules="[ visitDate => !!visitDate || 'A data da Consulta e obrigatoria']"
                         label="Data da Visita">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
@@ -133,7 +135,7 @@ import AdherenceScreening from '../../../store/models/screening/AdherenceScreeni
 import RAMScreening from '../../../store/models/screening/RAMScreening'
 import Clinic from '../../../store/models/clinic/Clinic'
 export default {
-    props: ['editPatientVisit'],
+    props: ['editPatientVisit', 'editMode'],
     data () {
         return {
           alert: ref({
@@ -194,7 +196,12 @@ export default {
             this.$refs.weight.$refs.ref.validate()
             this.$refs.systole.$refs.ref.validate()
             this.$refs.distort.$refs.ref.validate()
-            if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
+           //  this.$refs.data.$refs.ref.validate()
+           if (this.visitDate === '') {
+              this.displayAlert('error', 'Por Favor Preencha data de consulta')
+           } else if (this.verifyHasSameDay() && !this.editMode) {
+             this.displayAlert('error', 'Ja Existe uma Atencao farmceutica nessa data .Por Favor use a funcionalidade editar')
+           } else if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
              !this.$refs.systole.$refs.ref.hasError && !this.$refs.distort.$refs.ref.hasError) {
               this.$refs.stepper.next()
             }
@@ -222,7 +229,6 @@ export default {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
                 this.displayAlert('error', 'Por Favor Indique as reacoes adversas')
              } else {
-                this.verifyHasSameDay()
             this.patientVisit.clinic = this.currClinic
             this.patientVisit.patient = this.patient
              this.patientVisit.visitDate = new Date(this.visitDate)
@@ -263,8 +269,11 @@ export default {
                           .with('adherenceScreening')
                           .with('ramScreening')
                           .with('patientVisitDetails')
-                          .with('clinic').where('patient_id', this.patient.id).where('visitDate', this.patientVisit.visitDate).get()
-                  console.log(visit)
+                          .with('clinic').where('patient_id', this.patient.id).where('visitDate', this.patientVisit.visitDate).first()
+                 // console.log(visit)
+                 if (visit) {
+                return true
+                 }
          },
     getImcDescription () {
         const imc = this.vitalSigns.imc

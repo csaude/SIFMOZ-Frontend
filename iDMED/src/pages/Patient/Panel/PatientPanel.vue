@@ -15,7 +15,7 @@
         >
           <ClinicServiceInfo :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
           <PrescriptionInfo :selectedPatient="patient" class="q-mb-lg"/>
-          <PharmaceuticalAtentionInfo :selectedPatient="patient" :patientVisits="patientVisits" />
+          <PharmaceuticalAtentionInfo :patientVisits="patientVisits"  :selectedPatient="patient"/>
         </q-scroll-area>
       </div>
     </div>

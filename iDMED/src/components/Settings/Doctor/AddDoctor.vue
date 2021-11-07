@@ -54,8 +54,7 @@
                       :options="clinics"
                       option-value="id"
                       option-label="clinicName"
-                      label="Clinica"
-                      @filter="filterClinic"/>
+                      label="Clinica"/>
                       </div>
                 </div>
                 <div class="q-mt-lg">
@@ -146,6 +145,7 @@ export default {
         },
         submitDoctor () {
           this.doctor.dateofbirth = new Date(this.dateOfBirth)
+          this.doctor.category = 0
             Doctor.api().post('/doctor', this.doctor).then(resp => {
                 console.log(resp.response.data)
                 this.displayAlert('info', 'Clinico gravado com sucesso.')

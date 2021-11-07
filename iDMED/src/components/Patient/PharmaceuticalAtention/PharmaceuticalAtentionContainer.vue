@@ -71,8 +71,15 @@
        <q-dialog persistent v-model="showAddPharmaceuticalAtention" full-width>
       <AddEditPharmaceuticalAtention
         :editPatientVisit="patientVisit"
+        :editMode=true
         @close="showAddPharmaceuticalAtention= false" />
   </q-dialog>
+    <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
   </div>
 </template>
@@ -82,10 +89,16 @@ import { SessionStorage, date } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import { ref } from 'vue'
 export default {
   props: ['patientVisit'],
   data () {
     return {
+        alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+          }),
       curIdentifier: {},
       isPatientActive: false,
       showAddEpisode: false,
@@ -104,8 +117,8 @@ export default {
        pregnancyTable: require('components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue').default,
         adherenceTable: require('components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue').default,
         ramTable: require('components/Patient/PharmaceuticalAtention/AdverseReactionQuestiosTable.vue').default,
-        AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default
-       //   Dialog: require('components/Shared/Dialog/Dialog.vue').default
+        AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default,
+         Dialog: require('components/Shared/Dialog/Dialog.vue').default
   },
   methods: {
     checkPatientStatusOnService () {
@@ -113,34 +126,21 @@ export default {
         this.isPatientActive = true
       }
     },
-    removePharmaceuticalAttention (patientVisit) {
-            patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length.length)
-            patientVisit.tbScreening.push(0, patientVisit.tbScreening.length)
-            patientVisit.pregnancyScreening.push(0, patientVisit.pregnancyScreening.length)
-            patientVisit.adherenceScreening.push(0, patientVisit.adherenceScreening.length)
-            patientVisit.ramScreening.push(0, patientVisit.ramScreening.length)
-           if (patientVisit.patientVisitDetails.length > 0) {
-             PatientVisit.apiRemove(this.patientVisit).then(resp => {
-             this.displayAlert('info', 'Atencao Farmaceutica removida com sucesso.')
-             }).catch(error => {
-             this.displayAlert('error', error)
-          })
-           }
-    },
      promptToConfirm (patientVisit) {
             this.$q.dialog({ title: 'Confirm', message: 'Deseja Apagar a atencao farmaceutica?', cancel: true, persistent: true }).onOk(() => {
-              patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length.length)
-            patientVisit.tbScreening.push(0, patientVisit.tbScreening.length)
-            patientVisit.pregnancyScreening.push(0, patientVisit.pregnancyScreening.length)
-            patientVisit.adherenceScreening.push(0, patientVisit.adherenceScreening.length)
-            patientVisit.ramScreening.push(0, patientVisit.ramScreening.length)
            if (patientVisit.patientVisitDetails.length >= 0) {
-             PatientVisit.apiRemove(patientVisit).then(resp => {
+             PatientVisit.apiRemove(patientVisit.id).then(resp => {
              this.displayAlert('info', 'Atencao Farmaceutica removida com sucesso.')
+             PatientVisit.update()
              }).catch(error => {
              this.displayAlert('error', error)
           })
            } else {
+              patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length.length)
+            patientVisit.tbScreening.splice(0, patientVisit.tbScreening.length)
+            patientVisit.pregnancyScreening.splice(0, patientVisit.pregnancyScreening.length)
+            patientVisit.adherenceScreening.splice(0, patientVisit.adherenceScreening.length)
+            patientVisit.ramScreening.splice(0, patientVisit.ramScreening.length)
               PatientVisit.apiSave(patientVisit).then(resp => {
              this.displayAlert('info', 'Atencao Farmaceutica efectuada com sucesso.')
              }).catch(error => {
@@ -151,6 +151,15 @@ export default {
       },
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+     displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+      if (this.alert.type === 'info') this.$emit('close')
     }
   },
   computed: {

@@ -25,7 +25,7 @@
 <script>
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
- import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   props: ['selectedPatient'],
   data () {
@@ -47,14 +47,14 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     patientVisits () {
-     return PatientVisit.query().with('patient.*')
+      return PatientVisit.query().with('patient.*')
                           .with('vitalSigns')
                           .with('tbScreening')
                           .with('pregnancyScreening')
                           .with('adherenceScreening')
                           .with('ramScreening')
                           .with('patientVisitDetails')
-                          .with('clinic').where('patient_id', this.patient.id).get()
+                          .with('clinic').where('patient_id', this.selectedPatient.id).has('clinic').get()
     },
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0

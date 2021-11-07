@@ -83,7 +83,7 @@ export default {
   },
  computed: {
       clinicServices () {
-          return ClinicalService.query().with('attributes').get()
+          return ClinicalService.query().with('attributes').has('code').get()
       }
   },
   methods: {
