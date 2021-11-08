@@ -23,6 +23,22 @@ export default class PatientVisitDetails extends Model {
     }
   }
 
+  lastPack () {
+    if (this.packs.length <= 0) return null
+    let lastPack = ''
+    Object.keys(this.packs).forEach(function (k) {
+      const id = this.packs[k]
+      if (lastPack === '') {
+        lastPack = id
+      } else if (lastPack.id !== '') {
+        if (new Date(lastPack.pickupDate) < new Date(id.pickupDate)) {
+          lastPack = id
+        }
+      }
+    }.bind(this))
+    return lastPack
+  }
+
   getPrescriptionRemainigDuration () {
     const prescriptionDuration = Number(this.prescriptions[0].duration.weeks)
     let packagedWeeks = 0

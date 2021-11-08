@@ -4,6 +4,8 @@
           :addVisible="true"
           :mainContainer="true"
           bgColor="bg-primary"
+          :newPickUpDate="newPickUpDate"
+          @updateQtyPrescribed="updateQtyPrescribed"
           :visitDetails="visitDetails"
           @showAdd="addEditDrugs">
         Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}
@@ -28,12 +30,7 @@
                   {{props.row.amtPerTime + ' - ' + props.row.timesPerDay + ' X por ' + props.row.form}}
                 </q-td>
                 <q-td auto-width key="packs" :props="props">
-                  <q-select
-                    style="width: 70px;"
-                    class="q-pa-none"
-                    dense outlined
-                    v-model="props.row.qtyPrescribed"
-                    :options="nums"/>
+                  {{props.row.getQtyPrescribed(drugsDuration)}}
                 </q-td>
                 <q-td key="nextPickUpDate" :props="props">
                   <div class="row">
@@ -72,7 +69,7 @@ const columns = [
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs'],
+  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack'],
   data () {
     return {
       columns,
@@ -81,31 +78,51 @@ export default {
       nextPUpDate: '',
       pickupDate: '',
       prescribedDrugs: ref([]),
-      nums: Array(4).fill().map((x, i) => i + 1)
+      nums: Array(4).fill().map((x, i) => i + 1),
+      drugsDuration: ''
     }
   },
   methods: {
-    addEditDrugs (pickupDate, nextPDate) {
+    addEditDrugs (pickupDate, nextPDate, duration) {
+      this.drugsDuration = duration
       this.nextPUpDate = nextPDate
       this.pickupDate = new Date(pickupDate)
-      this.curVisitDetails.packs[0].pickupDate = this.pickupDate
-      this.curVisitDetails.packs[0].nextPickUpDate = this.nextPUpDate
+      // this.curVisitDetails.packs[0].pickupDate = this.pickupDate
+      // this.curVisitDetails.packs[0].nextPickUpDate = this.nextPUpDate
       this.showAddEditDrug = true
     },
     deleteRow (row) {
       const i = this.prescribedDrugs.map(toRemove => toRemove.id).indexOf(row.id) // find index of your object
       this.prescribedDrugs.splice(i, 1)
-      this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
+      this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
     },
     addPrescribedDrug (prescribedDrug) {
       this.showAddEditDrug = false
       prescribedDrug.nextPickUpDate = this.nextPUpDate
       this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
-      this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
+      this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+    },
+    init () {
+      if (this.oldPrescribedDrugs !== null) {
+        this.prescribedDrugs = this.oldPrescribedDrugs
+        this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
+      }
+    },
+    updateQtyPrescribed (duration, pickupDate, nextPDate) {
+      this.drugsDuration = duration
+      this.nextPUpDate = nextPDate
+      this.pickupDate = pickupDate
+      this.$emit('updatePrescribedDrugs', this.prescribedDrugs, pickupDate, nextPDate, duration)
     }
   },
   mounted () {
-    if (this.oldPrescribedDrugs !== null) this.prescribedDrugs = this.oldPrescribedDrugs
+    this.init()
+  },
+  computed: {
+    newPickUpDate () {
+      if (this.lastPack === null) return ''
+      return this.lastPack.nextPickUpDate
+    }
   },
   created () {
     this.curVisitDetails = Object.assign({}, this.visitDetails)

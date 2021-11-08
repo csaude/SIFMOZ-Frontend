@@ -2,7 +2,7 @@
   <div>
   <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ identifier.service.code }} </ListHeader>
     <q-card
-      v-if="lastStartEpisode.lastVisit() !== null"
+      v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null"
       class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">

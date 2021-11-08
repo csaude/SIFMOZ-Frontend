@@ -5,7 +5,7 @@
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
-    @showAdd="showAddPrescription = true">Prescrição
+    @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
   <EmptyList v-if="selectedPatient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-show="infoVisible" >
