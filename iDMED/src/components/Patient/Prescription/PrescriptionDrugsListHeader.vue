@@ -34,7 +34,7 @@
             style="width: 200px"
             class="q-mx-sm"
             bg-color="white"
-            @update:model-value="determineNextPickUpDate()"
+            @blur="determineNextPickUpDate()"
             outlined
             v-model="drugsDuration"
             :options="durations"
@@ -81,7 +81,7 @@ import { ref } from 'vue'
 import { date } from 'quasar'
 import Duration from '../../../store/models/Duration/Duration'
 export default {
-    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails'],
+    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate'],
     data () {
       return {
         alert: ref({
@@ -112,7 +112,6 @@ export default {
       showAdd () {
         // this.$refs.pickupDate.validate()
         // this.$refs.nextPickupDate.validate()
-        console.log(this.nextPDate)
         if (!date.isValid(this.pickupDate)) {
           this.displayAlert('error', 'A data de levantamento é inválida')
         } else if (!date.isValid(this.nextPDate)) {
@@ -125,17 +124,18 @@ export default {
           this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')
         } else if (new Date(this.pickupDate) > new Date(this.nextPDate)) {
           this.displayAlert('error', 'A data do levantamento é maior que a data do próximo levantamento')
+        } else if (this.newPickUpDate !== '' && (new Date(this.pickupDate) < this.newPickUpDate)) {
+          this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.formatDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
         } else {
-          this.$emit('showAdd', this.pickupDate, this.nextPDate)
+          this.$emit('showAdd', this.pickupDate, this.nextPDate, this.drugsDuration)
         }
       },
       determineNextPickUpDate () {
-        console.log(this.drugsDuration)
         if (date.isValid(this.pickupDate) && this.drugsDuration !== '') {
           const newDate = new Date(this.pickupDate)
           const daysToAdd = parseInt(this.drugsDuration.weeks * 7)
           this.nextPDate = this.formatDate(date.addToDate(newDate, { days: daysToAdd }))
-          console.log(this.nextPDate)
+          this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
         }
       },
       displayAlert (type, msg) {
@@ -148,6 +148,11 @@ export default {
       },
       formatDate (dateString) {
         return date.formatDate(dateString, 'YYYY-MM-DD')
+      },
+      init () {
+        if (this.newPickUpDate !== '') {
+          this.pickupDate = this.newPickUpDate
+        }
       }
     },
     components: {
@@ -161,6 +166,9 @@ export default {
       durations () {
         return Duration.all()
       }
+    },
+    mounted () {
+      this.init()
     }
 }
 </script>

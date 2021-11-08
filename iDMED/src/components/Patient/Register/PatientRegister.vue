@@ -37,7 +37,7 @@
                                   </q-icon>
                               </template>
                           </q-input>
-                            <numberInput value="patient.age()" label="Idade" class="q-ml-md"/>
+                            <numberInput v-model="age" label="Idade" class="q-ml-md"/>
                         <q-select
                           class="col q-ml-md"
                           dense outlined
@@ -67,11 +67,8 @@
                       class="col q-ml-md"
                       dense outlined
                       v-model="patient.district"
-                      use-input
                       option-value="id"
                       option-label="description"
-                      input-debounce="0"
-                      @new-value="createValue"
                       :options="districts"
                       label="Distrito/Cidade" />
                     <q-select class="col q-ml-md" dense outlined v-model="model" :options="options" label="Posto Administivo" />
@@ -113,13 +110,9 @@ import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
-const stringOptions = [
-  'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
-]
 export default {
     props: ['clinic', 'selectedPatient'],
     data () {
-      const provOptions = ref(this.provinces)
         return {
             alert: ref({
               type: '',
@@ -128,56 +121,15 @@ export default {
             }),
             dateOfBirth: '',
             patient: new Patient(),
-            provOptions,
             selectedProvince: {},
-            createValue (val, done) {
-              if (val.length > 2) {
-                if (!stringOptions.includes(val)) {
-                  done(val, 'add-unique')
-                }
-              }
-            },
             genders: ['Masculino', 'Femenino'],
-              filterFn (val, update) {
-                update(() => {
-                  if (val === '') {
-                    this.districts.value = this.districts
-                  } else {
-                    const needle = val.toLowerCase()
-                    this.districts.value = this.districts.filter(
-                      v => v.toLowerCase().indexOf(needle) > -1
-                    )
-                  }
-                })
-              },
-              filterProv (val, update, abort) {
-                const stringOptions = this.provinces
-                if (val === '') {
-                  update(() => {
-                    this.provOptions = stringOptions.map(provincia => provincia)
-                  })
-                } else if (stringOptions.length === 0) {
-                  update(() => {
-                    this.provOptions = []
-                  })
-                } else {
-                  update(() => {
-                    this.provOptions = stringOptions
-                      .map(provincia => provincia)
-                      .filter(provincia => {
-                        return provincia &&
-                            provincia.designacao.toLowerCase().indexOf(val.toLowerCase()) !== -1
-                      })
-                  })
-                }
-              }
+            age: ''
         }
     },
     methods: {
-        savePatient () {
+        async savePatient () {
            this.patient.dateOfBirth = new Date(this.dateOfBirth)
-           this.patient.clinic = Clinic.query().with('province').where('id', this.currClinic.id).first()
-           Patient.apiSave(this.patient).then(resp => {
+           await Patient.apiSave(this.patient).then(resp => {
              this.patient = resp.response.data
              this.displayAlert('info', 'Paciente gravado com sucesso.')
            }).catch(error => {
@@ -191,10 +143,24 @@ export default {
           this.alert.visible = true
         },
         closeDialog () {
+          this.alert.visible = false
           if (this.alert.type === 'info') {
             this.$emit('close')
             SessionStorage.set('selectedPatient', this.patient)
             this.$router.push('/patientpanel')
+          }
+        },
+        initPatient () {
+          if (this.isEditStep) {
+            this.patient = Patient.query().with('province')
+                                          .with('district.province')
+                                          .with('postoAdministrativo')
+                                          .with('bairro')
+                                          .with('clinic.*')
+                                          .where('id', this.selectedPatient.id).first()
+            this.dateOfBirth = this.patient.dateOfBirth
+          } else {
+            this.patient.clinic = Clinic.query().with('province').where('id', this.currClinic.id).first()
           }
         }
     },
@@ -217,7 +183,13 @@ export default {
       },
       currClinic () {
         return new Clinic(SessionStorage.getItem('currClinic'))
+      },
+      isEditStep () {
+        return this.selectedPatient.id !== null
       }
+    },
+    mounted () {
+      this.initPatient()
     }
 }
 </script>

@@ -33,4 +33,15 @@ export default class PrescribedDrug extends Model {
     static async apiGetAll () {
       return await this.api().get('/prescribedDrug')
     }
+
+    getQtyPrescribed (drugsDuration) {
+      if (drugsDuration === null || drugsDuration === '') return 0
+      let qty = 0
+      if (this.form.toLowerCase() === 'dia') {
+        qty = Math.round(Number((this.amtPerTime * this.timesPerDay * (drugsDuration.weeks * 7)) / this.drug.packSize))
+      }
+
+      this.qtyPrescribed = qty
+      return qty
+    }
 }
