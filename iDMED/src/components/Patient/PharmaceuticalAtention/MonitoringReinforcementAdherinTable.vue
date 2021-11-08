@@ -73,7 +73,7 @@ const columns = [
   {
     name: 'question',
     required: true,
-    label: 'Perguntas de Monitoria e Reforco a Adesão',
+    label: 'Perguntas de Monitoria e Reforço a Adesão',
     align: 'left',
     field: row => row.question,
     format: val => `${val}`
