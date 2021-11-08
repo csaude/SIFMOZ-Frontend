@@ -4,6 +4,7 @@
       :addVisible="showAddButton"
       :mainContainer="true"
       bgColor="bg-primary"
+       @expandLess="expandLess"
       @showAdd="showAddPharmaceuticalAtention = true">
       Atenção Farmacêutica
     </ListHeader>
@@ -17,7 +18,8 @@
     </div>
     <q-dialog persistent v-model="showAddPharmaceuticalAtention" full-width>
       <AddEditPharmaceuticalAtention
-        @close="showAddPharmaceuticalAtention= false" />
+        @close="showAddPharmaceuticalAtention= false"
+       :editMode=false />
   </q-dialog>
   </div>
 </template>
@@ -47,14 +49,15 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     patientVisits () {
-      return PatientVisit.query().with('patient.*')
+      const patientVis = PatientVisit.query().with('patient.*')
                           .with('vitalSigns')
                           .with('tbScreening')
                           .with('pregnancyScreening')
                           .with('adherenceScreening')
                           .with('ramScreening')
                           .with('patientVisitDetails')
-                          .with('clinic').where('patient_id', this.selectedPatient.id).has('clinic').get()
+                          .with('clinic').where('patient_id', this.selectedPatient.id).has('clinic').has('vitalSigns').get()
+                          return patientVis
     },
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0
