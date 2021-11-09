@@ -13,6 +13,7 @@
                <div class="row q-mt-md">
                 <nameInput
                     v-model="clinicalService.description"
+                     ref="nome"
                     label="Nome do Servico Clinico" />
             </div>
               <div class="row q-mt-md">
@@ -101,6 +102,7 @@ const columnAttributes = [
 ]
 
 export default {
+      props: ['selectedClinicalService', 'onlyView'],
   data () {
  const $q = useQuasar()
   const selected = ref([])
@@ -125,7 +127,7 @@ export default {
   },
   computed: {
       therapeuticRegimens () {
-           return TherapeuticRegimen.query().with('drugs.form').get()
+           return TherapeuticRegimen.query().with('drugs.form').hasNot('clinicalService').get()
       },
        clinicalServiceAttributes () {
              return ClinicalServiceAttributeType.all()
@@ -135,22 +137,13 @@ export default {
       }
   },
   methods: {
-        async  getAllTherapeuticRegimens (offset) {
-            if (this.therapeuticRegimens.length <= 0) {
-         await TherapeuticRegimen.api().get('/therapeuticRegimen?offset=' + offset + '&max=100').then(resp => {
-                        offset = offset + 100
-                        if (resp.response.data.length > 0) { setTimeout(this.getAllTherapeuticRegimens(offset), 2) }
-                    }).catch(error => {
-                        console.log(error)
-                    })
-            }
-        },
          validateClincalService () {
-           // this.$refs.nome.$refs.ref.validate()
-             // this.$refs.code.$refs.ref.validate()
-            // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
-                this.submitClinicalService()
-           // }
+            this.$refs.nome.$refs.ref.validate()
+             this.$refs.code.$refs.ref.validate()
+            // this.$refs.district.$refs.ref.validate()
+            if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError) {
+               this.submitClinicalService()
+            }
         },
         submitClinicalService () {
                this.createClinicServiceAttribute()
@@ -195,11 +188,15 @@ export default {
         }
   },
   mounted () {
-    const offset = 0
-    this.getAllTherapeuticRegimens(offset)
     ClinicalServiceAttributeType.apiGetAll()
     IdentifierType.apiGetAll()
   },
+   created () {
+        if (this.clinicalService !== '') {
+          this.clinicalService = Object.assign({}, this.selectedClinicalService)
+        }
+       //  this.extractDatabaseCodes()
+    },
   components: {
   //  addDrug: require('components/Settings/Drug/AddDrug.vue').default
   //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default

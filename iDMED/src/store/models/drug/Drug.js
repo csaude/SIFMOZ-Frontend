@@ -14,7 +14,7 @@ export default class Drug extends Model {
       fnmCode: this.attr(''),
       // sideTreatment: this.attr(''),
       packSize: this.attr(''),
-      clinicalStage: this.attr(''),
+      // clinicalStage: this.attr(''),
       defaultTimes: this.attr(''),
       defaultTreatment: this.attr(''),
       defaultPeriodTreatment: this.attr(''),

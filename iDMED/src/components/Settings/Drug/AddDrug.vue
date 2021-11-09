@@ -7,36 +7,45 @@
                         <nameInput v-model="drug.name" :disable="onlyView" ref="nome" />
                     </div>
                      <div class="row q-mt-md">
-                        <codeInput v-model="drug.fnmCode" :disable="onlyView" label="fnmCode"/>
+                        <codeInput v-model="drug.fnmCode"
+                        :disable="onlyView"
+                        label="fnmCode"
+                        ref="code"
+                        lazy-rules
+                        :rules="[val => codeRules (val)]"/>
                     </div>
                     <div class="row q-mt-md">
-                         <numberField v-model="drug.packSize" label="Tamanho do pacote" :disable="onlyView"/>
+                         <numberField v-model="drug.packSize" label="Tamanho do pacote" :disable="onlyView" ref="packSize"/>
                     </div>
                     <div class="q-mt-md">
                     </div>
                     <div class="row">
-                        <numberField v-model="drug.defaultTimes" label="N de toma"  :disable="onlyView" />
-                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Numero de vezes a tomar"  :disable="onlyView"/>
+                        <numberField v-model="drug.defaultTimes" label="N de toma"  :disable="onlyView" ref="defaultTimes"/>
+                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Numero de vezes a tomar"  :disable="onlyView" ref="tomar"/>
                         <q-select
-                              class="col q-ml-md"
+                          class="col q-ml-md"
+                          ref="periodo"
                           dense outlined
                           v-model="drug.defaultPeriodTreatment"
                           :options="periodsTime"
                            :disable="onlyView"
-                          label="Periodo a Tomar" />
+                          label="Periodo a Tomar"
+                          :rules="[ val => ( val != null ) || ' Por favor indique o periodo a tomar']"/>
                     </div>
                         <div class="row q-mt-md">
                     <q-select
                      class="col" dense outlined
                       v-model="drug.form"
                       use-input
+                      ref="forma"
                       input-debounce="0"
                       :options="forms"
                       option-value="id"
                       option-label="description"
                       label="Forma"
                       @filter="filterForm"
-                      :disable="onlyView"/>
+                      :disable="onlyView"
+                       :rules="[ val => ( val != null ) || ' Por favor indique a forma a tomar']"/>
                       </div>
                 </div>
             </q-card-section>
@@ -80,23 +89,31 @@ export default {
                   done(val, 'add-unique')
                 }
               }
-            }
+            },
+            databaseCodes: []
         }
     },
     methods: {
           validateDrug () {
-      //      console.log(this.$refs.nome.ref.validate())
-      //      this.$refs.nome.$refs.ref.validate()
-       //      this.$refs.code.$refs.ref.validate()
-         //    if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
+              this.$refs.nome.$refs.ref.validate()
+              this.$refs.code.$refs.ref.validate()
+              this.$refs.packSize.$refs.ref.validate()
+              this.$refs.defaultTimes.$refs.ref.validate()
+              this.$refs.tomar.$refs.ref.validate()
+              this.$refs.periodo.validate()
+              this.$refs.forma.validate()
+        if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
+        !this.$refs.packSize.$refs.ref.hasError && !this.$refs.defaultTimes.$refs.ref.hasError &&
+        !this.$refs.tomar.$refs.ref.hasError && !this.$refs.periodo.hasError &&
+             !this.$refs.forma.hasError) {
                 this.submitDrug()
-           // }
+            }
         },
         submitDrug () {
-            console.log(this.drug)
+           this.drug.active = true
             Drug.api().post('/drug', this.drug).then(resp => {
                 console.log(resp.response.data)
-                this.displayAlert('info', 'Medicamento gravado com sucesso.')
+                this.displayAlert('info', this.drug.id === null ? 'Medicamento adiconado com sucesso.' : 'Medicamento actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })
@@ -110,12 +127,23 @@ export default {
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
-        }
+        },
+        extractDatabaseCodes () {
+        this.drugs.forEach(element => {
+            this.databaseCodes.push(element.fnmCode)
+    })
+    },
+    codeRules (val) {
+       if (!this.drug.id && this.selectedDrug.id === this.drug.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+         }
+    }
     },
     created () {
         if (this.drug !== '') {
           this.drug = Object.assign({}, this.selectedDrug)
         }
+         this.extractDatabaseCodes()
     },
     components: {
         nameInput: require('components/Shared/NameInput.vue').default,
@@ -130,6 +158,9 @@ export default {
     computed: {
       forms () {
             return Form.all()
+        },
+        drugs () {
+            return Drug.all()
         }
     }
 }
