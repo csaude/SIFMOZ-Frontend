@@ -4,13 +4,13 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime" />
+                        <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime" ref="nome" />
                     </div>
                      <div class="row q-mt-md">
-                       <nameInput v-model="therapeuticRegimen.description" :disable="onlyView" :nome="nome" />
+                       <nameInput v-model="therapeuticRegimen.description" :disable="onlyView"  ref="nome" />
                     </div>
                     <div class="row q-mt-md">
-                        <codeInput v-model="therapeuticRegimen.code" :disable="onlyView" />
+                        <codeInput v-model="therapeuticRegimen.code" :disable="onlyView" ref="code" />
                     </div>
                      <div class="row q-mt-md">
        <q-table
@@ -127,16 +127,6 @@ export default {
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
-        },
-         async  getAllDrugs (offset) {
-            if (this.drugs.length <= 0) {
-         await Drug.api().get('/drug?offset=' + offset + '&max=100').then(resp => {
-                        offset = offset + 100
-                        if (resp.response.data.length > 0) { setTimeout(this.getAllDrugs(offset), 2) }
-                    }).catch(error => {
-                        console.log(error)
-                    })
-            }
         }
     },
     created () {
@@ -152,8 +142,6 @@ export default {
         //   details1: require('components/Settings/TherapeuticRegimen/details.vue').default
     },
     mounted () {
-          const offset = 0
-    this.getAllDrugs(offset)
     },
     computed: {
         drugs () {

@@ -57,7 +57,7 @@
         </div>
           <q-dialog persistent v-model="showClinicServiceRegistrationScreen" full-width>
           <addClinicalService
-          :selectedclinicService="ClinicalService"
+          :selectedClinicalService="clinicalService"
             @close="showClinicServiceRegistrationScreen = false" />
       </q-dialog>
     </div>
@@ -83,15 +83,15 @@ export default {
   },
  computed: {
       clinicServices () {
-          return ClinicalService.query().with('attributes').has('code').get()
+          return ClinicalService.query().with('attributes').with('identifierType').has('code').get()
       }
   },
   methods: {
   async  getClinicServices () {
           await ClinicalService.api().get('/clinicalService')
        },
-       editClinicService (ClinicalService) {
-        this.ClinicalService = Object.assign({}, ClinicalService)
+       editClinicService (clinicalService) {
+        this.clinicalService = Object.assign({}, clinicalService)
          this.showClinicServiceRegistrationScreen = true
       },
         addClinicService () {
