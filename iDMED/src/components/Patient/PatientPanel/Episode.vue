@@ -11,7 +11,7 @@
             <div class="col text-grey-8">{{formatDate(currEpisode.episodeDate)}}</div>
           </div>
           <div class="row ">
-            <div class="col-3 text-grey-9 text-weight-medium">Notas de {{currEpisode.isStartEpisode() ? 'Início:' : 'Fim:'}}</div>
+            <div class="col-3 text-grey-9 text-weight-medium">Notas de {{currEpisode.isStartEpisode() ? 'Início: ' : 'Fim: '}}</div>
             <div class="col text-grey-8">{{currEpisode.startStopReason.reason}}</div>
           </div>
         </div>
@@ -23,7 +23,6 @@
             color="orange-5"
             label="Editar"
             class="float-right" />
-          <div v-else class="col text-grey-9"><span>Notas de {{currEpisode.isStartEpisode() ? 'Início:' : 'Fim:'}}</span><span>{{ currEpisode.startStopReason.reason}}</span></div>
         </div>
       </q-card-section>
     </q-card>
@@ -37,7 +36,6 @@ export default {
   props: ['episode'],
   setup () {
     return {
-      canEdit: true
     }
   },
   computed: {
@@ -46,11 +44,18 @@ export default {
                     .withAll()
                     .where('id', this.episode.id)
                     .first()
+    },
+    canEdit () {
+      return this.canBeEdited()
     }
   },
   methods: {
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    canBeEdited () {
+      const eps = Episode.query().withAll().where('id', this.episode.id).first()
+      return !eps.hasVisits()
     }
   },
   components: {

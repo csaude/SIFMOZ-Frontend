@@ -150,7 +150,13 @@
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
                 <div class="row q-mb-sm">
-                  <q-btn unelevated color="primary" label="Adicionar Medicamentos" class="col" @click="validateForm()"/>
+                  <q-btn
+                    unelevated
+                    color="primary"
+                    :disable="isNewPackStep"
+                    label="Adicionar Medicamentos"
+                    class="col"
+                    @click="validateForm()"/>
                 </div>
             </div>
           </div>
@@ -197,12 +203,11 @@
           @close="showDispenseMode = false" />
       </q-dialog>
       <q-dialog v-model="alert.visible">
-          <Dialog :type="alert.type" @closeDialog="closeDialog">
-            <template v-slot:title> Informação</template>
-            <template v-slot:msg> {{alert.msg}} </template>
-          </Dialog>
-        </q-dialog>
-        <pre>{{curPatientVisitDetails}}</pre>
+        <Dialog :type="alert.type" @closeDialog="closeDialog">
+          <template v-slot:title> Informação</template>
+          <template v-slot:msg> {{alert.msg}} </template>
+        </Dialog>
+      </q-dialog>
     </q-card>
 </template>
 
@@ -474,7 +479,6 @@ export default {
         }
       }.bind(this))
 
-      console.log(this.patientVisit)
       PatientVisit.apiSave(this.patientVisit).then(resp => {
         PatientVisit.update({ data: resp.response.data })
         this.showDispenseMode = false
@@ -490,7 +494,10 @@ export default {
     },
     closeDialog () {
       this.alert.visible = false
-      if (this.alert.type === 'info') this.$emit('close')
+      if (this.alert.type === 'info') {
+        this.$emit('close')
+        this.$router.push('/patientpanel')
+      }
     }
   },
   computed: {

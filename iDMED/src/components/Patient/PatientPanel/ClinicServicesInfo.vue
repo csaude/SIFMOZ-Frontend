@@ -88,6 +88,9 @@ export default {
     clinicServiceInfoVisible () {
       return LocalStorage.getItem('clinicServiceInfoVisible')
     },
+    canEdit () {
+      return this.canEditIdentifier()
+    },
     identifiers () {
       return this.patient.identifiers
     },

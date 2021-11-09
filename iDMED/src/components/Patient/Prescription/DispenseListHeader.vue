@@ -8,7 +8,14 @@
         <template v-slot:action>
         <q-btn
             v-if="canEdit"
-            @click="$emit('editPack', currPack)"
+            @click="$emit('removePack')"
+            dense unelevated
+            color="red"
+            label="Remover"
+            class="float-right q-mr-md q-pa-none q-px-sm" />
+        <q-btn
+            v-if="canEdit"
+            @click="$emit('editPack')"
             dense unelevated
             color="orange-5"
             label="Refazer"
@@ -22,7 +29,7 @@
 <script>
 import { ref } from 'vue'
 export default {
-    props: ['addVisible', 'bgColor', 'mainContainer', 'canEdit'],
+    props: ['addVisible', 'bgColor', 'mainContainer', 'canEdit', 'currPack'],
     setup () {
       return {
         headerClass: '',

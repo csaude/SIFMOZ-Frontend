@@ -31,13 +31,13 @@
           <q-separator/>
           <div class="row q-my-md">
             <q-space/>
-            <q-btn v-if="curIdentifier.endDate === ''" unelevated color="orange-5" label="Editar" @click="$emit('editClinicService', curIdentifier)" class="float-right" />
+            <q-btn v-if="curIdentifier.endDate === ''" unelevated color="orange-5" label="Editar" @click="editClinicService()" class="float-right" />
             <q-btn v-if="curIdentifier.endDate === ''" unelevated color="red" label="Fechar" @click="$emit('closeClinicService', curIdentifier)" class="float-right q-ml-sm" />
             <q-btn v-if="curIdentifier.endDate !== ''" unelevated color="blue" label="Reabrir" @click="$emit('reopenClinicService', curIdentifier)" class="float-right q-ml-sm" />
           </div>
         </div>
         <div class="col q-py-md">
-          <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEditEpisode = true">Episódios</ListHeader>
+          <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEditEpisode = true, step='create'">Episódios</ListHeader>
           <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum Episódio Iniciado</EmptyList>
           <span
             v-for="episode in episodes" :key="episode.id" >
@@ -53,12 +53,20 @@
           :episodeToEdit="selectedEpisode"
           :curIdentifier="curIdentifier"
           :selectedPatient="selectedPatient"
+          :stepp="step"
           @close="showAddEditEpisode = false" />
+    </q-dialog>
+    <q-dialog v-model="alert.visible">
+      <Dialog :type="alert.type" @closeDialog="closeDialog">
+        <template v-slot:title> Informação</template>
+        <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
     </q-dialog>
   </div>
 </template>
 
 <script>
+import { ref } from 'vue'
 import { SessionStorage, date } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
@@ -69,16 +77,23 @@ export default {
   props: ['identifier', 'selectedPatient'],
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       isPatientActive: false,
       showAddEpisode: false,
       selectedEpisode: new Episode(),
-      showAddEditEpisode: false
+      showAddEditEpisode: false,
+      step: ''
     }
   },
   components: {
     ListHeader: require('components/Shared/ListHeader.vue').default,
     EmptyList: require('components/Shared/ListEmpty.vue').default,
     Episode: require('components/Patient/PatientPanel/Episode.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     AddEditEpisode: require('components/Patient/PatientPanel/AddEditEpisode.vue').default
   },
   methods: {
@@ -87,12 +102,40 @@ export default {
         this.isPatientActive = true
       }
     },
+    editClinicService () {
+      if (!this.canEdit) {
+        this.displayAlert('error', 'Não pode fazer alterações sobre este serviço de saúde pois o mesmo ja possui registos de visitas do pacinete/utente associados.')
+      } else {
+        this.$emit('editClinicService', this.curIdentifier)
+      }
+    },
     editEpisode (episode) {
-      this.selectedEpisode = Object.assign({}, episode)
-      this.showAddEditEpisode = true
+      const eps = Episode.query().withAll().where('id', episode.id).first()
+      if (eps.hasVisits()) {
+        this.displayAlert('error', 'Não pode fazer alterações sobre este episódio pois o mesmo ja possui registos de visitas do pacinete/utente associados.')
+      } else {
+        this.step = 'edit'
+        this.selectedEpisode = Object.assign({}, episode)
+        this.showAddEditEpisode = true
+      }
     },
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    canEditIdentifier () {
+      const identifier = PatientServiceIdentifier.query()
+                                                .with('episodes.patientVisitDetails')
+                                                .where('id', this.identifier.id)
+                                                .first()
+      return identifier.canBeEdited()
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
     }
   },
   computed: {
@@ -145,6 +188,9 @@ export default {
     },
     showEndDetails () {
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
+    },
+    canEdit () {
+      return this.canEditIdentifier()
     }
   },
   created () {

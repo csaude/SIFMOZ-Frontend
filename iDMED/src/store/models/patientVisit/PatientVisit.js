@@ -46,7 +46,7 @@ export default class PatientVisit extends Model {
   }
 
   static async apiGetAllByPatientId (patientId) {
-    return await this.api().get('/patientVisit/patient/' + patientId)
+    return await this.api().get('/patientVisit/pcatient/' + patientId)
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
