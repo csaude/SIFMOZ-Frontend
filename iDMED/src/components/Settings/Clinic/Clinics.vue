@@ -1,5 +1,9 @@
 <template>
+
     <div>
+     <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
+       Farmacias
+        </div>
         <div class="">
                   <clinicsTable  :rows="getClinicos" :columns="columns"/>
         </div>

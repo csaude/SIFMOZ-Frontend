@@ -27,11 +27,11 @@
                         ref="data"
                         :disable="this.editMode"
                         :rules="[ visitDate => !!visitDate || 'A data da Consulta e obrigatoria']"
-                        label="Data da Visita">
+                        label="Data da Consulta">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="visitDate" >
+                                <q-date v-model="visitDate"  @update:model-value="verifyHasSameDay()">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -47,7 +47,6 @@
                 ref="stepper"
                 color="primary"
                 animated
-                header-nav
               >
                 <q-step
                   :name="1"
@@ -151,7 +150,8 @@ export default {
              rAMScreening: new RAMScreening(),
             step: ref(1),
              visitDate: '',
-             imcDescription: ''
+             imcDescription: '',
+             hasVisitSameDay: false
         }
     },
     created () {
@@ -176,15 +176,6 @@ export default {
       },
       currClinic () {
       return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
-    },
-     patientVisitsByDate (visitDate) {
-     return PatientVisit.query().with('patient.*')
-                          .with('vitalSigns')
-                          .with('tbScreening')
-                          .with('pregnancyScreening')
-                          .with('adherenceScreening')
-                          .with('ramScreening')
-                          .with('clinic').where('patient_id', this.patient.id).where('visitDate', visitDate).get()
     }
     },
     methods: {
@@ -199,8 +190,8 @@ export default {
            //  this.$refs.data.$refs.ref.validate()
            if (this.visitDate === '') {
               this.displayAlert('error', 'Por Favor Preencha data de consulta')
-           } else if (this.verifyHasSameDay() && !this.editMode) {
-             this.displayAlert('error', 'Ja Existe uma Atencao farmceutica nessa data .Por Favor use a funcionalidade editar')
+           } else if (this.hasVisitSameDay && !this.editMode) {
+             this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')
            } else if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
              !this.$refs.systole.$refs.ref.hasError && !this.$refs.distort.$refs.ref.hasError) {
               this.$refs.stepper.next()
@@ -239,7 +230,7 @@ export default {
             this.patientVisit.ramScreening.push(this.rAMScreening)
 
             PatientVisit.apiSave(this.patientVisit).then(resp => {
-             this.displayAlert('info', 'Atencao Farmaceutica efectuada com sucesso.')
+             this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
              }).catch(error => {
              this.displayAlert('error', error)
           })
@@ -262,18 +253,27 @@ export default {
         }
         },
          verifyHasSameDay () {
-         const visit = PatientVisit.query().with('patient.*')
+         const visits = PatientVisit.query().with('patient.*')
                           .with('vitalSigns')
                           .with('tbScreening')
                           .with('pregnancyScreening')
                           .with('adherenceScreening')
                           .with('ramScreening')
                           .with('patientVisitDetails')
-                          .with('clinic').where('patient_id', this.patient.id).where('visitDate', this.patientVisit.visitDate).first()
-                 // console.log(visit)
-                 if (visit) {
-                return true
-                 }
+                          .with('clinic').where('patient_id', this.patient.id).has('clinic').has('vitalSigns').get()
+                        visits.every(visit => {
+                          if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length > 0) {
+                               this.hasVisitSameDay = true
+                               return this.hasVisitSameDay
+                          } else if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length === 0) {
+                                 this.patientVisit = visit
+                               this.hasVisitSameDay = false
+                               return this.hasVisitSameDay
+                          } else {
+                           this.hasVisitSameDay = false
+                           return this.hasVisitSameDay
+                          }
+          })
          },
     getImcDescription () {
         const imc = this.vitalSigns.imc

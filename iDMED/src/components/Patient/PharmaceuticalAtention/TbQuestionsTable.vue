@@ -25,11 +25,12 @@
                         mask="date"
                         :rules="['date']"
                          :disable="onlyView"
+                         @update:model-value="handleInput(props.row)"
                         label="Data de Inicio de Tratamento de Tuberculose">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="props.row.date" >
+                                <q-date v-model="props.row.date"  @update:model-value="handleInput(props.row)">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -39,11 +40,11 @@
                         </template>
                     </q-input>
             </q-td>
-            <q-td key="completed" v-if="props.row.code !== '03'" align="right">
-                <q-radio   v-model="props.row.completed" val=true @update:model-value="handleInput(props.row)" :disable="onlyView"/>
+            <q-td key="answer" v-if="props.row.code !== '03'" align="right">
+                <q-radio   v-model="props.row.answer" val=true @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
-             <q-td key="completed" v-if="props.row.code !== '03'" align="left">
-                <q-radio   v-model="props.row.completed" val=false @update:model-value="handleInput(props.row)" :disable="onlyView"/>
+             <q-td key="answer" v-if="props.row.code !== '03'" align="left">
+                <q-radio   v-model="props.row.answer" val=false @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
             </q-tr>
         </template>
@@ -63,11 +64,11 @@
             <q-td key="question" >
              {{props.row.question}}
             </q-td>
-            <q-td key="completed" align="right">
-                <q-radio   v-model="props.row.completed" val=true @update:model-value="handleInput(props.row)" :disable="onlyView"/>
+            <q-td key="answer" align="right">
+                <q-radio   v-model="props.row.answer" val=true @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
-             <q-td key="completed" align="left">
-                <q-radio   v-model="props.row.completed"  val=false  @update:model-value="handleInput(props.row)" :disable="onlyView"/>
+             <q-td key="answer" align="left">
+                <q-radio   v-model="props.row.answer"  val=false  @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
             </q-tr>
         </template>
@@ -91,8 +92,8 @@ const columns = [
     field: row => row.question,
     format: val => `${val}`
   },
-  { name: 'sim', label: 'Sim', field: row => row.completed, align: 'right' },
-  { name: 'nao', label: 'Não', field: row => row.completed, align: 'left' }
+  { name: 'sim', label: 'Sim', field: row => row.answer, align: 'right' },
+  { name: 'nao', label: 'Não', field: row => row.answer, align: 'left' }
 ]
 const columns2 = [
   {
@@ -103,24 +104,24 @@ const columns2 = [
     field: row => row.question,
     format: val => `${val}`
   },
-  { name: 'sim', label: 'Sim', field: row => row.completed, align: 'right' },
-  { name: 'nao', label: 'Não', field: row => row.completed, align: 'left' }
+  { name: 'sim', label: 'Sim', field: row => row.answer, align: 'right' },
+  { name: 'nao', label: 'Não', field: row => row.answer, align: 'left' }
 ]
 
 const tbQuestions = [
         {
            question: 'Está Actualmente em tratamento Profilático com Isoniazida(TPI)?',
-           completed: false,
+           answer: false,
             code: '01'
          },
          {
            question: 'Está em tratamento de tuberculose(TB)?',
-           completed: false,
+           answer: false,
             code: '02'
          },
           {
            question: '',
-           completed: true,
+           answer: true,
             code: '03',
             date: ''
          }
@@ -129,32 +130,32 @@ const tbQuestions = [
 const tbQuestion2 = [
      {
            question: 'Está com tosse a duas semanas?',
-           completed: false,
+           answer: false,
             code: '04'
         },
         {
             question: 'Teve febres nas ultimas duas semanas ?',
-            completed: false,
+            answer: false,
             code: '05'
         },
         {
            question: 'Perdeu peso >1.5 kg no ultimo mês?',
-           completed: false,
+           answer: false,
            code: '06'
         },
         {
            question: 'Tem suado muito a noite?',
-           completed: false,
+           answer: false,
             code: '07'
          },
         {
            question: 'Teve cansaco ou fadiga nas ultimas duas semanas ?',
-           completed: false,
+           answer: false,
             code: '08'
         },
         {
          question: 'Tem um parente em casa que está a fazer tratamento de TB ?',
-         completed: false,
+         answer: false,
          code: '09'
         }
 ]
@@ -174,11 +175,11 @@ export default {
          handleInput (row) {
    switch (row.code) {
     case '01':
-      this.tbScreening.treatmentTPI = row.completed
+      this.tbScreening.treatmentTPI = row.answer
       break
      case '02':
-      this.tbScreening.treatmentTB = row.completed
-      if (row.completed === 'true') {
+      this.tbScreening.treatmentTB = row.answer
+      if (row.answer === 'true') {
       this.visible = true
       } else {
          this.visible = false
@@ -192,22 +193,22 @@ export default {
       }
       break
      case '04':
-      this.tbScreening.cough = row.completed
+      this.tbScreening.cough = row.answer
       break
       case '05':
-      this.tbScreening.fever = row.completed
+      this.tbScreening.fever = row.answer
       break
       case '06':
-      this.tbScreening.losingWeight = row.completed
+      this.tbScreening.losingWeight = row.answer
       break
         case '07':
-      this.tbScreening.sweating = row.completed
+      this.tbScreening.sweating = row.answer
       break
        case '08':
-      this.tbScreening.fatigueOrTirednessLastTwoWeeks = row.completed
+      this.tbScreening.fatigueOrTirednessLastTwoWeeks = row.answer
       break
        case '09':
-      this.tbScreening.parentTBTreatment = row.completed
+      this.tbScreening.parentTBTreatment = row.answer
       break
   default:
     console.log('Sorry, we are out of .')
@@ -217,17 +218,23 @@ export default {
     addingValueToArray () {
        if (this.selectedTbTracing) {
       tbQuestions.forEach(tbQuestion => {
-           if (tbQuestion.code === '01') tbQuestion.completed = String(this.selectedTbTracing.treatmentTPI)
-            if (tbQuestion.code === '02') tbQuestion.completed = String(this.selectedTbTracing.treatmentTB)
+           if (tbQuestion.code === '01') tbQuestion.answer = String(this.selectedTbTracing.treatmentTPI)
+            if (tbQuestion.code === '02') tbQuestion.answer = String(this.selectedTbTracing.treatmentTB)
+            if (this.selectedTbTracing.treatmentTB === true) {
+           this.visible = true
+           if (tbQuestion.code === '03') tbQuestion.date = this.selectedTbTracing.startTreatmentDate
+            } else {
+               this.visible = false
+            }
           })
 
            tbQuestion2.forEach(tbQuestion => {
-            if (tbQuestion.code === '04') tbQuestion.completed = String(this.selectedTbTracing.cough)
-            if (tbQuestion.code === '05') tbQuestion.completed = String(this.selectedTbTracing.fever)
-            if (tbQuestion.code === '06') tbQuestion.completed = String(this.selectedTbTracing.losingWeight)
-            if (tbQuestion.code === '07') tbQuestion.completed = String(this.selectedTbTracing.sweating)
-            if (tbQuestion.code === '08') tbQuestion.completed = String(this.selectedTbTracing.fatigueOrTirednessLastTwoWeeks)
-            if (tbQuestion.code === '09') tbQuestion.completed = String(this.selectedTbTracing.parentTBTreatment)
+            if (tbQuestion.code === '04') tbQuestion.answer = String(this.selectedTbTracing.cough)
+            if (tbQuestion.code === '05') tbQuestion.answer = String(this.selectedTbTracing.fever)
+            if (tbQuestion.code === '06') tbQuestion.answer = String(this.selectedTbTracing.losingWeight)
+            if (tbQuestion.code === '07') tbQuestion.answer = String(this.selectedTbTracing.sweating)
+            if (tbQuestion.code === '08') tbQuestion.answer = String(this.selectedTbTracing.fatigueOrTirednessLastTwoWeeks)
+            if (tbQuestion.code === '09') tbQuestion.answer = String(this.selectedTbTracing.parentTBTreatment)
           })
            this.tbScreening = Object.assign({}, this.selectedTbTracing)
            this.$emit('tbScreening', this.tbScreening)
