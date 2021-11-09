@@ -77,8 +77,8 @@ export default {
       TitleBar: require('components/Shared/TitleBar.vue').default,
       PatientInfo: require('components/Patient/PatientPanel/PatientInfo.vue').default,
       ClinicServiceInfo: require('components/Patient/PatientPanel/ClinicServicesInfo.vue').default,
-      PrescriptionInfo: require('components/Patient/PatientPanel/PrescriptionInfo.vue').default
-      // PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
+      PrescriptionInfo: require('components/Patient/PatientPanel/PrescriptionInfo.vue').default,
+      PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
   },
   created () {
   //   this.getPatientVisits()
