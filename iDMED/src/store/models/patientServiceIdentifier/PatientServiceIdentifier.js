@@ -32,6 +32,20 @@ export default class PatientServiceIdentifier extends Model {
     return this.episodes.length > 0
   }
 
+  canBeEdited () {
+    if (!this.hasEpisodes()) return true
+    let canEdit = true
+    Object.keys(this.episodes).forEach(function (k) {
+      const eps = this.episodes[k]
+      if (canEdit) {
+        if (eps.hasVisits()) {
+          canEdit = false
+        }
+      }
+    }.bind(this))
+    return canEdit
+  }
+
   static async apiSave (identifier) {
     return await this.api().post('/patientServiceIdentifier', identifier)
   }

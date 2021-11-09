@@ -28,23 +28,25 @@
                   <q-select
                     class="col"
                     dense outlined
-                    :disabled="true"
+                    ref="clinicalService"
+                    :rules="[ val => !!val || 'Por favor indicar o serviço de saúde']"
+                    :disable="isCloseStep || isReOpenStep"
                     v-model="identifier.service"
                     :options="clinicalServices"
                     option-value="id"
                     option-label="code"
-                    label="Serviço de Saúde" />
+                    label="Serviço de Saúde *" />
 
                   <q-input
                       dense
                       outlined
                       class="col q-ml-md"
                       v-model="identifierstartDate"
-                      :disabled="1"
+                      :disable="isCloseStep || isReOpenStep"
                       mask="date"
-                      ref="birthDate"
+                      ref="startDate"
                       :rules="['date']"
-                      label="Data de Admissão">
+                      label="Data de Admissão *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -61,9 +63,12 @@
                     class="col q-ml-md"
                     dense
                     outlined
+                    ref="state"
+                    :rules="[ val => !!val || 'Por favor indicar o estado']"
+                    :disable="isCloseStep || isReOpenStep"
                     v-model="identifier.state"
                     :options="estados"
-                    label="Estado" />
+                    label="Estado *" />
               </div>
 
               <span v-if="!isCloseStep && !isReOpenStep">
@@ -74,11 +79,17 @@
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
                 </div>
                 <div class="row">
-                    <identifierInput v-model="identifier.value"/>
+                    <identifierInput
+                      ref="identifier"
+                      label="Nr. do Identificador *"
+                      :rules="[ val => !!val || 'Por favor indicar o identificador']"
+                      v-model="identifier.value"/>
                     <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido
                       <q-radio keep-color color="primary" v-model="identifier.prefered" val="true" label="Sim" />
                       <q-radio keep-color color="primary" v-model="identifier.prefered" val="false" label="Nao"/>
                     </div>
+                </div>
+                <div class="row">
                     <div v-if="isCreateStep && patient.identifiers.length > 0" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
                         <q-radio keep-color color="primary"  val="true" label="Sim" />
                         <q-radio keep-color color="primary"  val="false" label="Nao"/>
@@ -99,9 +110,9 @@
                       class="col"
                       v-model="endDate"
                       mask="date"
-                      ref="birthDate"
+                      ref="endDate"
                       :rules="['date']"
-                      label="Data de Fim">
+                      label="Data de Fim *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -117,11 +128,13 @@
                     <q-select
                       class="col q-ml-md"
                       dense outlined
+                      ref="stopReason"
+                      :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
                       v-model="closureEpisode.startStopReason"
                       :options="stopReasons"
                       option-value="id"
                       option-label="reason"
-                      label="Notas de Fim [Referência, Transferido para, ...]" />
+                      label="Notas de Fim [Referência, Transferido para, ...] *" />
                     <q-select
                     v-show="false"
                       class="col q-ml-md"
@@ -134,7 +147,9 @@
                 <div class="row">
                     <TextInput
                       v-model="closureEpisode.notes"
-                      label="Outras notas de fim"
+                      label="Outras notas de fim *"
+                      ref="closingNotes"
+                      :rules="[ val => !!val || 'Por favor indicar outras notas do fim']"
                       dense
                       class="col" />
                 </div>
@@ -154,9 +169,9 @@
                       class="col"
                       v-model="reOpenDate"
                       mask="date"
-                      ref="birthDate"
+                      ref="reOpenDate"
                       :rules="['date']"
-                      label="Data de Reabertura">
+                      label="Data de Reabertura *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -172,14 +187,18 @@
                     <q-select
                       class="col q-ml-md"
                       dense outlined
+                      ref="reOpenReason"
+                      :rules="[ val => !!val || 'Por favor indicar a nota de reabertura']"
                       v-model="closureEpisode.startStopReason"
                       :options="startReasons"
                       option-value="id"
                       option-label="reason"
-                      label="Notas de Reabertura" />
+                      label="Notas de Reabertura *" />
                     <TextInput
                       v-model="closureEpisode.notes"
-                      label="Outras notas"
+                      label="Outras notas *"
+                      ref="reOpenNotes"
+                      :rules="[ val => !!val || 'Por favor indicar outras notas do fim']"
                       dense
                       class="col q-ml-md" />
                 </div>
@@ -196,6 +215,7 @@
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
         </q-dialog>
+        <pre>{{hasVisitsMade}}</pre>
     </q-card>
 </template>
 
@@ -233,7 +253,117 @@ export default {
         this.identifier.patient = Patient.find(this.patient.id)
       },
       submitForm () {
-        this.doSave()
+        if (this.isCloseStep) {
+          this.$refs.endDate.validate()
+          this.$refs.stopReason.validate()
+          this.$refs.closingNotes.$refs.ref.validate()
+          if (!this.$refs.endDate.hasError &&
+              !this.$refs.stopReason.hasError &&
+              !this.$refs.closingNotes.$refs.ref.hasError) {
+              const episode = Episode.query()
+                                      .with('startStopReason')
+                                      .with('patientServiceIdentifier')
+                                      .with('patientVisitDetails.*')
+                                      .whereHas('episodeType', (query) => {
+                                            query.where('code', 'INICIO')
+                                          })
+                                      .where('patientServiceIdentifier_id', this.identifier.id)
+                                      .orderBy('creationDate', 'desc')
+                                      .first()
+              if (new Date(this.endDate) > new Date()) {
+                this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
+              } else if (new Date(this.endDate) < new Date(episode.episodeDate)) {
+                this.displayAlert('error', 'A data de fim indicada é menor que a data de inicio ao tratamento.')
+              } else if (episode.hasVisits() && (new Date(this.endDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+                this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
+              } else {
+                this.doSave()
+              }
+          }
+        } else if (this.isReOpenStep) {
+          this.$refs.reOpenDate.validate()
+          this.$refs.reOpenReason.validate()
+          this.$refs.reOpenNotes.$refs.ref.validate()
+          if (!this.$refs.reOpenDate.hasError &&
+              !this.$refs.reOpenReason.hasError &&
+              !this.$refs.reOpenNotes.$refs.ref.hasError) {
+              const episode = Episode.query()
+                                      .with('startStopReason')
+                                      .whereHas('episodeType', (query) => {
+                                            query.where('code', 'FIM')
+                                          })
+                                      .where('patientServiceIdentifier_id', this.identifier.id)
+                                      .orderBy('creationDate', 'desc')
+                                      .first()
+              if (new Date(this.reOpenDate) > new Date()) {
+                this.displayAlert('error', 'A data de abertura indicada é maior que a data da corrente.')
+              } else if (new Date(this.reOpenDate) < new Date(episode.episodeDate)) {
+                this.displayAlert('error', 'A data de abertura indicada é menor que a data do ultimo fecho efectuado.')
+              } else {
+                this.doSave()
+              }
+          }
+        } else if (this.isCreateStep || this.isEditStep) {
+          this.$refs.clinicalService.validate()
+          this.$refs.startDate.validate()
+          this.$refs.state.validate()
+          this.$refs.identifier.$refs.identifier.validate()
+          if (!this.$refs.clinicalService.hasError &&
+              !this.$refs.startDate.hasError &&
+              !this.$refs.state.hasError &&
+              !this.$refs.identifier.$refs.identifier.hasError) {
+              if (new Date(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
+                this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
+              } else {
+                if (this.isEditStep) {
+                  const episode = Episode.query()
+                                        .with('startStopReason')
+                                        .where('patientServiceIdentifier_id', this.identifier.id)
+                                        .orderBy('creationDate', 'desc')
+                                        .first()
+                  if (episode !== null && (new Date(this.identifierstartDate) > new Date(episode.episodeDate))) {
+                    this.displayAlert('error', 'A data de admissão indicada é maior que a data do último episódio.')
+                  } else if (this.hasVisitsMade && (this.identifier.service.id !== this.identifierToEdit.service.id)) {
+                    this.displayAlert('error', 'Não pode alterar o serviço de saúde pois ja existem registos de visitas associados.')
+                  } else {
+                    this.doSave()
+                  }
+                } else {
+                  this.doSave()
+                }
+              }
+            }
+        }
+      },
+      lastStartEpisodeWithPrescription () {
+        let episode = null
+        const episodes = Episode.query()
+                                .with('startStopReason')
+                                .with('clinicSector')
+                                .with('patientServiceIdentifier')
+                                .with('patientVisitDetails.*')
+                                .whereHas('episodeType', (query) => {
+                                      query.where('code', 'INICIO')
+                                    })
+                                .where('patientServiceIdentifier_id', this.identifier.id)
+                                .orderBy('creationDate', 'desc')
+                                .get()
+        if (episodes.length <= 0) return null
+
+        Object.keys(episodes).forEach(function (k) {
+          const id = episodes[k]
+          if (episode === null && id.hasVisits()) {
+            episode = id
+          }
+        })
+        return episode
+      },
+      canEditIdentifier () {
+        const identifier = PatientServiceIdentifier.query()
+                                                  .with('episodes.patientVisitDetails')
+                                                  .where('id', this.identifierToEdit.id)
+                                                  .first()
+        return identifier.canBeEdited()
       },
       doSave () {
         this.identifier.episodes = []
@@ -254,8 +384,6 @@ export default {
           this.closureEpisode.clinicSector = this.lastEpisode.clinicSector
           this.closureEpisode.clinicSector.clinic = this.currClinic
 
-          // this.closureEpisode.patientServiceIdentifier = PatientServiceIdentifier.find(this.identifier.id)
-
           this.identifier.episodes.push(this.closureEpisode)
         }
         if (this.isCreateStep) {
@@ -265,7 +393,11 @@ export default {
         }
         console.log(this.identifier)
         PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
-          if (!this.isCreateStep) PatientServiceIdentifier.update({ data: resp.response.data })
+          console.log(resp.response.data)
+          if (this.isReOpenStep || this.isCloseStep) {
+            this.identifier.episodes[0].id = resp.response.data.episodes[0].id
+            PatientServiceIdentifier.update({ data: this.identifier })
+          }
           let msg = ''
           if (this.isCloseStep) {
             msg = 'Serviço de saúde fechado com sucesso.'
@@ -282,17 +414,17 @@ export default {
         })
       },
       displayAlert (type, msg) {
-          this.alert.type = type
-          this.alert.msg = msg
-          this.alert.visible = true
-        },
-        closeDialog () {
-          this.alert.visible = false
-          if (this.alert.type === 'info') {
-            console.log('closing dialog')
-            this.$emit('close')
-          }
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
+        if (this.alert.type === 'info') {
+          console.log('closing dialog')
+          this.$emit('close')
         }
+      }
     },
     created () {
         if (!this.isCreateStep) {
@@ -310,6 +442,12 @@ export default {
     computed: {
       patient () {
         return new Patient(SessionStorage.getItem('selectedPatient'))
+      },
+      hasVisitsMade () {
+        return this.lastStartEpisodeWithPrescription() !== null
+      },
+      canEdit () {
+        return this.canEditIdentifier()
       },
       clinicalServices () {
         return ClinicalService.query().with('identifierType').get()

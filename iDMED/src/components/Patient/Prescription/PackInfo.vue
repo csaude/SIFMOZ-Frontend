@@ -1,6 +1,10 @@
 <template>
   <div>
-    <ListHeader :canEdit="true" :addVisible="false" bgColor="bg-grey-4" >Data de Levantamento: {{formatDate(currPack.pickupDate)}} </ListHeader>
+    <ListHeader
+      :canEdit="true"
+      :addVisible="false"
+      bgColor="bg-grey-4" >Data de Levantamento: {{formatDate(currPack.pickupDate)}}
+    </ListHeader>
     <q-card flat bordered class="noRadius">
       <q-card-section class="row q-pa-sm">
         <div class="col-12">

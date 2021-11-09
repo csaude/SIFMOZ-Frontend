@@ -60,29 +60,32 @@
                     dense outlined
                     v-model="episode.startStopReason"
                     :options="startReasons"
+                    ref="startReason"
+                    :rules="[ val => !!val || 'Por favor indicar a nota de início']"
                     option-value="id"
                     option-label="reason"
-                    label="Notas de início" />
+                    label="Notas de início *" />
               </div>
               <div class="row q-mt-md">
                   <q-select
                     class="col"
                     dense outlined
+                    ref="clinicSerctor"
+                    :rules="[ val => !!val || 'Por favor indicar o sector onde vai ocorrer o atendimento']"
                     v-model="episode.clinicSector"
                     :options="clinicSerctors"
                     option-value="id"
                     option-label="description"
-                    label="Sector Clinico" />
+                    label="Sector Clinico *" />
                   <q-input
                       dense
                       outlined
-
                       class="col q-ml-md"
                       v-model="startDate"
                       mask="date"
-                      ref="birthDate"
+                      ref="startDate"
                       :rules="['date']"
-                      label="Data de Inicio">
+                      label="Data de Inicio *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -111,8 +114,9 @@
                         class="col"
                         v-model="stopDate"
                         mask="date"
+                        ref="stopDate"
                         :rules="['date']"
-                        label="Data de Fim">
+                        label="Data de Fim *">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -128,13 +132,21 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
+                      ref="stopReason"
+                      :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
                       v-model="closureEpisode.startStopReason"
                       :options="stopReasons"
                       option-value="id"
                       option-label="reason"
                       label="Notas de Fim" />
 
-                      <TextInput v-model="closureEpisode.notes" label="Outras notas de fim" dense class="col q-ml-md" />
+                      <TextInput
+                        v-model="closureEpisode.notes"
+                        label="Outras notas de fim"
+                        ref="endNotes"
+                        :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
+                        dense
+                        class="col q-ml-md" />
                 </div>
               </span>
             </div>
@@ -163,7 +175,7 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
 export default {
-    props: ['episodeToEdit', 'curIdentifier'],
+    props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     data () {
         return {
           alert: ref({
@@ -182,6 +194,38 @@ export default {
     },
     methods: {
       submitForm () {
+        if (this.isCreateStep || this.isEditStep) {
+          this.$refs.startReason.validate()
+          this.$refs.clinicSerctor.validate()
+          this.$refs.startDate.validate()
+          if (!this.$refs.startReason.hasError &&
+              !this.$refs.clinicSerctor.hasError &&
+              !this.$refs.startDate.hasError) {
+                if (new Date(this.startDate) > new Date()) {
+                  this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
+                } else if (new Date(this.endDate) < new Date(this.curIdentifier.startDate)) {
+                  this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
+                } else {
+                  if (this.isEditStep) {
+                    const episode = Episode.query()
+                                      .with('startStopReason')
+                                      .with('patientServiceIdentifier')
+                                      .with('patientVisitDetails.*')
+                                      .where('id', this.episodeToEdit.id)
+                                      .first()
+                    if (episode.hasVisits() && (new Date(this.startDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+                      this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
+                    } else {
+                      this.doSave()
+                    }
+                  } else {
+                    this.doSave()
+                  }
+                }
+          }
+        }
+      },
+      doSave () {
         if (this.episode.id === null) {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
@@ -191,18 +235,43 @@ export default {
         } else {
           if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
             this.step = 'close'
-            this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
-            this.closureEpisode.clinic = this.currClinic
-            this.closureEpisode.episodeDate = new Date(this.stopDate)
-            this.closureEpisode.creationDate = new Date()
-            this.closureEpisode.patientServiceIdentifier = this.identifier
+             if (this.isCloseStep) {
+              this.$refs.stopDate.validate()
+              this.$refs.stopReason.validate()
+              this.$refs.endNotes.validate()
+              if (!this.$refs.stopDate.hasError &&
+                  !this.$refs.stopReason.hasError &&
+                  !this.$refs.endNotes.hasError) {
+                    this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
+                    this.closureEpisode.clinic = this.currClinic
+                    this.closureEpisode.episodeDate = new Date(this.stopDate)
+                    this.closureEpisode.creationDate = new Date()
+                    this.closureEpisode.patientServiceIdentifier = this.identifier
 
-            Episode.apiSave(this.closureEpisode).then(resp => {
-              // Episode.insert({ data: resp.response.data })
-              this.displayAlert('info', 'Episódio actualizado com sucesso.')
-            }).catch(error => {
-              this.displayAlert('error', error)
-            })
+                    if (new Date(this.stopDate) > new Date()) {
+                      this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
+                    } else if (new Date(this.stopDate) < new Date(this.episode.episodeDate)) {
+                      this.displayAlert('error', 'A data de inicio indicada é menor que a data de inicio ao tratamento.')
+                    } else {
+                      const episode = Episode.query()
+                                              .with('startStopReason')
+                                              .with('patientServiceIdentifier')
+                                              .with('patientVisitDetails.*')
+                                              .where('id', this.episodeToEdit.id)
+                                              .first()
+                      if (episode.hasVisits() && (new Date(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+                        this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
+                      } else {
+                        Episode.apiSave(this.closureEpisode).then(resp => {
+                          // Episode.insert({ data: resp.response.data })
+                          this.displayAlert('info', 'Episódio actualizado com sucesso.')
+                        }).catch(error => {
+                          this.displayAlert('error', error)
+                        })
+                      }
+                    }
+              }
+            }
           }
         }
 
@@ -232,6 +301,7 @@ export default {
         this.episode = Object.assign({}, this.episodeToEdit)
         this.episode.patientServiceIdentifier = this.identifier
         if (this.episode.id !== null) this.startDate = this.episode.episodeDate
+        this.step = this.stepp
     },
     mounted () {
     },

@@ -28,14 +28,17 @@ export default class Episode extends Model {
   }
 
   closed () {
+    if (this.episodeType === null) return false
     return this.episodeType.code === 'FIM'
   }
 
   isStartEpisode () {
+    if (this.episodeType === null) return false
     return this.episodeType.code === 'INICIO'
   }
 
   isCloseEpisode () {
+    if (this.episodeType === null) return false
     return this.episodeType.code === 'FIM'
   }
 
