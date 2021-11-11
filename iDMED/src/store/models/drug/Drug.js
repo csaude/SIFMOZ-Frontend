@@ -35,4 +35,8 @@ export default class Drug extends Model {
   static async apiFetchById (id) {
     return await this.api().get(`/drug/${id}`)
   }
+
+  static async apiSave (drug) {
+    return await this.api().post('/drug', drug)
+  }
 }

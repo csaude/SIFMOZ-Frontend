@@ -50,8 +50,8 @@
             <div class="col-1 bg-white q-pa-md">
           <div class="column ">
             <div class="col text-grey-9 ">
-            <q-btn unelevated color="orange" label="Editar"  @click="showAddPharmaceuticalAtention = true" class="float-left q-mt-md" rounded/>
-            <q-btn unelevated color="red" label="Remover"    @click.stop="promptToConfirm(patientVisit)"  class="float-left q-mt-md" rounded/>
+            <q-btn unelevated color="orange" label="Editar"  @click="showAddPharmaceuticalAtention = true" class="float-left" rounded/>
+            <q-btn unelevated color="red" label="Remover"   @click.stop="promptToConfirm(patientVisit)"  class="float-left q-mt-md" rounded/>
             </div>
           </div>
           </div>

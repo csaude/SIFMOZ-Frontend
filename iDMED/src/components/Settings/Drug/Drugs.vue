@@ -58,8 +58,9 @@
                       color="red"
                       icon="delete"
                       @click.stop="promptToConfirm(props.row)"
-                     />
-                      <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     >
+                     <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     </q-btn>
                   </div>
                   </q-td>
             </q-tr>
@@ -81,6 +82,7 @@
 </template>
 <script>
 import { useQuasar } from 'quasar'
+import { ref } from 'vue'
 import Drug from '../../../store/models/drug/Drug'
 import Form from '../../../store/models/form/Form'
 
@@ -100,13 +102,13 @@ export default {
         columns,
         $q,
          showDrugRegistrationScreen: false,
-         viewMode: false
+         viewMode: false,
+         filter: ref('')
     }
   },
  computed: {
       drugs () {
-             return Drug.query().with('form').get()
-         // return Drug.all()
+             return Drug.query().with('form').where('active', true).get()
       },
        forms () {
             return Form.all()
@@ -131,20 +133,10 @@ export default {
          this.viewMode = true
            this.showDrugRegistrationScreen = true
       },
-        async  getAllForms (offset) {
-            if (this.forms.length <= 0) {
-         await Form.api().get('/form?offset=' + offset + '&max=100').then(resp => {
-                        offset = offset + 100
-                        if (resp.response.data.length > 0) { setTimeout(this.getAllForms(offset), 2) }
-                    }).catch(error => {
-                        console.log(error)
-                    })
-            }
-        },
          promptToConfirm (drug) {
             this.$q.dialog({ title: 'Confirm', message: 'Deseja inactivar o medicamento?', cancel: true, persistent: true }).onOk(() => {
                drug.active = false
-            Drug.api().patch('/drug/' + drug.id, drug).then(resp => {
+             Drug.apiSave(drug).then(resp => {
                 this.$emit('drug', resp.response.data)
             }).catch(error => {
               console.log(drug.id)
@@ -154,9 +146,7 @@ export default {
       }
   },
   mounted () {
-    const offset = 0
     this.getDrugs()
-    this.getAllForms(offset)
   },
   components: {
     addDrug: require('components/Settings/Drug/AddDrug.vue').default

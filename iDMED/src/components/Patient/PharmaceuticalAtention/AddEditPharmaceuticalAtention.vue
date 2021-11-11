@@ -55,16 +55,16 @@
                   :done="step > 1"
                 >
                   <div class="row q-mt-md">
-                        <numberField v-model="vitalSigns.height" label="Altura"  :disable="onlyView" suffix="[Metros]" ref="height" @update:model-value="getImcValue()"/>
-                      <numberField v-model="vitalSigns.weight" class="q-ml-md" label="Peso"  suffix="[Kg]" :disable="onlyView" ref="weight" @update:model-value="getImcValue()"/>
+                        <numberField v-model="vitalSigns.height" label="Altura *"  :disable="onlyView" suffix="[Metros]" ref="height" @update:model-value="getImcValue()"/>
+                      <numberField v-model="vitalSigns.weight" class="q-ml-md" label="Peso *"  suffix="[Kg]" :disable="onlyView" ref="weight" @update:model-value="getImcValue()"/>
                     </div>
                     <div class="row q-mt-md">
-                        <numberField v-model="vitalSigns.imc" label="IMC" filled disable ref="imc"/>
+                        <numberField v-model="vitalSigns.imc" label="IMC *" filled disable ref="imc"/>
                       <TextInput v-model="imcDescription" class="col q-ml-xs" filled label="IMC-Descricao"  disable />
                     </div>
                     <div class="row">
-                        <numberField v-model="vitalSigns.systole" label="Sistole"  :disable="onlyView"  suffix="[mmHg]" ref="systole"/>
-                      <numberField v-model="vitalSigns.distort" class="q-ml-md" label="Diastole" suffix="[mmHg]" :disable="onlyView" ref="distort"/>
+                        <numberField v-model="vitalSigns.systole" label="Sistole *"  :disable="onlyView"  suffix="[mmHg]" ref="systole"/>
+                      <numberField v-model="vitalSigns.distort" class="q-ml-md" label="Diastole *" suffix="[mmHg]" :disable="onlyView" ref="distort"/>
                     </div>
                 </q-step>
 
@@ -210,7 +210,7 @@ export default {
             if ((this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine === '') ||
              (this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine <= 0)) {
                this.displayAlert('error', 'Por Favor Indique quantos dias de atraso completou o paciente')
-          } if ((this.adherenceScreening.patientForgotMedicine === 'true' && this.adherenceScreening.lateDays === '') ||
+          } else if ((this.adherenceScreening.patientForgotMedicine === 'true' && this.adherenceScreening.lateDays === '') ||
              (this.adherenceScreening.patientForgotMedicine === 'true' && this.adherenceScreening.lateDays <= 0)) {
                this.displayAlert('error', 'Por Favor Indique quantos dias passou da hora sem tomar os Medicamentos')
           } else {
@@ -231,6 +231,7 @@ export default {
 
             PatientVisit.apiSave(this.patientVisit).then(resp => {
              this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
+             PatientVisit.insert(this.patientVisit)
              }).catch(error => {
              this.displayAlert('error', error)
           })
