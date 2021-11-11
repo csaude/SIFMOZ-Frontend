@@ -17,7 +17,8 @@
              {{props.row.question}}
             </q-td>
             <q-td key="question" v-if="props.row.code === '02'">
-                  <q-input filled v-model="props.row.text" label=" Descreva brevemente a reação?" @update:model-value="handleInput(props.row)" :disable="onlyView"/>
+                  <q-input filled v-if="!onlyView" v-model="props.row.text" label=" Descreva brevemente a reação?" @update:model-value="handleInput(props.row)" :disable="disableReaction"/>
+                   <q-input filled v-if="onlyView" v-model="props.row.text" label=" Descreva brevemente a reação?" @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
              <q-td key="completed" v-if="props.row.code === '01'" align="right">
                 <q-radio   v-model="props.row.completed" val="true" @update:model-value="handleInput(props.row)"  align="right" :disable="onlyView"/>
@@ -71,7 +72,8 @@ export default {
         return {
             columns,
            monithoringQuestions,
-           rAMScreening: new RAMScreening()
+           rAMScreening: new RAMScreening(),
+            disableReaction: false
         }
     },
     methods: {
@@ -79,6 +81,11 @@ export default {
    switch (row.code) {
     case '01':
       this.rAMScreening.adverseReactionMedicine = row.completed
+        if (row.completed === 'true') {
+       this.disableReaction = false
+      } else {
+      this.disableReaction = true
+      }
       break
       case '02':
       this.rAMScreening.adverseReaction = row.text

@@ -4,24 +4,24 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="drug.name" :disable="onlyView" ref="nome" />
+                        <nameInput v-model="drug.name" :disable="onlyView" ref="nome"   label="Nome *"/>
                     </div>
                      <div class="row q-mt-md">
                         <codeInput v-model="drug.fnmCode"
                         :disable="onlyView"
-                        label="fnmCode"
+                        label="fnmCode *"
                         ref="code"
                         lazy-rules
                         :rules="[val => codeRules (val)]"/>
                     </div>
                     <div class="row q-mt-md">
-                         <numberField v-model="drug.packSize" label="Tamanho do pacote" :disable="onlyView" ref="packSize"/>
+                         <numberField v-model="drug.packSize" label="Tamanho do pacote *" :disable="onlyView" ref="packSize"/>
                     </div>
                     <div class="q-mt-md">
                     </div>
                     <div class="row">
-                        <numberField v-model="drug.defaultTimes" label="N de toma"  :disable="onlyView" ref="defaultTimes"/>
-                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Numero de vezes a tomar"  :disable="onlyView" ref="tomar"/>
+                        <numberField v-model="drug.defaultTimes" label="N de toma *"  :disable="onlyView" ref="defaultTimes"/>
+                      <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Numero de vezes a tomar *"  :disable="onlyView" ref="tomar"/>
                         <q-select
                           class="col q-ml-md"
                           ref="periodo"
@@ -29,7 +29,7 @@
                           v-model="drug.defaultPeriodTreatment"
                           :options="periodsTime"
                            :disable="onlyView"
-                          label="Periodo a Tomar"
+                          label="Periodo a Tomar *"
                           :rules="[ val => ( val != null ) || ' Por favor indique o periodo a tomar']"/>
                     </div>
                         <div class="row q-mt-md">
@@ -42,7 +42,7 @@
                       :options="forms"
                       option-value="id"
                       option-label="description"
-                      label="Forma"
+                      label="Forma *"
                       @filter="filterForm"
                       :disable="onlyView"
                        :rules="[ val => ( val != null ) || ' Por favor indique a forma a tomar']"/>
@@ -111,7 +111,7 @@ export default {
         },
         submitDrug () {
            this.drug.active = true
-            Drug.api().post('/drug', this.drug).then(resp => {
+           Drug.apiSave(this.drug).then(resp => {
                 console.log(resp.response.data)
                 this.displayAlert('info', this.drug.id === null ? 'Medicamento adiconado com sucesso.' : 'Medicamento actualizado com sucesso.')
             }).catch(error => {

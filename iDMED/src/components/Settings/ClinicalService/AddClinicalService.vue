@@ -1,6 +1,6 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <form @submit.prevent="validateClincalService" >
+        <form  >
             <q-stepper
       v-model="step"
       ref="stepper"
@@ -14,24 +14,29 @@
                 <nameInput
                     v-model="clinicalService.description"
                      ref="nome"
-                    label="Nome do Servico Clinico" />
+                     :disable="onlyView"
+                    label="Nome do Servico Clinico *" />
             </div>
               <div class="row q-mt-md">
                 <codeInput
                     ref="code"
                     v-model="clinicalService.code"
                     lazy-rules
-                    label="Codigo" />
+                     :disable="onlyView"
+                    label="Codigo*"
+                     :rules="[val => codeRules (val)]" />
             </div>
               <div class="row q-mt-md">
                              <q-select
                               class="col"
                           dense outlined
+                          :disable="onlyView"
                           v-model="clinicalService.identifierType"
                           :options="identifierTypes"
                           option-value="id"
+                          ref="identifierType"
                           option-label="description"
-                          label="Tipo de Identificador" />
+                          label="Tipo de Identificador*" />
                      </div>
                <div class="q-mt-md">
          <q-table
@@ -41,6 +46,25 @@
       row-key="code"
       selection="multiple"
       v-model:selected="selectedAttributes"
+       v-if="!onlyView"
+        />
+              </div>
+               <div class="q-mt-md">
+         <q-table
+      title="Atributos do Servico Clinico"
+      :rows="clinicalServiceAttributes"
+      :columns="columnAttributes"
+      row-key="code"
+       v-if="onlyView"
+        />
+              </div>
+              <div class="q-mt-md">
+         <q-table
+      title="Regimes Terapeuticos"
+      :rows="therapeuticRegimens"
+      :columns="columnsRegimen"
+      row-key="code"
+       v-if="onlyView && therapeuticRegimens.length > 0"
         />
               </div>
       </q-step>
@@ -67,8 +91,8 @@
            <q-card-actions align="right" class="q-mb-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                 <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep" color="primary" :label="step === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
+                 <q-btn v-if="step > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+          <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="step !== 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
                <q-dialog v-model="alert.visible">
@@ -91,10 +115,8 @@ import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttri
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 
 const columnsRegimen = [
-    { name: '', required: true, label: '' },
-      { name: '', required: true, label: '' },
-  { name: 'code', required: true, label: 'Nome', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
-  { name: 'description', required: true, label: 'Code', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
+  { name: 'code', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
+  { name: 'description', required: true, label: 'Code', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true }
 ]
 
 const columnAttributes = [
@@ -102,7 +124,7 @@ const columnAttributes = [
 ]
 
 export default {
-      props: ['selectedClinicalService', 'onlyView'],
+      props: ['selectedClinicalService', 'onlyView', 'editMode'],
   data () {
  const $q = useQuasar()
   const selected = ref([])
@@ -122,36 +144,49 @@ export default {
               type: '',
               visible: false,
               msg: ''
-            })
+            }),
+      databaseCodes: []
   }
   },
   computed: {
       therapeuticRegimens () {
-           return TherapeuticRegimen.query().with('drugs.form').hasNot('clinicalService').get()
+        if (this.editMode) {
+     return TherapeuticRegimen.query().with('drugs.form').with('clinicalService').where((therapeuticRegimen) => {
+     return therapeuticRegimen.clinical_service_id === this.clinicalService.id || therapeuticRegimen.clinical_service_id === ''
+      }).get()
+        } if (this.onlyView) {
+      return TherapeuticRegimen.query().with('drugs.form').with('clinicalService').where((therapeuticRegimen) => {
+     return therapeuticRegimen.clinical_service_id === this.clinicalService.id
+      }).get()
+        } else {
+          return TherapeuticRegimen.query().with('drugs.form').hasNot('clinicalService').get()
+          }
       },
        clinicalServiceAttributes () {
              return ClinicalServiceAttributeType.all()
       },
       identifierTypes () {
          return IdentifierType.all()
+      },
+       clinicalServices () {
+          return ClinicalService.query().with('attributes.clinicalServiceAttributeType').with('identifierType').with('therapeuticRegimens').has('code').get()
       }
   },
   methods: {
-         validateClincalService () {
+         validateClinicalService () {
             this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
-            // this.$refs.district.$refs.ref.validate()
-            if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError) {
+            this.$refs.identifierType.validate()
+            if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
                this.submitClinicalService()
             }
         },
         submitClinicalService () {
                this.createClinicServiceAttribute()
           this.clinicalService.attributes = this.clinicalServiceAttributeTypes
-            console.log(this.clinicalService)
-            ClinicalService.api().post('/clinicalService', this.clinicalService).then(resp => {
-                console.log(resp.response.data)
-                this.displayAlert('info', 'Servico Clinico gravado com sucesso.')
+          this.clinicalService.active = true
+             ClinicalService.apiSave(this.clinicalService).post('/clinicalService', this.clinicalService).then(resp => {
+                this.displayAlert('info', this.clinicalService.id === null ? 'Servico Clinico adicionado com sucesso.' : 'Servico Clinico actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })
@@ -173,10 +208,10 @@ export default {
           // try
           this.$refs.stepper.next()
         } else {
-          this.submitClinicalService()
+          this.validateClinicalService()
              }
         } else {
-          this.submitClinicalService()
+          this.validateClinicalService()
              }
         },
         createClinicServiceAttribute () {
@@ -185,7 +220,17 @@ export default {
             this.clinicServiceAttribute.clinicalServiceAttributeType = attribute
             this.clinicalServiceAttributeTypes.push(this.clinicServiceAttribute)
           })
-        }
+        },
+         extractDatabaseCodes () {
+        this.clinicalServices.forEach(element => {
+            this.databaseCodes.push(element.code)
+    })
+    },
+    codeRules (val) {
+       if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+         }
+    }
   },
   mounted () {
     ClinicalServiceAttributeType.apiGetAll()
@@ -194,16 +239,19 @@ export default {
    created () {
         if (this.clinicalService !== '') {
           this.clinicalService = Object.assign({}, this.selectedClinicalService)
+          // this.clinicalService.attributes = this.selectedClinicalService.attributes
+          if (this.selectedClinicalService != null) {
+            this.clinicalService.attributes.forEach(attribute => {
+          this.selectedAttributes.push(attribute.clinicalServiceAttributeType)
+        })
+          }
         }
-       //  this.extractDatabaseCodes()
+        this.extractDatabaseCodes()
     },
   components: {
-  //  addDrug: require('components/Settings/Drug/AddDrug.vue').default
-  //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
-        nameInput: require('components/Shared/FirstNameInput.vue').default,
+        nameInput: require('components/Shared/NameInput.vue').default,
           codeInput: require('components/Shared/CodeInput.vue').default,
             Dialog: require('components/Shared/Dialog/Dialog.vue').default
-       //     TherapeuticRegimenExTable: require('components/Settings/ClinicalService/TherapeuticRegimenExTable.vue').default
   }
 }
 </script>
