@@ -12,6 +12,7 @@ export default class ClinicalService extends Model {
       code: this.attr(''),
       description: this.attr(''),
       identifier_type_id: this.attr(''),
+      active: this.attr(''),
 
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
       attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),
@@ -25,5 +26,9 @@ export default class ClinicalService extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/clinicalService/${id}`)
+  }
+
+  static async apiSave (clinicalService) {
+    return await this.api().post('/clinicalService', clinicalService)
   }
 }
