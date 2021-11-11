@@ -61,6 +61,24 @@ export default class Patient extends Model {
     return this.postoAdministrativo.description
   }
 
+  hasIdentifiers () {
+    return this.identifiers.length > 0
+  }
+
+  getOldestIdentifier () {
+    if (!this.hasIdentifiers()) return null
+    let preferedId = ''
+    Object.keys(this.identifiers).forEach(function (k) {
+      const id = this.identifiers[k]
+      if (preferedId === '') {
+        preferedId = id
+      } else if (new Date(preferedId.startDate) > new Date(id.startDate)) {
+        preferedId = id
+      }
+    }.bind(this))
+    return preferedId
+  }
+
   preferedIdentifier () {
     if (this.identifiers.length <= 0) return null
     let preferedId = {}

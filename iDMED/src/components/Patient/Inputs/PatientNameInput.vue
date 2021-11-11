@@ -1,19 +1,21 @@
 <template>
-      <q-input
-        outlined
-        label="Nome"
+      <TextInput
+        label="Nome *"
         dense
         ref="nome"
         class="col"
         :value="firstNames"
         @input="(event) => $emit('update:firstNames', event.target.value)"
         :rules="[ val => !!val || 'Por favor indicar o nome']"
-        lazy-rules/>
+        />
 </template>
 
 <script>
 export default {
-    props: ['firstNames']
+    props: ['firstNames'],
+    components: {
+        TextInput: require('components/Shared/Input/TextField.vue').default
+    }
 }
 </script>
 

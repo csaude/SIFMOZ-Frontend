@@ -89,7 +89,7 @@ export default {
         Clinic.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('ff8081817d040caa017d04392c810005').then(resp => {
+        Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },

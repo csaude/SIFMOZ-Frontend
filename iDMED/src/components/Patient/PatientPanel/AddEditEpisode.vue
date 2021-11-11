@@ -203,7 +203,7 @@ export default {
               !this.$refs.startDate.hasError) {
                 if (new Date(this.startDate) > new Date()) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (new Date(this.endDate) < new Date(this.curIdentifier.startDate)) {
+                } else if (new Date(this.startDate) < new Date(this.curIdentifier.startDate)) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {

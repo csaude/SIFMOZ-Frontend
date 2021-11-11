@@ -1,6 +1,6 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <form @submit.prevent="savePatient" >
+        <form @submit.prevent="submitForm" >
             <q-card-section class="q-px-md">
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
@@ -11,9 +11,9 @@
                 </div>
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="patient.firstNames"/>
-                        <middleNameInput v-model="patient.middleNames" class="q-ml-md"/>
-                        <lastNameInput v-model="patient.lastNames" class="q-ml-md"/>
+                        <nameInput ref="firstNames" v-model="patient.firstNames"/>
+                        <middleNameInput ref="middleNames" v-model="patient.middleNames" class="q-ml-md"/>
+                        <lastNameInput ref="lastNames" v-model="patient.lastNames" class="q-ml-md"/>
                     </div>
                     <div class="row">
                           <q-input
@@ -24,7 +24,7 @@
                               mask="date"
                               ref="birthDate"
                               :rules="['date']"
-                              label="Data de Nascimento">
+                              label="Data de Nascimento *">
                               <template v-slot:append>
                                   <q-icon name="event" class="cursor-pointer">
                                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -41,9 +41,11 @@
                         <q-select
                           class="col q-ml-md"
                           dense outlined
+                          ref="gender"
+                          :rules="[ val => !!val || 'Por favor indicar o sexo']"
                           v-model="patient.gender"
                           :options="genders"
-                          label="Género" />
+                          label="Sexo *" />
                     </div>
                 </div>
                 <div class="q-mt-lg">
@@ -58,23 +60,40 @@
                       class="col" dense outlined
                       v-model="patient.province"
                       use-input
+                      ref="province"
+                      :rules="[ val => !!val || 'Por favor indicar a Província']"
                       input-debounce="0"
                       :options="provinces"
                       option-value="id"
                       option-label="description"
-                      label="Provincia"/>
+                      label="Provincia *"/>
                     <q-select
                       class="col q-ml-md"
                       dense outlined
                       v-model="patient.district"
                       option-value="id"
                       option-label="description"
+                      ref="district"
+                      :rules="[ val => !!val || 'Por favor indicar o Distrito']"
                       :options="districts"
-                      label="Distrito/Cidade" />
-                    <q-select class="col q-ml-md" dense outlined v-model="model" :options="options" label="Posto Administivo" />
+                      label="Distrito/Cidade *" />
+                    <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                       v-model="patient.postoAdministrativo"
+                      option-value="id"
+                      option-label="description"
+                      :options="postosAdministrativos"
+                      label="Posto Administivo" />
                 </div>
                 <div class="row q-mt-md">
-                    <q-select class="col" dense outlined v-model="model" :options="options" label="Localidade/Bairro" />
+                    <q-select
+                      class="col"
+                      dense
+                      outlined
+                      v-model="patient.bairro"
+                      :options="bairros"
+                      label="Localidade/Bairro" />
                     <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
                     <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
                 </div>
@@ -120,49 +139,77 @@ export default {
               msg: ''
             }),
             dateOfBirth: '',
-            patient: new Patient(),
             selectedProvince: {},
             genders: ['Masculino', 'Femenino'],
-            age: ''
+            age: '',
+            patient: new Patient()
         }
     },
     methods: {
-        async savePatient () {
-           this.patient.dateOfBirth = new Date(this.dateOfBirth)
-           await Patient.apiSave(this.patient).then(resp => {
-             this.patient = resp.response.data
-             this.displayAlert('info', 'Paciente gravado com sucesso.')
-           }).catch(error => {
-             this.displayAlert('error', error)
-           })
-           console.log(this.patient)
-        },
-        displayAlert (type, msg) {
-          this.alert.type = type
-          this.alert.msg = msg
-          this.alert.visible = true
-        },
-        closeDialog () {
-          this.alert.visible = false
-          if (this.alert.type === 'info') {
-            this.$emit('close')
-            SessionStorage.set('selectedPatient', this.patient)
-            this.$router.push('/patientpanel')
-          }
-        },
-        initPatient () {
-          if (this.isEditStep) {
-            this.patient = Patient.query().with('province')
-                                          .with('district.province')
-                                          .with('postoAdministrativo')
-                                          .with('bairro')
-                                          .with('clinic.*')
-                                          .where('id', this.selectedPatient.id).first()
-            this.dateOfBirth = this.patient.dateOfBirth
-          } else {
-            this.patient.clinic = Clinic.query().with('province').where('id', this.currClinic.id).first()
-          }
+      submitForm () {
+        this.$refs.firstNames.$refs.nome.$refs.ref.validate()
+        this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
+        this.$refs.lastNames.$refs.lastName.$refs.ref.validate()
+        this.$refs.birthDate.validate()
+        this.$refs.gender.validate()
+        this.$refs.province.validate()
+        this.$refs.district.validate()
+        if (!this.$refs.firstNames.$refs.nome.$refs.ref.hasError &&
+            !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
+            !this.$refs.lastNames.$refs.lastName.$refs.ref.hasError &&
+            !this.$refs.birthDate.hasError &&
+            !this.$refs.province.hasError &&
+            !this.$refs.gender.hasError &&
+            !this.$refs.district.hasError) {
+              if (new Date(this.dateOfBirth) > new Date()) {
+                this.displayAlert('error', 'A data de nascimento indicada é maior que a data da corrente.')
+              } else if (this.isEditStep && (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < new Date(this.dateOfBirth)))) {
+                this.displayAlert('error', 'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
+              } else {
+                this.savePatient()
+              }
         }
+      },
+      async savePatient () {
+          this.patient.dateOfBirth = new Date(this.dateOfBirth)
+          this.patient.identifiers = []
+          await Patient.apiSave(this.patient).then(resp => {
+            this.patient = resp.response.data
+            this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
+          }).catch(error => {
+            this.displayAlert('error', error)
+          })
+      },
+      displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
+        if (this.alert.type === 'info' && !this.isEditStep) {
+          this.$emit('close')
+          SessionStorage.set('selectedPatient', this.patient)
+          this.$router.push('/patientpanel')
+        } else if (this.alert.type === 'info' && this.isEditStep) {
+          this.$emit('close')
+        }
+      },
+      initPatient () {
+        if (this.isEditStep) {
+          this.patient = Patient.query().with('province')
+                                        .with('district.province')
+                                        .with('identifiers.*')
+                                        .with('postoAdministrativo')
+                                        .with('bairro')
+                                        .with('clinic.*')
+                                        .where('id', this.selectedPatient.id).first()
+          this.dateOfBirth = this.patient.dateOfBirth
+        } else {
+          this.patient.clinic = this.currClinic
+          this.patient.province = this.currClinic.province
+        }
+      }
     },
     components: {
         TextInput: require('components/Shared/Input/TextField.vue').default,
@@ -182,7 +229,10 @@ export default {
         return this.patient.province.districts
       },
       currClinic () {
-        return new Clinic(SessionStorage.getItem('currClinic'))
+        return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
       },
       isEditStep () {
         return this.selectedPatient.id !== null
