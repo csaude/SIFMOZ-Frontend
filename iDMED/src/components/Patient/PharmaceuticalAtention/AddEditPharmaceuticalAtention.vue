@@ -1,8 +1,8 @@
 <template>
-  <q-card style="width: 900px; max-width: 80vw;">
+  <q-card style="max-width: 100vw;">
         <form @submit.prevent="submitMobilizer" >
-            <q-card-section >
-              <div class="row items-center text-subtitle1">
+            <q-card-section class="q-pa-none">
+              <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
@@ -10,36 +10,36 @@
               </div>
               <q-separator/>
             </q-card-section>
-            <div class="text-center text-h6">
+            <div class="text-center text-h6 q-mt-sm">
               Atenção Farmacêutica
             </div>
-             <div class="text-left text-h6 bold q-ml-sm">
+             <div class="text-left text-subtitle1 bold q-ml-md">
              Data de Registo
             </div>
             <div class="text-left text-h7 bold q-ml-sm q-pa-md">
-           <q-input
-                        dense
-                        outlined
-                        class="col q-pa-md"
-                        v-model="visitDate"
-                        mask="date"
-                        filled
-                        ref="data"
-                        :disable="this.editMode"
-                        :rules="[ visitDate => !!visitDate || 'A data da Consulta e obrigatoria']"
-                        label="Data da Consulta">
-                        <template v-slot:append>
-                            <q-icon name="event" class="cursor-pointer">
-                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="visitDate"  @update:model-value="verifyHasSameDay()">
-                                <div class="row items-center justify-end">
-                                    <q-btn v-close-popup label="Close" color="primary" flat />
-                                </div>
-                                </q-date>
-                            </q-popup-proxy>
-                            </q-icon>
-                        </template>
-                    </q-input>
+              <q-input
+                  dense
+                  outlined
+                  style="width: 350px"
+                  v-model="visitDate"
+                  mask="date"
+                  filled
+                  ref="data"
+                  :disable="this.editMode"
+                  :rules="[ visitDate => !!visitDate || 'A data da Consulta e obrigatoria']"
+                  label="Data da Consulta">
+                  <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                          <q-date v-model="visitDate"  @update:model-value="verifyHasSameDay()">
+                          <div class="row items-center justify-end">
+                              <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                          </q-date>
+                      </q-popup-proxy>
+                      </q-icon>
+                  </template>
+              </q-input>
             </div>
             <div class="q-mx-lg">
               <q-stepper
@@ -59,8 +59,8 @@
                       <numberField v-model="vitalSigns.weight" class="q-ml-md" label="Peso *"  suffix="[Kg]" :disable="onlyView" ref="weight" @update:model-value="getImcValue()"/>
                     </div>
                     <div class="row q-mt-md">
-                        <numberField v-model="vitalSigns.imc" label="IMC *" filled disable ref="imc"/>
-                      <TextInput v-model="imcDescription" class="col q-ml-xs" filled label="IMC-Descricao"  disable />
+                      <numberField v-model="vitalSigns.imc" label="IMC *" filled disable ref="imc"/>
+                      <TextInput dense v-model="imcDescription" class="col q-ml-md" filled label="IMC-Descricao"  disable />
                     </div>
                     <div class="row">
                         <numberField v-model="vitalSigns.systole" label="Sistole *"  :disable="onlyView"  suffix="[mmHg]" ref="systole"/>
@@ -190,6 +190,10 @@ export default {
            //  this.$refs.data.$refs.ref.validate()
            if (this.visitDate === '') {
               this.displayAlert('error', 'Por Favor Preencha data de consulta')
+           } else if (new Date(this.visitDate) > new Date(this.patient.dateOfBirth)) {
+              this.displayAlert('error', 'A data de consulta indicada é maior que a data de nascimento do paciente/utente')
+           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < new Date(this.visitDate))) {
+              this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
            } else if (this.hasVisitSameDay && !this.editMode) {
              this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')
            } else if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&

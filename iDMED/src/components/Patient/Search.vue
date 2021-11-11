@@ -16,10 +16,29 @@
           <span class="q-pl-sm text-subtitle2">Informação inicial</span>
       </div>
       <div class="row">
-          <identifierInput @blur="search()" v-model="currPatient.identifiers[0].value"/>
-          <nameInput @update:model-value="search()" class="q-ml-md" v-model="currPatient.firstNames"/>
-          <TextField @update:model-value="search()" label="Outros Nomes" v-model="currPatient.middleNames" dense class="col q-ml-md"/>
-          <lastNameInput @update:model-value="search()" v-model="currPatient.lastNames" class="q-ml-md"/>
+          <identifierInput
+            @blur="search()"
+            :rules="[]"
+            v-model="currPatient.identifiers[0].value"/>
+          <nameInput
+            @update:model-value="search()"
+            class="q-ml-md"
+            label="Nome"
+            :rules="[]"
+            v-model="currPatient.firstNames"/>
+          <TextField
+            @update:model-value="search()"
+            label="Outros Nomes"
+            v-model="currPatient.middleNames"
+            dense
+            :rules="[]"
+            class="col q-ml-md"/>
+          <lastNameInput
+            label="Apelido"
+            :rules="[]"
+            @update:model-value="search()"
+            v-model="currPatient.lastNames"
+            class="q-ml-md"/>
       </div>
       <div class="q-mt-lg q-mb-md">
           <div class="row items-center q-mb-md">
@@ -36,6 +55,14 @@
             :columns="columns"
             row-key="id"
             >
+            <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
             <template #body="props">
               <q-tr :props="props">
                 <q-td key="order" :props="props">
@@ -125,9 +152,12 @@ export default {
     methods: {
       init () {},
       search () {
-        this.patients = Patient.query().with('identifiers').where((patient) => {
-          return this.filterPatient(patient)
-        }).get()
+        this.patients = Patient.query()
+                               .with('identifiers')
+                               .where((patient) => {
+                                        return this.filterPatient(patient)
+                                      })
+                                .get()
       },
       editPatient (patient) {
         this.currPatient = Object.assign({}, patient)
