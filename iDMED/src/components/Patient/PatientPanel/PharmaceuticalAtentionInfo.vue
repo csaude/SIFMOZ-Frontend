@@ -16,7 +16,7 @@
           :patientVisit="patientVisit"/>
       </span>
     </div>
-    <q-dialog persistent v-model="showAddPharmaceuticalAtention" full-width>
+    <q-dialog persistent v-model="showAddPharmaceuticalAtention">
       <AddEditPharmaceuticalAtention
         @close="showAddPharmaceuticalAtention= false"
        :editMode=false />

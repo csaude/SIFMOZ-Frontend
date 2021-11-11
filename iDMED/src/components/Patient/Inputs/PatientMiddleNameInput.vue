@@ -1,8 +1,8 @@
 <template>
     <TextInput
-        label="Sobre Nome"
+        label="Sobre Nome *"
         dense
-        ref="sobreNome"
+        ref="midleName"
         class="col"
         :value="sobreNome"
         :rules="[ val => !!val || 'Por favor indicar o sobre nome']"

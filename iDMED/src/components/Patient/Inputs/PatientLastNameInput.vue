@@ -1,8 +1,8 @@
 <template>
     <TextInput
-        label="Apelido"
+        label="Apelido *"
         dense
-        ref="apelido"
+        ref="lastName"
         class="col"
         :value="lastName"
         :rules="[ val => !!val || 'Por favor indicar o apelido']"
