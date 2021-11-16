@@ -19,7 +19,11 @@ export default class TBScreening extends Model {
             sweating: this.attr(''),
             patient_visit_id: this.attr(''),
             // Relationships
-            patient_visit: this.belongsTo(PatientVisit, 'patient_visit_id')
+            visit: this.belongsTo(PatientVisit, 'patient_visit_id')
         }
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/TBScreening')
     }
 }

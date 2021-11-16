@@ -65,6 +65,10 @@ export default class Patient extends Model {
     return this.identifiers.length > 0
   }
 
+  isMale () {
+    return this.gender === 'Masculino'
+  }
+
   getOldestIdentifier () {
     if (!this.hasIdentifiers()) return null
     let preferedId = ''
@@ -81,7 +85,7 @@ export default class Patient extends Model {
 
   preferedIdentifier () {
     if (this.identifiers.length <= 0) return null
-    let preferedId = {}
+    let preferedId = null
     Object.keys(this.identifiers).forEach(function (k) {
       const id = this.identifiers[k]
       if (id.prefered) {
@@ -89,6 +93,10 @@ export default class Patient extends Model {
       }
     }.bind(this))
     return preferedId
+  }
+
+  hasPreferedId () {
+    return this.preferedIdentifier() !== null
   }
 
   preferedIdentifierValue () {

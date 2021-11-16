@@ -43,6 +43,7 @@
             v-for="episode in episodes" :key="episode.id" >
             <Episode
               @editEpisode="editEpisode"
+              @removeEpisode="removeEpisode"
               :episode="episode"/>
           </span>
         </div>
@@ -119,6 +120,31 @@ export default {
         this.showAddEditEpisode = true
       }
     },
+    removeEpisode (episode) {
+      const eps = Episode.query().withAll().where('id', episode.id).first()
+      if (eps.hasVisits()) {
+        this.displayAlert('error', 'Não pode remover este episódio pois o mesmo ja possui registos de visitas do pacinete/utente associados.')
+      } else {
+        Episode.apiRemove(episode).then(resp => {
+          Episode.delete(episode.id)
+          const i = this.curIdentifier.episodes.map(toRemove => toRemove.id).indexOf(episode.id) // find index of your object
+          this.curIdentifier.splice(i, 1)
+        }).catch(error => {
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
+      }
+    },
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
     },
@@ -156,11 +182,16 @@ export default {
       }
     },
     episodes () {
-      return Episode.query()
-                    .withAll()
-                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
-                    .orderBy('creationDate', 'desc')
-                    .get()
+      const episodes = Episode.query()
+                              .withAll()
+                              .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                              .orderBy('creationDate', 'desc')
+                              .limit(2)
+                              .get()
+      if (episodes.length > 0) {
+        episodes[0].isLast = true
+      }
+      return episodes
     },
     services () {
       return ClinicalService.query().hasNot('code').get()

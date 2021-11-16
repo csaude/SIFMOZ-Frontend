@@ -54,6 +54,12 @@
           :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
           @close="showAddEditDrug = false" />
     </q-dialog>
+    <q-dialog v-model="alert.visible">
+      <Dialog :type="alert.type" @closeDialog="closeDialog">
+        <template v-slot:title> Informação</template>
+        <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
+    </q-dialog>
   </div>
 </template>
 
@@ -72,6 +78,11 @@ export default {
   props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack'],
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       columns,
       showAddEditDrug: false,
       curVisitDetails: '',
@@ -87,8 +98,6 @@ export default {
       this.drugsDuration = duration
       this.nextPUpDate = nextPDate
       this.pickupDate = new Date(pickupDate)
-      // this.curVisitDetails.packs[0].pickupDate = this.pickupDate
-      // this.curVisitDetails.packs[0].nextPickUpDate = this.nextPUpDate
       this.showAddEditDrug = true
     },
     deleteRow (row) {
@@ -97,10 +106,31 @@ export default {
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
     },
     addPrescribedDrug (prescribedDrug) {
-      this.showAddEditDrug = false
-      prescribedDrug.nextPickUpDate = this.nextPUpDate
-      this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
-      this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+      let preferedId = ''
+      if (this.prescribedDrugs.length > 0) {
+        Object.keys(this.prescribedDrugs).forEach(function (k) {
+          const pd = this.prescribedDrugs[k]
+          if (prescribedDrug === '' && (pd.drug.id === prescribedDrug.drug.id)) {
+            preferedId = pd
+          }
+        }.bind(this))
+      }
+      if (preferedId === '') {
+        this.showAddEditDrug = false
+        prescribedDrug.nextPickUpDate = this.nextPUpDate
+        this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
+        this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+      } else {
+        this.displayAlert('error', 'Não pode adicionar o medicamento seleccionado, pois ja existe na lista dos medicamentos prescritos.')
+      }
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
     },
     init () {
       if (this.oldPrescribedDrugs !== null) {

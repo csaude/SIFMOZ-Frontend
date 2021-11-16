@@ -4,16 +4,15 @@
       :addVisible="showAddButton"
       :mainContainer="true"
       bgColor="bg-primary"
-       @expandLess="expandLess"
+      @expandLess="expandLess"
       @showAdd="showAddPharmaceuticalAtention = true">
       Atenção Farmacêutica
     </ListHeader>
-    <EmptyList v-if="patientVisits.length <= 0" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
+    <EmptyList v-if="lastPatientVisit === null" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
     <div v-show="infoVisible" >
-     <span
-        v-for="patientVisit in patientVisits" :key="patientVisit.id" >
+     <span>
         <PharmaceuticalAtentionContainer
-          :patientVisit="patientVisit"/>
+          :selectedPatientVisit="lastPatientVisit"/>
       </span>
     </div>
     <q-dialog persistent v-model="showAddPharmaceuticalAtention">
@@ -39,7 +38,7 @@ export default {
   },
   methods: {
     expandLess (value) {
-      this.infoVisible = value
+      this.infoVisible = true
     }
   },
   created () {
@@ -48,16 +47,13 @@ export default {
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
-    patientVisits () {
-      const patientVis = PatientVisit.query().with('patient.*')
-                          .with('vitalSigns')
-                          .with('tbScreening')
-                          .with('pregnancyScreening')
-                          .with('adherenceScreening')
-                          .with('ramScreening')
-                          .with('patientVisitDetails')
-                          .with('clinic').where('patient_id', this.selectedPatient.id).has('clinic').has('vitalSigns').get()
-                          return patientVis
+    lastPatientVisit () {
+      return PatientVisit.query()
+                          .where('patient_id', this.selectedPatient.id)
+                          .has('clinic')
+                          .has('vitalSigns')
+                          .orderBy('visitDate', 'desc')
+                          .first()
     },
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0

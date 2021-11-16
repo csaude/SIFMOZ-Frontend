@@ -230,7 +230,7 @@ export default {
       },
       currClinic () {
         return Clinic.query()
-                    .with('province')
+                    .with('province.districts')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       },
