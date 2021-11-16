@@ -65,6 +65,11 @@ import Prescription from '../../store/models/prescription/Prescription'
 import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
 import PrescribedDrug from '../../store/models/prescriptionDrug/PrescribedDrug'
 import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
+import RAMScreening from '../../store/models/screening/RAMScreening'
+import AdherenceScreening from '../../store/models/screening/AdherenceScreening'
+import PregnancyScreening from '../../store/models/screening/PregnancyScreening'
+import TBScreening from '../../store/models/screening/TBScreening'
+import VitalSignsScreening from '../../store/models/screening/VitalSignsScreening'
 export default {
     components: {
     },
@@ -87,6 +92,11 @@ export default {
         Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll()
         Clinic.apiGetAll()
+        RAMScreening.apiGetAll()
+        AdherenceScreening.apiGetAll()
+        PregnancyScreening.apiGetAll()
+        TBScreening.apiGetAll()
+        VitalSignsScreening.apiGetAll()
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817d040caa017d04a014090006').then(resp => {

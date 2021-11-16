@@ -15,7 +15,10 @@
             <q-select
               class="col q-my-md"
               dense outlined
+              ref="drug"
+              :rules="[ val => !!val || 'Por favor indicar o medicamento.']"
               v-model="prescribedDrug.drug"
+              @blur="loadDefaultParameters"
               :options="drugs"
               option-value="id"
               option-label="name"
@@ -24,13 +27,24 @@
             <q-select
               class="col"
               dense outlined
+              ref="amtPerTime"
+              :rules="[ val => !!val || 'Por favor indicar a quantidade a tomar de cada vez.']"
               v-model="prescribedDrug.amtPerTime"
               :options="amtPerTimes"
               label="Toma" />
-            <TextInput v-model="prescribedDrug.timesPerDay" label="Forma" suffix="Vezes" dense class="col q-ml-md" />
+            <TextInput
+              v-model="prescribedDrug.timesPerDay"
+              label="Forma"
+              ref="form"
+              :rules="[ val => !!val || 'Por favor indicar o numero de vezes a tomar']"
+              suffix="Vez(es)"
+              dense
+              class="col q-ml-md" />
             <q-select
               class="col q-ml-md"
               dense outlined
+              ref="times"
+              :rules="[ val => !!val || 'Por favor indicar a periodicidade da toma']"
               v-model="prescribedDrug.form"
               :options="timesPerDay"
               label="Período" />
@@ -49,6 +63,7 @@
 <script>
 import Drug from '../../../store/models/drug/Drug'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
+import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 export default {
   props: ['visitDetails', 'hasTherapeuticalRegimen'],
   data () {
@@ -62,18 +77,42 @@ export default {
   },
   methods: {
     submitForm () {
-      this.$emit('addPrescribedDrug', this.prescribedDrug)
+      this.$refs.drug.validate()
+      this.$refs.amtPerTime.validate()
+      this.$refs.form.$refs.ref.validate()
+      this.$refs.times.validate()
+      if (!this.$refs.drug.hasError &&
+          !this.$refs.amtPerTime.hasError &&
+          !this.$refs.form.$refs.ref.hasError &&
+          !this.$refs.times.hasError) {
+        this.$emit('addPrescribedDrug', this.prescribedDrug)
+      }
     },
     getDrugs () {
-      return Drug.query().with('form').get()
+      let drugs = ''
+      if (this.showOnlyOfRegimen) {
+        drugs = this.therapeuticRegimen.drugs
+      } else {
+        drugs = Drug.query().with('form').get()
+      }
+      return drugs
+    },
+    loadDefaultParameters () {
+      if (this.prescribedDrug.drug !== null) {
+        this.prescribedDrug.amtPerTime = this.prescribedDrug.drug.defaultTreatment
+        this.prescribedDrug.timesPerDay = this.prescribedDrug.drug.defaultTimes
+        this.prescribedDrug.form = this.prescribedDrug.drug.defaultPeriodTreatment
+      }
     }
   },
   computed: {
     drugs () {
       return this.getDrugs()
     },
-    regimenDrugs () {
-      return Drug.query().where('')
+    therapeuticRegimen () {
+      return TherapeuticRegimen.query()
+                               .with('drugs.form')
+                               .where('id', this.visitDetails.prescriptions[0].prescriptionDetails[0].therapeuticRegimen.id).first()
     }
   },
   mounted () {

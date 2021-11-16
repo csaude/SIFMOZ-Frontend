@@ -61,7 +61,6 @@
         </Dialog>
       </q-dialog>
   </div>
-  <pre>{{lastStartEpisode}}</pre>
 </template>
 
 <script>

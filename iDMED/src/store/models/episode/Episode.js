@@ -18,6 +18,7 @@ export default class Episode extends Model {
       clinicSector_id: this.attr(''),
       patientServiceIdentifier_id: this.attr(''),
       startStopReason_id: this.attr(''),
+      isLast: this.boolean(false),
       // Relationships
       startStopReason: this.belongsTo(StartStopReason, 'startStopReason_id'),
       episodeType: this.belongsTo(EpisodeType, 'episodeType_id'),
@@ -64,6 +65,10 @@ export default class Episode extends Model {
 
   static async apiSave (episode) {
     return await this.api().post('/episode', episode)
+  }
+
+  static async apiRemove (episode) {
+    return await this.api().delete('/episode', episode)
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {

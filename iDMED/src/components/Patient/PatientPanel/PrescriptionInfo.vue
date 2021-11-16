@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
 export default {
   props: ['selectedPatient'],
   data () {
@@ -48,7 +50,31 @@ export default {
   },
   computed: {
     showAddButton () {
-      return this.selectedPatient.identifiers.length > 0
+      return this.patientHasEpisodes
+    },
+    patient () {
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic')
+                            .where('id', selectedP.id).first()
+    },
+    patientHasEpisodes () {
+      if (this.patient.hasIdentifiers()) return false
+
+      let hasEpisode = false
+      Object.keys(this.patient.identifiers).forEach(function (k) {
+        const id = this.patient.identifiers[k]
+        if (!hasEpisode && id.hasEpisodes()) {
+          hasEpisode = true
+        }
+      }.bind(this))
+      return hasEpisode
     }
   },
   components: {
