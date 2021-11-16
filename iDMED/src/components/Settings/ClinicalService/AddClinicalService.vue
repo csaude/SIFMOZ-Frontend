@@ -9,6 +9,7 @@
     >
       <q-step
         :name="1"
+        title="Dados Iniciais"
       >
                <div class="row q-mt-md">
                 <nameInput
@@ -33,6 +34,7 @@
                           :disable="onlyView"
                           v-model="clinicalService.identifierType"
                           :options="identifierTypes"
+                          :rules="[ val => ( val != null ) || ' Por favor indique o tipo de identificador']"
                           option-value="id"
                           ref="identifierType"
                           option-label="description"
@@ -46,30 +48,77 @@
       row-key="code"
       selection="multiple"
       v-model:selected="selectedAttributes"
+      class="my-sticky-header-table"
        v-if="!onlyView"
         />
               </div>
-               <div class="q-mt-md">
+               <div class="row">
+                <div class="col-4 col-md-6">
          <q-table
+         style="max-width: 450px;max-height: 350px"
       title="Atributos do Servico Clinico"
       :rows="clinicalServiceAttributes"
       :columns="columnAttributes"
       row-key="code"
        v-if="onlyView"
+        class="my-sticky-header-table"
         />
-              </div>
-              <div class="q-mt-md">
+                </div>
+                <div class="col-4 col-md-6">
          <q-table
+          style="max-width: 450px; max-height: 350px"
       title="Regimes Terapeuticos"
       :rows="therapeuticRegimens"
       :columns="columnsRegimen"
       row-key="code"
        v-if="onlyView && therapeuticRegimens.length > 0"
+        class="my-sticky-header-table"
         />
               </div>
+              <div class="col-4 col-md-6 pa-md">
+         <q-table
+          style="max-width: 450px; max-height: 350px"
+      title="Sectores Clinicos"
+      :rows="clinicSectors"
+      :columns="columnsSectors"
+      row-key="code"
+       v-if="onlyView "
+        class="my-sticky-header-table"
+        />
+              </div>
+               </div>
       </q-step>
-         <q-step
+       <q-step
           :name="2"
+      >
+       <q-card-section class="q-px-md">
+               <div class="q-pa-md">
+         <q-table
+      title="Sectores Clinicos"
+      :rows="clinicSectors"
+      :columns="columnsSectors"
+       :filter="filter"
+      row-key="code"
+      selection="multiple"
+       virtual-scroll
+       v-model:pagination="pagination"
+      :rows-per-page-options="[0]"
+      v-model:selected="clinicalService.clinicSectors"
+       class="my-sticky-header-table"
+        >
+         <template v-slot:top-right>
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+            <template v-slot:append>
+                <q-icon name="search" />
+            </template>
+                </q-input>
+        </template>
+         </q-table>
+              </div>
+            </q-card-section>
+         </q-step>
+         <q-step
+          :name="3"
       >
        <q-card-section class="q-px-md">
                <div class="q-pa-md">
@@ -83,6 +132,7 @@
         v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       v-model:selected="clinicalService.therapeuticRegimens"
+       class="my-sticky-header-table"
         />
               </div>
             </q-card-section>
@@ -113,10 +163,16 @@ import ClinicalService from '../../../store/models/ClinicalService/ClinicalServi
 import ClinicalServiceAttributeType from '../../../store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
+import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 
 const columnsRegimen = [
-  { name: 'code', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
-  { name: 'description', required: true, label: 'Code', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true }
+  { name: 'code', required: true, label: 'Code', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
+]
+
+const columnsSectors = [
+  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
 
 const columnAttributes = [
@@ -133,6 +189,7 @@ export default {
       selected,
       columnsRegimen,
       columnAttributes,
+      columnsSectors,
       $q,
        step: ref(1),
        clinicalService: new ClinicalService(),
@@ -145,7 +202,8 @@ export default {
               visible: false,
               msg: ''
             }),
-      databaseCodes: []
+      databaseCodes: [],
+      filter: ref('')
   }
   },
   computed: {
@@ -159,7 +217,7 @@ export default {
      return therapeuticRegimen.clinical_service_id === this.clinicalService.id
       }).get()
         } else {
-          return TherapeuticRegimen.query().with('drugs.form').hasNot('clinicalService').get()
+          return TherapeuticRegimen.query().with('drugs.form').hasNot('clinicalService').where('active', true).get()
           }
       },
        clinicalServiceAttributes () {
@@ -169,7 +227,14 @@ export default {
          return IdentifierType.all()
       },
        clinicalServices () {
-          return ClinicalService.query().with('attributes.clinicalServiceAttributeType').with('identifierType').with('therapeuticRegimens').has('code').get()
+          return ClinicalService.query().with('attributes.clinicalServiceAttributeType')
+          .with('identifierType')
+          .with('therapeuticRegimens')
+          .with('clinicSectors')
+          .has('code').get()
+      },
+      clinicSectors () {
+          return ClinicSector.query().with('clinic').has('code').where('active', true).get()
       }
   },
   methods: {
@@ -177,7 +242,9 @@ export default {
             this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
             this.$refs.identifierType.validate()
-            if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
+            if (this.selectedAttributes.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clinico')
+            } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
                this.submitClinicalService()
             }
         },
@@ -185,8 +252,8 @@ export default {
                this.createClinicServiceAttribute()
           this.clinicalService.attributes = this.clinicalServiceAttributeTypes
           this.clinicalService.active = true
-             ClinicalService.apiSave(this.clinicalService).post('/clinicalService', this.clinicalService).then(resp => {
-                this.displayAlert('info', this.clinicalService.id === null ? 'Servico Clinico adicionado com sucesso.' : 'Servico Clinico actualizado com sucesso.')
+             ClinicalService.apiSave(this.clinicalService).then(resp => {
+                this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clinico adicionado com sucesso.' : 'Serviço Clinico actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })
@@ -202,17 +269,33 @@ export default {
           }
         },
         goToNextStep () {
-          if (this.step === 1) {
-        const attribute = this.selectedAttributes.filter(x => x.code === 'THERAPEUTICAL_REGIMEN')
-        if (attribute.length >= 1 && attribute[0].code === 'THERAPEUTICAL_REGIMEN') {
-          // try
+           if (this.step === 1) {
+             this.$refs.nome.$refs.ref.validate()
+             this.$refs.code.$refs.ref.validate()
+            this.$refs.identifierType.validate()
+            if (this.selectedAttributes.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clinico')
+            } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
+                this.$refs.stepper.next()
+            }
+           } else if (this.step === 2) {
+             if (this.clinicalService.clinicSectors.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um sector para o Serviço Clinico')
+            } else {
+            const attribute = this.selectedAttributes.filter(x => x.code === 'THERAPEUTICAL_REGIMEN')
+            if (attribute.length >= 1 && attribute[0].code === 'THERAPEUTICAL_REGIMEN') {
           this.$refs.stepper.next()
         } else {
-          this.validateClinicalService()
+          this.submitClinicalService()
              }
-        } else {
-          this.validateClinicalService()
-             }
+        }
+        } else if (this.step === 3) {
+             if (this.clinicalService.therapeuticRegimens.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clinico')
+            } else {
+              this.submitClinicalService()
+            }
+        }
         },
         createClinicServiceAttribute () {
           this.selectedAttributes.forEach(attribute => {
@@ -227,7 +310,9 @@ export default {
     })
     },
     codeRules (val) {
-       if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
+      if (this.clinicalService.code === '') {
+        return 'o Codigo e obrigatorio'
+      } else if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
       return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
          }
     }
@@ -255,3 +340,22 @@ export default {
   }
 }
 </script>
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+
+  .q-table__top
+    /* bg color is important for th; just specify one */
+    background-color: #26A69A
+
+  thead tr th
+    position: sticky
+    z-index: 0
+  thead tr
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 0px
+</style>

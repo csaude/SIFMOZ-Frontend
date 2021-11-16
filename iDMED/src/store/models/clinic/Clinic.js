@@ -36,4 +36,8 @@ export default class Clinic extends Model {
   static async apiGetAll () {
     return await this.api().get('/clinic')
   }
+
+  static async apiSave (clinic) {
+    return await this.api().post('/clinic', clinic)
+  }
 }

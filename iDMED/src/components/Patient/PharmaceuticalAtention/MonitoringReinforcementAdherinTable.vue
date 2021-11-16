@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <q-table
-      title="Monitoria e Reforco de Adesao"
+      title="Monitoria e Reforço de Adesão"
       :rows="monithoringQuestions"
       :columns="columns"
       row-key="question"
@@ -9,54 +9,45 @@
       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll
-      hide-bottom >
-     <template v-slot:body="props">
-            <q-tr :props="props">
-            <q-td key="question" v-if="props.row.code !== '05'" >
+      hide-bottom
+       class="my-sticky-header-table">
+        <template v-slot:body="props">
+         <q-tr :props="props">
+            <q-td key="question" v-if="props.row.code === '01' || props.row.code == '03' " >
              {{props.row.question}}
             </q-td>
-            <q-td key="question" v-if="props.row.code === '05'">
-                  <q-input filled v-if="!onlyView" v-model="props.row.text" label="Motivos" @update:model-value="handleInput(props.row)" :disable="disableLateMotives"/>
-                   <q-input v-if="onlyView" :disable="onlyView" filled v-model="props.row.text" label="Motivos" @update:model-value="handleInput(props.row)" />
+            <q-td key="question" v-if="props.row.code === '02'  && viewLateDaysWithout ||
+                  props.row.code === '04'  && viewLateMotives " align="left">
+               {{props.row.question}}
             </q-td>
-            <q-td key="completed" v-if="props.row.code !== '02' && props.row.code !== '04' && props.row.code !== '05'" align="right">
+              <q-td key="completed" v-if="props.row.code !== '02' && props.row.code !== '04' && props.row.code !== '05'" align="right">
                 <q-radio   v-model="props.row.completed" val=true @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
              <q-td key="completed" v-if="props.row.code !== '02' && props.row.code !== '04' &&   props.row.code !== '05'"  align="left">
                 <q-radio   v-model="props.row.completed" val=false @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
-             <q-td key="days" v-if="(props.row.code === '02')
-             || (props.row.code === '04') " align="left">
-              <q-input
-              v-if="props.row.code === '02' && !onlyView"
+             <q-td key="days" v-if="props.row.code === '02'  && viewLateDaysWithout ||
+                  props.row.code === '04'  && viewLateMotives " align="left">
+                <q-input
+              v-if="props.row.code === '02' && viewLateDaysWithout"
+              :disable="onlyView"
       v-model.number="props.row.days"
       type="number"
       @update:model-value="handleInput(props.row)"
-      :disable="disableLateDaysWithout"
-    />
-      <q-input
-              v-if="props.row.code === '02' && onlyView"
-      v-model.number="props.row.days"
-      type="number"
-      @update:model-value="handleInput(props.row)"
-      :disable="onlyView"
     />
     <q-input
-              v-if="props.row.code === '04' && !onlyView"
+              v-if="props.row.code === '04' && viewLateMotives"
+               :disable="onlyView"
       v-model.number="props.row.days"
       type="number"
       @update:model-value="handleInput(props.row)"
-      :disable="disableLateMotives"
-    />
-     <q-input
-              v-if="props.row.code === '04' && onlyView"
-      v-model.number="props.row.days"
-      type="number"
-      @update:model-value="handleInput(props.row)"
-      :disable="onlyView"
     />
             </q-td>
-            </q-tr>
+             <q-td key="question" v-if="props.row.code === '05' && viewLateMotives">
+                  <q-input filled v-if="!onlyView" v-model="props.row.text" label="Motivos" @update:model-value="handleInput(props.row)" />
+                   <q-input v-if="onlyView" :disable="onlyView" filled v-model="props.row.text" label="Motivos" @update:model-value="handleInput(props.row)" />
+            </q-td>
+         </q-tr>
         </template>
     </q-table>
     <q-card>
@@ -114,7 +105,7 @@ const monithoringQuestions = [
             text: ''
          }
 ]
-// let disableLateMotives
+// let viewLateMotives
 export default {
      props: ['selectedAdherenceTracing', 'onlyView'],
     data () {
@@ -123,8 +114,8 @@ export default {
            monithoringQuestions,
            // rows: ref(this.monithoringQuestionsCopy),
            adherenceScreening: new AdherenceScreening(),
-           disableLateDaysWithout: false,
-            disableLateMotives: ''
+           viewLateDaysWithout: false,
+            viewLateMotives: false
         }
     },
     methods: {
@@ -133,9 +124,9 @@ export default {
     case '01':
       this.adherenceScreening.hasPatientCameCorrectDate = row.completed
       if (row.completed === 'false') {
-       this.disableLateDaysWithout = false
+       this.viewLateDaysWithout = true
       } else {
-      this.disableLateDaysWithout = true
+      this.viewLateDaysWithout = false
        this.adherenceScreening.daysWithoutMedicine = 0
       }
       break
@@ -149,9 +140,9 @@ export default {
      case '03':
       this.adherenceScreening.patientForgotMedicine = row.completed
       if (row.completed === 'true') {
-       this.disableLateMotives = false
+       this.viewLateMotives = true
       } else {
-      this.disableLateMotives = true
+      this.viewLateMotives = false
       this.adherenceScreening.lateDays = 0
       }
       break
@@ -193,3 +184,23 @@ export default {
     }
 }
 </script>
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+
+  .q-table__top,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: #26A69A
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 0px
+</style>
