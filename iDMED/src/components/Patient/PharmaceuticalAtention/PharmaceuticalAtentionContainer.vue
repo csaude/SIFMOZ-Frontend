@@ -72,7 +72,7 @@
       <q-dialog persistent v-model="viewTb" full-width>
       <tbTable :selectedTbTracing="patientVisit.tbScreening[0]" :onlyView=true @close="viewTb = false"/>
       </q-dialog>
-       <q-dialog persistent v-model="viewPregnancy" full-width>
+       <q-dialog v-if="!patient.isMale()" persistent v-model="viewPregnancy" full-width>
       <pregnancyTable :selectedPregnancyTracing="patientVisit.pregnancyScreening[0]" :onlyView=true @close="viewPregnancy = false"/>
       </q-dialog>
        <q-dialog persistent v-model="viewAdherence" full-width>
@@ -137,10 +137,10 @@ export default {
   components: {
     ListHeader: require('components/Shared/ListHeader.vue').default,
     tbTable: require('components/Patient/PharmaceuticalAtention/TbQuestionsTable.vue').default,
-    // pregnancyTable: require('components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue').default,
-    // adherenceTable: require('components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue').default,
-    // ramTable: require('components/Patient/PharmaceuticalAtention/AdverseReactionQuestiosTable.vue').default,
-    // AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default,
+    pregnancyTable: require('components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue').default,
+    adherenceTable: require('components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue').default,
+    ramTable: require('components/Patient/PharmaceuticalAtention/AdverseReactionQuestiosTable.vue').default,
+    AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default,
     Dialog: require('components/Shared/Dialog/Dialog.vue').default
   },
   methods: {
