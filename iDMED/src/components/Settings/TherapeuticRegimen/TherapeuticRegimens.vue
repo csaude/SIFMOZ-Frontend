@@ -37,6 +37,7 @@
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
+                    v-if="props.row.active === true"
                    @click="editTherapeuticRegimen(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
@@ -47,14 +48,14 @@
                     icon="search"
                     @click="visualizeTherapeuticRegimen(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
-                      </q-btn>
+                    </q-btn>
                      <q-btn flat round
                       class="q-ml-md"
-                      color="red"
-                      icon="delete"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                      <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -108,6 +109,20 @@ export default {
   async  getTherapeuticRegimens () {
           await TherapeuticRegimen.api().get('/therapeuticRegimen')
        },
+       getIconActive (drug) {
+           if (drug.active) {
+              return 'delete'
+              } else if (!drug.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (drug) {
+           if (drug.active) {
+              return 'red'
+              } else if (!drug.active) {
+              return 'green'
+              }
+       },
        editTherapeuticRegimen (therapeuticRegimen) {
          this.viewMode = false
         this.therapeuticRegimen = Object.assign({}, therapeuticRegimen)
@@ -127,8 +142,12 @@ export default {
            this.showTherapeuticRegimenRegistrationScreen = true
       },
          promptToConfirm (therapeuticRegimen) {
-            this.$q.dialog({ title: 'Confirm', message: 'Deseja Inactivar o Regime?', cancel: true, persistent: true }).onOk(() => {
-              therapeuticRegimen.active = false
+            this.$q.dialog({ title: 'Confirm', message: therapeuticRegimen.active ? 'Deseja Inactivar o Regime?' : 'Deseja Activar o Regime?', cancel: true, persistent: true }).onOk(() => {
+                if (therapeuticRegimen.active) {
+                therapeuticRegimen.active = false
+              } else if (!therapeuticRegimen.active) {
+                  therapeuticRegimen.active = true
+              }
             TherapeuticRegimen.api().patch('/therapeuticRegimen/' + therapeuticRegimen.id, therapeuticRegimen).then(resp => {
                 this.$emit('therapeuticRegimen', resp.response.data)
             }).catch(error => {
@@ -145,7 +164,6 @@ export default {
   },
   components: {
     AddTherapeuticRegimen: require('components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue').default
-  //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
   }
 }
 </script>

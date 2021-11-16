@@ -4,13 +4,17 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime" ref="nome" />
+                        <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime" ref="esquema" />
                     </div>
                      <div class="row q-mt-md">
                        <nameInput v-model="therapeuticRegimen.description" :disable="onlyView"  ref="nome" />
                     </div>
                     <div class="row q-mt-md">
-                        <codeInput v-model="therapeuticRegimen.code" :disable="onlyView" ref="code" />
+                        <codeInput v-model="therapeuticRegimen.code"
+                        :disable="onlyView"
+                        ref="code"
+                        :rules="[val => codeRules (val)]"
+                        lazy-rules />
                     </div>
                      <div class="row q-mt-md">
        <q-table
@@ -86,8 +90,7 @@ export default {
             therapeuticRegimen: new TherapeuticRegimen(),
             formOptions,
             selectedDrugs: [],
-            regimenDrugs: [],
-            regimenDrug: [],
+            databaseCodes: [],
             periodsTime: ['Ano', 'Mes', 'Semana', 'Dia'],
             createValue (val, done) {
               if (val.length > 2) {
@@ -100,15 +103,14 @@ export default {
     },
     methods: {
           validateTherapeuticRegimen () {
+              this.$refs.esquema.$refs.ref.validate()
             this.$refs.nome.$refs.ref.validate()
              // this.$refs.code.$refs.ref.validate()
-            // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
+            if (!this.$refs.esquema.$refs.ref.hasError && !this.$refs.nome.$refs.ref.hasError) {
                 this.submitTherapeuticRegimen()
-           // }
+            }
         },
         submitTherapeuticRegimen () {
-       //   this.createRegimenDrugs()
-        //  this.therapeuticRegimen.regimenDrugs = this.regimenDrugs
         this.therapeuticRegimen.active = true
             console.log(this.therapeuticRegimen)
             TherapeuticRegimen.api().post('/therapeuticRegimen', this.therapeuticRegimen).then(resp => {
@@ -127,13 +129,24 @@ export default {
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
-        }
+        },
+          extractDatabaseCodes () {
+        this.therapeuticRegimens.forEach(element => {
+            this.databaseCodes.push(element.code)
+    })
+    },
+        codeRules (val) {
+       if (!this.therapeuticRegimen.id && this.selectedTherapeuticRegimen.id === this.therapeuticRegimen.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+         }
+    }
     },
     created () {
         if (this.therapeuticRegimen !== '') {
           this.therapeuticRegimen = Object.assign({}, this.selectedTherapeuticRegimen)
          // console.log(this.therapeuticRegimensDrug.id)
         }
+          this.extractDatabaseCodes()
     },
     components: {
         nameInput: require('components/Shared/NameInput.vue').default,
@@ -145,11 +158,15 @@ export default {
     },
     computed: {
         drugs () {
+           if (this.onlyView) {
+          return this.therapeuticRegimen.drugs
+        } else {
              return Drug.query().with('form').where('active', true).get()
+        }
+      },
+      therapeuticRegimens () {
+             return TherapeuticRegimen.query().with('drugs.form').get()
       }
-    //  therapeuticRegimensDrug () {
-       // return TherapeuticRegimensDrug.query().with('drug.form').where('therapeutic_regimen_id', this.therapeuticRegimen.id)
-    //  }
     }
 }
 </script>

@@ -91,7 +91,7 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import { ref } from 'vue'
 export default {
-  props: ['patientVisit'],
+  props: ['patientVisit', 'patientVisits'],
   data () {
     return {
         alert: ref({
@@ -128,8 +128,11 @@ export default {
     },
      promptToConfirm (patientVisit) {
             this.$q.dialog({ title: 'Confirm', message: 'Deseja Apagar a atenção farmaceutica?', cancel: true, persistent: true }).onOk(() => {
-           if (patientVisit.patientVisitDetails.length >= 0) {
+           if (patientVisit.patientVisitDetails.length === 0) {
              PatientVisit.apiRemove(patientVisit.id).then(resp => {
+            //   this.patientVisits.remove(patientVisit)
+            // this.patientVisit = this.patientVisit.filter(obj => obj.id !== patientVisit.id)
+         //    this.$emit(this.patientVisit.filter(obj => obj.id !== patientVisit.id), 'patientVisit')
              this.displayAlert('info', 'Atenção Farmaceutica removida com sucesso.')
            //  PatientVisit.update()
              }).catch(error => {

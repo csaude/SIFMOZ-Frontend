@@ -61,6 +61,7 @@ import PrescribedDrug from './models/prescriptionDrug/PrescribedDrug'
 import HealthInformationSystem from './models/healthInformationSystem/HealthInformationSystem'
 import InteroperbilityAttribute from './models/interoperabilityAttribute/InteroperabilityAttribute'
 import InteroperabilityType from './models/interoperabilityType/InteroperabilityType'
+import ClinicalServiceSector from './models/ClinicalServiceClinicSector/ClinicalServiceSector'
 
 // Vue.use(Vuex)
 
@@ -135,6 +136,7 @@ database.register(PrescribedDrug)
 database.register(HealthInformationSystem)
 database.register(InteroperbilityAttribute)
 database.register(InteroperabilityType)
+database.register(ClinicalServiceSector)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

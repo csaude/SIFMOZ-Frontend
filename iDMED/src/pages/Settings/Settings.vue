@@ -33,6 +33,10 @@
             <nationalClinic> </nationalClinic>
           </q-tab-panel>
 
+          <q-tab-panel name="clinic_sector">
+            <div class="text-h4 q-mb-md"></div>
+            <clinicSectors> </clinicSectors>
+          </q-tab-panel>
           <q-tab-panel name="doctor">
             <div class="text-h4 q-mb-md"></div>
              <doctor> </doctor>
@@ -86,7 +90,7 @@ export default {
         doctor: require('components/Settings/Doctor/Doctors.vue').default,
      //    AddClinic: require('components/Settings/AddClinic.vue').default
           drug: require('components/Settings/Drug/Drugs.vue').default,
-       //  AddClinicSector: require('components/Settings/AddClinicSector.vue').default
+         clinicSectors: require('components/Settings/ClinicSector/ClinicSectors.vue').default,
            nationalClinic: require('components/Settings/NationalClinic/NationalClinics.vue').default,
       clinics: require('components/Settings/Clinic/Clinics.vue').default,
        clinicalServices: require('components/Settings/ClinicalService/ClinicalService.vue').default,

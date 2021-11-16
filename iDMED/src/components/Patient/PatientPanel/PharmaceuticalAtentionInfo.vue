@@ -13,7 +13,9 @@
      <span
         v-for="patientVisit in patientVisits" :key="patientVisit.id" >
         <PharmaceuticalAtentionContainer
-          :patientVisit="patientVisit"/>
+          :patientVisit="patientVisit"
+          :patientVisits="patientVisits"
+           @patientVisits="patientVisits.add($event)"/>
       </span>
     </div>
     <q-dialog persistent v-model="showAddPharmaceuticalAtention">
