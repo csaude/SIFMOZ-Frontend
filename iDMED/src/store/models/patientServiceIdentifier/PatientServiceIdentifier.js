@@ -15,7 +15,7 @@ export default class PatientServiceIdentifier extends Model {
       reopenDate: this.attr(''),
       value: this.attr(''),
       state: this.attr(''),
-      prefered: this.boolean(false),
+      prefered: this.boolean(true),
       identifier_type_id: this.attr(''),
       service_id: this.attr(''),
       patient_id: this.attr(''),
@@ -26,6 +26,10 @@ export default class PatientServiceIdentifier extends Model {
       episodes: this.hasMany(Episode, 'patientServiceIdentifier_id')
 
     }
+  }
+
+  isPrefered () {
+    return this.prefered
   }
 
   hasEpisodes () {

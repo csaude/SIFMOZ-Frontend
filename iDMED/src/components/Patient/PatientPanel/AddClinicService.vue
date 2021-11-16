@@ -210,12 +210,11 @@
             </q-card-actions>
         </form>
         <q-dialog v-model="alert.visible">
-          <Dialog :type="alert.type" @closeDialog="closeDialog">
+          <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="commitOperation">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
         </q-dialog>
-        <pre>{{hasVisitsMade}}</pre>
     </q-card>
 </template>
 
@@ -312,7 +311,9 @@ export default {
               !this.$refs.startDate.hasError &&
               !this.$refs.state.hasError &&
               !this.$refs.identifier.$refs.identifier.hasError) {
-              if (new Date(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
+                if (new Date(this.identifierstartDate) > new Date()) {
+                this.displayAlert('error', 'A data de admissão indicada é maior que a data corrente.')
+              } else if (new Date(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
               } else {
                 if (this.isEditStep) {
@@ -322,12 +323,16 @@ export default {
                                         .orderBy('creationDate', 'desc')
                                         .first()
                   if (episode !== null && (new Date(this.identifierstartDate) > new Date(episode.episodeDate))) {
-                    this.displayAlert('error', 'A data de admissão indicada é maior que a data do último episódio.')
+                    this.displayAlert('error', 'A data de admissão indicada é maior que a data do primeiro episódio registado.')
                   } else if (this.hasVisitsMade && (this.identifier.service.id !== this.identifierToEdit.service.id)) {
                     this.displayAlert('error', 'Não pode alterar o serviço de saúde pois ja existem registos de visitas associados.')
+                  } else if (this.patient.hasPreferedId() && this.identifier.isPrefered()) {
+                    this.displayAlert('confirmation', 'O identificador neste momento em associação passará a ser considerado como preferido, deseja continuar neste modo?')
                   } else {
                     this.doSave()
                   }
+                } else if (this.patient.hasPreferedId() && this.identifier.isPrefered()) {
+                    this.displayAlert('confirmation', 'O identificador neste momento em associação passará a ser considerado como preferido, deseja continuar neste modo?')
                 } else {
                   this.doSave()
                 }
@@ -410,7 +415,18 @@ export default {
           }
           this.displayAlert('info', msg)
         }).catch(error => {
-          this.displayAlert('error', error)
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
         })
       },
       displayAlert (type, msg) {
@@ -424,6 +440,9 @@ export default {
           console.log('closing dialog')
           this.$emit('close')
         }
+      },
+      commitOperation () {
+        this.doSave()
       }
     },
     created () {
@@ -441,7 +460,16 @@ export default {
     },
     computed: {
       patient () {
-        return new Patient(SessionStorage.getItem('selectedPatient'))
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic')
+                            .where('id', selectedP.id).first()
       },
       hasVisitsMade () {
         return this.lastStartEpisodeWithPrescription() !== null

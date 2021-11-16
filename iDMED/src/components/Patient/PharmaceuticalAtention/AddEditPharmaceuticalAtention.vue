@@ -190,9 +190,9 @@ export default {
            //  this.$refs.data.$refs.ref.validate()
            if (this.visitDate === '') {
               this.displayAlert('error', 'Por Favor Preencha data de consulta')
-           } else if (new Date(this.visitDate) > new Date(this.patient.dateOfBirth)) {
+           } else if (new Date(this.visitDate) < new Date(this.patient.dateOfBirth)) {
               this.displayAlert('error', 'A data de consulta indicada é maior que a data de nascimento do paciente/utente')
-           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < new Date(this.visitDate))) {
+           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) > new Date(this.visitDate))) {
               this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
            } else if (this.hasVisitSameDay && !this.editMode) {
              this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')

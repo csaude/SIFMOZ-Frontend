@@ -29,7 +29,7 @@
                 </q-td>
               </q-tr>
             </template>
-        </q-table>
+          </q-table>
         </div>
       </q-card-section>
     </q-card>

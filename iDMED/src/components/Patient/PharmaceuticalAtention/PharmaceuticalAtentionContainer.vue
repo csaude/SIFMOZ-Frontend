@@ -3,63 +3,76 @@
     <ListHeader :addVisible="false" bgColor="bg-grey-4" > Data do Registo: {{ formatDate(patientVisit.visitDate) }}</ListHeader>
     <q-card class="noRadius">
       <q-card-section class="row q-pa-none">
-          <div class="col-4 bg-white q-pa-md">
-          <div class="column ">
-            <div class="col text-grey-9 text-weight-medium">Dados Vitais</div>
-             <div class="row ">
-            <div class="col text-grey-8">Peso: {{patientVisit.vitalSigns[0].weight}}</div>
-            <div class="col text-grey-8">Altura: {{patientVisit.vitalSigns[0].height}}</div>
-             <div class="col text-grey-8">Imc: {{Math.round(patientVisit.vitalSigns[0].imc * 100) / 100}}</div>
-             <div class="col text-grey-8">Sistole: {{patientVisit.vitalSigns[0].systole}}</div>
-             <div class="col text-grey-8">Diastole: {{patientVisit.vitalSigns[0].distort}}</div>
-             </div>
-          </div>
-          </div>
-           <div class="col-2 bg-white q-pa-md">
-          <div class="column ">
-            <div class="col text-grey-9 text-weight-medium">Rastreio TB</div>
-            <div class="col text-grey-4">
-            <q-btn unelevated text-color="green"   label="Ver Detalhes" @click=" viewTb = true"/>
-            </div>
-          </div>
-          </div>
-             <div class="col-2 bg-white q-pa-md" v-if="patient.gender === 'Feminino'">
-          <div class="column ">
-            <div class="col text-grey-9 text-weight-medium">R. Gravidez</div>
-            <div class="col text-grey-8">
-            <q-btn unelevated text-color="green" label="Ver Detalhes" @click=" viewPregnancy = true"/>
-            </div>
-          </div>
-          </div>
-             <div class="col-2 bg-white q-pa-md">
-          <div class="column ">
-            <div class="col text-grey-9 text-weight-medium">M. e Reforço a Adesão</div>
-            <div class="col text-grey-8">
-            <q-btn unelevated text-color="green"  label="Ver Detalhes" @click=" viewAdherence = true"/>
-            </div>
-          </div>
-          </div>
-            <div class="col-2 bg-white q-pa-md">
-          <div class="column ">
-            <div class="col text-grey-9 text-weight-medium">Reacoes Adversas</div>
-            <div class="col text-grey-8">
-             <q-btn unelevated text-color="green"  label="Ver Detalhes" @click=" viewRam = true"/>
-            </div>
-          </div>
-          </div>
-            <div class="col-1 bg-white q-pa-md">
-          <div class="column ">
-            <div class="col text-grey-9 ">
-            <q-btn unelevated color="orange" label="Editar"  @click="showAddPharmaceuticalAtention = true" class="float-left" rounded/>
-            <q-btn unelevated color="red" label="Remover"   @click.stop="promptToConfirm(patientVisit)"  class="float-left q-mt-md" rounded/>
-            </div>
-          </div>
-          </div>
+        <div class="col-12">
+          <q-table
+            class="col"
+            dense
+            unelevated
+            separator="vertical"
+            :rows="patientVisits"
+            :columns="columns"
+            row-key="id"
+            hide-bottom
+            >
+            <template #body="props">
+              <q-tr no-hover :props="props">
+                <q-td key="vitalSigns" :props="props">
+                  <span class="text-weight-medium">Peso:</span>
+                  {{props.row.vitalSigns[0].weight + ' Kg'}}
+                  <span class="text-weight-bolder"> | </span>
+                  <span class="text-weight-medium">Altura:</span>
+                  {{props.row.vitalSigns[0].height + ' m'}}
+                  <span class="text-weight-bolder"> | </span>
+                  <span class="text-weight-medium">IMC:</span>
+                  {{Math.round(props.row.vitalSigns[0].imc * 100) / 100 + ' m'}}
+                  <span class="text-weight-bolder"> | </span>
+                  <span class="text-weight-medium">Sistole:</span>
+                  {{props.row.vitalSigns[0].systole + ' m'}}
+                  <span class="text-weight-bolder"> | </span>
+                  <span class="text-weight-medium">Diastole:</span>
+                  {{props.row.vitalSigns[0].distort + ' m'}}
+                </q-td>
+                <q-td key="tb" :props="props">
+                  <q-btn class="q-pa-none" flat color="primary" label="Ver Detalhes" @click="viewTb = true"/>
+                </q-td>
+                <q-td v-if="!patient.isMale()" auto-width key="pregnancyScreening" :props="props">
+                  <q-btn class="q-pa-none" flat color="primary" label="Ver Detalhes" @click="viewPregnancy = true"/>
+                </q-td>
+                <q-td auto-width key="adherenceScreening" :props="props">
+                  <q-btn class="q-pa-none" flat color="primary" label="Ver Detalhes" @click="viewAdherence = true"/>
+                </q-td>
+                <q-td auto-width key="ramScreening" :props="props">
+                  <q-btn class="q-pa-none" flat color="primary" label="Ver Detalhes" @click="viewRam = true"/>
+                </q-td>
+                <q-td auto-width key="opts" :props="props">
+                  <div class="col">
+                    <q-btn
+                      flat
+                      @click="showAddPharmaceuticalAtention = true"
+                      round
+                      color="orange-5"
+                      icon="edit" >
+                      <q-tooltip class="bg-amber-5">Editar</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      @click.stop="promptToConfirm(patientVisit)"
+                      round
+                      color="red"
+                      icon="delete" >
+                      <q-tooltip class="bg-red">Remover</q-tooltip>
+                    </q-btn>
+                  </div>
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
+        </div>
       </q-card-section>
       <q-dialog persistent v-model="viewTb" full-width>
       <tbTable :selectedTbTracing="patientVisit.tbScreening[0]" :onlyView=true @close="viewTb = false"/>
       </q-dialog>
-       <q-dialog persistent v-model="viewPregnancy" full-width>
+       <q-dialog v-if="!patient.isMale()" persistent v-model="viewPregnancy" full-width>
       <pregnancyTable :selectedPregnancyTracing="patientVisit.pregnancyScreening[0]" :onlyView=true @close="viewPregnancy = false"/>
       </q-dialog>
        <q-dialog persistent v-model="viewAdherence" full-width>
@@ -90,8 +103,16 @@ import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import { ref } from 'vue'
+const columns = [
+  { name: 'vitalSigns', required: true, field: 'row.vitalSigns', label: 'Dados Vitais', align: 'left', sortable: false },
+  { name: 'tb', align: 'left', field: 'row.tbScreening', label: 'Rastreio TB', sortable: false },
+  { name: 'pregnancyScreening', align: 'left', field: 'row.pregnancyScreening', label: 'Rastreio Gravidez', sortable: false },
+  { name: 'adherenceScreening', align: 'left', field: 'row.adherenceScreening', label: 'Monitoria e Reforço a Adesão', sortable: false },
+  { name: 'ramScreening', align: 'left', field: 'row.ramScreening', label: 'Reações Adversas', sortable: false },
+  { name: 'opts', align: 'left', label: 'Opções', sortable: false }
+]
 export default {
-  props: ['patientVisit'],
+  props: ['selectedPatientVisit'],
   data () {
     return {
         alert: ref({
@@ -99,6 +120,7 @@ export default {
         visible: false,
         msg: ''
           }),
+          columns,
       curIdentifier: {},
       isPatientActive: false,
       showAddEpisode: false,
@@ -109,16 +131,17 @@ export default {
        viewAdherence: false,
       viewRam: false,
       showAddPharmaceuticalAtention: false
+
     }
   },
   components: {
     ListHeader: require('components/Shared/ListHeader.vue').default,
-      tbTable: require('components/Patient/PharmaceuticalAtention/TbQuestionsTable.vue').default,
-       pregnancyTable: require('components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue').default,
-        adherenceTable: require('components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue').default,
-        ramTable: require('components/Patient/PharmaceuticalAtention/AdverseReactionQuestiosTable.vue').default,
-        AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default,
-         Dialog: require('components/Shared/Dialog/Dialog.vue').default
+    tbTable: require('components/Patient/PharmaceuticalAtention/TbQuestionsTable.vue').default,
+    pregnancyTable: require('components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue').default,
+    adherenceTable: require('components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue').default,
+    ramTable: require('components/Patient/PharmaceuticalAtention/AdverseReactionQuestiosTable.vue').default,
+    AddEditPharmaceuticalAtention: require('components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default
   },
   methods: {
     checkPatientStatusOnService () {
@@ -165,6 +188,36 @@ export default {
   computed: {
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
+    },
+    patientVisit () {
+      return PatientVisit.query().with('patient.*')
+                          .with('vitalSigns')
+                          .with('tbScreening')
+                          .with('pregnancyScreening')
+                          .with('adherenceScreening')
+                          .with('ramScreening')
+                          .with('patientVisitDetails')
+                          .with('clinic')
+                          .where('id', this.selectedPatientVisit.id)
+                          .has('clinic')
+                          .has('vitalSigns')
+                          .orderBy('visitDate', 'desc')
+                          .first()
+    },
+    patientVisits () {
+      return PatientVisit.query().with('patient.*')
+                          .with('vitalSigns')
+                          .with('tbScreening')
+                          .with('pregnancyScreening')
+                          .with('adherenceScreening')
+                          .with('ramScreening')
+                          .with('patientVisitDetails')
+                          .with('clinic')
+                          .where('id', this.selectedPatientVisit.id)
+                          .has('clinic')
+                          .has('vitalSigns')
+                          .orderBy('visitDate', 'desc')
+                          .get()
     }
   },
   created () {

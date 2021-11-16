@@ -16,6 +16,14 @@
           </div>
         </div>
         <div class="col items-center">
+
+          <q-btn
+            v-if="canEdit"
+            @click="$emit('removeEpisode', currEpisode)"
+            dense unelevated
+            color="red"
+            label="Remover"
+            class="float-right q-ml-md" />
           <q-btn
             v-if="canEdit"
             @click="$emit('editEpisode', currEpisode)"
@@ -55,7 +63,7 @@ export default {
     },
     canBeEdited () {
       const eps = Episode.query().withAll().where('id', this.episode.id).first()
-      return !eps.hasVisits()
+      return this.episode.isLast && !eps.hasVisits()
     }
   },
   components: {
