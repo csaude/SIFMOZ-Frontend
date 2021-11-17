@@ -9,7 +9,6 @@
      :rows="clinicalServices"
       :columns="columns"
       :filter="filter"
-       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll>
         <template v-slot:top-right>
@@ -66,7 +65,7 @@
                 <q-btn size="xl" fab icon="add" @click="addClinicService" color="primary" />
              </q-page-sticky>
         </div>
-          <q-dialog persistent v-model="showClinicServiceRegistrationScreen" full-width>
+          <q-dialog persistent v-model="showClinicServiceRegistrationScreen" >
           <addClinicalService
           :selectedClinicalService="clinicalService"
           :editMode=editMode
@@ -115,7 +114,7 @@ export default {
           return ClinicalService.query().with('attributes.clinicalServiceAttributeType')
           .with('identifierType')
           .with('therapeuticRegimens')
-          .with('clinicSectors')
+          .with('clinicSectors.clinic')
           .has('code').get()
       }
   },

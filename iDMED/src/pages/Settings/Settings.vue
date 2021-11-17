@@ -67,13 +67,13 @@
 import { ref } from 'vue'
 
 const tabs = [
-  { name: 'national_clinic', icon: 'local_convenience_store', label: 'Clinicas Nacionais' },
-  { name: 'clinic', icon: 'local_hospital', label: 'Clinicas' },
-  { name: 'clinic_sector', icon: 'local_pharmacy', label: 'Sector Clinico' },
-  { name: 'clinical_service', icon: 'local_pharmacy', label: 'Servico Clinico' },
-  { name: 'doctor', icon: 'psychology', label: 'Clinicos' },
+  { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
+  { name: 'clinic', icon: 'local_hospital', label: 'Farmácias' },
+  { name: 'clinic_sector', icon: 'local_pharmacy', label: 'Sector Clínico' },
+  { name: 'clinical_service', icon: 'local_pharmacy', label: 'Serviço Clínico' },
+  { name: 'doctor', icon: 'psychology', label: 'Clínicos' },
  { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
-  { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapeutico' },
+  { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapêutico' },
   { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' },
   { name: 'users', icon: 'group_add', label: 'Utilizadores' }
 ]

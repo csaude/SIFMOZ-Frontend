@@ -9,7 +9,7 @@
       Atenção Farmacêutica
     </ListHeader>
     <EmptyList v-if="lastPatientVisit === null" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
-    <div v-show="infoVisible" >
+    <div v-if="infoVisible && lastPatientVisit !== null" >
      <span>
         <PharmaceuticalAtentionContainer
           :selectedPatientVisit="lastPatientVisit"/>

@@ -11,8 +11,8 @@
                 </div>
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="doctor.firstnames"/>
-                        <lastNameInput v-model="doctor.lastname" class="q-ml-md"/>
+                        <nameInput v-model="doctor.firstnames" ref="name" />
+                        <lastNameInput v-model="doctor.lastname" class="q-ml-md" ref="lastName"/>
                     </div>
                     <div class="row">
                           <q-input
@@ -43,6 +43,8 @@
                           dense outlined
                           v-model="doctor.gender"
                           :options="genders"
+                          red="gender"
+                          :rules="[ val => ( val != null ) || ' Por favor indique o genero']"
                           label="Género" />
                      </div>
                       <div class="row q-mt-md">
@@ -54,6 +56,8 @@
                       :options="clinics"
                       option-value="id"
                       option-label="clinicName"
+                      ref="clinic"
+                      :rules="[ val => ( val != null ) || ' Por favor indique a clinica']"
                       label="Clinica"/>
                       </div>
                 </div>
@@ -65,7 +69,7 @@
                     <q-separator color="grey-13" size="1px"/>
                 </div>
                 <div class="row q-mt-md">
-                  <PhoneField v-model="doctor.cellphone" dense label="Principal"/>
+                  <PhoneField v-model="doctor.telephone" dense label="Principal"/>
                    <emailInput v-model="doctor.email" dense class="q-ml-md" />
                 </div>
             </q-card-section>
@@ -93,7 +97,6 @@ const stringOptions = [
 export default {
     props: ['clinic', 'selectedDoctor'],
     data () {
-      const clinicOptions = ref(this.clinics)
         return {
            alert: ref({
               type: '',
@@ -102,7 +105,6 @@ export default {
             }),
             currClinic: {},
             doctor: new Doctor(),
-            clinicOptions,
            dateOfBirth: '',
             createValue (val, done) {
               if (val.length > 2) {
@@ -111,44 +113,25 @@ export default {
                 }
               }
             },
-            genders: ['Masculino', 'Femenino'],
-              filterClinic (val, update, abort) {
-                const stringOptions = this.clinics
-                if (val === '') {
-                  update(() => {
-                    this.clinicOptions = stringOptions.map(clinica => clinica)
-                  })
-                } else if (stringOptions.length === 0) {
-                  update(() => {
-                    this.clinicOptions = []
-                  })
-                } else {
-                  update(() => {
-                    this.clinicOptions = stringOptions
-                      .map(clinica => clinica)
-                      .filter(clinica => {
-                        return clinica &&
-                            clinica.designacao.toLowerCase().indexOf(val.toLowerCase()) !== -1
-                      })
-                  })
-                }
-              }
+            genders: ['Masculino', 'Femenino']
         }
     },
     methods: {
         validateDoctor () {
-           // this.$refs.nome.$refs.ref.validate()
-             // this.$refs.code.$refs.ref.validate()
-            // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
+             this.$refs.name.$refs.ref.validate()
+             this.$refs.lastName.$refs.ref.validate()
+            this.$refs.gender.validate()
+             this.$refs.clinic.validate()
+          if (!this.$refs.name.$refs.ref.hasError && !this.$refs.lastName.$refs.ref.hasError && !this.$refs.gender.hasError && this.$refs.clinic.hasError) {
                 this.submitDoctor()
-           // }
+            }
         },
         submitDoctor () {
           this.doctor.dateofbirth = new Date(this.dateOfBirth)
-          this.doctor.category = 0
-            Doctor.api().post('/doctor', this.doctor).then(resp => {
+          this.doctor.active = true
+            Doctor.apiSave(this.doctor).then(resp => {
                 console.log(resp.response.data)
-                this.displayAlert('info', 'Clinico gravado com sucesso.')
+                 this.displayAlert('info', this.doctor.id === null ? 'Clinico adicionado com sucesso.' : 'Clinico actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })
@@ -171,13 +154,10 @@ export default {
         closeDialog () {
           if (this.alert.type === 'info') {
             this.$emit('close')
-           // SessionStorage.set('selectedPatient', this.patient)
-           // this.$router.push('/patientpanel')
           }
         }
     },
     created () {
-     //   this.currClinic = Object.assign({}, this.clinic)
         if (this.selectedDoctor !== '') {
           this.doctor = Object.assign({}, this.selectedDoctor)
           this.dateOfBirth = this.doctor.dateofbirth
@@ -192,7 +172,7 @@ export default {
     },
     mounted () {
         const offset = 0
-        this.clinicOptions = this.getAllClinics(offset)
+       this.getAllClinics(offset)
     },
     computed: {
         clinics () {
@@ -200,6 +180,7 @@ export default {
                            .with('nationalClinic')
                            .with('province')
                            .with('district')
+                           .has('code')
                           .get()
         }
     }
