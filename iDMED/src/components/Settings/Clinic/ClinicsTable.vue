@@ -25,6 +25,33 @@
              <q-td key="district" :props="props">
               {{  props.row.district !== undefined && props.row.district !== null ? props.row.district.description : '' }}
             </q-td>
+             <q-td key="options" :props="props">
+                  <div class="col">
+                    <q-btn flat round
+                    color="amber-8"
+                    icon="edit"
+                   v-if="props.row.active === true"
+                   @click="editClinicSector(props.row)">
+                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
+                  </q-btn>
+
+                  <q-btn flat round
+                    class="q-ml-md"
+                    color="green-8"
+                    icon="search"
+                    @click="visualizeClinicSector(props.row)">
+                    <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
+                  </q-btn>
+                 <q-btn flat round
+                      class="q-ml-md"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
+                      @click.stop="promptToConfirm(props.row)"
+                     >
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                     </q-btn>
+                  </div>
+                  </q-td>
             </q-tr>
         </template>
     </q-table>

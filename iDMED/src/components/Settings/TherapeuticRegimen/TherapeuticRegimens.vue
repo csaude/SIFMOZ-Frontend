@@ -109,17 +109,17 @@ export default {
   async  getTherapeuticRegimens () {
           await TherapeuticRegimen.api().get('/therapeuticRegimen')
        },
-       getIconActive (drug) {
-           if (drug.active) {
+       getIconActive (therapeuticRegimen) {
+           if (therapeuticRegimen.active) {
               return 'delete'
-              } else if (!drug.active) {
+              } else if (!therapeuticRegimen.active) {
               return 'play_arrow'
               }
        },
-       getColorActive (drug) {
-           if (drug.active) {
+       getColorActive (therapeuticRegimen) {
+           if (therapeuticRegimen.active) {
               return 'red'
-              } else if (!drug.active) {
+              } else if (!therapeuticRegimen.active) {
               return 'green'
               }
        },
@@ -129,9 +129,6 @@ export default {
          this.showTherapeuticRegimenRegistrationScreen = true
       },
         addTherapeuticRegimen () {
-      //    this.therapeuticRegimens.drugs.forEach((drug) => {
- // console.log(drug.pivot)
- // })
           this.viewMode = false
           this.therapeuticRegimen = new TherapeuticRegimen()
          this.showTherapeuticRegimenRegistrationScreen = true
@@ -142,14 +139,17 @@ export default {
            this.showTherapeuticRegimenRegistrationScreen = true
       },
          promptToConfirm (therapeuticRegimen) {
+           let msg = ''
             this.$q.dialog({ title: 'Confirm', message: therapeuticRegimen.active ? 'Deseja Inactivar o Regime?' : 'Deseja Activar o Regime?', cancel: true, persistent: true }).onOk(() => {
-                if (therapeuticRegimen.active) {
+              if (therapeuticRegimen.active) {
                 therapeuticRegimen.active = false
+                  msg = 'Regime inactivada com sucesso.'
               } else if (!therapeuticRegimen.active) {
                   therapeuticRegimen.active = true
+                     msg = 'Regime activado com sucesso.'
               }
-            TherapeuticRegimen.api().patch('/therapeuticRegimen/' + therapeuticRegimen.id, therapeuticRegimen).then(resp => {
-                this.$emit('therapeuticRegimen', resp.response.data)
+             TherapeuticRegimen.apiSave(therapeuticRegimen).then(resp => {
+                this.$emit('therapeuticRegimen', msg)
             }).catch(error => {
               console.log(therapeuticRegimen.id)
                 console.log(error)

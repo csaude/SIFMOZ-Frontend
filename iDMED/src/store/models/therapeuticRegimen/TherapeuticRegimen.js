@@ -32,4 +32,8 @@ export default class TherapeuticRegimen extends Model {
   static async apiFetchById (id) {
     return await this.api().get(`/therapeuticRegimen/${id}`)
   }
+
+  static async apiSave (therapeuticRegimen) {
+    return await this.api().post('/therapeuticRegimen', therapeuticRegimen)
+  }
 }

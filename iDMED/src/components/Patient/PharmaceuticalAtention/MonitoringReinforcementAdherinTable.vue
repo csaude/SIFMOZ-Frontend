@@ -170,6 +170,12 @@ export default {
             if (monithoringQuestion.code === '04') monithoringQuestion.days = this.selectedAdherenceTracing.lateDays
             if (monithoringQuestion.code === '05') monithoringQuestion.text = this.selectedAdherenceTracing.lateMotives
           })
+          if (!this.selectedAdherenceTracing.hasPatientCameCorrectDate) {
+             this.viewLateDaysWithout = true
+          }
+          if (this.selectedAdherenceTracing.patientForgotMedicine) {
+             this.viewLateMotives = true
+          }
     }
     }
     },
@@ -191,7 +197,7 @@ export default {
   .q-table__top,
   thead tr:first-child th
     /* bg color is important for th; just specify one */
-    background-color: #26A69A
+    background-color: primary
 
   thead tr th
     position: sticky
