@@ -14,6 +14,17 @@
             row-key="id"
             hide-bottom
             >
+            <template #header="props">
+              <q-tr class="text-left"  :props="props">
+                <q-th >{{columns[0].label}}</q-th>
+                <q-th >{{columns[1].label}}</q-th>
+                <q-th v-if="!patient.isMale()">{{columns[2].label}}</q-th>
+                <q-th >{{columns[3].label}}</q-th>
+                <q-th >{{columns[4].label}}</q-th>
+                <q-th v-if="this.selectedPatientVisit.isLast" >{{columns[5].label}}</q-th>
+              </q-tr>
+
+            </template>
             <template #body="props">
               <q-tr no-hover :props="props">
                 <q-td key="vitalSigns" :props="props">
@@ -44,7 +55,7 @@
                 <q-td auto-width key="ramScreening" :props="props">
                   <q-btn class="q-pa-none" flat color="primary" label="Ver Detalhes" @click="viewRam = true"/>
                 </q-td>
-                <q-td auto-width key="opts" :props="props">
+                <q-td v-if="this.selectedPatientVisit.isLast" auto-width key="opts" :props="props">
                   <div class="col">
                     <q-btn
                       flat
@@ -100,7 +111,6 @@
 <script>
 import { SessionStorage, date } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
-import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import { ref } from 'vue'
 const columns = [
@@ -164,11 +174,11 @@ export default {
              this.displayAlert('error', error)
           })
            } else {
-              patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length)
-            patientVisit.tbScreening.splice(0, patientVisit.tbScreening.length)
-            patientVisit.pregnancyScreening.splice(0, patientVisit.pregnancyScreening.length)
-            patientVisit.adherenceScreening.splice(0, patientVisit.adherenceScreening.length)
-            patientVisit.ramScreening.splice(0, patientVisit.ramScreening.length)
+              patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length.length)
+              patientVisit.tbScreening.splice(0, patientVisit.tbScreening.length)
+              patientVisit.pregnancyScreening.splice(0, patientVisit.pregnancyScreening.length)
+              patientVisit.adherenceScreening.splice(0, patientVisit.adherenceScreening.length)
+              patientVisit.ramScreening.splice(0, patientVisit.ramScreening.length)
               PatientVisit.apiSave(patientVisit).then(resp => {
              this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
              }).catch(error => {
@@ -195,19 +205,7 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     patientVisit () {
-      return PatientVisit.query().with('patient.*')
-                          .with('vitalSigns')
-                          .with('tbScreening')
-                          .with('pregnancyScreening')
-                          .with('adherenceScreening')
-                          .with('ramScreening')
-                          .with('patientVisitDetails')
-                          .with('clinic')
-                          .where('id', this.selectedPatientVisit.id)
-                          .has('clinic')
-                          .has('vitalSigns')
-                          .orderBy('visitDate', 'desc')
-                          .first()
+      return this.patientVisits[0]
     },
     patientVisits () {
       return PatientVisit.query().with('patient.*')
@@ -226,8 +224,6 @@ export default {
     }
   },
   created () {
-      this.curIdentifier = new PatientServiceIdentifier(this.identifier)
-      this.patient = Object.assign({}, this.selectedPatient)
   }
 }
 </script>

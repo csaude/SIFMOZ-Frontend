@@ -17,6 +17,7 @@ export default class PatientVisit extends Model {
       visitDate: this.attr(''),
       clinic_id: this.attr(''),
       patient_id: this.attr(''),
+      isLast: this.boolean(false),
       // Relationships
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'patient_visit_id'),
       vitalSigns: this.hasMany(VitalSignsScreening, 'patient_visit_id'),
