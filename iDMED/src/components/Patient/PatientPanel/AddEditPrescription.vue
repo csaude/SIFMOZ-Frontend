@@ -465,7 +465,7 @@ export default {
         visitDetails.packs[0].packagedDrugs.push(packDrug)
       })
     },
-    proccedToDispense (dispenseMode) {
+    async proccedToDispense (dispenseMode) {
       if (this.isNewPackStep) {
         this.curPatientVisitDetails[0].patientVisit = null
         this.curPatientVisitDetails[0].prescriptions[0].patientVisitDetails = null
@@ -479,8 +479,9 @@ export default {
         }
       }.bind(this))
 
-      PatientVisit.apiSave(this.patientVisit).then(resp => {
-        PatientVisit.update({ data: resp.response.data })
+      await PatientVisit.apiSave(this.patientVisit).then(resp => {
+        console.log(resp.response.data)
+        PatientVisit.apiFetchById(resp.response.data.id)
         this.showDispenseMode = false
         this.displayAlert('info', 'Dispensa efectuada com sucesso.')
       }).catch(error => {

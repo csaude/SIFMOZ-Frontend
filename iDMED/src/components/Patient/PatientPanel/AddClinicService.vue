@@ -400,8 +400,7 @@ export default {
         PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
           console.log(resp.response.data)
           if (this.isReOpenStep || this.isCloseStep) {
-            this.identifier.episodes[0].id = resp.response.data.episodes[0].id
-            PatientServiceIdentifier.update({ data: this.identifier })
+            PatientServiceIdentifier.apiFetchById(resp.response.data.id)
           }
           let msg = ''
           if (this.isCloseStep) {
