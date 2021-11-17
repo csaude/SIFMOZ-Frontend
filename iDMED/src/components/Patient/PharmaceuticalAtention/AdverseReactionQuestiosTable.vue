@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <q-table
-      title="Reacoes Adversas aos Medicmanentos"
+      title="Reações Adversas aos Medicamentos"
       :rows="monithoringQuestions"
       :columns="columns"
       row-key="question"
@@ -10,6 +10,7 @@
       :rows-per-page-options="[0]"
       virtual-scroll
         hide-bottom
+        class="my-sticky-header-table"
     >
      <template v-slot:body="props">
             <q-tr :props="props">
@@ -17,7 +18,7 @@
              {{props.row.question}}
             </q-td>
             <q-td key="question" v-if="props.row.code === '02'">
-                  <q-input filled v-if="!onlyView" v-model="props.row.text" label=" Descreva brevemente a reação?" @update:model-value="handleInput(props.row)" :disable="disableReaction"/>
+                  <q-input filled v-if="visibleReaction" v-model="props.row.text" label=" Descreva brevemente a reação?" @update:model-value="handleInput(props.row)" />
                    <q-input filled v-if="onlyView" v-model="props.row.text" label=" Descreva brevemente a reação?" @update:model-value="handleInput(props.row)" :disable="onlyView"/>
             </q-td>
              <q-td key="completed" v-if="props.row.code === '01'" align="right">
@@ -67,13 +68,13 @@ const monithoringQuestions = [
 ]
 
 export default {
-   props: ['selectedRamTracing', 'onlyView'],
+   props: ['selectedRamTracing', 'onlyView', 'isNewRender'],
     data () {
         return {
             columns,
            monithoringQuestions,
            rAMScreening: new RAMScreening(),
-            disableReaction: false
+            visibleReaction: false
         }
     },
     methods: {
@@ -82,9 +83,10 @@ export default {
     case '01':
       this.rAMScreening.adverseReactionMedicine = row.completed
         if (row.completed === 'true') {
-       this.disableReaction = false
+       this.visibleReaction = true
       } else {
-      this.disableReaction = true
+      this.visibleReaction = false
+      this.rAMScreening.adverseReaction = ''
       }
       break
       case '02':
@@ -98,7 +100,14 @@ export default {
      addingValueToArray () {
        if (this.selectedRamTracing) {
       monithoringQuestions.forEach(monithoringQuestion => {
-           if (monithoringQuestion.code === '01') monithoringQuestion.completed = String(this.selectedRamTracing.adverseReactionMedicine)
+           if (monithoringQuestion.code === '01') {
+           monithoringQuestion.completed = String(this.selectedRamTracing.adverseReactionMedicine)
+            if (this.selectedRamTracing.adverseReactionMedicine === true) {
+       this.visibleReaction = true
+      } else {
+      this.visibleReaction = false
+      }
+           }
             if (monithoringQuestion.code === '02') monithoringQuestion.text = this.selectedRamTracing.adverseReaction
           })
     }
@@ -115,3 +124,23 @@ export default {
     }
 }
 </script>
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+
+  .q-table__top,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: #26A69A
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 0px
+</style>

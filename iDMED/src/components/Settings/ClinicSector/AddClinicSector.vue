@@ -1,63 +1,37 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <form @submit.prevent="validateClinic" >
+        <form @submit.prevent="validateClinicSector" >
             <q-card-section class="q-px-md">
                <div class="row q-mt-md">
                 <nameInput
-                    v-model="clinic.clinicName"
-                    label="Nome da Clinica"
+                    v-model="clinicSector.description"
+                    label="Nome do Sector Clinico *"
                     ref="nome"/>
             </div>
               <div class="row q-mt-md">
                 <codeInput
                     ref="code"
-                    v-model="clinic.code"
+                    v-model="clinicSector.code"
                     :rules="[ val => !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe']"
                     lazy-rules
-                    label="Codigo" />
+                    label="Codigo *" />
             </div>
              <div class="row q-mb-md">
                 <q-select
                     dense outlined
                     class="col"
-                    v-model="clinic.province"
-                    :options="provinces"
+                    v-model="clinicSector.clinic"
+                    :options="clinics"
+                    disable
                     transition-show="flip-up"
                     transition-hide="flip-down"
-                    ref="province"
+                    ref="clinic"
                     option-value="id"
-                    option-label="description"
-                    :rules="[ val => ( val != null ) || ' Por favor indique a província']"
+                    option-label="clinicName"
+                    :rules="[ val => ( val != null ) || ' Por favor indique a clinica']"
                     lazy-rules
-                    label="Província" />
+                    label="Clinica" />
             </div>
-            <div class="row q-mb-md">
-                <q-select
-                    class="col"
-                    dense outlined
-                     transition-show="flip-up"
-                    transition-hide="flip-down"
-                    v-model="clinic.district"
-                    :options="districts"
-                    ref="district"
-                    option-value="id"
-                    option-label="description"
-                    :rules="[ val => ( val != null) || ' Por favor indique a Distrito']"
-                    lazy-rules
-                    label="Distrito" />
-            </div>
-            <div class="row q-mt-md">
-                  <PhoneField v-model="clinic.telephone" dense label="Numero de Telefone"/>
-                </div>
-                 <div class="row q-mt-md">
-                  <q-input
-                  outlined
-                  class="col"
-      v-model="clinic.notes"
-      type="textarea"
-      label="Notas"
-      dense  />
-                 </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
@@ -76,15 +50,15 @@
 
 <script>
 import Clinic from '../../../store/models/clinic/Clinic'
-import Province from '../../../store/models/province/Province'
-import District from '../../../store/models/district/District'
 import { ref } from 'vue'
+import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import { SessionStorage } from 'quasar'
 export default {
-      props: ['selectedClinic'],
+      props: ['selectedClinicSector'],
     data () {
         return {
             databaseCodes: [],
-           clinic: new Clinic(),
+           clinicSector: new ClinicSector(),
             clinico: '',
             alert: ref({
               type: '',
@@ -94,51 +68,48 @@ export default {
         }
     },
     created () {
-        this.currClinic = Object.assign({}, this.newClinic)
+        this.currClinicSector = Object.assign({}, this.newClinicSector)
     },
       mounted () {
         const offset = 0
         this.getAllClinics(offset)
         this.extractDatabaseCodes()
+     this.clinicSector.clinic = this.currClinic
     },
     computed: {
-         clinicos () {
+         clinics () {
             return Clinic.all()
         },
-          provinces () {
-            return Province.query().with('districts').get()
+          clinicSectors () {
+            return ClinicSector.all()
         },
-        districts () {
-        if (this.clinic.province !== null) {
-            return District.query().with('province').where('province_id', this.clinic.province.id).get()
-        } else {
-            return null
-        }
-        }
+        currClinic () {
+        return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+      }
     },
     methods: {
-    validateClinic () {
+    validateClinicSector () {
             this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
-              this.$refs.province.validate()
-              this.$refs.district.validate()
-            // this.$refs.district.$refs.ref.validate()
+              this.$refs.clinic.validate()
             if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
-             !this.$refs.province.hasError) {
-                this.submitClinic()
+             !this.$refs.clinic.hasError) {
+                this.submitClinicSector()
             }
         },
-        submitClinic () {
-            this.clinic.mainClinic = 0
-           Clinic.apiSave(this.clinic).then(resp => {
+        submitClinicSector () {
+           ClinicSector.apiSave(this.clinicSector).then(resp => {
                 console.log(resp.response.data)
-                alert('Clinica Cadastrada Com Sucesso')
+                this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clinico adiconado com sucesso.' : 'Sector Clinico actualizado com sucesso.')
             }).catch(error => {
-                console.log(error)
+               this.displayAlert('error', error)
             })
         },
         getAllClinics (offset) {
-        if (this.clinicos.length <= 0) {
+        if (this.clinics.length <= 0) {
                 Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
                     offset = offset + 100
                     if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
@@ -158,7 +129,7 @@ export default {
           }
         },
     extractDatabaseCodes () {
-        this.clinicos.forEach(element => {
+        this.clinics.forEach(element => {
             this.databaseCodes.push(element.code)
     })
     }
@@ -166,7 +137,6 @@ export default {
     components: {
         nameInput: require('components/Shared/NameInput.vue').default,
         codeInput: require('components/Shared/CodeInput.vue').default,
-         PhoneField: require('components/Shared/Input/PhoneField.vue').default,
             Dialog: require('components/Shared/Dialog/Dialog.vue').default
     }
 

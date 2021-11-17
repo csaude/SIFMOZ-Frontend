@@ -47,6 +47,7 @@
                 ref="stepper"
                 color="primary"
                 animated
+                header-nav
               >
                 <q-step
                   :name="1"
@@ -80,7 +81,7 @@
                 <q-step
                   :name="3"
                   title="Rastreio de Gravidez"
-                  v-if="this.patient.gender === 'Feminino'"
+                  v-if="this.patient.gender === 'Femenino'"
                   icon="show_chart"
                   :done="step > 3"
                 >
@@ -101,7 +102,7 @@
                   title="Reações Adversas"
                   icon="show_chart"
                 >
-                 <ramTable  @rAMScreening="rAMScreening = $event" :selectedRamTracing="patientVisit.ramScreening[0]"/>
+                 <ramTable  @rAMScreening="rAMScreening = $event" :selectedRamTracing="patientVisit.ramScreening[0]" :isNewRender="true"/>
                 </q-step>
               </q-stepper>
             </div>
@@ -196,13 +197,21 @@ export default {
               this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
            } else if (this.hasVisitSameDay && !this.editMode) {
              this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')
-           } else if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
+           } else if (this.vitalSigns.height <= 0) {
+              this.displayAlert('error', 'Por favor indique uma altura maior que zero ')
+           } else if (this.vitalSigns.weight <= 0) {
+              this.displayAlert('error', 'Por favor indique um peso maior que zero ')
+            } else if (this.vitalSigns.systole <= 0 || this.vitalSigns.distort <= 0) {
+              this.displayAlert('error', 'Por favor indique um sistole ou diastole maior que zero ')
+            } else if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
              !this.$refs.systole.$refs.ref.hasError && !this.$refs.distort.$refs.ref.hasError) {
               this.$refs.stepper.next()
             }
           } else if (this.step === 2) {
             if (this.TBScreening.treatmentTB === 'true' && this.TBScreening.startTreatmentDate === '') {
                 this.displayAlert('error', 'Deve Preencher a Data de inicio de Tratamento uma vez que esta em Tratamento TB.')
+            } else if ((this.TBScreening.startTreatmentDate) && new Date(this.TBScreening.startTreatmentDate) > new Date()) {
+                this.displayAlert('error', 'A Data de inicio de Tratamento indicada é maior que a data da corrente.')
             } else if (this.patient.gender === 'Masculino') {
               this.$refs.stepper.goTo(4)
             } else {
@@ -237,6 +246,7 @@ export default {
              this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
              console.log(resp.rsponse.data)
              PatientVisit.apiFetchById(resp.response.data.id)
+            this.$emit('patientVisitNew', this.patientVisit)
              }).catch(error => {
              this.displayAlert('error', error)
           })
@@ -267,19 +277,18 @@ export default {
                           .with('ramScreening')
                           .with('patientVisitDetails')
                           .with('clinic').where('patient_id', this.patient.id).has('clinic').has('vitalSigns').get()
-                        visits.every(visit => {
-                          if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length > 0) {
+
+                      for (const visit of visits) {
+                   if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length > 0) {
                                this.hasVisitSameDay = true
-                               return this.hasVisitSameDay
+                               break
                           } else if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length === 0) {
                                  this.patientVisit = visit
                                this.hasVisitSameDay = false
-                               return this.hasVisitSameDay
                           } else {
                            this.hasVisitSameDay = false
-                           return this.hasVisitSameDay
                           }
-          })
+                       }
          },
     getImcDescription () {
         const imc = this.vitalSigns.imc

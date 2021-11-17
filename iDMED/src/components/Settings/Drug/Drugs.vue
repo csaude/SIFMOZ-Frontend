@@ -42,6 +42,7 @@
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
+                    v-if="props.row.active === true"
                    @click="editDrug(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
@@ -55,11 +56,11 @@
                       </q-btn>
                      <q-btn flat round
                       class="q-ml-md"
-                      color="red"
-                      icon="delete"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -108,7 +109,7 @@ export default {
   },
  computed: {
       drugs () {
-             return Drug.query().with('form').where('active', true).get()
+             return Drug.query().with('form').get()
       },
        forms () {
             return Form.all()
@@ -117,6 +118,20 @@ export default {
   methods: {
   async  getDrugs () {
           await Drug.api().get('/drug')
+       },
+       getIconActive (drug) {
+           if (drug.active) {
+              return 'delete'
+              } else if (!drug.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (drug) {
+           if (drug.active) {
+              return 'red'
+              } else if (!drug.active) {
+              return 'green'
+              }
        },
        editDrug (drug) {
          this.viewMode = false
@@ -134,8 +149,12 @@ export default {
            this.showDrugRegistrationScreen = true
       },
          promptToConfirm (drug) {
-            this.$q.dialog({ title: 'Confirm', message: 'Deseja inactivar o medicamento?', cancel: true, persistent: true }).onOk(() => {
-               drug.active = false
+            this.$q.dialog({ title: 'Confirm', message: drug.active ? 'Deseja Inactivar o medicamento?' : 'Deseja Activar o medicamento?', cancel: true, persistent: true }).onOk(() => {
+              if (drug.active) {
+                drug.active = false
+              } else if (!drug.active) {
+                  drug.active = true
+              }
              Drug.apiSave(drug).then(resp => {
                 this.$emit('drug', resp.response.data)
             }).catch(error => {

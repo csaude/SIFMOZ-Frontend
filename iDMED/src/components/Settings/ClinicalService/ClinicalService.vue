@@ -1,19 +1,19 @@
 <template>
     <div>
      <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-        Servico Clinico
+        Serviço Clinico
         </div>
         <div class="">
         <q-table
           style="height: 700px"
-     :rows="clinicServices"
+     :rows="clinicalServices"
       :columns="columns"
       :filter="filter"
        v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll>
         <template v-slot:top-right>
-            <q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
                 <q-icon name="search" />
             </template>
@@ -47,14 +47,13 @@
                     @click="visualizeClinicalService(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                   </q-btn>
-                   <q-btn flat round
+                  <q-btn flat round
                       class="q-ml-md"
-                      color="red"
-                      icon="delete"
-                      v-if="props.row.active === true"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -107,17 +106,36 @@ export default {
               type: '',
               visible: false,
               msg: ''
-            })
+            }),
+             filter: ref('')
     }
   },
  computed: {
-      clinicServices () {
-          return ClinicalService.query().with('attributes.clinicalServiceAttributeType').with('identifierType').with('therapeuticRegimens').has('code').get()
+      clinicalServices () {
+          return ClinicalService.query().with('attributes.clinicalServiceAttributeType')
+          .with('identifierType')
+          .with('therapeuticRegimens')
+          .with('clinicSectors')
+          .has('code').get()
       }
   },
   methods: {
   async  getClinicServices () {
           await ClinicalService.api().get('/clinicalService')
+       },
+       getIconActive (clinicalService) {
+           if (clinicalService.active) {
+              return 'delete'
+              } else if (!clinicalService.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (clinicalService) {
+           if (clinicalService.active) {
+              return 'red'
+              } else if (!clinicalService.active) {
+              return 'green'
+              }
        },
        editClinicService (clinicalService) {
         this.clinicalService = Object.assign({}, clinicalService)
@@ -138,10 +156,14 @@ export default {
              this.editMode = false
       },
         promptToConfirm (clinicalService) {
-            this.$q.dialog({ title: 'Confirm', message: 'Deseja inactivar o Servico Clinico?', cancel: true, persistent: true }).onOk(() => {
-               clinicalService.active = false
+            this.$q.dialog({ title: 'Confirm', message: clinicalService.active ? 'Deseja Inactivar o Serviço Clinico?' : 'Deseja Activar o Serviço Clinico?', cancel: true, persistent: true }).onOk(() => {
+              if (clinicalService.active) {
+                clinicalService.active = false
+              } else if (!clinicalService.active) {
+                  clinicalService.active = true
+              }
              ClinicalService.apiSave(clinicalService).then(resp => {
-                  this.displayAlert('info', 'Servico Clinico inactivado com sucesso')
+                  this.displayAlert('info', 'Servico Clinico actualizado com sucesso')
             }).catch(error => {
                    this.displayAlert('error', error)
             })
