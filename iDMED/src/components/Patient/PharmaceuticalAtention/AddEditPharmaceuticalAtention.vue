@@ -235,7 +235,8 @@ export default {
 
             PatientVisit.apiSave(this.patientVisit).then(resp => {
              this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
-             PatientVisit.insert(this.patientVisit)
+             console.log(resp.rsponse.data)
+             PatientVisit.apiFetchById(resp.response.data.id)
              }).catch(error => {
              this.displayAlert('error', error)
           })

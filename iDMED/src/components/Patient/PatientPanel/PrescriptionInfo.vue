@@ -65,7 +65,7 @@ export default {
                             .where('id', selectedP.id).first()
     },
     patientHasEpisodes () {
-      if (this.patient.hasIdentifiers()) return false
+      if (!this.patient.hasIdentifiers()) return false
 
       let hasEpisode = false
       Object.keys(this.patient.identifiers).forEach(function (k) {

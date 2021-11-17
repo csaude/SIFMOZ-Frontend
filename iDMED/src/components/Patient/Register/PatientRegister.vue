@@ -129,6 +129,7 @@ import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
+import District from '../../../store/models/district/District'
 export default {
     props: ['clinic', 'selectedPatient'],
     data () {
@@ -173,6 +174,7 @@ export default {
       async savePatient () {
           this.patient.dateOfBirth = new Date(this.dateOfBirth)
           this.patient.identifiers = []
+          console.log(this.patient)
           await Patient.apiSave(this.patient).then(resp => {
             this.patient = resp.response.data
             this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
@@ -226,11 +228,11 @@ export default {
       },
       districts () {
         if (this.patient.province === null) return null
-        return this.patient.province.districts
+        return District.query().with('province').where('province_id', this.patient.province.id).get()
       },
       currClinic () {
         return Clinic.query()
-                    .with('province.districts')
+                    .with('province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       },

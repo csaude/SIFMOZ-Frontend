@@ -8,11 +8,11 @@
       @showAdd="showAddPharmaceuticalAtention = true">
       Atenção Farmacêutica
     </ListHeader>
-    <EmptyList v-if="lastPatientVisit === null" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
-    <div v-show="infoVisible" >
-     <span>
+    <EmptyList v-if="patientVisits.length <= 0" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
+    <div v-else >
+     <span v-for="patientVisit in patientVisits" :key="patientVisit.id">
         <PharmaceuticalAtentionContainer
-          :selectedPatientVisit="lastPatientVisit"/>
+          :selectedPatientVisit="patientVisit"/>
       </span>
     </div>
     <q-dialog persistent v-model="showAddPharmaceuticalAtention">
@@ -47,13 +47,16 @@ export default {
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
-    lastPatientVisit () {
-      return PatientVisit.query()
-                          .where('patient_id', this.selectedPatient.id)
+    patientVisits () {
+      const pvts = PatientVisit.query()
+                          .where('patient_id', this.patient.id)
+                          .limit(4)
                           .has('clinic')
                           .has('vitalSigns')
                           .orderBy('visitDate', 'desc')
-                          .first()
+                          .get()
+      if (pvts.length > 0) pvts[0].isLast = true
+      return pvts
     },
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0
