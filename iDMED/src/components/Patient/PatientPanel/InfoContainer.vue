@@ -31,9 +31,9 @@
           <q-separator/>
           <div class="row q-my-md">
             <q-space/>
-            <q-btn v-if="curIdentifier.endDate === ''" unelevated color="orange-5" label="Editar" @click="editClinicService()" class="float-right" />
-            <q-btn v-if="curIdentifier.endDate === ''" unelevated color="red" label="Fechar" @click="$emit('closeClinicService', curIdentifier)" class="float-right q-ml-sm" />
-            <q-btn v-if="curIdentifier.endDate !== ''" unelevated color="blue" label="Reabrir" @click="$emit('reopenClinicService', curIdentifier)" class="float-right q-ml-sm" />
+            <q-btn v-if="!showEndDetails" unelevated color="orange-5" label="Editar" @click="editClinicService()" class="float-right" />
+            <q-btn v-if="!showEndDetails" unelevated color="red" label="Fechar" @click="$emit('closeClinicService', curIdentifier)" class="float-right q-ml-sm" />
+            <q-btn v-if="showEndDetails" unelevated color="blue" label="Reabrir" @click="$emit('reopenClinicService', curIdentifier)" class="float-right q-ml-sm" />
           </div>
         </div>
         <div class="col q-py-md">
@@ -175,7 +175,7 @@ export default {
                                       .where('id', this.identifier.id).first()
     },
     clinicalServiceHeaderColor () {
-      if (this.curIdentifier.endDate === '') {
+      if (!this.showEndDetails) {
         return 'bg-grey-4'
       } else {
         return 'bg-red-7'

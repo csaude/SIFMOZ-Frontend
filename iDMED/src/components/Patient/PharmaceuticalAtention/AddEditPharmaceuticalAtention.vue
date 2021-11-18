@@ -180,7 +180,7 @@ export default {
     }
     },
     methods: {
-       goToNextStep () {
+       async goToNextStep () {
           if (this.step === 1) {
            // this.patientVisit.TBScreening = this.TBScreening
            // this.patientVisit.pregnancyScreening = this.pregnancyScreening
@@ -246,11 +246,11 @@ export default {
             this.patientVisit.adherenceScreening.push(this.adherenceScreening)
             this.patientVisit.ramScreening.push(this.rAMScreening)
 
-            PatientVisit.apiSave(this.patientVisit).then(resp => {
+            await PatientVisit.apiSave(this.patientVisit).then(resp => {
+              console.log(resp.response.data)
+              PatientVisit.apiFetchById(resp.response.data.id)
              this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
-             console.log(resp.rsponse.data)
-             PatientVisit.apiFetchById(resp.response.data.id)
-            this.$emit('patientVisitNew', this.patientVisit)
+            // this.$emit('patientVisitNew', this.patientVisit)
              }).catch(error => {
              this.displayAlert('error', error)
           })
