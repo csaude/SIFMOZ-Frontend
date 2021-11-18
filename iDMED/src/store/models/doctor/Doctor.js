@@ -19,7 +19,7 @@ export default class Doctor extends Model {
         telephone: this.attr(''),
         email: this.attr(''),
         category: this.attr(''),
-        active: this.boolean(true),
+        active: this.attr(''),
         clinic_id: this.attr(''),
 
         // Relationships
@@ -38,5 +38,9 @@ export default class Doctor extends Model {
 
     static async apiFetchByClinicId (clinicId) {
       return await this.api().get('/doctor/clinic/' + clinicId)
+    }
+
+    static async apiSave (doctor) {
+      return await this.api().post('/doctor', doctor)
     }
 }

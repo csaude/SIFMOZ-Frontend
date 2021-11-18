@@ -19,6 +19,7 @@ export default class Clinic extends Model {
       province_id: this.attr(''),
       district_id: this.attr(''),
       nationalClinic_id: this.attr(''),
+      active: this.attr(''),
       // Relationships
       province: this.belongsTo(Province, 'province_id'),
       district: this.belongsTo(District, 'district_id'),

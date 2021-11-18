@@ -8,12 +8,20 @@
       :filter="filter"
       virtual-scroll>
         <template v-slot:top-right>
-            <q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
                 <q-icon name="search" />
             </template>
                 </q-input>
         </template>
+         <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
         <template v-slot:body="props">
             <q-tr :props="props">
             <q-td key="firstnames" :props="props">
@@ -25,14 +33,15 @@
              <q-td key="telephone" :props="props">
                 {{ props.row.telephone }}
             </q-td>
-            <q-td key="email" :props="props">
-                {{ props.row.email }}
+            <q-td key="active" :props="props">
+                {{ props.row.active ? 'Sim':'Nao' }}
             </q-td>
                   <q-td key="options" :props="props">
                   <div class="col">
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
+                     v-if="props.row.active === true"
                    @click="editDoctor(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
@@ -41,9 +50,17 @@
                     class="q-ml-md"
                     color="green-8"
                     icon="search"
-                    @click="goToPatientPanel(props.row)">
+                    @click="visualizeDoctor(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                   </q-btn>
+                    <q-btn flat round
+                      class="q-ml-md"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
+                      @click.stop="promptToConfirm(props.row)"
+                     >
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                     </q-btn>
                   </div>
                   </q-td>
             </q-tr>
@@ -58,19 +75,28 @@
           <q-dialog persistent v-model="showDoctorRegistrationScreen">
           <addDoctor
           :selectedDoctor="doctor"
+          :editMode=editMode
+           :onlyView="viewMode"
             @close="showDoctorRegistrationScreen = false" />
       </q-dialog>
+        <q-dialog v-model="alert.visible">
+             <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+             </q-dialog>
     </div>
 </template>
 <script>
 import { useQuasar } from 'quasar'
 import Doctor from '../../../store/models/doctor/Doctor'
+import { ref } from 'vue'
 
 const columns = [
   { name: 'firstnames', required: true, label: 'Nome', align: 'left', field: row => row.firstnames, format: val => `${val}`, sortable: true },
   { name: 'lastname', required: true, label: 'Codigo', align: 'left', field: row => row.lastname, format: val => `${val}`, sortable: true },
    { name: 'telephone', required: true, label: 'Telefone', align: 'left', field: row => row.telephone, format: val => `${val}`, sortable: true },
-  { name: 'email', required: true, label: 'Email', align: 'left', field: row => row.email, format: val => `${val}`, sortable: true },
+  { name: 'active', required: true, label: 'Activo', align: 'left', field: row => row.active, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
@@ -80,32 +106,93 @@ export default {
     return {
         columns,
         $q,
-         showDoctorRegistrationScreen: false
+         editMode: false,
+         viewMode: false,
+         showDoctorRegistrationScreen: false,
+           alert: ref({
+              type: '',
+              visible: false,
+              msg: ''
+            }),
+             filter: ref('')
     }
   },
  computed: {
       doctors () {
-          return Doctor.query().with('clinic').get()
+          return Doctor.query().with('clinic.province.district').get()
       }
   },
   methods: {
   async  getDoctors () {
           await Doctor.api().get('/doctor')
        },
+        getIconActive (doctor) {
+           if (doctor.active) {
+              return 'delete'
+              } else if (!doctor.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (doctor) {
+           if (doctor.active) {
+              return 'red'
+              } else if (!doctor.active) {
+              return 'green'
+              }
+       },
        editDoctor (doctor) {
         this.doctor = Object.assign({}, doctor)
          this.showDoctorRegistrationScreen = true
+         this.editMode = true
+          this.viewMode = false
       },
         addDoctor () {
           this.doctor = new Doctor()
          this.showDoctorRegistrationScreen = true
-      }
+           this.editMode = false
+           this.viewMode = false
+      },
+       visualizeDoctor (doctor) {
+         this.doctor = Object.assign({}, doctor)
+         this.viewMode = true
+            this.showDoctorRegistrationScreen = true
+             this.editMode = false
+      },
+      promptToConfirm (doctor) {
+        let msg = ''
+            this.$q.dialog({ title: 'Confirm', message: doctor.active ? 'Deseja Inactivar o Clinico?' : 'Deseja Activar o Clinico?', cancel: true, persistent: true }).onOk(() => {
+              if (doctor.active) {
+                doctor.active = false
+                  msg = 'Clinico inactivada com sucesso.'
+              } else if (!doctor.active) {
+                  doctor.active = true
+                     msg = 'Clinico activado com sucesso.'
+              }
+              console.log(doctor)
+             Doctor.apiSave(doctor).then(resp => {
+                  this.displayAlert('info', msg)
+            }).catch(error => {
+                   this.displayAlert('error', error)
+            })
+        })
+      },
+       displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+          }
+        }
   },
   mounted () {
     this.getDoctors()
   },
   components: {
-     addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default
+     addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default,
+     Dialog: require('components/Shared/Dialog/Dialog.vue').default
   //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
   }
 }

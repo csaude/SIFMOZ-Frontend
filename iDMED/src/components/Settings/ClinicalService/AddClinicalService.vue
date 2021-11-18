@@ -101,7 +101,6 @@
       row-key="code"
       selection="multiple"
        virtual-scroll
-       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       v-model:selected="clinicalService.clinicSectors"
        class="my-sticky-header-table"
@@ -129,7 +128,6 @@
       row-key="code"
       selection="multiple"
        virtual-scroll
-        v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       v-model:selected="clinicalService.therapeuticRegimens"
        class="my-sticky-header-table"
@@ -157,13 +155,14 @@
 </template>
 <script>
 import { ref } from 'vue'
-import { useQuasar } from 'quasar'
+import { useQuasar, SessionStorage } from 'quasar'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import ClinicalServiceAttributeType from '../../../store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import Clinic from '../../../store/models/clinic/Clinic'
 
 const columnsRegimen = [
   { name: 'code', required: true, label: 'Code', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -234,26 +233,23 @@ export default {
           .has('code').get()
       },
       clinicSectors () {
-          return ClinicSector.query().with('clinic').has('code').where('active', true).get()
+          return ClinicSector.query().with('clinic').has('code').where('active', true).where('clinic_id', this.currClinic.id).get()
+      },
+        currClinic () {
+        return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
       }
   },
   methods: {
-         validateClinicalService () {
-            this.$refs.nome.$refs.ref.validate()
-             this.$refs.code.$refs.ref.validate()
-            this.$refs.identifierType.validate()
-            if (this.selectedAttributes.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clinico')
-            } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
-               this.submitClinicalService()
-            }
-        },
         submitClinicalService () {
                this.createClinicServiceAttribute()
           this.clinicalService.attributes = this.clinicalServiceAttributeTypes
           this.clinicalService.active = true
+            console.log(this.clinicalService)
              ClinicalService.apiSave(this.clinicalService).then(resp => {
-                this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clinico adicionado com sucesso.' : 'Serviço Clinico actualizado com sucesso.')
+                this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínicos adicionado com sucesso.' : 'Serviço Clínicos actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })
@@ -274,13 +270,13 @@ export default {
              this.$refs.code.$refs.ref.validate()
             this.$refs.identifierType.validate()
             if (this.selectedAttributes.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clinico')
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clínicos')
             } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
                 this.$refs.stepper.next()
             }
            } else if (this.step === 2) {
              if (this.clinicalService.clinicSectors.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um sector para o Serviço Clinico')
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um sector para o Serviço Clínicos')
             } else {
             const attribute = this.selectedAttributes.filter(x => x.code === 'THERAPEUTICAL_REGIMEN')
             if (attribute.length >= 1 && attribute[0].code === 'THERAPEUTICAL_REGIMEN') {
@@ -291,7 +287,7 @@ export default {
         }
         } else if (this.step === 3) {
              if (this.clinicalService.therapeuticRegimens.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clinico')
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clínicos')
             } else {
               this.submitClinicalService()
             }
@@ -346,7 +342,7 @@ export default {
 
   .q-table__top
     /* bg color is important for th; just specify one */
-    background-color: #26A69A
+    background-color: #0ba58b
 
   thead tr th
     position: sticky

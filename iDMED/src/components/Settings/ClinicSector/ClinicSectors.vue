@@ -5,20 +5,27 @@
         </div>
         <div class="">
         <q-table
-          style="height: 700px"
+          style="height: 600px"
      :rows="clinicSectors"
       :columns="columns"
       :filter="filter"
-       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll>
         <template v-slot:top-right>
-            <q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
                 <q-icon name="search" />
             </template>
                 </q-input>
         </template>
+          <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
         <template v-slot:body="props">
             <q-tr :props="props">
             <q-td key="code" :props="props">
@@ -47,14 +54,13 @@
                     @click="visualizeClinicSector(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                   </q-btn>
-                   <q-btn flat round
+                 <q-btn flat round
                       class="q-ml-md"
-                      color="red"
-                      icon="delete"
-                      v-if="props.row.active === true"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">Remover</q-tooltip>
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -67,7 +73,7 @@
                 <q-btn size="xl" fab icon="add" @click="addClinicSector" color="primary" />
              </q-page-sticky>
         </div>
-          <q-dialog persistent v-model="showClinicSectorRegistrationScreen" full-width>
+          <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
           <addClinicSector
           :selectedClinicSector="clinicSector"
           :editMode=editMode
@@ -107,7 +113,8 @@ export default {
               type: '',
               visible: false,
               msg: ''
-            })
+            }),
+            filter: ref('')
     }
   },
  computed: {
@@ -116,6 +123,20 @@ export default {
       }
   },
   methods: {
+    getIconActive (drug) {
+           if (drug.active) {
+              return 'delete'
+              } else if (!drug.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (drug) {
+           if (drug.active) {
+              return 'red'
+              } else if (!drug.active) {
+              return 'green'
+              }
+       },
        editClinicSector (clinicSector) {
         this.clinicSector = Object.assign({}, clinicSector)
          this.showClinicSectorRegistrationScreen = true
@@ -135,10 +156,14 @@ export default {
              this.editMode = false
       },
         promptToConfirm (clinicSector) {
-            this.$q.dialog({ title: 'Confirm', message: 'Deseja inactivar o Servico Clinico?', cancel: true, persistent: true }).onOk(() => {
-               clinicSector.active = false
+            this.$q.dialog({ title: 'Confirm', message: clinicSector.active ? 'Deseja Inactivar o Sector Clinico?' : 'Deseja Activar o Sector Clinico?', cancel: true, persistent: true }).onOk(() => {
+               if (clinicSector.active) {
+                clinicSector.active = false
+              } else if (!clinicSector.active) {
+                  clinicSector.active = true
+              }
              ClinicSector.apiSave(clinicSector).then(resp => {
-                  this.displayAlert('info', 'Servico Clinico inactivado com sucesso')
+                  this.displayAlert('info', 'Sector Clinico inactivado com sucesso')
             }).catch(error => {
                    this.displayAlert('error', error)
             })

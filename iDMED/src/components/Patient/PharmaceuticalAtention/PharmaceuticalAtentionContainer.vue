@@ -35,13 +35,13 @@
                   {{props.row.vitalSigns[0].height + ' m'}}
                   <span class="text-weight-bolder"> | </span>
                   <span class="text-weight-medium">IMC:</span>
-                  {{Math.round(props.row.vitalSigns[0].imc * 100) / 100 + ' m'}}
+                  {{Math.round(props.row.vitalSigns[0].imc * 100) / 100 + ''}}
                   <span class="text-weight-bolder"> | </span>
                   <span class="text-weight-medium">Sistole:</span>
-                  {{props.row.vitalSigns[0].systole + ' m'}}
+                  {{props.row.vitalSigns[0].systole + ' mmhHg'}}
                   <span class="text-weight-bolder"> | </span>
                   <span class="text-weight-medium">Diastole:</span>
-                  {{props.row.vitalSigns[0].distort + ' m'}}
+                  {{props.row.vitalSigns[0].distort + ' mmHg'}}
                 </q-td>
                 <q-td key="tb" :props="props">
                   <q-btn class="q-pa-none" flat color="primary" label="Ver Detalhes" @click="viewTb = true"/>
@@ -167,6 +167,8 @@ export default {
             // this.patientVisit = this.patientVisit.filter(obj => obj.id !== patientVisit.id)
          //    this.$emit(this.patientVisit.filter(obj => obj.id !== patientVisit.id), 'patientVisit')
              this.displayAlert('info', 'Atenção Farmaceutica removida com sucesso.')
+              this.patientVisits.splice(0, this.patientVisits.length)
+               this.$emit('selectedPatientVisit', null)
            //  PatientVisit.update()
              }).catch(error => {
              this.displayAlert('error', error)

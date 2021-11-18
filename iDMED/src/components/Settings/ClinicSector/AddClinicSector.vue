@@ -6,14 +6,16 @@
                 <nameInput
                     v-model="clinicSector.description"
                     label="Nome do Sector Clinico *"
-                    ref="nome"/>
+                    ref="nome"
+                     :disable="onlyView" />
             </div>
               <div class="row q-mt-md">
                 <codeInput
                     ref="code"
                     v-model="clinicSector.code"
-                    :rules="[ val => !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe']"
+                   :rules="[val => codeRules (val)]"
                     lazy-rules
+                     :disable="onlyView"
                     label="Codigo *" />
             </div>
              <div class="row q-mb-md">
@@ -35,7 +37,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary"/>
+                <q-btn type="submit" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -54,12 +56,11 @@ import { ref } from 'vue'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import { SessionStorage } from 'quasar'
 export default {
-      props: ['selectedClinicSector'],
+      props: ['selectedClinicSector', 'onlyView'],
     data () {
         return {
             databaseCodes: [],
            clinicSector: new ClinicSector(),
-            clinico: '',
             alert: ref({
               type: '',
               visible: false,
@@ -68,7 +69,10 @@ export default {
         }
     },
     created () {
-        this.currClinicSector = Object.assign({}, this.newClinicSector)
+       // this.currClinicSector = Object.assign({}, this.newClinicSector)
+          if (this.clinicSector !== '') {
+          this.clinicSector = Object.assign({}, this.selectedClinicSector)
+          }
     },
       mounted () {
         const offset = 0
@@ -78,10 +82,10 @@ export default {
     },
     computed: {
          clinics () {
-            return Clinic.all()
+            return Clinic.query().has('code').get()
         },
           clinicSectors () {
-            return ClinicSector.all()
+            return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
         },
         currClinic () {
         return Clinic.query()
@@ -101,6 +105,7 @@ export default {
             }
         },
         submitClinicSector () {
+          this.clinicSector.active = true
            ClinicSector.apiSave(this.clinicSector).then(resp => {
                 console.log(resp.response.data)
                 this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clinico adiconado com sucesso.' : 'Sector Clinico actualizado com sucesso.')
@@ -129,15 +134,22 @@ export default {
           }
         },
     extractDatabaseCodes () {
-        this.clinics.forEach(element => {
+        this.clinicSectors.forEach(element => {
             this.databaseCodes.push(element.code)
     })
+    },
+    codeRules (val) {
+      if (this.clinicSector.code === '') {
+        return 'o Codigo é obrigatorio'
+      } else if (!this.clinicSector.id && this.selectedClinicSector.id === this.clinicSector.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado já existe'
+         }
     }
     },
     components: {
         nameInput: require('components/Shared/NameInput.vue').default,
         codeInput: require('components/Shared/CodeInput.vue').default,
-            Dialog: require('components/Shared/Dialog/Dialog.vue').default
+        Dialog: require('components/Shared/Dialog/Dialog.vue').default
     }
 
 }

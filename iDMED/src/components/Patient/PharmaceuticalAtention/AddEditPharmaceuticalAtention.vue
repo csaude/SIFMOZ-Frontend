@@ -218,7 +218,11 @@ export default {
               this.$refs.stepper.next()
             }
           } else if (this.step === 3) {
-           this.$refs.stepper.next()
+             if (this.pregnancyScreening.pregnant === 'false' && this.pregnancyScreening.lastMenstruation === '') {
+                this.displayAlert('error', 'Deve Preencher a Data da Ultima Menstruação.')
+            } else {
+              this.$refs.stepper.next()
+            }
           } else if (this.step === 4) {
             if ((this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine === '') ||
              (this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine <= 0)) {

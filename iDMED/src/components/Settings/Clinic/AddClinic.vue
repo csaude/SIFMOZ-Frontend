@@ -5,22 +5,25 @@
                <div class="row q-mt-md">
                 <nameInput
                     v-model="clinic.clinicName"
-                    label="Nome da Clinica"
+                    label="Nome da Clinica *"
+                    :disable="onlyView"
                     ref="nome"/>
             </div>
               <div class="row q-mt-md">
                 <codeInput
                     ref="code"
                     v-model="clinic.code"
-                    :rules="[ val => !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe']"
+                    :rules="[val => codeRules (val)]"
+                    :disable="onlyView"
                     lazy-rules
-                    label="Codigo" />
+                    label="Codigo *" />
             </div>
              <div class="row q-mb-md">
                 <q-select
                     dense outlined
                     class="col"
                     v-model="clinic.province"
+                    :disable="onlyView"
                     :options="provinces"
                     transition-show="flip-up"
                     transition-hide="flip-down"
@@ -29,7 +32,7 @@
                     option-label="description"
                     :rules="[ val => ( val != null ) || ' Por favor indique a província']"
                     lazy-rules
-                    label="Província" />
+                    label="Província *" />
             </div>
             <div class="row q-mb-md">
                 <q-select
@@ -37,17 +40,21 @@
                     dense outlined
                      transition-show="flip-up"
                     transition-hide="flip-down"
+                    :disable="onlyView"
                     v-model="clinic.district"
                     :options="districts"
                     ref="district"
                     option-value="id"
                     option-label="description"
-                    :rules="[ val => ( val != null) || ' Por favor indique a Distrito']"
+                    :rules="[ val => ( val != null) || ' Por favor indique o Distrito']"
                     lazy-rules
                     label="Distrito" />
             </div>
             <div class="row q-mt-md">
-                  <PhoneField v-model="clinic.telephone" dense label="Numero de Telefone"/>
+                  <PhoneField v-model="clinic.telephone"
+                  dense
+                  label="Numero de Telefone"
+                  :disable="onlyView" />
                 </div>
                  <div class="row q-mt-md">
                   <q-input
@@ -56,12 +63,13 @@
       v-model="clinic.notes"
       type="textarea"
       label="Notas"
-      dense  />
+      dense
+       :disable="onlyView"  />
                  </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary"/>
+                <q-btn type="submit" label="Submeter" color="primary"  v-if="!onlyView"/>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -80,7 +88,7 @@ import Province from '../../../store/models/province/Province'
 import District from '../../../store/models/district/District'
 import { ref } from 'vue'
 export default {
-      props: ['selectedClinic'],
+      props: ['selectedClinic', 'onlyView'],
     data () {
         return {
             databaseCodes: [],
@@ -94,19 +102,23 @@ export default {
         }
     },
     created () {
-        this.currClinic = Object.assign({}, this.newClinic)
+        if (this.clinic !== '') {
+          this.clinic = Object.assign({}, this.selectedClinic)
+          }
     },
       mounted () {
-        const offset = 0
-        this.getAllClinics(offset)
         this.extractDatabaseCodes()
     },
     computed: {
          clinicos () {
-            return Clinic.all()
+             return Clinic.query()
+                           .with('province')
+                           .with('district.province')
+                           .has('code')
+                          .get()
         },
           provinces () {
-            return Province.query().with('districts').get()
+            return Province.query().with('districts').has('code').get()
         },
         districts () {
         if (this.clinic.province !== null) {
@@ -122,30 +134,20 @@ export default {
              this.$refs.code.$refs.ref.validate()
               this.$refs.province.validate()
               this.$refs.district.validate()
-            // this.$refs.district.$refs.ref.validate()
             if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
-             !this.$refs.province.hasError) {
+             !this.$refs.province.hasError && !this.$refs.district.hasError) {
                 this.submitClinic()
             }
         },
         submitClinic () {
             this.clinic.mainClinic = 0
+            this.clinic.active = true
+            console.log(this.clinic)
            Clinic.apiSave(this.clinic).then(resp => {
-                console.log(resp.response.data)
-                alert('Clinica Cadastrada Com Sucesso')
+                 this.displayAlert('info', this.clinic.id === null ? 'Clinica Cadastrada Com Sucesso' : 'Clinica actualizada com sucesso.')
             }).catch(error => {
-                console.log(error)
+                  this.displayAlert('error', error)
             })
-        },
-        getAllClinics (offset) {
-        if (this.clinicos.length <= 0) {
-                Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
-                    offset = offset + 100
-                    if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
-                }).catch(error => {
-                    console.log(error)
-                })
-        }
     },
      displayAlert (type, msg) {
           this.alert.type = type
@@ -161,6 +163,13 @@ export default {
         this.clinicos.forEach(element => {
             this.databaseCodes.push(element.code)
     })
+    },
+    codeRules (val) {
+      if (this.clinic.code === '') {
+        return 'o Codigo e obrigatorio'
+      } else if (!this.clinic.id && this.selectedClinic.id === this.clinic.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+         }
     }
     },
     components: {
