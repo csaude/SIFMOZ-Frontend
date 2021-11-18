@@ -4,6 +4,14 @@
       :columns="columns"
       :filter="filter"
       virtual-scroll>
+      <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
         <template v-slot:body="props">
             <q-tr :props="props">
             <q-td key="interoperabilityType" :props="props">
