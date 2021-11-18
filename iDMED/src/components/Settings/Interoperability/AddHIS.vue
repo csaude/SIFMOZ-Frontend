@@ -9,6 +9,7 @@
     >
       <q-step
         :name="1"
+        title="Atributos"
       >
                <div class="row q-mt-md">
                 <nameInput
@@ -20,7 +21,7 @@
                 <codeInput
                     ref="code"
                     v-model="his.abbreviation"
-                    :rules="[ val => !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe']"
+                   :rules="[val => codeRules (val)]"
                     lazy-rules
                     label="Abreviatura" />
             </div>
@@ -33,11 +34,21 @@
       row-key="code"
       selection="multiple"
       v-model:selected="selectedAttributes"
-        />
+        >
+         <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
+       </q-table>
                     </div>
       </q-step>
        <q-step
           :name="2"
+           title="Atributos"
       >
          <div class="">
                   <selectedAttributesTable  :rows="healthInformationAttributeTypes" :columns="columnsSelectedAttributes"/>
@@ -77,7 +88,7 @@ const columnsSelectedAttributes = [
 ]
 
 export default {
-      props: ['selectedHis'],
+      props: ['selectedHis', 'createMode', 'editMode'],
     data () {
         return {
             databaseCodes: [],
@@ -102,8 +113,9 @@ export default {
           if (this.selectedHis != null) {
                this.selectedHis.interoperabilityAttributes.forEach(attribute => {
             this.selectedAttributes.push(attribute.interoperabilityType)
+            this.healthInformationAttributeTypes.push(attribute)
           })
-          this.healthInformationAttributeTypes = this.selectedHis.interoperabilityAttributes
+         // this.healthInformationAttributeTypes.push(this.selectedHis.interoperabilityAttributes)
           }
          // this.selectedAttributes = this.selectedHis.interoperabilityAttributes
         }
@@ -119,34 +131,69 @@ export default {
     },
     methods: {
     validateHis () {
-           // this.$refs.nome.$refs.ref.validate()
-             // this.$refs.code.$refs.ref.validate()
-            // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
+            this.$refs.nome.$refs.ref.validate()
+             this.$refs.code.$refs.ref.validate()
+                if (this.selectedAttributes.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para a Interoperabilidate')
+                } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError) {
                 this.submitHis()
-           // }
+            }
         },
         submitHis () {
             console.log(this.his)
-            this.his.interoperabilityAttributes = this.healthInformationAttributeTypes
-            HealthInformationSystem.api().post('/healthInformationSystem', this.his).then(resp => {
-                console.log(resp.response.data)
-             this.displayAlert('info', 'Sistema De informacao de saude gravado com sucesso.')
+           // this.his.interoperabilityAttributes = this.healthInformationAttributeTypes
+          this.his.interoperabilityAttributes = []
+         //  this.his.interoperabilityAttributes.push(this.healthInformationAttributeTypes)
+          this.healthInformationAttributeTypes.forEach(attribute => {
+            this.his.interoperabilityAttributes.push(attribute)
+          })
+
+           this.his.active = true
+            HealthInformationSystem.apiSave(this.his).then(resp => {
+                // console.log(resp.response.data)
+             this.displayAlert('info', 'Sistema De informação de saude gravado com sucesso.')
+             HealthInformationSystem.apiFetchById(resp.response.data.id)
             }).catch(error => {
                 this.displayAlert('error', error)
             })
         },
         goToNextStep () {
+          let i = 0
           if (this.step === 1) {
-          // try
-           this.selectedAttributes.forEach(attribute => {
-               if (!this.healthInformationAttributeTypes.find(x => x.interoperabilityType === attribute)) {
+            this.$refs.nome.$refs.ref.validate()
+             this.$refs.code.$refs.ref.validate()
+                if (this.selectedAttributes.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para a Interoperabilidate')
+                } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError) {
+                  if (this.createMode) {
+                this.selectedAttributes.forEach(attribute => {
+               if (!this.healthInformationAttributeTypes.find(x => x.interoperabilityType.code === attribute.code)) {
              this.interoperabilityAttribute = new InteroperabilityAttribute()
             this.interoperabilityAttribute.interoperabilityType = attribute
             this.healthInformationAttributeTypes.push(this.interoperabilityAttribute)
                }
           })
+                  } else if (this.editMode) {
+                   // const attribute = this.selectedAttributes.filter(x => x.code === 'THERAPEUTICAL_REGIMEN')
+                     this.his.interoperabilityAttributes.forEach(healthInformationAttributeType => {
+                        i++
+                      if (!this.selectedAttributes.find(x => x.code === healthInformationAttributeType.interoperabilityType.code)) {
+                        const i = this.healthInformationAttributeTypes.map(toRemove => toRemove.id).indexOf(healthInformationAttributeType.id)
+                          this.healthInformationAttributeTypes.splice(i, 1)
+                       }
+                       })
+                       console.log(i)
+                        this.selectedAttributes.forEach(attribute => {
+               if (!this.healthInformationAttributeTypes.find(x => x.interoperabilityType.code === attribute.code)) {
+             this.interoperabilityAttribute = new InteroperabilityAttribute()
+            this.interoperabilityAttribute.interoperabilityType = attribute
+            this.healthInformationAttributeTypes.push(this.interoperabilityAttribute)
+               }
+               })
+                  }
           this.$refs.stepper.next()
-          console.log(this.healthInformationAttributeTypes)
+            }
+          // console.log(this.healthInformationAttributeTypes)
         } else {
           this.submitHis()
              }
@@ -168,6 +215,13 @@ export default {
         },
     fetchInteroperabilityAttributes () {
         InteroperabilityType.apiGetAll()
+    },
+      codeRules (val) {
+      if (this.his.code === '') {
+        return 'o Codigo e obrigatorio'
+      } else if (!this.his.id && this.selectedHis.id === this.his.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+         }
     }
     },
     components: {

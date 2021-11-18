@@ -14,11 +14,24 @@ export default class NationalClinic extends Model {
       facilityName: this.attr(''),
       province_id: this.attr(''),
       facilityType_id: this.attr(''),
+      active: this.attr(''),
       // Relationships
       province: this.belongsTo(Province, 'province_id'),
       facilityType: this.belongsTo(FacilityType, 'facilityType_id'),
       clinics: this.hasMany(Clinic, 'nationalClinic_id')
 
     }
+  }
+
+  static async apiGetAll () {
+    return await this.api().get('/nationalClinic')
+  }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/nationalClinic/${id}`)
+  }
+
+  static async apiSave (nationalClinic) {
+    return await this.api().post('/nationalClinic', nationalClinic)
   }
 }

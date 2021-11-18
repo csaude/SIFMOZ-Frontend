@@ -159,28 +159,35 @@ export default {
         this.isPatientActive = true
       }
     },
-     promptToConfirm (patientVisit) {
+    promptToConfirm (patientVisit) {
             this.$q.dialog({ title: 'Confirm', message: 'Deseja Apagar a atenção farmaceutica?', cancel: true, persistent: true }).onOk(() => {
            if (patientVisit.patientVisitDetails.length === 0) {
-             PatientVisit.apiRemove(patientVisit.id).then(resp => {
-            //   this.patientVisits.remove(patientVisit)
-            // this.patientVisit = this.patientVisit.filter(obj => obj.id !== patientVisit.id)
-         //    this.$emit(this.patientVisit.filter(obj => obj.id !== patientVisit.id), 'patientVisit')
-             this.displayAlert('info', 'Atenção Farmaceutica removida com sucesso.')
-              this.patientVisits.splice(0, this.patientVisits.length)
-               this.$emit('selectedPatientVisit', null)
-           //  PatientVisit.update()
+        PatientVisit.apiRemove(patientVisit.id).then(resp => {
+            PatientVisit.delete(patientVisit.id)
+          const i = this.patientVisits.map(toRemove => toRemove.id).indexOf(patientVisit.id) // find index of your object
+         this.patientVisits.splice(i, 1)
              }).catch(error => {
-             this.displayAlert('error', error)
+           const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
           })
            } else {
-              patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length.length)
+              patientVisit.vitalSigns.splice(0, patientVisit.vitalSigns.length)
               patientVisit.tbScreening.splice(0, patientVisit.tbScreening.length)
               patientVisit.pregnancyScreening.splice(0, patientVisit.pregnancyScreening.length)
               patientVisit.adherenceScreening.splice(0, patientVisit.adherenceScreening.length)
               patientVisit.ramScreening.splice(0, patientVisit.ramScreening.length)
-              PatientVisit.apiSave(patientVisit).then(resp => {
-             this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
+     PatientVisit.apiSave(patientVisit).then(resp => {
+             this.displayAlert('info', 'Atenção Farmaceutica removida com sucesso.')
              }).catch(error => {
              this.displayAlert('error', error)
           })

@@ -11,9 +11,16 @@
       :columns="columns"
       :filter="filter"
        row-key="regimenScheme"
-      v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll>
+        <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
@@ -80,7 +87,6 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
-// import TherapeuticRegimensDrug from '../../../store/models/therapeuticRegimen/TherapeuticRegimensDrug'
 
 const columns = [
   { name: 'regimenScheme', required: true, label: 'Esquema do Regime', align: 'left', field: row => row.regimenScheme, format: val => `${val}`, sortable: true },
@@ -106,9 +112,6 @@ export default {
       }
   },
   methods: {
-  async  getTherapeuticRegimens () {
-          await TherapeuticRegimen.api().get('/therapeuticRegimen')
-       },
        getIconActive (therapeuticRegimen) {
            if (therapeuticRegimen.active) {
               return 'delete'
@@ -159,7 +162,7 @@ export default {
   },
   mounted () {
    // const offset = 0
-    this.getTherapeuticRegimens()
+   // this.getTherapeuticRegimens()
    // this.getAllForms(offset)
   },
   components: {

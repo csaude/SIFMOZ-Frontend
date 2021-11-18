@@ -70,6 +70,7 @@ import AdherenceScreening from '../../store/models/screening/AdherenceScreening'
 import PregnancyScreening from '../../store/models/screening/PregnancyScreening'
 import TBScreening from '../../store/models/screening/TBScreening'
 import VitalSignsScreening from '../../store/models/screening/VitalSignsScreening'
+import FacilityType from '../../store/models/facilityType/FacilityType'
 export default {
     components: {
     },
@@ -83,6 +84,7 @@ export default {
         ClinicSector.apiGetAll()
         IdentifierType.apiGetAll()
         EpisodeType.apiGetAll()
+        FacilityType.apiGetAll()
         StartStopReason.apiGetAll()
         ClinicalServiceAttribute.apiGetAll()
         Drug.apiGetAll()

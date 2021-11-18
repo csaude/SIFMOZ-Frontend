@@ -11,8 +11,8 @@
                 </div>
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="doctor.firstnames" ref="name" />
-                        <lastNameInput v-model="doctor.lastname" class="q-ml-md" ref="lastName"/>
+                        <nameInput v-model="doctor.firstnames" ref="nome" />
+                        <lastNameInput v-model="doctor.lastname" class="q-ml-md" ref="apelido"/>
                     </div>
                     <div class="row">
                           <q-input
@@ -43,7 +43,7 @@
                           dense outlined
                           v-model="doctor.gender"
                           :options="genders"
-                          red="gender"
+                          ref="gender"
                           :rules="[ val => ( val != null ) || ' Por favor indique o genero']"
                           label="Género" />
                      </div>
@@ -118,11 +118,11 @@ export default {
     },
     methods: {
         validateDoctor () {
-             this.$refs.name.$refs.ref.validate()
-             this.$refs.lastName.$refs.ref.validate()
+             this.$refs.nome.$refs.ref.validate()
+             this.$refs.apelido.$refs.ref.validate()
             this.$refs.gender.validate()
              this.$refs.clinic.validate()
-          if (!this.$refs.name.$refs.ref.hasError && !this.$refs.lastName.$refs.ref.hasError && !this.$refs.gender.hasError && this.$refs.clinic.hasError) {
+          if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.apelido.$refs.ref.hasError && !this.$refs.gender.hasError && !this.$refs.clinic.hasError) {
                 this.submitDoctor()
             }
         },
@@ -131,6 +131,7 @@ export default {
           this.doctor.active = true
             Doctor.apiSave(this.doctor).then(resp => {
                 console.log(resp.response.data)
+                 Doctor.apiFetchById(resp.response.data.id)
                  this.displayAlert('info', this.doctor.id === null ? 'Clinico adicionado com sucesso.' : 'Clinico actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)

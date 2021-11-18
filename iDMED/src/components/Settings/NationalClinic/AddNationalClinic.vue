@@ -1,21 +1,20 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-  <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-         Cadastrar Clinica Nacional
-        </div>
         <form @submit.prevent="validateNationalClinic" >
             <q-card-section class="q-px-md">
                <div class="row q-mt-md">
                 <nameInput
                     ref="nome"
                     v-model="nationalClinic.facilityName"
-                    label="Nome da Clinica" />
+                    :disable="onlyView"
+                    label="Nome da Unidade Sanitaria" />
             </div>
               <div class="row q-mt-md">
                 <codeInput
                     ref="code"
                     v-model="nationalClinic.code"
-                    :rules="[ val => !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe']"
+                   :rules="[val => codeRules (val)]"
+                   :disable="onlyView"
                     lazy-rules
                     label="Codigo" />
             </div>
@@ -25,6 +24,7 @@
                     dense outlined
                      transition-show="flip-up"
                     transition-hide="flip-down"
+                    :disable="onlyView"
                     v-model="nationalClinic.facilityType"
                     :options="facilityTypes"
                     ref="facilityType"
@@ -40,6 +40,7 @@
                     class="col"
                     v-model="nationalClinic.province"
                     :options="provinces"
+                    :disable="onlyView"
                     transition-show="flip-up"
                     transition-hide="flip-down"
                     ref="province"
@@ -50,15 +51,20 @@
                     label="Província" />
             </div>
             <div class="row q-mt-md">
-                  <PhoneField v-model="nationalClinic.telephone" dense label="Numero de Telefone"/>
+                  <PhoneField v-model="nationalClinic.telephone" dense label="Numero de Telefone" :disable="onlyView"/>
                 </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary"/>
+                <q-btn type="submit" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
+           <q-dialog v-model="alert.visible">
+             <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+             </q-dialog>
         </form>
-        <pre>{{nationalClinic}}</pre>
     </q-card>
 </template>
 
@@ -66,14 +72,18 @@
 import NationalClinic from '../../../store/models/nationalClinic/NationalClinic'
 import Province from 'src/store/models/province/Province'
 import FacilityType from '../../../store/models/facilityType/FacilityType'
-
+import { ref } from 'vue'
 export default {
-      props: ['selectedNationalClinic'],
+      props: ['selectedNationalClinic', 'onlyView'],
     data () {
         return {
             databaseCodes: [],
            nationalClinic: new NationalClinic(),
-            clinico: ''
+             alert: ref({
+              type: '',
+              visible: false,
+              msg: ''
+            })
         }
     },
     created () {
@@ -85,18 +95,14 @@ export default {
         }
     },
       mounted () {
-        const provinceOffset = 0
-        const facilityOffset = 0
-        this.getAllProvinces(provinceOffset)
-        this.getAllFacilityTypes(facilityOffset)
-       // this.extractDatabaseCodes()
+        this.extractDatabaseCodes()
     },
     computed: {
          nationalClinics () {
             return NationalClinic.all()
         },
           provinces () {
-            return Province.all()
+             return Province.query().with('districts').has('code').get()
         },
         facilityTypes () {
           return FacilityType.all()
@@ -104,52 +110,54 @@ export default {
     },
     methods: {
     validateNationalClinic () {
-           // this.$refs.nome.$refs.ref.validate()
-             // this.$refs.code.$refs.ref.validate()
-            // if (this.$refs.nome.$refs.ref.validate() && this.$refs.code.$refs.ref.validate()) {
+              this.$refs.nome.$refs.ref.validate()
+             this.$refs.code.$refs.ref.validate()
+              this.$refs.facilityType.validate()
+               this.$refs.province.validate()
+             if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
+             !this.$refs.facilityType.hasError && !this.$refs.province.hasError) {
                 this.submitNationalClinic()
-           // }
+            }
         },
         submitNationalClinic () {
             console.log(this.nationalClinic)
-            NationalClinic.api().post('/nationalClinic', this.nationalClinic).then(resp => {
+            this.nationalClinic.active = true
+            NationalClinic.apiSave(this.nationalClinic).then(resp => {
                 console.log(resp.response.data)
              //  this.$emit('close')
-                alert('Clinica Nacional Cadastrada Com Sucesso')
+                 this.displayAlert('info', this.nationalClinic.id === null ? 'Unidade Sanitaria adiconado com sucesso.' : 'Unidade Sanitaria actualizado com sucesso.')
             }).catch(error => {
-                console.log(error)
+                this.displayAlert('error', error)
             })
         },
-    getAllProvinces (offset) {
-        if (this.provinces.length <= 0) {
-            Province.api().get('/province?offset=' + offset + '&max=100').then(resp => {
-                    offset = offset + 100
-                    if (resp.response.data.length > 0) { setTimeout(this.getAllProvinces(offset), 2) }
-                }).catch(error => {
-                    console.log(error)
-                })
-        }
-    },
-     getAllFacilityTypes (facilityOffset) {
-        if (this.facilityTypes.length <= 0) {
-                FacilityType.api().get('/facilityType?offset=' + facilityOffset + '&max=100').then(resp => {
-                    facilityOffset = facilityOffset + 100
-                    if (resp.response.data.length > 0) { setTimeout(this.getAllFacilityTypes(facilityOffset), 2) }
-                }).catch(error => {
-                    console.log(error)
-                })
-        }
-    },
+      displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+          }
+        },
     extractDatabaseCodes () {
-        this.clinicos.forEach(element => {
+        this.nationalClinics.forEach(element => {
             this.databaseCodes.push(element.code)
     })
+    },
+    codeRules (val) {
+      if (this.nationalClinic.code === '') {
+        return 'o Codigo é obrigatorio'
+      } else if (!this.nationalClinic.id && this.selectedNationalClinic.id === this.nationalClinic.id) {
+      return !this.databaseCodes.includes(val) || 'o Codigo indicado já existe'
+         }
     }
     },
     components: {
         nameInput: require('components/Shared/NameInput.vue').default,
         codeInput: require('components/Shared/CodeInput.vue').default,
-         PhoneField: require('components/Shared/Input/PhoneField.vue').default
+         PhoneField: require('components/Shared/Input/PhoneField.vue').default,
+          Dialog: require('components/Shared/Dialog/Dialog.vue').default
     }
 
 }
