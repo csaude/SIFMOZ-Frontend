@@ -370,7 +370,7 @@ export default {
                                                   .first()
         return identifier.canBeEdited()
       },
-      doSave () {
+      async doSave () {
         this.identifier.episodes = []
         if (this.isCloseStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
@@ -397,10 +397,9 @@ export default {
           this.identifier.identifierType = this.identifier.service.identifierType
         }
         console.log(this.identifier)
-        PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
-          console.log(resp.response.data)
+        await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
           if (this.isReOpenStep || this.isCloseStep) {
-            PatientServiceIdentifier.apiFetchById(resp.response.data.id)
+            this.fetchUpdatedIdentifier(resp.response.data.id)
           }
           let msg = ''
           if (this.isCloseStep) {
@@ -426,6 +425,11 @@ export default {
             }
           }
           this.displayAlert('error', listErrors)
+        })
+      },
+      async fetchUpdatedIdentifier (id) {
+        await PatientServiceIdentifier.apiFetchById(id).then(resp => {
+          console.log(resp.response.data)
         })
       },
       displayAlert (type, msg) {
