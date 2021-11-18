@@ -149,9 +149,10 @@ export default {
           })
 
            this.his.active = true
-            HealthInformationSystem.api().post('/healthInformationSystem', this.his).then(resp => {
+            HealthInformationSystem.apiSave(this.his).then(resp => {
                 // console.log(resp.response.data)
-             this.displayAlert('info', 'Sistema De informacao de saude gravado com sucesso.')
+             this.displayAlert('info', 'Sistema De informação de saude gravado com sucesso.')
+             HealthInformationSystem.apiFetchById(resp.response.data.id)
             }).catch(error => {
                 this.displayAlert('error', error)
             })

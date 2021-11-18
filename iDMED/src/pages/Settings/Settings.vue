@@ -74,8 +74,7 @@ const tabs = [
   { name: 'doctor', icon: 'psychology', label: 'Clínicos' },
  { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
   { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapêutico' },
-  { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' },
-  { name: 'users', icon: 'group_add', label: 'Utilizadores' }
+  { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' }
 ]
 export default {
   setup () {

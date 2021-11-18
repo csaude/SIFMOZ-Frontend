@@ -2,6 +2,9 @@
     <div>
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
+        <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
+       Clinicos
+        </div>
         <q-table
      :rows="doctors"
       :columns="columns"
@@ -123,9 +126,6 @@ export default {
       }
   },
   methods: {
-  async  getDoctors () {
-          await Doctor.api().get('/doctor')
-       },
         getIconActive (doctor) {
            if (doctor.active) {
               return 'delete'
@@ -188,12 +188,11 @@ export default {
         }
   },
   mounted () {
-    this.getDoctors()
+  //  this.getDoctors()
   },
   components: {
      addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default,
      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-  //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
   }
 }
 </script>

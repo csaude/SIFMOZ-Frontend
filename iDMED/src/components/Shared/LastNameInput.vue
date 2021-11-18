@@ -1,20 +1,19 @@
 <template>
-    <TextInput
+         <q-input
+        outlined
         label="Apelido"
         dense
-        ref="apelido"
+        ref="ref"
         class="col"
-        :value="lastName"
-        :rules="[ val => !!val || 'Por favor indicar o apelido']"
-        />
+       :value="lastName"
+        @input="(event) => $emit('update:lastname', event.target.value)"
+      :rules="[ val => !!val || 'Por favor indicar o nome']"
+        lazy-rules/>
 </template>
 
 <script>
 export default {
-    props: ['lastName'],
-    components: {
-        TextInput: require('components/Shared/Input/TextField.vue').default
-    }
+    props: ['lastName']
 }
 </script>
 
