@@ -9,7 +9,7 @@ export default class PackagedDrug extends Model {
         id: this.attr(null),
         quantitySupplied: this.attr(''),
         nextPickUpDate: this.attr(''),
-        toContinue: this.boolean(true),
+        toContinue: this.boolean(false),
         pack_id: this.attr(''),
         drug_id: this.attr(''),
         // Relationships

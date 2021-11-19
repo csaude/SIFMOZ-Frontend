@@ -82,8 +82,7 @@ export default {
         msg: ''
       }),
       isPatientActive: false,
-      showAddEpisode: false,
-      selectedEpisode: {},
+      selectedPack: new Pack(),
       showAddEditEpisode: false
     }
   },
@@ -99,9 +98,8 @@ export default {
         this.isPatientActive = true
       }
     },
-    editPack (episode) {
-      this.selectedEpisode = Object.assign({}, episode)
-      this.showAddEditEpisode = true
+    editPack () {
+      this.$emit('editPack', this.patientVisitDetais)
     },
     removePrescription () {
       if (this.lastPack !== null) {

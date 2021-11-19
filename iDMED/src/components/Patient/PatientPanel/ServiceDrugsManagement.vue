@@ -4,6 +4,7 @@
           :addVisible="true"
           :mainContainer="true"
           bgColor="bg-primary"
+          :duration="duration"
           :newPickUpDate="newPickUpDate"
           @updateQtyPrescribed="updateQtyPrescribed"
           :visitDetails="visitDetails"
@@ -66,6 +67,7 @@
 <script>
 import { ref } from 'vue'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
+import Duration from '../../../store/models/Duration/Duration'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'center', sortable: true },
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
@@ -75,7 +77,7 @@ const columns = [
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack'],
+  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'step'],
   data () {
     return {
       alert: ref({
@@ -149,9 +151,23 @@ export default {
     this.init()
   },
   computed: {
+    duration () {
+      if (this.isEditPackStep) {
+        return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
+      } else {
+        return this.prescription.duration
+      }
+    },
     newPickUpDate () {
       if (this.lastPack === null) return ''
-      return this.lastPack.nextPickUpDate
+      if (this.isEditPackStep) {
+        return this.lastPack.pickupDate
+      } else {
+        return this.lastPack.nextPickUpDate
+      }
+    },
+    isEditPackStep () {
+      return this.step === 'editPack'
     }
   },
   created () {

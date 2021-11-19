@@ -81,7 +81,7 @@ import { ref } from 'vue'
 import { date } from 'quasar'
 import Duration from '../../../store/models/Duration/Duration'
 export default {
-    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate'],
+    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate', 'duration'],
     data () {
       return {
         alert: ref({
@@ -103,6 +103,12 @@ export default {
           this.headerClass = 'list-header'
         } else {
           this.headerClass = ''
+        }
+      },
+      tryToDetermineDefaultTakePeriod () {
+        if (this.duration !== null) {
+          this.drugsDuration = this.duration
+          this.determineNextPickUpDate()
         }
       },
       expand () {
@@ -133,7 +139,9 @@ export default {
       determineNextPickUpDate () {
         if (date.isValid(this.pickupDate) && this.drugsDuration !== '') {
           const newDate = new Date(this.pickupDate)
-          const daysToAdd = parseInt(this.drugsDuration.weeks * 7)
+          let lostDays = parseInt((this.drugsDuration.weeks / 4) * 2)
+          if (this.drugsDuration.weeks <= 1) lostDays = 0
+          const daysToAdd = parseInt((this.drugsDuration.weeks * 7) + lostDays)
           this.nextPDate = this.formatDate(date.addToDate(newDate, { days: daysToAdd }))
           this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
         }
@@ -152,6 +160,7 @@ export default {
       init () {
         if (this.newPickUpDate !== '') {
           this.pickupDate = this.newPickUpDate
+          this.tryToDetermineDefaultTakePeriod()
         }
       }
     },

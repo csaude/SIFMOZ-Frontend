@@ -24,7 +24,7 @@
               <q-select
                   class="col"
                   dense outlined
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   options-dense
                   :options="clinicalServices"
                   ref="clinicalService"
@@ -39,7 +39,7 @@
                 outlined
                 class="col"
                 v-model="prescriptionDate"
-                :disable="isNewPackStep"
+                :disable="isNewPackStep || isEditPackStep"
                 mask="date"
                 ref="prescriptionDate"
                 :rules="['date']"
@@ -59,7 +59,7 @@
               <q-select
                   v-if="hasTherapeuticalRegimen"
                   class="col"
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   dense outlined
                   ref="therapeuticRegimen"
                   :rules="[ val => !!val || 'Por favor indicar o regime terapêutico']"
@@ -72,7 +72,7 @@
                   v-if="hasTherapeuticalLine"
                   class="col"
                   dense outlined
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   ref="therapeuticLine"
                   :rules="[ val => !!val || 'Por favor indicar a linha terapêutica']"
                   v-model="curPrescriptionDetails.therapeuticLine"
@@ -85,7 +85,7 @@
                   dense outlined
                   v-model="curPrescription.duration"
                   :options="durations"
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   ref="duration"
                   :rules="[ val => !!val || 'Por favor indicar a duração']"
                   option-value="id"
@@ -94,7 +94,7 @@
               <q-select
                   class="col"
                   dense outlined
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   ref="doctor"
                   :rules="[ val => !!val || 'Por favor indicar o clínico']"
                   v-model="curPrescription.doctor"
@@ -113,7 +113,7 @@
                   class="col"
                   dense outlined
                   ref="patientType"
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   :rules="[ val => !!val || 'Por favor indicar o tipo de paciente']"
                   v-model="curPrescription.patientType"
                   :options="patientTypes"
@@ -121,7 +121,7 @@
                 <q-select
                   v-if="hasPrescriptionChangeMotive"
                   class="col q-mb-sm"
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   ref="reasonForUpdate"
                   dense outlined
                   option-value="code"
@@ -133,7 +133,7 @@
                   class="col"
                   dense outlined
                   ref="dispenseType"
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   :rules="[ val => !!val || 'Por favor indicar o tipo de dispensa']"
                   v-model="curPrescriptionDetails.dispenseType"
                   :options="dispenseTypes"
@@ -145,7 +145,7 @@
                   ref="patientStatus"
                   :rules="[ val => !!val || 'Por favor indicar a ituacao do paciente (em relação aos modelos)']"
                   v-model="curPrescription.patientStatus"
-                  :disable="isNewPackStep"
+                  :disable="isNewPackStep || isEditPackStep"
                   :options="patientStatus"
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
@@ -153,9 +153,9 @@
                   <q-btn
                     unelevated
                     color="primary"
-                    :disable="isNewPackStep"
+                    :disable="isNewPackStep || isEditPackStep"
                     label="Adicionar Medicamentos"
-                    class="col"
+                    class="col all-pointer-events"
                     @click="validateForm()"/>
                 </div>
             </div>
@@ -170,6 +170,8 @@
                   :selectedClinicalService="selectedClinicalService"
                   :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
                   :lastPack="lastPack"
+                  :step="step"
+                  :prescription="curPatientVisitDetail.prescriptions[0]"
                   :oldPrescribedDrugs="prescribedDrugs"
                   @updatePrescribedDrugs="updatePrescribedDrugs"
                   :visitDetails="visitDetails"/>
@@ -181,10 +183,11 @@
             </q-banner>
           </div>
           <span
-            class="text-right absolute-bottom q-mb-lg q-mr-lg q-mt-md">
+            class="text-right absolute-bottom q-mb-lg q-mr-lg q-mt-md no-pointer-events">
               <q-btn
                 label="Cancelar"
                 color="red"
+                class="all-pointer-events"
                 @click="$emit('close')"/>
 
               <q-btn
@@ -192,7 +195,7 @@
                 label="Dispensar"
                 @click="generatePacksAndDispense()"
                 color="primary"
-                class="q-ml-md" />
+                class="q-ml-md all-pointer-events" />
             </span>
           </div>
         </div>
@@ -231,7 +234,7 @@ import Duration from '../../../store/models/Duration/Duration'
 import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 export default {
-  props: ['selectedVisitDetails'],
+  props: ['selectedVisitDetails', 'step'],
   data () {
     return {
       alert: ref({
@@ -256,7 +259,7 @@ export default {
   },
   methods: {
     initPatientVisit () {
-      if (!this.isNewPackStep) {
+      if (!this.isNewPackStep || !this.isEditPackStep) {
         this.patientVisit.visitDate = new Date()
       } else {
         this.patientVisit = PatientVisit.query()
@@ -281,7 +284,7 @@ export default {
         clinic: this.currClinic
       })
 
-      if (!this.isNewPackStep) {
+      if (!this.isNewPackStep && !this.isEditPackStep) {
         const prescription = new Prescription({
           prescriptionDate: new Date(),
           clinic: this.currClinic
@@ -296,7 +299,6 @@ export default {
         this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
                                                                 .with('episode.patientServiceIdentifier.service')
                                                                 .with('patientVisit')
-                                                                .with('packs.*')
                                                                 .with('prescriptions.*')
                                                                 .where('id', this.selectedVisitDetails.id)
                                                                 .first()
@@ -316,27 +318,28 @@ export default {
                                                                                     .with('drug.*')
                                                                                     .where('prescription_id', this.curPatientVisitDetail.prescriptions[0].id)
                                                                                     .get()
-        this.curPatientVisitDetail.packs[0].packagedDrugs = PackagedDrug.query()
-                                                                        .withAll()
-                                                                        .where('pack_id', this.curPatientVisitDetail.packs[0].id)
-                                                                        .get()
+        this.curPatientVisitDetail.packs[0] = this.lastPackFull
 
         const prescribedDrugs = this.curPatientVisitDetail.prescriptions[0].prescribedDrugs
         const packagedDrugs = this.curPatientVisitDetail.packs[0].packagedDrugs
 
-        Object.keys(prescribedDrugs).forEach(function (k) {
-          const prescribedDrug = prescribedDrugs[k]
-            Object.keys(packagedDrugs).forEach(function (k) {
-              const packagedDrug = packagedDrugs[k]
-              if (prescribedDrug.drug.id === packagedDrug.drug.id && packagedDrug.toContinue) {
-                this.prescribedDrugs.push(prescribedDrug)
-              }
-            }.bind(this))
-        }.bind(this))
+        if (this.isEditPackStep) {
+          this.prescribedDrugs = prescribedDrugs
+        } else {
+          Object.keys(prescribedDrugs).forEach(function (k) {
+            const prescribedDrug = prescribedDrugs[k]
+              Object.keys(packagedDrugs).forEach(function (k) {
+                const packagedDrug = packagedDrugs[k]
+                if (this.isNewPackStep && ((prescribedDrug.drug.id === packagedDrug.drug.id) && packagedDrug.toContinue)) {
+                  this.prescribedDrugs.push(prescribedDrug)
+                }
+              }.bind(this))
+          }.bind(this))
 
-        this.curPatientVisitDetail.packs = []
-        pack.pickupDate = this.lastPack.nextPickUpDate
-        this.curPatientVisitDetail.packs.push(pack)
+            this.curPatientVisitDetail.packs = []
+            pack.pickupDate = this.lastPack.nextPickUpDate
+            this.curPatientVisitDetail.packs.push(pack)
+        }
         this.curPatientVisitDetails.push(this.curPatientVisitDetail)
         this.showServiceDrugsManagement = true
       }
@@ -344,7 +347,7 @@ export default {
       this.initPatientVisit()
     },
     init () {
-      if (!this.isNewPackStep) {
+      if (!this.isNewPackStep && !this.isEditPackStep) {
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '') {
             const episode = Episode.query()
@@ -441,8 +444,11 @@ export default {
         if (Number(visitDetails.packs[0].weeksSupply) <= 0) {
           hasError = true
           error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
+        } else if (new Date(visitDetails.packs[0].pickupDate) > new Date()) {
+          hasError = true
+          error = 'A data de levantamento indicada é maior que a data corrente'
         } else if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
-          if (!this.isNewPackStep) {
+          if (!this.isNewPackStep || !this.isEditPackStep) {
             visitDetails.patientVisit.visitDate = new Date(visitDetails.prescriptions[0].prescriptionDate)
             visitDetails.patientVisit = null
           }
@@ -466,7 +472,7 @@ export default {
       })
     },
     async proccedToDispense (dispenseMode) {
-      if (this.isNewPackStep) {
+      if (this.isNewPackStep || this.isEditPackStep) {
         this.curPatientVisitDetails[0].patientVisit = null
         this.curPatientVisitDetails[0].prescriptions[0].patientVisitDetails = null
         this.curPatientVisitDetails[0].prescriptions[0].prescriptionDetails[0].prescription = null
@@ -503,7 +509,18 @@ export default {
   },
   computed: {
     isNewPackStep () {
-      return this.selectedVisitDetails !== ''
+      return this.step === 'addNewPack'
+    },
+    isEditPackStep () {
+      return this.step === 'editPack'
+    },
+    lastPackFull () {
+      return Pack.query()
+                 .with('packagedDrugs.*')
+                 .with('patientVisitDetails')
+                 .where('patientVisitDetails_id', this.selectedVisitDetails.id)
+                 .orderBy('pickupDate', 'desc')
+                 .first()
     },
     lastPack () {
       return Pack.query()

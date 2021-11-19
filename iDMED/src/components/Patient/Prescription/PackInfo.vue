@@ -3,6 +3,8 @@
     <ListHeader
       :canEdit="true"
       :addVisible="false"
+      @removePack="removePack"
+      @editPack="editPack"
       bgColor="bg-grey-4" >Data de Levantamento: {{formatDate(currPack.pickupDate)}}
     </ListHeader>
     <q-card flat bordered class="noRadius">
@@ -55,6 +57,12 @@ export default {
   methods: {
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    editPack () {
+      this.$emit('editPack')
+    },
+    removePack () {
+      // this.$emit('removePack', this.currPack)
     }
   },
   components: {
