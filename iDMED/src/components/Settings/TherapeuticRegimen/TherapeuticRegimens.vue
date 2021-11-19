@@ -75,7 +75,7 @@
                 <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" />
              </q-page-sticky>
         </div>
-          <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen" full-width>
+          <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
           <AddTherapeuticRegimen
           :selectedTherapeuticRegimen="therapeuticRegimen"
           :onlyView="viewMode"

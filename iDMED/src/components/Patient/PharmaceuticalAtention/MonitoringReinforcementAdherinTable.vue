@@ -10,7 +10,9 @@
       :rows-per-page-options="[0]"
       virtual-scroll
       hide-bottom
-       class="my-sticky-header-table">
+         table-header-class="text-white"
+        class="my-sticky-header-table"
+        title-class="text-bold text-white">
         <template v-slot:body="props">
          <q-tr :props="props">
             <q-td key="question" v-if="props.row.code === '01' || props.row.code == '03' " >

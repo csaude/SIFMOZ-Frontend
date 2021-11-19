@@ -186,6 +186,7 @@ export default {
               patientVisit.pregnancyScreening.splice(0, patientVisit.pregnancyScreening.length)
               patientVisit.adherenceScreening.splice(0, patientVisit.adherenceScreening.length)
               patientVisit.ramScreening.splice(0, patientVisit.ramScreening.length)
+              console.log(patientVisit)
      PatientVisit.apiSave(patientVisit).then(resp => {
              this.displayAlert('info', 'Atenção Farmaceutica removida com sucesso.')
              }).catch(error => {
@@ -216,12 +217,14 @@ export default {
     },
     patientVisits () {
       return PatientVisit.query().with('patient.*')
+                          .with('patient.patientVisits.clinic.province')
                           .with('vitalSigns')
                           .with('tbScreening')
                           .with('pregnancyScreening')
                           .with('adherenceScreening')
                           .with('ramScreening')
-                          .with('patientVisitDetails')
+                          .with('patientVisitDetails.episode')
+                          .with('patientVisitDetails.clinic')
                           .with('clinic')
                           .where('id', this.selectedPatientVisit.id)
                           .has('clinic')

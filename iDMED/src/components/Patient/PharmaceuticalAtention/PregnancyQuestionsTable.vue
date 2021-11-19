@@ -10,7 +10,9 @@
       :rows-per-page-options="[0]"
       virtual-scroll
         hide-bottom
+          table-header-class="text-white"
         class="my-sticky-header-table"
+        title-class="text-bold text-white"
     >
      <template v-slot:body="props">
             <q-tr :props="props">

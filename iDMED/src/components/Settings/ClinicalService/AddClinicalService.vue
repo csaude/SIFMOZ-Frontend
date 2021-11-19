@@ -40,23 +40,11 @@
                           option-label="description"
                           label="Tipo de Identificador*" />
                      </div>
-               <div class="q-mt-md">
-         <q-table
-      title="Atributos do Servico Clinico"
-      :rows="clinicalServiceAttributes"
-      :columns="columnAttributes"
-      row-key="code"
-      selection="multiple"
-      v-model:selected="selectedAttributes"
-      class="my-sticky-header-table"
-       v-if="!onlyView"
-        />
-              </div>
                <div class="row">
                 <div class="col-4 col-md-6">
          <q-table
          style="max-width: 450px;max-height: 350px"
-      title="Atributos do Servico Clinico"
+      title="Atributos Para a Prescrição"
       :rows="clinicalServiceAttributes"
       :columns="columnAttributes"
       row-key="code"
@@ -88,8 +76,34 @@
               </div>
                </div>
       </q-step>
-       <q-step
+ <q-step
           :name="2"
+      >
+       <q-card-section class="q-px-md">
+               <div class="q-pa-md">
+         <q-table
+      title="Atributos Para a Prescrição"
+      :rows="clinicalServiceAttributes"
+      :columns="columnAttributes"
+      row-key="code"
+      selection="multiple"
+      v-model:selected="selectedAttributes"
+      class="my-sticky-header-table"
+       v-if="!onlyView"
+        >
+         <template v-slot:top-right>
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+            <template v-slot:append>
+                <q-icon name="search" />
+            </template>
+                </q-input>
+        </template>
+         </q-table>
+              </div>
+            </q-card-section>
+         </q-step>
+       <q-step
+          :name="3"
       >
        <q-card-section class="q-px-md">
                <div class="q-pa-md">
@@ -117,7 +131,7 @@
             </q-card-section>
          </q-step>
          <q-step
-          :name="3"
+          :name="4"
       >
        <q-card-section class="q-px-md">
                <div class="q-pa-md">
@@ -250,6 +264,8 @@ export default {
             console.log(this.clinicalService)
              ClinicalService.apiSave(this.clinicalService).then(resp => {
                 this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínicos adicionado com sucesso.' : 'Serviço Clínicos actualizado com sucesso.')
+             ClinicalService.apiFetchById(resp.response.data.id)
+             console.log(resp.response.data)
             }).catch(error => {
                 this.displayAlert('error', error)
             })
@@ -269,12 +285,16 @@ export default {
              this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
             this.$refs.identifierType.validate()
-            if (this.selectedAttributes.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clínicos')
-            } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
+             if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
                 this.$refs.stepper.next()
             }
            } else if (this.step === 2) {
+            if (this.selectedAttributes.length <= 0) {
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clínicos')
+            } else {
+                this.$refs.stepper.next()
+           }
+           } else if (this.step === 3) {
              if (this.clinicalService.clinicSectors.length <= 0) {
            this.displayAlert('error', 'Por Favor seleccione pelo menos um sector para o Serviço Clínicos')
             } else {
@@ -285,7 +305,7 @@ export default {
           this.submitClinicalService()
              }
         }
-        } else if (this.step === 3) {
+        } else if (this.step === 4) {
              if (this.clinicalService.therapeuticRegimens.length <= 0) {
            this.displayAlert('error', 'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clínicos')
             } else {

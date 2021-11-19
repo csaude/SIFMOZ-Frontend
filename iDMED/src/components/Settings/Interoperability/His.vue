@@ -10,7 +10,7 @@
       :columns="columns"
       :filter="filter"
       virtual-scroll
-      row-key="index"
+      row-key="abbreviation"
       v-model:pagination="pagination"
       :rows-per-page-options="[0]">
        <template v-slot:no-data="{ icon, filter }">
