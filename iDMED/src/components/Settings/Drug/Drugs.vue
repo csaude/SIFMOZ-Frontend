@@ -90,8 +90,8 @@ import Form from '../../../store/models/form/Form'
 const columns = [
   { name: 'name', required: true, label: 'Nome', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true },
   { name: 'packSize', required: true, label: 'Tamanho do Pacote', align: 'left', field: row => row.packSize, format: val => `${val}`, sortable: true },
-   { name: 'defaultTimes', required: true, label: 'Numero de Vezes a Tomar', align: 'left', field: row => row.defaultTimes, format: val => `${val}`, sortable: true },
-  { name: 'defaultTreatment', required: true, label: 'Tratamento', align: 'left', field: row => row.defaultTreatment, format: val => `${val}`, sortable: true },
+   { name: 'defaultTimes', required: true, label: 'Numero de toma', align: 'left', field: row => row.defaultTimes, format: val => `${val}`, sortable: true },
+  { name: 'defaultTreatment', required: true, label: 'Numero de Vezes a Tomar', align: 'left', field: row => row.defaultTreatment, format: val => `${val}`, sortable: true },
    { name: 'defaultPeriodTreatment', required: true, label: 'Periodo a Tomar', align: 'left', field: row => row => row.defaultPeriodTreatment, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
@@ -116,9 +116,6 @@ export default {
         }
   },
   methods: {
-  async  getDrugs () {
-          await Drug.api().get('/drug')
-       },
        getIconActive (drug) {
            if (drug.active) {
               return 'delete'
@@ -165,7 +162,7 @@ export default {
       }
   },
   mounted () {
-    this.getDrugs()
+   // this.getDrugs()
   },
   components: {
     addDrug: require('components/Settings/Drug/AddDrug.vue').default

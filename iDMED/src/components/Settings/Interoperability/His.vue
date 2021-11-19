@@ -5,7 +5,7 @@
         </div>
         <div class="">
         <q-table
-          style="height: 700px"
+          style="height: 600px"
      :rows="getHis"
       :columns="columns"
       :filter="filter"
@@ -13,8 +13,16 @@
       row-key="index"
       v-model:pagination="pagination"
       :rows-per-page-options="[0]">
+       <template v-slot:no-data="{ icon, filter }">
+              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                <span>
+                  Sem resultados para visualizar
+                </span>
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              </div>
+            </template>
         <template v-slot:top-right>
-            <q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
                 <q-icon name="search" />
             </template>
@@ -36,10 +44,18 @@
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
+                      v-if="props.row.active === true"
                    @click="editHealthInformationSystem(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
-
+  <q-btn flat round
+                      class="q-ml-md"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
+                      @click.stop="promptToConfirm(props.row)"
+                     >
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                     </q-btn>
                   </div>
                   </q-td>
             </q-tr>
@@ -53,18 +69,21 @@
         </div>
          <div class="absolute-bottomg">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
-                <q-btn size="xl" fab icon="add" @click="showHISRegistrationScreen = true" color="primary" />
+                <q-btn size="xl" fab icon="add" @click="addHealthInformationSystem" color="primary" />
              </q-page-sticky>
         </div>
           <q-dialog persistent v-model="showHISRegistrationScreen">
           <addHIS
           :selectedHis="healthInformationSystem"
+           :createMode=createMode
+           :editMode="editMode"
             @close="showHISRegistrationScreen = false" />
       </q-dialog>
     </div>
 </template>
 <script>
 import { useQuasar } from 'quasar'
+import { ref } from 'vue'
 import HealthInformationSystem from '../../../store/models/healthInformationSystem/HealthInformationSystem'
 
 const columns = [
@@ -91,22 +110,76 @@ export default {
         columnInteroperabilityTypes,
         columnsSelectedAttributes,
         $q,
-         showHISRegistrationScreen: false
+         showHISRegistrationScreen: false,
+          alert: ref({
+              type: '',
+              visible: false,
+              msg: ''
+            }),
+             filter: ref(''),
+               createMode: false,
+         editMode: false
     }
   },
  computed: {
       getHis () {
-          return HealthInformationSystem.query().with('interoperabilityAttributes.interoperabilityType').get()
+          return HealthInformationSystem.query().with('interoperabilityAttributes.interoperabilityType').has('abbreviation').get()
       }
   },
   methods: {
+     getIconActive (his) {
+           if (his.active) {
+              return 'delete'
+              } else if (!his.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (his) {
+           if (his.active) {
+              return 'red'
+              } else if (!his.active) {
+              return 'green'
+              }
+       },
     getHealthInformationSystem () {
             HealthInformationSystem.api().get('/healthInformationSystem')
        },
        editHealthInformationSystem (healthInformationSystem) {
         this.healthInformationSystem = Object.assign({}, healthInformationSystem)
          this.showHISRegistrationScreen = true
-      }
+           this.editMode = true
+           this.createMode = false
+      },
+       addHealthInformationSystem () {
+          this.healthInformationSystem = new HealthInformationSystem()
+         this.showHISRegistrationScreen = true
+           this.editMode = false
+           this.createMode = true
+      },
+      promptToConfirm (his) {
+            this.$q.dialog({ title: 'Confirm', message: his.active ? 'Deseja Inactivar o Sistema da Interoperabilidade?' : 'Deseja Activar o Sistema da Interoperabilidade?', cancel: true, persistent: true }).onOk(() => {
+               if (his.active) {
+                his.active = false
+              } else if (!his.active) {
+                  his.active = true
+              }
+             HealthInformationSystem.apiSave(his).then(resp => {
+                  this.displayAlert('info', 'Sistema da Interoperabilidade inactivado com sucesso')
+            }).catch(error => {
+                   this.displayAlert('error', error)
+            })
+        })
+      },
+       displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+          }
+        }
   },
   mounted () {
     this.getHealthInformationSystem()
@@ -114,7 +187,6 @@ export default {
   components: {
      addHIS: require('components/Settings/Interoperability/AddHIS.vue').default,
       selectedAttributesTable: require('components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue').default
-  //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
   }
 }
 </script>

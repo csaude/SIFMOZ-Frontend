@@ -110,11 +110,12 @@ export default {
                 this.submitTherapeuticRegimen()
             }
         },
-        submitTherapeuticRegimen () {
+     async   submitTherapeuticRegimen () {
         this.therapeuticRegimen.active = true
             console.log(this.therapeuticRegimen)
-            TherapeuticRegimen.apiSave(this.therapeuticRegimen).then(resp => {
-                console.log(resp.response.data)
+       await TherapeuticRegimen.apiSave(this.therapeuticRegimen).then(resp => {
+                console.log(resp.response.data.id)
+              TherapeuticRegimen.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', 'Regime Terapeutico gravado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)

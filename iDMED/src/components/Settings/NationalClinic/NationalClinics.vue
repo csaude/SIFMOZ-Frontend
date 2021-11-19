@@ -2,13 +2,18 @@
     <div>
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
+         <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
+        Unidade Sanitaria
+        </div>
         <q-table
+         style="height: 700px"
      :rows="getNationalClinicos"
       :columns="columns"
       :filter="filter"
+       :rows-per-page-options="[0]"
       virtual-scroll>
         <template v-slot:top-right>
-            <q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
                 <q-icon name="search" />
             </template>
@@ -44,17 +49,26 @@
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
+                     v-if="props.row.active === true"
                    @click="editNationalClinic(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
 
-                  <q-btn flat round
+                 <q-btn flat round
                     class="q-ml-md"
                     color="green-8"
                     icon="search"
-                    @click="goToPatientPanel(props.row)">
+                    @click="visualizeNationalClinic(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
-                  </q-btn>
+                    </q-btn>
+                     <q-btn flat round
+                      class="q-ml-md"
+                      :color="getColorActive(props.row)"
+                      :icon="getIconActive(props.row)"
+                      @click.stop="promptToConfirm(props.row)"
+                     >
+                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                     </q-btn>
                   </div>
                   </q-td>
             </q-tr>
@@ -63,12 +77,13 @@
         </div>
          <div class="absolute-bottomg">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
-                <q-btn size="xl" fab icon="add" @click="showNationalClinicRegistrationScreen = true" color="primary" />
+                <q-btn size="xl" fab icon="add" @click="addNationalClinic" color="primary" />
              </q-page-sticky>
         </div>
           <q-dialog persistent v-model="showNationalClinicRegistrationScreen">
           <addNationalClinic
           :selectedNationalClinic="nationalClinic"
+          :onlyView="viewMode"
             @close="showNationalClinicRegistrationScreen = false" />
       </q-dialog>
     </div>
@@ -76,6 +91,7 @@
 <script>
 import { useQuasar } from 'quasar'
 import NationalClinic from '../../../store/models/nationalClinic/NationalClinic'
+import { ref } from 'vue'
 
 const columns = [
   { name: 'nationalClinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
@@ -92,7 +108,9 @@ export default {
     return {
         columns,
         $q,
-         showNationalClinicRegistrationScreen: false
+         showNationalClinicRegistrationScreen: false,
+         viewMode: false,
+         filter: ref('')
     }
   },
  computed: {
@@ -104,12 +122,55 @@ export default {
       }
   },
   methods: {
+     getIconActive (nationalClinic) {
+           if (nationalClinic.active) {
+              return 'delete'
+              } else if (!nationalClinic.active) {
+              return 'play_arrow'
+              }
+       },
+       getColorActive (nationalClinic) {
+           if (nationalClinic.active) {
+              return 'red'
+              } else if (!nationalClinic.active) {
+              return 'green'
+              }
+       },
     getNationalClinics () {
             NationalClinic.api().get('/nationalClinic')
        },
        editNationalClinic (nationalClinic) {
         this.nationalClinic = Object.assign({}, nationalClinic)
+          this.viewMode = false
          this.showNationalClinicRegistrationScreen = true
+      },
+       addNationalClinic () {
+          this.viewMode = false
+          this.nationalClinic = new NationalClinic()
+         this.showNationalClinicRegistrationScreen = true
+      },
+       visualizeNationalClinic (nationalClinic) {
+          this.nationalClinic = Object.assign({}, nationalClinic)
+         this.viewMode = true
+           this.showNationalClinicRegistrationScreen = true
+      },
+      promptToConfirm (nationalClinic) {
+           let msg = ''
+            this.$q.dialog({ title: 'Confirm', message: nationalClinic.active ? 'Deseja Inactivar a Unidade Sanitaria?' : 'Deseja Activar o Unidade Sanitaria?', cancel: true, persistent: true }).onOk(() => {
+              if (nationalClinic.active) {
+                nationalClinic.active = false
+                  msg = 'Unidade Sanitaria inactivada com sucesso.'
+              } else if (!nationalClinic.active) {
+                  nationalClinic.active = true
+                     msg = 'Unidade Sanitaria activado com sucesso.'
+              }
+             NationalClinic.apiSave(nationalClinic).then(resp => {
+                this.$emit('nationalClinic', msg)
+            }).catch(error => {
+              console.log(nationalClinic.id)
+                console.log(error)
+            })
+        })
       }
   },
   mounted () {

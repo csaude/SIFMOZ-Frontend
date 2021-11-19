@@ -102,7 +102,13 @@ export default {
               this.$refs.tomar.$refs.ref.validate()
               this.$refs.periodo.validate()
               this.$refs.forma.validate()
-        if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
+              if (this.drug.packSize <= 0) {
+                 this.displayAlert('error', 'Por favor indique um tamanho de pacote maior que zero ')
+              } else if (this.drug.defaultTimes <= 0) {
+                    this.displayAlert('error', 'Por favor indique um numero de toma maior que zero ')
+              } else if (this.drug.defaultTreatment <= 0) {
+                    this.displayAlert('error', 'Por favor indique um numero de vezes a tomar maior que zero ')
+              } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
         !this.$refs.packSize.$refs.ref.hasError && !this.$refs.defaultTimes.$refs.ref.hasError &&
         !this.$refs.tomar.$refs.ref.hasError && !this.$refs.periodo.hasError &&
              !this.$refs.forma.hasError) {
@@ -113,6 +119,7 @@ export default {
            this.drug.active = true
            Drug.apiSave(this.drug).then(resp => {
                 console.log(resp.response.data)
+                 Drug.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', this.drug.id === null ? 'Medicamento adiconado com sucesso.' : 'Medicamento actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
