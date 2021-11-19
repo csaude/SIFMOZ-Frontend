@@ -14,6 +14,7 @@
       <PrescriptionInfoContainer
         :identifier="identifier"
         @addNewPack="addNewPack"
+        @editPack="editPack"
         @editClinicService="editClinicService"/>
     </span>
   </div>
@@ -22,6 +23,7 @@
       <AddEditPrescription
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
+        :step="step"
         @close="showAddPrescription = false" />
   </q-dialog>
 </div>
@@ -36,7 +38,8 @@ export default {
     return {
       showAddPrescription: false,
       infoVisible: true,
-      selectedVisitDetails: ''
+      selectedVisitDetails: '',
+      step: ''
     }
   },
   methods: {
@@ -45,6 +48,12 @@ export default {
     },
     addNewPack (patientVisitDetails) {
       this.selectedVisitDetails = patientVisitDetails
+      this.step = 'addNewPack'
+      this.showAddPrescription = true
+    },
+    editPack (patientVisitDetails) {
+      this.selectedVisitDetails = patientVisitDetails
+      this.step = 'editPack'
       this.showAddPrescription = true
     }
   },

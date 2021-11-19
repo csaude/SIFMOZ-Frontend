@@ -37,7 +37,7 @@
           </div>
         </div>
         <div class="col q-py-md">
-          <ListHeader :addVisible="true" bgColor="bg-primary" @showAdd="showAddEditEpisode = true, step='create'">Episódios</ListHeader>
+          <ListHeader :addVisible="!showEndDetails" bgColor="bg-primary" @showAdd="showAddEditEpisode = true, step='create'">Episódios</ListHeader>
           <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum Episódio Iniciado</EmptyList>
           <span
             v-for="episode in episodes" :key="episode.id" >
