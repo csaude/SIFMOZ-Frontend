@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <q-table
-      title="Rasterio de Tuberculose"
+      title="Rastreio de Tuberculose"
       :rows="tbQuestions"
       :columns="columns"
       row-key="question"
@@ -10,7 +10,9 @@
       :rows-per-page-options="[0]"
       virtual-scroll
         hide-bottom
+        table-header-class="text-white"
         class="my-sticky-header-table"
+        title-class="text-bold text-white"
     >
      <template v-slot:body="props">
             <q-tr :props="props">
@@ -59,7 +61,9 @@
       :rows-per-page-options="[0]"
       virtual-scroll
         hide-bottom
+       table-header-class="text-white"
         class="my-sticky-header-table"
+            title-class="text-white"
     >
      <template v-slot:body="props">
             <q-tr :props="props">

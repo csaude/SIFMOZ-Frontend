@@ -116,7 +116,7 @@ export default {
  computed: {
       getNationalClinicos () {
           return NationalClinic.query()
-                           .with('province')
+                           .with('province.districts')
                            .with('facilityType')
                           .get()
       }

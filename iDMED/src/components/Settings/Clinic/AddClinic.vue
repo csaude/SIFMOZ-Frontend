@@ -5,7 +5,7 @@
                <div class="row q-mt-md">
                 <nameInput
                     v-model="clinic.clinicName"
-                    label="Nome da Clinica *"
+                    label="Nome da Farmácia *"
                     :disable="onlyView"
                     ref="nome"/>
             </div>
@@ -142,6 +142,7 @@ export default {
         submitClinic () {
             this.clinic.mainClinic = 0
             this.clinic.active = true
+            this.clinic.province.districts = []
             console.log(this.clinic)
            Clinic.apiSave(this.clinic).then(resp => {
                  this.displayAlert('info', this.clinic.id === null ? 'Clinica Cadastrada Com Sucesso' : 'Clinica actualizada com sucesso.')
