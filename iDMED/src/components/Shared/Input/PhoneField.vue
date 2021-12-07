@@ -7,7 +7,6 @@
         :value="phone"
         type="tel"
         @input="(event) => $emit('update:phone', event.target.value)"
-        :rules="[val => !!val || 'O Campo é obrigatório']"
         lazy-rules
         >
         <template v-slot:prepend>

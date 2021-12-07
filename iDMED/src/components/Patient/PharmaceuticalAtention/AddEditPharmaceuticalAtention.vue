@@ -247,6 +247,7 @@ export default {
             this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
             this.patientVisit.adherenceScreening.push(this.adherenceScreening)
             this.patientVisit.ramScreening.push(this.rAMScreening)
+
             await PatientVisit.apiSave(this.patientVisit).then(resp => {
               console.log(resp.response.data)
               PatientVisit.apiFetchById(resp.response.data.id)
@@ -280,9 +281,8 @@ export default {
                           .with('pregnancyScreening')
                           .with('adherenceScreening')
                           .with('ramScreening')
-                          .with('patientVisitDetails.episode')
-                          .with('patientVisitDetails.clinic')
-                          .with('clinic').where('patient_id', this.patient.id).has('clinic').get()
+                          .with('patientVisitDetails')
+                          .with('clinic').where('patient_id', this.patient.id).has('clinic').has('vitalSigns').get()
 
                       for (const visit of visits) {
                    if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length > 0) {

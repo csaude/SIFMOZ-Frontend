@@ -103,7 +103,7 @@
                   option-label="fullName"
                   label="Clínico" />
               <div>
-                <div class="row items-center q-mb-sm">
+                <div class="row items-center q-mb-xs">
                     <span class="text-subtitle2">Informação Adicional</span>
                 </div>
                 <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
@@ -143,17 +143,21 @@
                 <q-select
                   class="col"
                   ref="patientStatus"
-                  :rules="[ val => !!val || 'Por favor indicar a ituacao do paciente (em relação aos modelos)']"
+                  :rules="[ val => !!val || 'Por favor indicar a situação do paciente (em relação aos modelos)']"
                   v-model="curPrescription.patientStatus"
                   :disable="isNewPackStep || isEditPackStep"
                   :options="patientStatus"
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
+                <q-toggle
+                  v-model="curPatientVisitDetail.createPackLater"
+                  :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
+                  label="Para Dispensar à Posterior" />
                 <div class="row q-mb-sm">
                   <q-btn
                     unelevated
                     color="primary"
-                    :disable="isNewPackStep || isEditPackStep"
+                    :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
                     label="Adicionar Medicamentos"
                     class="col all-pointer-events"
                     @click="validateForm()"/>
@@ -161,8 +165,9 @@
             </div>
           </div>
           <div class="col q-mx-md">
-          <span
-              v-if="showServiceDrugsManagement">
+          <div
+            class="q-pa-md box-border"
+            v-if="showServiceDrugsManagement">
               <div
                 v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
                 <ServiceDrugsManagement
@@ -176,14 +181,35 @@
                   @updatePrescribedDrugs="updatePrescribedDrugs"
                   :visitDetails="visitDetails"/>
               </div>
-          </span>
+          </div>
           <div v-else class="vertical-middle">
             <q-banner rounded class="bg-orange-1 text-left text-orange-10">
               Nenhum Serviço de Saúde foi Seleccionado!.
             </q-banner>
           </div>
-          <span
+              <div class="row" v-if="showServiceDrugsManagement && hasVisitsToPackNow">
+                <q-banner
+                  dense
+                  inline-actions
+                  class="col text-white q-pa-none bg-orange-3">
+                    <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
+                    <template v-slot:action class="items-center">
+                        <q-select
+                          style="width: 320px"
+                          class="col q-ma-sm"
+                          bg-color="white"
+                          dense outlined
+                          ref="dispenseMode"
+                          v-model="dispenseMode"
+                          :options="dispenseModes"
+                          label="Modo de dispensa" />
+                    </template>
+                </q-banner>
+              </div>
+         <div class="row">
+           <span
             class="text-right absolute-bottom q-mb-lg q-mr-lg q-mt-md no-pointer-events">
+
               <q-btn
                 label="Cancelar"
                 color="red"
@@ -192,11 +218,12 @@
 
               <q-btn
                 v-if="selectedClinicalService !==''"
-                label="Dispensar"
+                :label="dispenseLabel"
                 @click="generatePacksAndDispense()"
                 color="primary"
                 class="q-ml-md all-pointer-events" />
             </span>
+         </div>
           </div>
         </div>
       </q-card-section>
@@ -254,7 +281,9 @@ export default {
       showServiceDrugsManagement: false,
       prescriptionDate: '',
       showDispenseMode: false,
-      prescribedDrugs: []
+      prescribedDrugs: [],
+      dispenseMode: '',
+      dispenseModes: ['Farmácia Pública - Hora Normal', 'Farmácia Pública - Fora Hora Normal', 'FARMAC/Farmácia Privada', 'Distribuição Comunitária pelo Provedor de Saúde']
     }
   },
   methods: {
@@ -262,6 +291,12 @@ export default {
       if (!this.isNewPackStep || !this.isEditPackStep) {
         this.patientVisit.visitDate = new Date()
       } else {
+        this.patientVisit = PatientVisit.query()
+                                        .with('clinic.*')
+                                        .where('id', this.curPatientVisitDetail.patientVisit.id)
+                                        .first()
+      }
+      if (this.isFirstPack && this.curPatientVisitDetail.patientVisit !== null) {
         this.patientVisit = PatientVisit.query()
                                         .with('clinic.*')
                                         .where('id', this.curPatientVisitDetail.patientVisit.id)
@@ -315,15 +350,20 @@ export default {
                                                       .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.service.id)
                                                       .first()
         this.curPatientVisitDetail.prescriptions[0].prescribedDrugs = PrescribedDrug.query()
-                                                                                    .with('drug.*')
+                                                                                    .with('drug.form')
                                                                                     .where('prescription_id', this.curPatientVisitDetail.prescriptions[0].id)
                                                                                     .get()
-        this.curPatientVisitDetail.packs[0] = this.lastPackFull
 
         const prescribedDrugs = this.curPatientVisitDetail.prescriptions[0].prescribedDrugs
-        const packagedDrugs = this.curPatientVisitDetail.packs[0].packagedDrugs
 
-        if (this.isEditPackStep) {
+        let packagedDrugs = null
+
+        if (!this.isFirstPack) {
+          this.curPatientVisitDetail.packs[0] = this.lastPackFull
+          packagedDrugs = this.curPatientVisitDetail.packs[0].packagedDrugs
+        }
+
+        if (this.isEditPackStep || this.isFirstPack) {
           this.prescribedDrugs = prescribedDrugs
         } else {
           Object.keys(prescribedDrugs).forEach(function (k) {
@@ -337,9 +377,16 @@ export default {
           }.bind(this))
 
             this.curPatientVisitDetail.packs = []
-            pack.pickupDate = this.lastPack.nextPickUpDate
+            if (this.isFirstPack) {
+              pack.pickupDate = this.curPatientVisitDetail.prescriptions[0].prescriptionDate
+            } else {
+              pack.pickupDate = this.lastPack.nextPickUpDate
+            }
+
             this.curPatientVisitDetail.packs.push(pack)
         }
+        if (this.isFirstPack) this.curPatientVisitDetail.packs.push(pack)
+
         this.curPatientVisitDetails.push(this.curPatientVisitDetail)
         this.showServiceDrugsManagement = true
       }
@@ -401,10 +448,12 @@ export default {
     },
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
       this.curPrescription.prescribedDrugs = prescribedDrugs
-      this.curPatientVisitDetail.packs[0].packDate = new Date(pickupDate)
-      this.curPatientVisitDetail.packs[0].pickupDate = new Date(pickupDate)
-      this.curPatientVisitDetail.packs[0].nextPickUpDate = new Date(nextPDate)
-      if (duration !== undefined) this.curPatientVisitDetail.packs[0].weeksSupply = duration.weeks
+      if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.packs.length > 0) {
+        this.curPatientVisitDetail.packs[0].packDate = new Date(pickupDate)
+        this.curPatientVisitDetail.packs[0].pickupDate = new Date(pickupDate)
+        this.curPatientVisitDetail.packs[0].nextPickUpDate = new Date(nextPDate)
+        if (duration !== undefined) this.curPatientVisitDetail.packs[0].weeksSupply = duration.weeks
+      }
     },
     validateForm () {
       this.$refs.patientStatus.validate()
@@ -441,22 +490,34 @@ export default {
       let error = ''
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
-        if (Number(visitDetails.packs[0].weeksSupply) <= 0) {
-          hasError = true
-          error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
-        } else if (new Date(visitDetails.packs[0].pickupDate) > new Date()) {
-          hasError = true
-          error = 'A data de levantamento indicada é maior que a data corrente'
-        } else if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
-          if (!this.isNewPackStep || !this.isEditPackStep) {
-            visitDetails.patientVisit.visitDate = new Date(visitDetails.prescriptions[0].prescriptionDate)
-            visitDetails.patientVisit = null
+        if (!visitDetails.createPackLater) {
+          if (Number(visitDetails.packs[0].weeksSupply) <= 0) {
+            hasError = true
+            error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
+          } else if (new Date(visitDetails.packs[0].pickupDate) > new Date()) {
+            hasError = true
+            error = 'A data de levantamento indicada é maior que a data corrente'
+          } else if (this.dispenseMode === '') {
+            hasError = true
+            error = 'Por favor indicar o modo da dispensa.'
+          } else if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
+            if (!this.isNewPackStep || !this.isEditPackStep || !this.isFirstPack) {
+              visitDetails.patientVisit.visitDate = new Date(visitDetails.prescriptions[0].prescriptionDate)
+              visitDetails.patientVisit = null
+            }
+            this.generatePacks(visitDetails)
+          } else {
+            if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
+              if (!this.isNewPackStep || !this.isEditPackStep) {
+                visitDetails.patientVisit.visitDate = new Date(visitDetails.prescriptions[0].prescriptionDate)
+                visitDetails.patientVisit = null
+              }
+            }
           }
-          this.generatePacks(visitDetails)
         }
       }.bind(this))
       if (!hasError) {
-        this.showDispenseMode = true
+        this.proccedToDispense()
       } else {
         this.displayAlert('error', 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de [' + error + ' ]')
       }
@@ -471,19 +532,29 @@ export default {
         visitDetails.packs[0].packagedDrugs.push(packDrug)
       })
     },
-    async proccedToDispense (dispenseMode) {
-      if (this.isNewPackStep || this.isEditPackStep) {
+    async proccedToDispense () {
+      if (this.isNewPackStep || this.isEditPackStep || this.isFirstPack) {
         this.curPatientVisitDetails[0].patientVisit = null
         this.curPatientVisitDetails[0].prescriptions[0].patientVisitDetails = null
         this.curPatientVisitDetails[0].prescriptions[0].prescriptionDetails[0].prescription = null
       }
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-        const visitDetails = this.curPatientVisitDetails[k]
+        const visitDetails = Object.assign({}, this.curPatientVisitDetails[k])
         if (visitDetails.prescriptions[0].prescribedDrugs.length > 0) {
-          visitDetails.packs[0].dispenseMode = dispenseMode
+          if (!visitDetails.createPackLater) {
+            visitDetails.packs[0].dispenseMode = this.dispenseMode
+          } else {
+            visitDetails.packs = []
+          }
+          if (this.isFirstPack && this.curPatientVisitDetails[0].prescriptions[0].id !== null) {
+            visitDetails.clinic = this.currClinic
+            visitDetails.prescriptions = []
+          }
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
+
+console.log(this.patientVisit)
 
       await PatientVisit.apiSave(this.patientVisit).then(resp => {
         console.log(resp.response.data)
@@ -508,11 +579,48 @@ export default {
     }
   },
   computed: {
+    isFirstPack () {
+      return this.lastPackFull === null
+    },
+    dispenseLabel () {
+      if (this.hasVisitsToPackNow) {
+        return 'Dispensar'
+      } else {
+        return 'Gravar'
+      }
+    },
+    hasVisitsToPackLater () {
+      let createPackLater = false
+      if (this.curPatientVisitDetails.length <= 0) return false
+
+      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+        const visitDetails = this.curPatientVisitDetails[k]
+        if (createPackLater === false) {
+          createPackLater = visitDetails.createPackLater
+        }
+      }.bind(this))
+      return createPackLater
+    },
+    hasVisitsToPackNow () {
+      let createPackLater = true
+      if (this.curPatientVisitDetails.length <= 0) return false
+
+      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+        const visitDetails = this.curPatientVisitDetails[k]
+        if (createPackLater === true) {
+          createPackLater = visitDetails.createPackLater
+        }
+      }.bind(this))
+      return !createPackLater
+    },
     isNewPackStep () {
       return this.step === 'addNewPack'
     },
     isEditPackStep () {
       return this.step === 'editPack'
+    },
+    isNewPrescriptionStep () {
+      return this.curPatientVisitDetail.prescriptions[0].id === null
     },
     lastPackFull () {
       return Pack.query()
@@ -535,6 +643,7 @@ export default {
       return this.curPatientVisitDetail.packs[0]
     },
     curPrescriptionDetails () {
+      if (this.curPrescription === null) return null
       return this.curPrescription.prescriptionDetails[0]
     },
     hasTherapeuticalRegimen () {
@@ -604,5 +713,8 @@ export default {
 <style lang="scss">
 .prescription-box {
     border: 1px solid $grey-4;
+  }
+  .box-border {
+    border: 1px solid $grey-4
   }
 </style>

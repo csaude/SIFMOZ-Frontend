@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md">
+  <div class="q-pa-md" style="width: 900px; max-width: 90vw;">
     <q-table
       title="Reações Adversas aos Medicamentos"
       :rows="monithoringQuestions"

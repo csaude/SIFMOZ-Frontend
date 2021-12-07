@@ -27,7 +27,15 @@ export default class Stock extends Model {
             stockEntrance: this.belongsTo(StockEntrance, 'stock_entrance_id'),
             stockCenter: this.belongsTo(StockCenter, 'stock_center_id'),
             stockLevel: this.hasOne(StockLevel, 'stock_id'),
-            drugs: this.belongsTo(Drug, 'drug_id')
+            drug: this.belongsTo(Drug, 'drug_id')
         }
+    }
+
+    getConsumeAVG () {
+      return 1
+    }
+
+    getState () {
+      return 'Normal'
     }
 }
