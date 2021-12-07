@@ -19,6 +19,17 @@
             :columns="columns"
             row-key="id"
             >
+            <template #header="props">
+              <q-tr class="text-left"  :props="props">
+                <q-th >{{columns[0].label}}</q-th>
+                <q-th >{{columns[1].label}}</q-th>
+                <q-th >{{columns[2].label}}</q-th>
+                <q-th v-if="!visitDetails.createPackLater">{{columns[3].label}}</q-th>
+                <q-th v-if="!visitDetails.createPackLater">{{columns[4].label}}</q-th>
+                <q-th >{{columns[5].label}}</q-th>
+              </q-tr>
+
+            </template>
             <template #body="props">
               <q-tr no-hover :props="props">
                 <q-td auto-width key="order" :props="props">
@@ -30,10 +41,10 @@
                 <q-td key="dosage" :props="props">
                   {{props.row.amtPerTime + ' - ' + props.row.timesPerDay + ' X por ' + props.row.form}}
                 </q-td>
-                <q-td auto-width key="packs" :props="props">
+                <q-td v-if="!visitDetails.createPackLater" auto-width key="packs" :props="props">
                   {{props.row.getQtyPrescribed(drugsDuration)}}
                 </q-td>
-                <q-td key="nextPickUpDate" :props="props">
+                <q-td v-if="!visitDetails.createPackLater" key="nextPickUpDate" :props="props">
                   <div class="row">
                     <q-toggle v-model="props.row.toContinue" label="Continua" />
                   </div>
@@ -68,13 +79,14 @@
 import { ref } from 'vue'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import Duration from '../../../store/models/Duration/Duration'
+import Prescription from '../../../store/models/prescription/Prescription'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'center', sortable: true },
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
   { name: 'packs', align: 'center', style: 'width: 20px', field: 'row.qtyPrescribed', label: 'Quantidade em (Frascos)', sortable: false },
   { name: 'nextPickUpDate', align: 'left', field: 'row.toContinue', label: 'Próx. Levantamento', sortable: false },
-  { name: 'options', align: 'center', label: 'Opções', sortable: false }
+  { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
   props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'step'],
@@ -92,14 +104,17 @@ export default {
       pickupDate: '',
       prescribedDrugs: ref([]),
       nums: Array(4).fill().map((x, i) => i + 1),
-      drugsDuration: ''
+      drugsDuration: '',
+      currPrescription: ''
     }
   },
   methods: {
     addEditDrugs (pickupDate, nextPDate, duration) {
-      this.drugsDuration = duration
-      this.nextPUpDate = nextPDate
-      this.pickupDate = new Date(pickupDate)
+      if (!this.visitDetails.createPackLater) {
+        this.drugsDuration = duration
+        this.nextPUpDate = nextPDate
+        this.pickupDate = new Date(pickupDate)
+      }
       this.showAddEditDrug = true
     },
     deleteRow (row) {
@@ -119,7 +134,7 @@ export default {
       }
       if (preferedId === '') {
         this.showAddEditDrug = false
-        prescribedDrug.nextPickUpDate = this.nextPUpDate
+        if (!this.visitDetails.createPackLater) prescribedDrug.nextPickUpDate = this.nextPUpDate
         this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
         this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
       } else {
@@ -135,6 +150,7 @@ export default {
       this.alert.visible = false
     },
     init () {
+      this.pickupDate = this.newPickUpDate
       if (this.oldPrescribedDrugs !== null) {
         this.prescribedDrugs = this.oldPrescribedDrugs
         this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
@@ -155,12 +171,16 @@ export default {
       if (this.isEditPackStep) {
         return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
       } else {
-        return this.prescription.duration
+        return Duration.query()
+                       .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
+                       .first()
       }
     },
     newPickUpDate () {
-      if (this.lastPack === null) return ''
-      if (this.isEditPackStep) {
+      // if (this.lastPack === null) return ''
+      if (this.isNewPrescriptionStep || this.lastPack === null) {
+        return this.currPrescription.prescriptionDate
+      } else if (this.isEditPackStep) {
         return this.lastPack.pickupDate
       } else {
         return this.lastPack.nextPickUpDate
@@ -168,10 +188,17 @@ export default {
     },
     isEditPackStep () {
       return this.step === 'editPack'
+    },
+    isNewPackStep () {
+      return this.step === 'addNewPack'
+    },
+    isNewPrescriptionStep () {
+      return this.currPrescription.id === null
     }
   },
   created () {
     this.curVisitDetails = Object.assign({}, this.visitDetails)
+    this.currPrescription = new Prescription(this.prescription)
   },
   components: {
     AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,

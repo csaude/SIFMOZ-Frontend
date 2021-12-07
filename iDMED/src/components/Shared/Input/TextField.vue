@@ -5,7 +5,6 @@
         :value="value"
         type="text"
         @input="(event) => $emit('update:value', event.target.value)"
-        :rules="[val => !!val || 'O Campo é obrigatório']"
         lazy-rules
         />
 </template>

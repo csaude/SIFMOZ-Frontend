@@ -6,13 +6,13 @@
         <div class="col-9">
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Sector Clínico:</div>
-            <div class="col text-grey-8">{{currEpisode.clinicSector.description}}</div>
+            <div class="col text-grey-8">{{currEpisode.clinicSector !== null ? currEpisode.clinicSector.description : ''}}</div>
             <div class="col text-grey-9 text-weight-medium">{{currEpisode.isStartEpisode() ? 'Data de Início:' : 'Data de Fim:'}}</div>
             <div class="col text-grey-8">{{formatDate(currEpisode.episodeDate)}}</div>
           </div>
           <div class="row ">
             <div class="col-3 text-grey-9 text-weight-medium">Notas de {{currEpisode.isStartEpisode() ? 'Início: ' : 'Fim: '}}</div>
-            <div class="col text-grey-8">{{currEpisode.startStopReason.reason}}</div>
+            <div class="col text-grey-8">{{currEpisode.startStopReason !== null ? currEpisode.startStopReason.reason : ''}}</div>
           </div>
         </div>
         <div class="col items-center">

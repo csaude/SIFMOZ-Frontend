@@ -80,19 +80,19 @@
           </q-table>
         </div>
       </q-card-section>
-      <q-dialog persistent v-model="viewTb" full-width>
+      <q-dialog persistent v-model="viewTb">
       <tbTable :selectedTbTracing="patientVisit.tbScreening[0]" :onlyView=true @close="viewTb = false"/>
       </q-dialog>
-       <q-dialog v-if="!patient.isMale()" persistent v-model="viewPregnancy" full-width>
+       <q-dialog v-if="!patient.isMale()" persistent v-model="viewPregnancy">
       <pregnancyTable :selectedPregnancyTracing="patientVisit.pregnancyScreening[0]" :onlyView=true @close="viewPregnancy = false"/>
       </q-dialog>
-       <q-dialog persistent v-model="viewAdherence" full-width>
+       <q-dialog persistent v-model="viewAdherence">
       <adherenceTable :selectedAdherenceTracing="patientVisit.adherenceScreening[0]" :onlyView=true @close="viewAdherence = false"/>
       </q-dialog>
-       <q-dialog persistent v-model="viewRam" full-width>
+       <q-dialog persistent v-model="viewRam">
       <ramTable :selectedRamTracing="patientVisit.ramScreening[0]" :onlyView=true @close="viewRam = false"/>
       </q-dialog>
-       <q-dialog persistent v-model="showAddPharmaceuticalAtention" full-width>
+       <q-dialog persistent v-model="showAddPharmaceuticalAtention">
       <AddEditPharmaceuticalAtention
         :editPatientVisit="patientVisit"
         :editMode=true

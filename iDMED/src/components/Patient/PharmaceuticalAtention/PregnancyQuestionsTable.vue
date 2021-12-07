@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md">
+  <div class="q-pa-md" style="width: 900px; max-width: 90vw;">
     <q-table
       title="Rasterio de Gravidez"
       :rows="pregnancyQuestions"
@@ -77,7 +77,7 @@ const columns = [
 
 const pregnancyQuestions = [
         {
-           question: 'Está gravida ??',
+           question: 'Está gravida?',
            completed: false,
             code: '01'
          },
