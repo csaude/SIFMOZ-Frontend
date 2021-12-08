@@ -51,7 +51,6 @@ export default {
       const pvts = PatientVisit.query()
                           .where('patient_id', this.patient.id)
                           .limit(4)
-                          .has('clinic')
                           .has('vitalSigns')
                           .orderBy('visitDate', 'desc')
                           .get()

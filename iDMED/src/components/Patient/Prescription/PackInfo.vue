@@ -1,8 +1,8 @@
 <template>
   <div>
     <ListHeader
-      :canEdit="true"
       :addVisible="false"
+      :isClosed="isClosed"
       @removePack="removePack"
       @editPack="editPack"
       bgColor="bg-grey-4" >Data de Levantamento: {{formatDate(currPack.pickupDate)}}
@@ -47,7 +47,7 @@ const columns = [
   { name: 'nextPickUpDate', align: 'left', field: 'row.nextPickUpDate', label: 'Próximo Levantamento', sortable: false }
 ]
 export default {
-  props: ['pack'],
+  props: ['pack', 'isClosed'],
   setup () {
     return {
       canEdit: true,

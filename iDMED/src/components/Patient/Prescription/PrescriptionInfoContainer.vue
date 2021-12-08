@@ -1,6 +1,6 @@
   <template>
   <div>
-  <ListHeader :addVisible="false" bgColor="bg-grey-4" >{{ identifier.service.code }} </ListHeader>
+  <ListHeader :addVisible="false" :bgColor="headerColor" >{{ identifier.service.code }} </ListHeader>
     <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null"
       class="noRadius">
@@ -34,7 +34,7 @@
           <div class="row q-my-md">
             <q-space/>
             <q-btn
-              v-if="patientVisitDetais.getPrescriptionRemainigDuration() > 0"
+              v-if="!isClosed"
               unelevated
               color="red"
               label="Remover"
@@ -43,11 +43,12 @@
           </div>
         </div>
         <div class="col q-py-md">
-          <ListHeader :addVisible="patientVisitDetais.getPrescriptionRemainigDuration() > 0" bgColor="bg-primary" @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())">Dispensa</ListHeader>
-          <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum registo de Levantamentos</EmptyList>
-          <span>
+          <ListHeader :addVisible="!isClosed" bgColor="bg-primary" @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())">Dispensa</ListHeader>
+          <EmptyList v-if="lastPack === null" >Nenhum registo de Levantamentos</EmptyList>
+          <span v-if="lastPack !== null">
             <PackInfo
               @editPack="editPack"
+              :isClosed="isClosed"
               :pack="lastPack"/>
           </span>
         </div>
@@ -185,6 +186,26 @@ export default {
                  .where('patientVisitDetails_id', this.patientVisitDetais.id)
                  .orderBy('pickupDate', 'desc')
                  .first()
+    },
+    lastEpisode () {
+      return Episode.query()
+                    .withAll()
+                    .where('patientServiceIdentifier_id', this.identifier.id)
+                    .orderBy('creationDate', 'desc')
+                    .first()
+    },
+    showEndDetails () {
+      return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
+    },
+    headerColor () {
+      if (!this.showEndDetails) {
+        return 'bg-grey-4'
+      } else {
+        return 'bg-red-7'
+      }
+    },
+    isClosed () {
+      return this.showEndDetails || this.patientVisitDetais.getPrescriptionRemainigDuration() <= 0
     }
   },
   created () {

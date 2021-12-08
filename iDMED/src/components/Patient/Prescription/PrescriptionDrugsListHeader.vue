@@ -6,7 +6,8 @@
     class="text-white q-pa-none">
         <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
         <template v-slot:action class="items-center">
-          <q-input
+            <q-input
+              v-if="!visitDetails.createPackLater"
               dense
               outlined
               bg-color="white"
@@ -30,6 +31,7 @@
           </q-input>
 
           <q-select
+            v-if="!visitDetails.createPackLater"
             dense
             style="width: 200px"
             class="q-mx-sm"
@@ -43,6 +45,7 @@
             label="Dispensa para" />
 
           <q-input
+            v-if="!visitDetails.createPackLater"
             outlined dense
             v-model="nextPDate"
             label="Proximo Levantamento"
@@ -118,22 +121,26 @@ export default {
       showAdd () {
         // this.$refs.pickupDate.validate()
         // this.$refs.nextPickupDate.validate()
-        if (!date.isValid(this.pickupDate)) {
-          this.displayAlert('error', 'A data de levantamento é inválida')
-        } else if (!date.isValid(this.nextPDate)) {
-          this.displayAlert('error', 'A data do próximo levantamento é inválida')
-        } else if (this.drugsDuration === '') {
-          this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
-        } else if (new Date(this.pickupDate) < this.curVisitDetails.prescriptions[0].prescriptionDate) {
-          this.displayAlert('error', 'A data de levantamento indicada é menor que a data da prescrição')
-        } else if (new Date(this.pickupDate) > new Date()) {
-          this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')
-        } else if (new Date(this.pickupDate) > new Date(this.nextPDate)) {
-          this.displayAlert('error', 'A data do levantamento é maior que a data do próximo levantamento')
-        } else if (this.newPickUpDate !== '' && (new Date(this.pickupDate) < this.newPickUpDate)) {
-          this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.formatDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
+        if (this.visitDetails.createPackLater) {
+          this.$emit('showAdd', null, null, null)
         } else {
-          this.$emit('showAdd', this.pickupDate, this.nextPDate, this.drugsDuration)
+          if (!date.isValid(this.pickupDate)) {
+            this.displayAlert('error', 'A data de levantamento é inválida')
+          } else if (!date.isValid(this.nextPDate)) {
+            this.displayAlert('error', 'A data do próximo levantamento é inválida')
+          } else if (this.drugsDuration === '') {
+            this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
+          } else if (new Date(this.pickupDate) < this.curVisitDetails.prescriptions[0].prescriptionDate) {
+            this.displayAlert('error', 'A data de levantamento indicada é menor que a data da prescrição')
+          } else if (new Date(this.pickupDate) > new Date()) {
+            this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')
+          } else if (new Date(this.pickupDate) > new Date(this.nextPDate)) {
+            this.displayAlert('error', 'A data do levantamento é maior que a data do próximo levantamento')
+          } else if (this.newPickUpDate !== '' && (new Date(this.pickupDate) < this.newPickUpDate)) {
+            this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.formatDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
+          } else {
+            this.$emit('showAdd', this.pickupDate, this.nextPDate, this.drugsDuration)
+          }
         }
       },
       determineNextPickUpDate () {
@@ -158,10 +165,8 @@ export default {
         return date.formatDate(dateString, 'YYYY-MM-DD')
       },
       init () {
-        if (this.newPickUpDate !== '') {
-          this.pickupDate = this.newPickUpDate
-          this.tryToDetermineDefaultTakePeriod()
-        }
+        this.pickupDate = this.formatDate(this.newPickUpDate)
+        this.tryToDetermineDefaultTakePeriod()
       }
     },
     components: {

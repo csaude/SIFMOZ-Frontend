@@ -1,30 +1,19 @@
 <template>
-  <q-card style="width: 800px; max-width: 90vw;">
-    <form @submit.prevent="submitForm" >
-        <q-card-section class="q-pa-none">
-          <div class="q-mt-md q-mb-sm">
-            <div class="row items-center q-mb-sm q-pa-sm">
-                <span class="text-subtitle2">
-                Modo de Dispensa</span>
-            </div>
-            <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
-          </div>
-          <div class="q-px-md">
-            <q-select
-              class="col q-my-md"
-              dense outlined
-              v-model="dispenseMode"
-              :options="dispenseModes"
-              label="Modo de dispensa" />
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-my-md q-mr-sm">
-            <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-            <q-btn type="submit" label="Dispensar" color="primary" />
-        </q-card-actions>
-      </form>
-    </q-card>
+  <q-banner
+    dense
+    inline-actions
+    :class="[bgColor, headerClass]"
+    class="text-white q-pa-none">
+      <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
+      <template v-slot:action class="items-center">
+          <q-select
+            class="col q-my-md"
+            dense outlined
+            v-model="dispenseMode"
+            :options="dispenseModes"
+            label="Modo de dispensa" />
+      </template>
+  </q-banner>
 </template>
 
 <script>
@@ -32,7 +21,7 @@ export default {
   data () {
     return {
       dispenseMode: '',
-      dispenseModes: ['Dispensa na Comunidade']
+      dispenseModes: ['Farmácia Pública - Hora Normal', 'Farmácia Pública - Fora Hora Normal', 'FARMAC/Farmácia Privada', 'Distribuição Comunitária pelo Provedor de Saúde']
     }
   },
   methods: {
