@@ -11,31 +11,8 @@
                 </div>
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="doctor.firstnames" ref="nome" />
-                        <lastNameInput v-model="doctor.lastname" class="q-ml-md" ref="apelido"/>
-                    </div>
-                    <div class="row">
-                          <q-input
-                              dense
-                              outlined
-                              class="col"
-                              v-model="dateOfBirth"
-                              mask="date"
-                              ref="birthDate"
-                              :rules="['date']"
-                              label="Data de Nascimento">
-                              <template v-slot:append>
-                                  <q-icon name="event" class="cursor-pointer">
-                                  <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                      <q-date v-model="dateOfBirth" >
-                                      <div class="row items-center justify-end">
-                                          <q-btn v-close-popup label="Close" color="primary" flat />
-                                      </div>
-                                      </q-date>
-                                  </q-popup-proxy>
-                                  </q-icon>
-                              </template>
-                          </q-input>
+                        <nameInput v-model="doctor.firstnames" ref="nome"   :disable="onlyView"/>
+                        <lastNameInput v-model="doctor.lastname" class="q-ml-md" ref="apelido"   :disable="onlyView"/>
                     </div>
                      <div class="row q-mt-md">
                         <q-select
@@ -45,20 +22,22 @@
                           :options="genders"
                           ref="gender"
                           :rules="[ val => ( val != null ) || ' Por favor indique o genero']"
-                          label="Género" />
+                          label="Género *"
+                          :disable="onlyView" />
                      </div>
                       <div class="row q-mt-md">
                     <q-select
                      class="col" dense outlined
                       v-model="doctor.clinic"
                       use-input
+                      disable
                       input-debounce="0"
                       :options="clinics"
                       option-value="id"
                       option-label="clinicName"
                       ref="clinic"
-                      :rules="[ val => ( val != null ) || ' Por favor indique a clinica']"
-                      label="Clinica"/>
+                      :rules="[ val => ( val != null ) || ' Por favor indique a Farmácia']"
+                      label="Farmácias"/>
                       </div>
                 </div>
                 <div class="q-mt-lg">
@@ -69,8 +48,8 @@
                     <q-separator color="grey-13" size="1px"/>
                 </div>
                 <div class="row q-mt-md">
-                  <PhoneField v-model="doctor.telephone" dense label="Principal"/>
-                   <emailInput v-model="doctor.email" dense class="q-ml-md" />
+                  <PhoneField v-model="doctor.telephone" dense label="Principal"   :disable="onlyView"/>
+                   <emailInput v-model="doctor.email" dense class="q-ml-md"    :disable="onlyView"/>
                 </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
@@ -91,11 +70,12 @@
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import Doctor from '../../../store/models/doctor/Doctor'
+import { SessionStorage } from 'quasar'
 const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
 export default {
-    props: ['clinic', 'selectedDoctor'],
+    props: ['clinic', 'selectedDoctor', 'onlyView'],
     data () {
         return {
            alert: ref({
@@ -103,7 +83,6 @@ export default {
               visible: false,
               msg: ''
             }),
-            currClinic: {},
             doctor: new Doctor(),
            dateOfBirth: '',
             createValue (val, done) {
@@ -127,7 +106,7 @@ export default {
             }
         },
         submitDoctor () {
-          this.doctor.dateofbirth = new Date(this.dateOfBirth)
+          this.doctor.dateofbirth = new Date()
           this.doctor.active = true
             Doctor.apiSave(this.doctor).then(resp => {
                 console.log(resp.response.data)
@@ -136,16 +115,6 @@ export default {
             }).catch(error => {
                 this.displayAlert('error', error)
             })
-        },
-     async  getAllClinics (offset) {
-            if (this.clinics.length <= 0) {
-     await Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
-                        offset = offset + 100
-                        if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
-                    }).catch(error => {
-                        console.log(error)
-                    })
-            }
         },
          displayAlert (type, msg) {
           this.alert.type = type
@@ -161,7 +130,6 @@ export default {
     created () {
         if (this.selectedDoctor !== '') {
           this.doctor = Object.assign({}, this.selectedDoctor)
-          this.dateOfBirth = this.doctor.dateofbirth
         }
     },
     components: {
@@ -172,8 +140,7 @@ export default {
         Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     mounted () {
-        const offset = 0
-       this.getAllClinics(offset)
+      this.doctor.clinic = this.currClinic
     },
     computed: {
         clinics () {
@@ -183,7 +150,13 @@ export default {
                            .with('district')
                            .has('code')
                           .get()
-        }
+        },
+         currClinic () {
+        return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+      }
     }
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
       <q-input
         outlined
-        label="Codigo"
+        label="Codigo *"
         dense
          ref="ref"
         class="col"

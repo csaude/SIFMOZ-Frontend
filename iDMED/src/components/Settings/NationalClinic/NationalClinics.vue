@@ -124,9 +124,9 @@ export default {
   methods: {
      getIconActive (nationalClinic) {
            if (nationalClinic.active) {
-              return 'delete'
+              return 'stop_circle'
               } else if (!nationalClinic.active) {
-              return 'play_arrow'
+              return 'play_circle'
               }
        },
        getColorActive (nationalClinic) {
@@ -156,6 +156,7 @@ export default {
       },
       promptToConfirm (nationalClinic) {
            let msg = ''
+             nationalClinic.province.districts = []
             this.$q.dialog({ title: 'Confirm', message: nationalClinic.active ? 'Deseja Inactivar a Unidade Sanitaria?' : 'Deseja Activar o Unidade Sanitaria?', cancel: true, persistent: true }).onOk(() => {
               if (nationalClinic.active) {
                 nationalClinic.active = false

@@ -17,4 +17,8 @@ export default class InteroperabilityAttribute extends Model {
       interoperabilityType: this.belongsTo(InteroperabilityType, 'interoperabilityType_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/interoperabilityAttribute')
+  }
 }

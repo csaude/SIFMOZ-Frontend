@@ -122,6 +122,7 @@ export default {
         submitNationalClinic () {
             console.log(this.nationalClinic)
             this.nationalClinic.active = true
+            this.nationalClinic.province.districts = []
             NationalClinic.apiSave(this.nationalClinic).then(resp => {
                 console.log(resp.response.data)
              //  this.$emit('close')

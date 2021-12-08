@@ -54,7 +54,7 @@
                       :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                    <q-tooltip :class="getTooltipClass(props.row)">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -129,9 +129,9 @@ export default {
   methods: {
      getIconActive (his) {
            if (his.active) {
-              return 'delete'
+              return 'stop_circle'
               } else if (!his.active) {
-              return 'play_arrow'
+              return 'play_circle'
               }
        },
        getColorActive (his) {
@@ -139,6 +139,13 @@ export default {
               return 'red'
               } else if (!his.active) {
               return 'green'
+              }
+       },
+         getTooltipClass (his) {
+           if (his.active) {
+              return 'bg-red-5'
+              } else if (!his.active) {
+              return 'bg-green-5'
               }
        },
     getHealthInformationSystem () {

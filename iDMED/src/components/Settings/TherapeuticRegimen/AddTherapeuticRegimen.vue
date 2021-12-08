@@ -4,7 +4,7 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime" ref="esquema" />
+                        <nameInput v-model="therapeuticRegimen.regimenScheme" :disable="onlyView" label="Esquema do Regime*" ref="esquema" />
                     </div>
                      <div class="row q-mt-md">
                        <nameInput v-model="therapeuticRegimen.description" :disable="onlyView"  ref="nome" />
@@ -18,6 +18,7 @@
                     </div>
                      <div class="row q-mt-md">
        <q-table
+        style="height: 500px"
       class="col"
       title="Medicamentos"
       :rows="drugs"

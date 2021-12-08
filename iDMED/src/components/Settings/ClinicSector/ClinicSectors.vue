@@ -60,7 +60,7 @@
                       :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                      <q-tooltip :class="getTooltipClass(props.row)">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -123,18 +123,25 @@ export default {
       }
   },
   methods: {
-    getIconActive (drug) {
-           if (drug.active) {
-              return 'delete'
-              } else if (!drug.active) {
-              return 'play_arrow'
+    getIconActive (clinicSector) {
+           if (clinicSector.active) {
+              return 'stop_circle'
+              } else if (!clinicSector.active) {
+              return 'play_circle'
               }
        },
-       getColorActive (drug) {
-           if (drug.active) {
+       getColorActive (clinicSector) {
+           if (clinicSector.active) {
               return 'red'
-              } else if (!drug.active) {
+              } else if (!clinicSector.active) {
               return 'green'
+              }
+       },
+        getTooltipClass (clinicSector) {
+           if (clinicSector.active) {
+              return 'bg-red-5'
+              } else if (!clinicSector.active) {
+              return 'bg-green-5'
               }
        },
        editClinicSector (clinicSector) {
@@ -162,8 +169,9 @@ export default {
               } else if (!clinicSector.active) {
                   clinicSector.active = true
               }
+              console.log(clinicSector)
              ClinicSector.apiSave(clinicSector).then(resp => {
-                  this.displayAlert('info', 'Sector Clinico inactivado com sucesso')
+                  this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
             }).catch(error => {
                    this.displayAlert('error', error)
             })

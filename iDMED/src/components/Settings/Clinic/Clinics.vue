@@ -29,11 +29,11 @@
             </template>
         <template v-slot:body="props">
             <q-tr :props="props">
-            <q-td key="code" :props="props">
-                {{ props.row.code }}
-            </q-td>
             <q-td key="clinicName" :props="props">
                 {{ props.row.clinicName }}
+            </q-td>
+             <q-td key="code" :props="props">
+                {{ props.row.code }}
             </q-td>
              <q-td key="province" :props="props">
                 {{ props.row.province.description }}
@@ -67,7 +67,7 @@
                       :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                     <q-tooltip :class="getTooltipClass(props.row)">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -148,9 +148,9 @@ export default {
       },
         getIconActive (clinic) {
            if (clinic.active) {
-              return 'delete'
+              return 'stop_circle'
               } else if (!clinic.active) {
-              return 'play_arrow'
+              return 'play_circle'
               }
        },
        getColorActive (clinic) {
@@ -158,6 +158,13 @@ export default {
               return 'red'
               } else if (!clinic.active) {
               return 'green'
+              }
+       },
+        getTooltipClass (clinic) {
+           if (clinic.active) {
+              return 'bg-red-5'
+              } else if (!clinic.active) {
+              return 'bg-green-5'
               }
        },
        editClinic (clinic) {
