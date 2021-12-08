@@ -60,7 +60,7 @@
                       :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                    <q-tooltip :class="getTooltipClass(props.row)">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -118,9 +118,9 @@ export default {
   methods: {
        getIconActive (drug) {
            if (drug.active) {
-              return 'delete'
+              return 'stop_circle'
               } else if (!drug.active) {
-              return 'play_arrow'
+              return 'play_circle'
               }
        },
        getColorActive (drug) {
@@ -128,6 +128,13 @@ export default {
               return 'red'
               } else if (!drug.active) {
               return 'green'
+              }
+       },
+         getTooltipClass (drug) {
+           if (drug.active) {
+              return 'bg-red-5'
+              } else if (!drug.active) {
+              return 'bg-green-5'
               }
        },
        editDrug (drug) {

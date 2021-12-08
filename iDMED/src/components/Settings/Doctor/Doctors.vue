@@ -62,7 +62,7 @@
                       :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
                      >
-                     <q-tooltip class="bg-green-5">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
+                     <q-tooltip :class="getTooltipClass(props.row)">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
                   </div>
                   </q-td>
@@ -97,7 +97,7 @@ import { ref } from 'vue'
 
 const columns = [
   { name: 'firstnames', required: true, label: 'Nome', align: 'left', field: row => row.firstnames, format: val => `${val}`, sortable: true },
-  { name: 'lastname', required: true, label: 'Codigo', align: 'left', field: row => row.lastname, format: val => `${val}`, sortable: true },
+  { name: 'lastname', required: true, label: 'Apelido', align: 'left', field: row => row.lastname, format: val => `${val}`, sortable: true },
    { name: 'telephone', required: true, label: 'Telefone', align: 'left', field: row => row.telephone, format: val => `${val}`, sortable: true },
   { name: 'active', required: true, label: 'Activo', align: 'left', field: row => row.active, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
@@ -128,9 +128,9 @@ export default {
   methods: {
         getIconActive (doctor) {
            if (doctor.active) {
-              return 'delete'
+              return 'stop_circle'
               } else if (!doctor.active) {
-              return 'play_arrow'
+              return 'play_circle'
               }
        },
        getColorActive (doctor) {
@@ -138,6 +138,13 @@ export default {
               return 'red'
               } else if (!doctor.active) {
               return 'green'
+              }
+       },
+       getTooltipClass (doctor) {
+           if (doctor.active) {
+              return 'bg-red-5'
+              } else if (!doctor.active) {
+              return 'bg-green-5'
               }
        },
        editDoctor (doctor) {

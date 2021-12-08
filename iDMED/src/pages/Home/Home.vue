@@ -71,6 +71,9 @@ import PregnancyScreening from '../../store/models/screening/PregnancyScreening'
 import TBScreening from '../../store/models/screening/TBScreening'
 import VitalSignsScreening from '../../store/models/screening/VitalSignsScreening'
 import FacilityType from '../../store/models/facilityType/FacilityType'
+import InteroperabilityType from '../../store/models/interoperabilityType/InteroperabilityType'
+import InteroperabilityAttribute from '../../store/models/interoperabilityAttribute/InteroperabilityAttribute'
+import HealthInformationSystem from '../../store/models/healthInformationSystem/HealthInformationSystem'
 export default {
     components: {
     },
@@ -99,9 +102,12 @@ export default {
         PregnancyScreening.apiGetAll()
         TBScreening.apiGetAll()
         VitalSignsScreening.apiGetAll()
+        InteroperabilityType.apiGetAll()
+        InteroperabilityAttribute.apiGetAll()
+        HealthInformationSystem.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('ff8081817d040caa017d04a014090006').then(resp => {
+        Clinic.apiFetchById('ff8081817d43e98b017d43f5930e000b').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },

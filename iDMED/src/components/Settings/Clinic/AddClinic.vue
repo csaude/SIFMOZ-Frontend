@@ -145,7 +145,7 @@ export default {
             this.clinic.province.districts = []
             console.log(this.clinic)
            Clinic.apiSave(this.clinic).then(resp => {
-                 this.displayAlert('info', this.clinic.id === null ? 'Clinica Cadastrada Com Sucesso' : 'Clinica actualizada com sucesso.')
+                 this.displayAlert('info', this.clinic.id === null ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
             }).catch(error => {
                   this.displayAlert('error', error)
             })
