@@ -4,14 +4,14 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
-                        <q-icon name="person_outline" size="sm"/>
+                        <q-icon name="subject" size="sm"/>
                         <span class="q-pl-sm text-subtitle2">Dados da Guia</span>
                     </div>
                     <q-separator color="grey-13" size="1px"/>
                 </div>
                 <div class="q-mt-md">
                     <div class="row">
-                      <TextInput label="Número *" dense class="col" />
+                      <TextInput v-model="stockEntrance.orderNumber" label="Número *" dense class="col" />
                       <q-input
                           dense
                           outlined
@@ -45,9 +45,23 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 export default {
+  data () {
+    return {
+      dateReceived: '',
+      stockEntrance: new StockEntrance()
+    }
+  },
   components: {
     TextInput: require('components/Shared/Input/TextField.vue').default
+  },
+  methods: {
+    submitForm () {
+      SessionStorage.set('currStockEntrance', this.stockEntrance)
+      this.$router.push('/stock/entrance')
+    }
   }
 }
 </script>

@@ -9,6 +9,7 @@ const routes = [
       { path: 'patientpanel', component: () => import('pages/Patient/Panel/PatientPanel.vue') },
       { path: 'groups', component: () => import('pages/Groups/Groups.vue') },
       { path: 'stock', component: () => import('pages/Stock/Stock.vue') },
+      { path: 'stock/entrance', component: () => import('pages/Stock/Entrance/EntrancePanel.vue') },
       { path: 'dashboard', component: () => import('pages/Dashboard/Dashboard.vue') },
       { path: 'reports', component: () => import('pages/Reports/Reports.vue') },
       { path: 'settings', component: () => import('pages/Settings/Settings.vue') },

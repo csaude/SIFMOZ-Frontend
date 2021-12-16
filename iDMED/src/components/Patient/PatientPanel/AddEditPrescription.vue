@@ -191,7 +191,7 @@
                 <q-banner
                   dense
                   inline-actions
-                  class="col text-white q-pa-none bg-orange-3">
+                  class="col text-white q-pa-none bg-orange-4">
                     <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
                     <template v-slot:action class="items-center">
                         <q-select

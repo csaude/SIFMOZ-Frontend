@@ -1,13 +1,315 @@
 <template>
-  <div></div>
+  <div>
+    <TitleBar>Detalhe da Guia</TitleBar>
+    <div class="row">
+      <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg">
+        <div>
+          <ListHeader
+            :addVisible="false"
+            :mainContainer="true"
+            bgColor="bg-primary">Notas da Guia
+          </ListHeader>
+          <div class="box-border q-pt-md">
+            <TextInput
+              v-model="currStockEntrance.orderNumber"
+              label="Número"
+              disable
+              dense
+              class="col q-ma-sm" />
+            <q-input
+                dense
+                outlined
+                disable
+                class="col q-ma-sm"
+                v-model="currStockEntrance.dateReceived"
+                mask="date"
+                ref="birthDate"
+                :rules="['date']"
+                label="Data de Criação">
+                <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                        <q-date v-model="currStockEntrance.dateReceived" >
+                        <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                        </div>
+                        </q-date>
+                    </q-popup-proxy>
+                    </q-icon>
+                </template>
+            </q-input>
+            <q-separator class="q-mx-sm"/>
+            <div class="row q-pa-sm">
+              <q-btn unelevated color="blue" class="col" label="Voltar" />
+              <q-btn unelevated color="orange-5" class="q-ml-md col" label="Editar" />
+              <q-btn unelevated color="red" class="q-ml-md col" label="Remover" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col q-pt-md q-mr-lg">
+      <div>
+          <ListHeader
+            :addVisible="true"
+            :mainContainer="true"
+            @showAdd="initNewStock"
+            bgColor="bg-primary">Medicamentos
+          </ListHeader>
+          <div class="box-border q-py-md">
+            <q-table
+                class="col"
+                dense
+                :rows="stocks"
+                :columns="columns"
+                row-key="id"
+                >
+                <template v-slot:no-data="{ icon, filter }">
+                  <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                    <span>
+                      Sem resultados para visualizar
+                    </span>
+                    <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+                  </div>
+                </template>
+                <template #header="props">
+                  <q-tr class="text-left"  :props="props">
+                    <q-th style="width: 70px" >{{columns[0].label}}</q-th>
+                    <q-th class="col" >{{columns[1].label}}</q-th>
+                    <q-th style="width: 190px" >{{columns[2].label}}</q-th>
+                    <q-th style="width: 190px" >{{columns[3].label}}</q-th>
+                    <q-th style="width: 120px" >{{columns[4].label}}</q-th>
+                    <q-th style="width: 150px" >{{columns[5].label}}</q-th>
+                  </q-tr>
+
+                </template>
+                <template #body="props">
+                  <q-tr :props="props">
+                    <q-td key="order" :props="props">
+                    </q-td>
+                    <q-td key="drug" :props="props">
+                      <q-select
+                        class="col"
+                        dense outlined
+                        :disable="!props.row.enabled"
+                        ref="drug"
+                        v-model="props.row.drug"
+                        :options="drugs"
+                        option-value="id"
+                        option-label="name"
+                        label="Medicamento" />
+                    </q-td>
+                    <q-td key="batchNumber" :props="props">
+                      <TextInput
+                        v-model="props.row.batchNumber"
+                        :disable="!props.row.enabled"
+                        label="Lote"
+                        dense
+                        class="col" />
+                    </q-td>
+                    <q-td key="expireDate" :props="props">
+                      <q-input
+                        dense
+                        :disable="!props.row.enabled"
+                        outlined
+                        class="col"
+                        v-model="props.row.expireDate"
+                        mask="date"
+                        ref="birthDate"
+                        label="Data de Criação">
+                        <template v-slot:append>
+                            <q-icon name="event" class="cursor-pointer">
+                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                <q-date v-model="props.row.expireDate" >
+                                <div class="row items-center justify-end">
+                                    <q-btn v-close-popup label="Close" color="primary" flat />
+                                </div>
+                                </q-date>
+                            </q-popup-proxy>
+                            </q-icon>
+                        </template>
+                    </q-input>
+                    </q-td>
+                    <q-td key="unitsReceived" :props="props">
+                      <TextInput
+                        v-model="props.row.unitsReceived"
+                        :disable="!props.row.enabled"
+                        label="Quantidade"
+                        dense
+                        class="col" />
+                    </q-td>
+                    <q-td key="options" :props="props">
+                      <div class="col">
+                        <q-btn v-if="props.row.enabled" flat dense round color="primary" icon="done" @click="saveStock(props.row)"/>
+                        <q-btn v-if="props.row.enabled" flat dense round color="red" icon="clear" @click="cancel(props.row)"/>
+                        <q-btn v-if="!props.row.enabled" flat dense round color="orange-5" icon="edit" class="q-ml-sm"  @click="initStockEdition(props.row)" />
+                        <q-btn v-if="!props.row.enabled" flat dense round color="red" icon="delete_forever" class="q-ml-sm"  @click="promptStockDeletion(props.row)"/>
+                      </div>
+                    </q-td>
+                  </q-tr>
+                </template>
+            </q-table>
+          </div>
+          <div class="row">
+                <q-banner
+                  dense
+                  inline-actions
+                  style="padding-top: 2px; padding-bottom: 2px;"
+                  class="col text-white q-pa-none bg-orange-4 q-pr-sm">
+                    <template v-slot:action class="items-center">
+                        <q-btn dense unelevated color="primary" class="col" label="Imprimir" />
+                    </template>
+                </q-banner>
+              </div>
+        </div>
+      </div>
+    </div>
+    <q-dialog v-model="alert.visible">
+      <Dialog :type="alert.type" @closeDialog="closeDialog">
+        <template v-slot:title> Informação</template>
+        <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
+    </q-dialog>
+  </div>
 </template>
 
 <script>
+import Drug from '../../../store/models/drug/Drug'
+import Stock from '../../../store/models/stock/Stock'
+import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
+import { ref } from 'vue'
+import StockCenter from '../../../store/models/stockcenter/StockCenter'
+const columns = [
+  { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
+  { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
+  { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
+  { name: 'expireDate', align: 'left', label: 'Data de Validade', sortable: false },
+  { name: 'unitsReceived', align: 'left', label: 'Quantidade', sortable: true },
+  { name: 'options', align: 'center', label: 'Opções', sortable: false }
+]
 export default {
-
+  data () {
+    return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
+      columns,
+      expireDate: '',
+      currStockEntrance: new StockEntrance(),
+      step: 'display',
+      selectedStock: ''
+    }
+  },
+  methods: {
+    initNewStock () {
+      if (this.isEditionStep || this.isCreationStep) {
+        this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a adição de novo registo.')
+      } else {
+        this.step = 'create'
+        const newStock = new Stock({
+          drug: new Drug(),
+          enabled: true
+        })
+        this.currStockEntrance.stocks.push(newStock)
+      }
+    },
+    saveStock (stock) {
+      // save stock
+      stock.stockEntrance = this.currStockEntrance
+      stock.stockCenter = this.stockCenter
+      Stock.apiSave(stock).then(resp => {
+        // this.fetchStockEntrance()
+        stock.id = resp.response.data.id
+        stock.enabled = false
+        this.step = 'display'
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    async fetchStockEntrance () {
+      await StockEntrance.apiFetchById(this.currStockEntrance.id).then(resp => {
+        this.currStockEntrance = resp.response.data
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    cancel (stock) {
+      if (this.isEditionStep) {
+        stock.drug = this.selectedStock.drug
+        stock.expireDate = this.selectedStock.expireDate
+        stock.batchNumber = this.selectedStock.batchNumber
+        stock.unitsReceived = this.selectedStock.unitsReceived
+        stock.enabled = false
+      } else if (this.isCreationStep) {
+        const i = this.currStockEntrance.stocks.map(toRemove => toRemove.id).indexOf(stock.id) // find index of your object
+        this.currStockEntrance.stocks.splice(i, 1)
+      }
+      this.step = 'display'
+    },
+    initStockEdition (stock) {
+      this.selectedStock = Object.assign({}, stock)
+      if (this.isEditionStep || this.isCreationStep) {
+        this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a edição deste registo.')
+      } else {
+        stock.enabled = true
+        this.step = 'edit'
+      }
+    },
+    promptStockDeletion (stock) {
+      if (this.isEditionStep || this.isCreationStep) {
+        this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a remoção deste registo.')
+      } else {
+        // prompt
+        this.step = 'delete'
+      }
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+    }
+  },
+  computed: {
+    stocks () {
+      return this.currStockEntrance.stocks
+    },
+    drugs () {
+      return Drug.query().with('form').get()
+    },
+    isDisplayStep () {
+      return this.step === 'display'
+    },
+    isEditionStep () {
+      return this.step === 'edit'
+    },
+    isCreationStep () {
+      return this.step === 'create'
+    },
+    isDeletionStep () {
+      return this.step === 'delete'
+    },
+    enableFields () {
+      return this.isEditionStep || this.isCreationStep
+    },
+    stockCenter () {
+      return StockCenter.query().first()
+    }
+  },
+  components: {
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
+    TitleBar: require('components/Shared/TitleBar.vue').default,
+    ListHeader: require('components/Shared/ListHeader.vue').default,
+    TextInput: require('components/Shared/Input/TextField.vue').default
+  }
 }
 </script>
 
-<style>
-
+<style lang="scss">
+  .box-border {
+    border: 1px solid $grey-4
+  }
 </style>

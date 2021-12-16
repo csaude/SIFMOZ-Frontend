@@ -1,5 +1,6 @@
 <template>
-  <div> <q-table
+  <div>
+        <q-table
             class="col"
             dense
             :rows="stockEntrances"

@@ -22,6 +22,7 @@ export default class Stock extends Model {
             stock_entrance_id: this.attr(null),
             stock_center_id: this.attr(null),
             drug_id: this.attr(null),
+            enabled: this.boolean(false),
             // relationships
             adjustments: this.hasMany(StockAdjustment, 'adjusted_stock_id'),
             stockEntrance: this.belongsTo(StockEntrance, 'stock_entrance_id'),
@@ -29,6 +30,18 @@ export default class Stock extends Model {
             stockLevel: this.hasOne(StockLevel, 'stock_id'),
             drug: this.belongsTo(Drug, 'drug_id')
         }
+    }
+
+    static async apiSave (stock) {
+      return await this.api().post('/stock', stock)
+    }
+
+    static async apiRemove (id) {
+      return await this.api().delete(`/stock/${id}`)
+    }
+
+    static async apiUpdate (stock) {
+      return await this.api().patch('/stock', stock)
     }
 
     getConsumeAVG () {
