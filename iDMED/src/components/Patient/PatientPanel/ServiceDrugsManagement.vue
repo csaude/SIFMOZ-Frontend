@@ -23,18 +23,14 @@
               <q-tr class="text-left"  :props="props">
                 <q-th >{{columns[0].label}}</q-th>
                 <q-th >{{columns[1].label}}</q-th>
-                <q-th >{{columns[2].label}}</q-th>
+                <q-th v-if="!visitDetails.createPackLater">{{columns[2].label}}</q-th>
                 <q-th v-if="!visitDetails.createPackLater">{{columns[3].label}}</q-th>
-                <q-th v-if="!visitDetails.createPackLater">{{columns[4].label}}</q-th>
-                <q-th >{{columns[5].label}}</q-th>
+                <q-th >{{columns[4].label}}</q-th>
               </q-tr>
 
             </template>
             <template #body="props">
               <q-tr no-hover :props="props">
-                <q-td auto-width key="order" :props="props">
-                  {{props.row.index}}
-                </q-td>
                 <q-td key="drug" :props="props">
                   {{props.row.drug.name}}
                 </q-td>
@@ -81,7 +77,6 @@ import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDru
 import Duration from '../../../store/models/Duration/Duration'
 import Prescription from '../../../store/models/prescription/Prescription'
 const columns = [
-  { name: 'order', required: true, label: 'Ordem', align: 'center', sortable: true },
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
   { name: 'packs', align: 'center', style: 'width: 20px', field: 'row.qtyPrescribed', label: 'Quantidade em (Frascos)', sortable: false },

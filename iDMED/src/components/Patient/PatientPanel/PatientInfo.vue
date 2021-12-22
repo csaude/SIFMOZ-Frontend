@@ -1,7 +1,7 @@
 <template>
   <div>
       <div class="text-center">
-            <q-icon class="profile" :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="120px" color="primary"/>
+            <q-icon class="profile" :name="selectedPatient.gender == 'Feminino' ? 'female' : 'male'" size="120px" color="primary"/>
         </div>
       <div class="q-mt-md">
           <div class="row items-center q-mb-sm">
@@ -11,15 +11,15 @@
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Nome</div>
-        <div class="col text-grey-10">{{patient.fullName}}</div>
+        <div class="col text-grey-10">{{selectedPatient.fullName}}</div>
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Idade</div>
-        <div class="col text-grey-10">{{patient.age()}} Anos</div>
+        <div class="col text-grey-10">{{selectedPatient.age()}} Anos</div>
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Gênero</div>
-        <div class="col text-grey-10">{{patient.gender}}</div>
+        <div class="col text-grey-10">{{selectedPatient.gender}}</div>
       </div>
 
       <div class="q-mt-md">
@@ -30,27 +30,27 @@
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Província</div>
-          <div class="col text-grey-10">{{patient.province.description}}</div>
+          <div class="col text-grey-10">{{selectedPatient.province.description}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Distrito</div>
-          <div class="col text-grey-10">{{patient.district.description}}</div>
+          <div class="col text-grey-10">{{selectedPatient.district.description}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Posto Administrativo</div>
-          <div class="col text-grey-10">{{patient.postoAdministrativoName()}}</div>
+          <div class="col text-grey-10">{{selectedPatient.postoAdministrativoName()}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Bairro</div>
-          <div class="col text-grey-10">{{patient.bairroName()}}</div>
+          <div class="col text-grey-10">{{selectedPatient.bairroName()}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Local Referência</div>
-          <div class="col text-grey-10">{{patient.addressReference}}</div>
+          <div class="col text-grey-10">{{selectedPatient.addressReference}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Morada</div>
-          <div class="col text-grey-10">{{patient.address}}</div>
+          <div class="col text-grey-10">{{selectedPatient.address}}</div>
         </div>
 
         <div class="q-mt-md">
@@ -61,11 +61,11 @@
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Principal</div>
-          <div class="col text-grey-10">{{patient.cellphone}}</div>
+          <div class="col text-grey-10">{{selectedPatient.cellphone}}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Alternativo</div>
-          <div class="col text-grey-10">{{patient.alternativeCellphone}}</div>
+          <div class="col text-grey-10">{{selectedPatient.alternativeCellphone}}</div>
         </div>
         <div class="row q-my-md">
           <q-btn unelevated color="orange-5" label="Editar" class="col" @click="editPatient()"/>
@@ -83,31 +83,23 @@
 </template>
 
 <script>
-import Patient from '../../../store/models/patient/Patient'
-import { SessionStorage } from 'quasar'
+// import { SessionStorage } from 'quasar'
+// import Patient from '../../../store/models/patient/Patient'
 export default {
   data () {
     return {
-      showPatientRegister: false
+      showPatientRegister: false,
+      patient: []
     }
   },
+  props: ['selectedPatient'],
   methods: {
-    editPatient (patient) {
+    editPatient () {
+      this.patient = this.selectedPatient
       this.showPatientRegister = true
     }
   },
   computed: {
-    patient () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
-                            .with('province')
-                            .with('attributes')
-                            .with('appointments')
-                            .with('district')
-                            .with('postoAdministrativo')
-                            .with('bairro')
-                            .with('clinic').where('id', selectedP.id).first()
-      }
   },
   components: {
     patientRegister: require('components/Patient/Register/PatientRegister.vue').default

@@ -33,15 +33,15 @@ module.exports = configure(function (ctx) {
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
-      // 'ionicons-v4',
-      // 'mdi-v5',
-      // 'fontawesome-v5',
-      // 'eva-icons',
-      // 'themify',
-      // 'line-awesome',
+      'ionicons-v4',
+      'mdi-v5',
+      'fontawesome-v5',
+      'eva-icons',
+      'themify',
+      'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
-      'roboto-font', // optional, you are not bound to it
+      // 'roboto-font', // optional, you are not bound to it
       'material-icons' // optional, you are not bound to it
     ],
 
@@ -77,11 +77,30 @@ module.exports = configure(function (ctx) {
     devServer: {
       https: false,
       port: 8082,
-      open: true // opens browser window automatically
+      open: true, // opens browser window automatically
+      proxy: {
+        // proxy all requests starting with /openmrs to jsonplaceholder
+        // '/session': {
+        //   target: 'http://localhost:8080/openmrs/ws/rest/v1/session',
+        //   changeOrigin: true,
+        //   pathRewrite: {
+        //     '^/session': ''
+        //   }
+        // },
+        // '/patients': {
+        //   target: 'http://localhost:8080/openmrs/ws/rest/v1/patient',
+        //   changeOrigin: true,
+        //   pathRewrite: {
+        //     '^/patients': ''
+        //   }
+        // }
+      }
     },
 
     // https://v2.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
     framework: {
+      iconSet: 'material-icons', // Quasar icon set
+      lang: 'pt-br', // Quasar language pack
       config: {},
 
       // iconSet: 'material-icons', // Quasar icon set
@@ -97,6 +116,8 @@ module.exports = configure(function (ctx) {
       // Quasar plugins
       plugins: [
         'Dialog',
+        'Loading',
+        'Notify'
       ]
     },
 

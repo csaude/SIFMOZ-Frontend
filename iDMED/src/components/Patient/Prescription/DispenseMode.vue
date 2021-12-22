@@ -11,22 +11,42 @@
             dense outlined
             v-model="dispenseMode"
             :options="dispenseModes"
+            option-value="id"
+            option-label="description"
             label="Modo de dispensa" />
       </template>
   </q-banner>
 </template>
 
 <script>
+import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 export default {
   data () {
     return {
-      dispenseMode: '',
-      dispenseModes: ['Farmácia Pública - Hora Normal', 'Farmácia Pública - Fora Hora Normal', 'FARMAC/Farmácia Privada', 'Distribuição Comunitária pelo Provedor de Saúde']
+      dispenseMode: []
+    }
+  },
+   mounted () {
+        this.doDispenseModeGetAll(0)
+  },
+  computed: {
+    dispenseModes () {
+          return DispenseMode.all()
     }
   },
   methods: {
     submitForm () {
       this.$emit('proccedToDispense', this.dispenseMode)
+    },
+    doDispenseModeGetAll (offset) {
+         DispenseMode.api().get('/dispenseMode?offset=' + offset + '&max=100').then(resp => {
+            offset = offset + 100
+            if (resp.response.data.length > 0) {
+              setTimeout(this.doDispenseModeGetAll(offset), 2)
+            }
+            }).catch(error => {
+                console.log(error)
+            })
     }
   }
 }

@@ -1,6 +1,6 @@
   <template>
   <div>
-  <ListHeader :addVisible="false" :bgColor="headerColor" >{{ identifier.service.code }} </ListHeader>
+  <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (identifier.service === null || identifier.service === undefined) ? 'Sem Info' : identifier.service.code }} </ListHeader>
     <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null"
       class="noRadius">
@@ -54,7 +54,7 @@
         </div>
       </q-card-section>
     </q-card>
-    <EmptyList v-else >Nenhuma Prescrição Adicionada para o serviço {{identifier.service.code}}</EmptyList>
+    <EmptyList v-else >Nenhuma Prescrição Adicionada para o serviço {{(identifier.service === null || identifier.service === undefined) ? 'Sem Info' : identifier.service.code}}</EmptyList>
     <q-dialog persistent v-model="alert.visible">
         <Dialog :type="alert.type" @closeDialog="closeDialog">
           <template v-slot:title> Informação</template>

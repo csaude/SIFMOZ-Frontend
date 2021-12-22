@@ -12,7 +12,7 @@
           <div class="col-12">
             <q-item class="full-width">
               <q-item-section>
-                <q-item-label caption lines="1">{{ $t('codigo') }}</q-item-label>
+                <q-item-label caption lines="1">{{ $t('Código') }}</q-item-label>
                 <q-item-label class="text-grey-9">{{ localProvincia }}</q-item-label>
               </q-item-section>
             </q-item>
@@ -71,7 +71,7 @@
               </q-card>
           </div>
           <create-edit-form :close="close"
-                            :codigo="localProvincia.codigo"
+                            :Código="localProvincia.Código"
                             :createProvincia="createProvincia"
                             :designacao="localProvincia.designacao"
                             :listErrors="(listErrors)"
@@ -100,12 +100,12 @@ export default {
       tab2: 'comments',
       splitterModel: 20,
       localProvincia: {
-        codigo: '',
+        Código: '',
         designacao: '',
         pais: {}
       },
       pais: {
-        codigo: '',
+        Código: '',
         designacao: '',
         nacionalidade: ''
       },
@@ -232,7 +232,7 @@ export default {
       pt: {
         title: 'Detalhes da Província',
         basicInformation: 'Informação do Província',
-        codigo: 'Código',
+        Código: 'Código',
         designacao: 'Designação',
         pais: 'País',
         distritos: 'Distritos',
@@ -241,7 +241,7 @@ export default {
       en: {
         title: 'Detalhes do Província',
         basicInformation: 'Informação do Província',
-        codigo: 'Código',
+        Código: 'Código',
         designacao: 'Designação',
         pais: 'País',
         distritos: 'Distritos',

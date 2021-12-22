@@ -1,16 +1,13 @@
 <template>
     <div>
      <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-        Serviço Clinico
+        Serviço Clínico
         </div>
         <div class="">
         <q-table
-          style="height: 700px"
-     :rows="clinicalServices"
-      :columns="columns"
-      :filter="filter"
-      :rows-per-page-options="[0]"
-      virtual-scroll>
+          :rows="clinicalServices"
+          :columns="columns"
+          :filter="filter">
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
@@ -86,7 +83,7 @@ import { ref } from 'vue'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 
 const columns = [
-  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
   { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
    { name: 'active', required: true, label: 'Activo', align: 'left', field: row => row.active, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }

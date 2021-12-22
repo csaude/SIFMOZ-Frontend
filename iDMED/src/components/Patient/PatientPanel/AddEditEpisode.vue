@@ -3,7 +3,7 @@
         <form @submit.prevent="submitForm" >
             <q-card-section >
               <div class="row items-center text-subtitle1">
-                <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
+                <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos</div>
@@ -174,6 +174,7 @@ import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
+import momentDate from 'moment'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     data () {
@@ -201,9 +202,9 @@ export default {
           if (!this.$refs.startReason.hasError &&
               !this.$refs.clinicSerctor.hasError &&
               !this.$refs.startDate.hasError) {
-                if (new Date(this.startDate) > new Date()) {
+                if (momentDate(new Date(this.startDate)).format('YYYY-MM-DD') > momentDate(new Date()).format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (new Date(this.startDate) < new Date(this.curIdentifier.startDate)) {
+                } else if (momentDate(new Date(this.startDate)).format('YYYY-MM-DD') < momentDate(new Date(this.curIdentifier.startDate)).format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {
@@ -213,7 +214,7 @@ export default {
                                       .with('patientVisitDetails.*')
                                       .where('id', this.episodeToEdit.id)
                                       .first()
-                    if (episode.hasVisits() && (new Date(this.startDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+                    if (episode.hasVisits() && (momentDate(new Date(this.startDate)).format('YYYY-MM-DD') < momentDate(new Date(episode.lastVisit().lastPack().pickupDate)).format('YYYY-MM-DD'))) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
                     } else {
                       this.doSave()

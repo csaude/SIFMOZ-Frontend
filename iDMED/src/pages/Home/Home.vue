@@ -1,43 +1,107 @@
 <template>
-  <div class="row q-ma-xl q-pa-xl text-center">
+ <q-page class="flex flex-center">
+  <div class="">
+   <div class="row q-pa-xl q-gutter-xl">
     <div class="col">
-        <q-btn icon="person_outline" round stack color="brown-9" class="q-py-md q-px-lg q-ma-xl" no-caps>
-            <div class="text-center">
-                Pacientes<br>Utentes
-            </div>
+    <router-link :to="`/patients`">
+        <q-btn round>
+          <q-avatar size="190px">
+            <img src="~assets/patientsButton.png">
+          </q-avatar>
+          <q-tooltip content-class="bg-pink-4 text-white shadow-4"
+                          :offset="[10, 10]"
+                          transition-show="rotate"
+                          transition-hide="rotate">
+                 Pacientes/Utentes
+                </q-tooltip>
         </q-btn>
-        <q-btn icon="person_outline" round stack color="brown-9" class="q-py-md q-px-lg q-ma-xl" no-caps>
-            <div class="text-center">
-                Grupos<br/>&nbsp;
-            </div>
-        </q-btn>
-        <q-btn icon="person_outline" round stack color="brown-9" class="q-py-md q-px-lg q-ma-xl" no-caps>
-            <div class="text-center">
-                Stock
-            </div>
-        </q-btn>
-        <br/>
-        <q-btn icon="person_outline" round stack color="brown-9" class="q-py-md q-px-lg q-ma-xl" no-caps>
-            <div class="text-center">
-                Administração
-            </div>
-        </q-btn>
-        <q-btn icon="person_outline" round stack color="brown-9" class="q-py-md q-px-lg q-ma-xl" no-caps>
-            <div class="text-center">
-                Pacientes<br>Utentes
-            </div>
-        </q-btn>
-        <q-btn icon="person_outline" round stack color="brown-9" class="q-py-md q-px-lg q-ma-xl" no-caps>
-            <div class="text-center">
-                Pacientes<br>Utentes
-            </div>
-        </q-btn>
+     </router-link>
     </div>
+    <div class="col">
+    <router-link :to="`/groups`">
+        <q-btn round>
+          <q-avatar size="190px">
+            <img src="~assets/groupsButton.png">
+          </q-avatar>
+           <q-tooltip content-class="bg-blue text-white shadow-4"
+                          :offset="[10, 10]"
+                          transition-show="rotate"
+                          transition-hide="rotate">
+                  Grupos
+                </q-tooltip>
+        </q-btn>
+     </router-link>
+    </div>
+    <div class="col">
+    <router-link :to="`/stock`">
+        <q-btn round>
+          <q-avatar size="190px">
+            <img src="~assets/stockButton.png">
+          </q-avatar>
+           <q-tooltip content-class="bg-blue text-white shadow-4"
+                          :offset="[10, 10]"
+                          transition-show="rotate"
+                          transition-hide="rotate">
+                  Stock
+                </q-tooltip>
+        </q-btn>
+     </router-link>
+    </div>
+   </div>
+   <div class="row ">
+   <div class="col col-sm-3"/>
+   <div class="col">
+     <router-link :to="`/dashboard`">
+        <q-btn round>
+          <q-avatar size="190px">
+            <img src="~assets/dashboardButton.png">
+          </q-avatar>
+          <q-tooltip content-class="text-white shadow-4"
+                          :offset="[10, 10]"
+                          transition-show="rotate"
+                          transition-hide="rotate">
+                  Dashboard
+                </q-tooltip>
+        </q-btn>
+     </router-link>
+   </div>
+   <div class="col">
+     <router-link :to="`/reports`">
+        <q-btn round>
+          <q-avatar size="190px">
+            <img src="~assets/reportsButton.png">
+          </q-avatar>
+          <q-tooltip content-class="text-white shadow-4"
+                          :offset="[10, 10]"
+                          transition-show="rotate"
+                          transition-hide="rotate">
+                  Relatórios
+                </q-tooltip>
+        </q-btn>
+     </router-link>
+   </div>
+   <div class="col-2">
+      <router-link :to="`/settings`">
+        <q-btn round>
+          <q-avatar size="190px">
+            <img src="~assets/settingsButton.png">
+          </q-avatar>
+          <q-tooltip content-class="bg-blue text-white shadow-4"
+                          :offset="[10, 10]"
+                          transition-show="rotate"
+                          transition-hide="rotate">
+                  Administração
+                </q-tooltip>
+        </q-btn>
+     </router-link>
+   </div>
+   </div>
   </div>
+  </q-page>
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
+import { SessionStorage, QSpinnerBall } from 'quasar'
 import Clinic from '../../store/models/clinic/Clinic'
 import District from '../../store/models/district/District'
 import Province from '../../store/models/province/Province'
@@ -56,7 +120,7 @@ import TherapeuticRegimen from '../../store/models/therapeuticRegimen/Therapeuti
 import TherapeuticLine from '../../store/models/therapeuticLine/TherapeuticLine'
 import Form from '../../store/models/form/Form'
 import Duration from '../../store/models/Duration/Duration'
-import Doctor from '../../store/models/doctor/Doctor'
+// import Doctor from '../../store/models/doctor/Doctor'
 import DispenseType from '../../store/models/dispenseType/DispenseType'
 import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
@@ -90,11 +154,11 @@ export default {
         FacilityType.apiGetAll()
         StartStopReason.apiGetAll()
         ClinicalServiceAttribute.apiGetAll()
-        Drug.apiGetAll()
+        Drug.apiGetAll(0, 100)
         TherapeuticRegimen.apiGetAll()
         TherapeuticLine.apiGetAll()
         Form.apiGetAll()
-        Doctor.apiFetchByClinicId(this.clinic.id)
+      //  Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll()
         Clinic.apiGetAll()
         RAMScreening.apiGetAll()
@@ -102,7 +166,7 @@ export default {
         PregnancyScreening.apiGetAll()
         TBScreening.apiGetAll()
         VitalSignsScreening.apiGetAll()
-        InteroperabilityType.apiGetAll()
+        InteroperabilityType.apiGetAll(0, 100)
         InteroperabilityAttribute.apiGetAll()
         HealthInformationSystem.apiGetAll()
       },
@@ -219,18 +283,28 @@ export default {
     },
     mounted () {
       this.loadAppParameters()
-      this.getAllPatientsOfClinic()
-      this.getAllIdentifiersOfClinic()
-      this.getAllPrescriptionOfClinic()
-      this.getAllEpisodesOfClinic()
-      this.getAllPatientVisitsOfClinic()
-      this.getAllPacksOfClinic()
-      this.getAlPatientVisitDetailsOfClinic()
+      // this.getAllPatientsOfClinic()
+      // this.getAllIdentifiersOfClinic()
+      // this.getAllPrescriptionOfClinic()
+      // this.getAllEpisodesOfClinic()
+      // this.getAllPatientVisitsOfClinic()
+      // this.getAllPacksOfClinic()
+      // this.getAlPatientVisitDetailsOfClinic()
       PackagedDrug.apiGetAll()
       PrescribedDrug.apiGetAll()
       PrescriptionDetail.apiGetAll()
     },
     created () {
+      this.$q.loading.show({
+      message: 'Carregando ...',
+      spinnerColor: 'grey-4',
+      spinner: QSpinnerBall
+      // delay: 400 // ms
+    })
+
+    setTimeout(() => {
+      this.$q.loading.hide()
+    }, 600)
       this.saveCurrClinic()
     },
     computed: {

@@ -2,7 +2,7 @@
   <q-card>
       <q-card-section class="q-pa-none" >
         <div class="row items-center text-subtitle1 q-pa-md">
-          <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
+          <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
           <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
           <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
           <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
@@ -119,7 +119,7 @@
                   :options="patientTypes"
                   label="Tipo Paciente [Inicio, Manter, Alterar]" />
                 <q-select
-                  v-if="hasPrescriptionChangeMotive"
+                  v-if="hasPrescriptionChangeMotive && String(curPrescription.patientType).includes('Alterar')"
                   class="col q-mb-sm"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="reasonForUpdate"
@@ -202,6 +202,8 @@
                           ref="dispenseMode"
                           v-model="dispenseMode"
                           :options="dispenseModes"
+                          option-value="id"
+                          option-label="description"
                           label="Modo de dispensa" />
                     </template>
                 </q-banner>
@@ -260,6 +262,7 @@ import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import Duration from '../../../store/models/Duration/Duration'
 import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
+import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 export default {
   props: ['selectedVisitDetails', 'step'],
   data () {
@@ -282,11 +285,15 @@ export default {
       prescriptionDate: '',
       showDispenseMode: false,
       prescribedDrugs: [],
-      dispenseMode: '',
-      dispenseModes: ['Farmácia Pública - Hora Normal', 'Farmácia Pública - Fora Hora Normal', 'FARMAC/Farmácia Privada', 'Distribuição Comunitária pelo Provedor de Saúde']
+      dispenseMode: []
     }
   },
   methods: {
+    alterPatientStatus () {
+      if (String(this.curPrescriptionDetails.dispenseType.description).includes('Mensal')) {
+        this.curPrescription.patientStatus = 'N/A'
+      }
+    },
     initPatientVisit () {
       if (!this.isNewPackStep || !this.isEditPackStep) {
         this.patientVisit.visitDate = new Date()
@@ -411,8 +418,10 @@ export default {
       }
     },
     initPatientVisitDetails (episode) {
+      console.log(this.patient)
       const pack = new Pack({
-        clinic: this.currClinic
+        clinic: this.currClinic,
+        syncStatus: this.patient.his_id.length > 10 ? 'R' : 'N'
       })
 
       const prescription = new Prescription({
@@ -576,9 +585,22 @@ console.log(this.patientVisit)
         this.$emit('close')
         this.$router.push('/patientpanel')
       }
+    },
+    doDispenseModeGetAll (offset) {
+         DispenseMode.api().get('/dispenseMode?offset=' + offset + '&max=100').then(resp => {
+            offset = offset + 100
+            if (resp.response.data.length > 0) {
+              setTimeout(this.doDispenseModeGetAll(offset), 2)
+            }
+            }).catch(error => {
+                console.log(error)
+            })
     }
   },
   computed: {
+    dispenseModes () {
+        return DispenseMode.all()
+    },
     isFirstPack () {
       return this.lastPackFull === null
     },
@@ -675,6 +697,8 @@ console.log(this.patientVisit)
     therapeuticRegimens () {
       return TherapeuticRegimen.query()
                               .with('clinicalService')
+                              .has('code')
+                              .where('active', true)
                               .where('clinical_service_id', this.selectedClinicalService.id)
                               .get()
     },
@@ -700,6 +724,7 @@ console.log(this.patientVisit)
   },
   mounted () {
     this.init()
+    this.doDispenseModeGetAll(0)
   },
   components: {
     ServiceDrugsManagement: require('components/Patient/PatientPanel/ServiceDrugsManagement.vue').default,

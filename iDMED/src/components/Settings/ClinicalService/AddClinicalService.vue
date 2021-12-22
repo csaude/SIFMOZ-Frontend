@@ -1,5 +1,8 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+     <q-card-section>
+            <div class="text-h6"> Serviço Clínico!</div>
+        </q-card-section>
         <form  >
             <q-stepper
       v-model="step"
@@ -24,7 +27,7 @@
                     v-model="clinicalService.code"
                     lazy-rules
                      :disable="onlyView"
-                    label="Codigo*"
+                    label="Código*"
                      :rules="[val => codeRules (val)]" />
             </div>
               <div class="row q-mt-md">
@@ -184,7 +187,7 @@ const columnsRegimen = [
 ]
 
 const columnsSectors = [
-  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
   { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
 
@@ -327,9 +330,9 @@ export default {
     },
     codeRules (val) {
       if (this.clinicalService.code === '') {
-        return 'o Codigo e obrigatorio'
+        return 'o Código e obrigatorio'
       } else if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }
     }
   },

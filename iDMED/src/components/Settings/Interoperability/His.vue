@@ -1,18 +1,16 @@
 <template>
     <div>
     <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-        Sistemas Interoperando
+        Sistemas para Interoperabilidade
         </div>
         <div class="">
         <q-table
-          style="height: 600px"
-     :rows="getHis"
-      :columns="columns"
-      :filter="filter"
-      virtual-scroll
-      row-key="abbreviation"
-      v-model:pagination="pagination"
-      :rows-per-page-options="[0]">
+          :rows="getHis"
+          :columns="columns"
+          :filter="filter"
+          row-key="abbreviation"
+          v-model:pagination="pagination"
+        >
        <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
                 <span>
@@ -61,7 +59,7 @@
             </q-tr>
              <q-tr v-show="props.expand" :props="props">
           <q-td colspan="100%">
-           <selectedAttributesTable  :rows="props.row.interoperabilityAttributes" :columns="columnsSelectedAttributes"   :viewMode="props.expand"/>
+           <selectedAttributesTable  :rows="props.row.interoperabilityAttributes" :columns="columnsSelectedAttributes" :viewMode="props.expand"/>
           </q-td>
         </q-tr>
         </template>

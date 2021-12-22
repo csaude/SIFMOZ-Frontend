@@ -1,21 +1,24 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <div >
-            <q-header class="q-pa-sm">
+            <q-header >
                 <q-toolbar>
-                    <q-avatar>
-                        <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
+                    <q-avatar size="100px">
+                        <img class="bg-white" src="../assets/LogoiDMED.png">
                     </q-avatar>
 
-                    <q-toolbar-title>SiDMED</q-toolbar-title>
+                    <q-toolbar-title class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">SiDMED</q-toolbar-title>
 
                     <q-tabs
                       class="absolute-center"
                       no-caps
                       v-model="tab"
-                      active-bg-color="light-green-10">
-                        <q-route-tab exact :to="'/home'" name="home" icon="home" label="Inicial" />
-                        <q-route-tab exact default :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
+                      active-color="orange"
+                      indicator-color="orange"
+                      align="justify"
+                      narrow-indicator>
+                        <q-route-tab exact default :to="'/home'" name="home" icon="home" label="Inicial" />
+                        <q-route-tab exact :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
                         <q-route-tab exact :to="'/groups'" name="groups" icon="groups" label="Grupos" />
                         <q-route-tab exact :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
                         <q-route-tab exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
@@ -33,7 +36,7 @@
                                 <q-item clickable>
                                     <q-item-section>Perfil</q-item-section>
                                 </q-item>
-                                <q-item clickable>
+                                <q-item to="/Logout" clickable>
                                     <q-item-section>Sair</q-item-section>
                                 </q-item>
                             </q-list>

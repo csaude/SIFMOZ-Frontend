@@ -1,18 +1,15 @@
 <template>
     <div>
     <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-         Regime Terapeutico
+         Regime Terapêutico
         </div>
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <q-table
-          style="height: 700px"
      :rows="therapeuticRegimens"
       :columns="columns"
       :filter="filter"
-       row-key="regimenScheme"
-      :rows-per-page-options="[0]"
-      virtual-scroll>
+       row-key="regimenScheme">
         <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
                 <span>
