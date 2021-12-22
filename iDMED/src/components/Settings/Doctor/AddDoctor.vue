@@ -1,5 +1,8 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+   <q-card-section>
+            <div class="text-h6">Clínico!</div>
+        </q-card-section>
         <form @submit.prevent="validateDoctor" >
             <q-card-section class="q-px-md">
                 <div class="q-mt-lg">
@@ -54,7 +57,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary" />
+                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" />
             </q-card-actions>
              <q-dialog v-model="alert.visible">
           <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -78,6 +81,7 @@ export default {
     props: ['clinic', 'selectedDoctor', 'onlyView'],
     data () {
         return {
+          submitting: false,
            alert: ref({
               type: '',
               visible: false,
@@ -92,7 +96,7 @@ export default {
                 }
               }
             },
-            genders: ['Masculino', 'Femenino']
+            genders: ['Masculino', 'Feminino']
         }
     },
     methods: {
@@ -106,13 +110,16 @@ export default {
             }
         },
         submitDoctor () {
+          this.submitting = true
           this.doctor.dateofbirth = new Date()
           this.doctor.active = true
             Doctor.apiSave(this.doctor).then(resp => {
+               this.submitting = false
                 console.log(resp.response.data)
                  Doctor.apiFetchById(resp.response.data.id)
                  this.displayAlert('info', this.doctor.id === null ? 'Clinico adicionado com sucesso.' : 'Clinico actualizado com sucesso.')
             }).catch(error => {
+               this.submitting = false
                 this.displayAlert('error', error)
             })
         },

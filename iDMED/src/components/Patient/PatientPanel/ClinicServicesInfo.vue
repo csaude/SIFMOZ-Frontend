@@ -96,7 +96,7 @@ export default {
     },
     patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
+      return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
                             .with('attributes')
                             .with('appointments')

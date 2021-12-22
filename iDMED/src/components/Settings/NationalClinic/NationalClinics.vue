@@ -95,7 +95,7 @@ import { ref } from 'vue'
 
 const columns = [
   { name: 'nationalClinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
-  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
    { name: 'telephone', required: true, label: 'Telefone', align: 'left', field: row => row.telephone, format: val => `${val}`, sortable: true },
    { name: 'facilityType', required: true, label: 'Tipo de Instalacao', align: 'left', field: row => row.facilityType.description, format: val => `${val}`, sortable: true },
   { name: 'province', required: true, label: 'Provincia', align: 'left', field: row => row.province.description, format: val => `${val}`, sortable: true },

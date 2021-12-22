@@ -16,9 +16,9 @@
                      <codeInput
                     ref="code"
                     v-model="clinicSector.code"
-                    :rules="[ val => !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe']"
+                    :rules="[ val => !this.databaseCodes.includes(val) || 'o Código indicado ja existe']"
                     lazy-rules
-                    label="Codigo" />
+                    label="Código" />
                     </div>
                       <div class="row q-mt-md">
                     <q-select

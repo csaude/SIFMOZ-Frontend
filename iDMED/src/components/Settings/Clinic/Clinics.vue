@@ -5,13 +5,11 @@
        Farmácias
         </div>
         <div class="">
-              <q-table
-          style="height: 500px"
-     :rows="clinics"
-      :columns="columns"
-      :filter="filter"
-      :rows-per-page-options="[0]"
-      virtual-scroll>
+          <q-table
+            :rows="clinics"
+            :columns="columns"
+            :filter="filter"
+          >
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
@@ -102,11 +100,11 @@ import { ref } from 'vue'
 
 const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
-  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
-  { name: 'province', required: true, label: 'Provincia', align: 'left', field: row => row.province.description, format: val => `${val}`, sortable: true },
- { name: 'district', required: true, label: 'Districto', align: 'left', field: row => row.district !== undefined && row.district !== null ? row.district.description : 'Não Definido', format: val => `${val}`, sortable: true },
- { name: 'active', required: true, label: 'Activo', align: 'left', field: row => row.active, format: val => `${val}`, sortable: true },
-   { name: 'options', align: 'left', label: 'Opções', sortable: false }
+  { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'province', required: true, label: 'Província', align: 'left', field: row => row.province.description, format: val => `${val}`, sortable: true },
+  { name: 'district', required: true, label: 'Distrito', align: 'left', field: row => row.district !== undefined && row.district !== null ? row.district.description : 'Não Definido', format: val => `${val}`, sortable: true },
+  { name: 'active', required: true, label: 'Activo', align: 'left', field: row => row.active, format: val => `${val}`, sortable: true },
+  { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
   data () {

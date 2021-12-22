@@ -62,6 +62,7 @@ import HealthInformationSystem from './models/healthInformationSystem/HealthInfo
 import InteroperbilityAttribute from './models/interoperabilityAttribute/InteroperabilityAttribute'
 import InteroperabilityType from './models/interoperabilityType/InteroperabilityType'
 import ClinicalServiceSector from './models/ClinicalServiceClinicSector/ClinicalServiceSector'
+import DispenseMode from './models/dispenseMode/DispenseMode'
 
 // Vue.use(Vuex)
 
@@ -70,7 +71,7 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://localhost:8080'
+  baseURL: 'http://localhost:8884'
 })
 
 // VuexORM.use(datePlugin)
@@ -125,6 +126,7 @@ database.register(Doctor)
 database.register(Form)
 database.register(TherapeuticLine)
 database.register(DispenseType)
+database.register(DispenseMode)
 database.register(Duration)
 database.register(TherapeuticRegimensDrug)
 database.register(PatientVisit)

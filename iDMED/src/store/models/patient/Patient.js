@@ -10,6 +10,7 @@ import Clinic from '../clinic/Clinic'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
 import Localidade from '../Localidade/Localidade'
 import PatientVisit from '../patientVisit/PatientVisit'
+import HealthInformationSystem from '../healthInformationSystem/HealthInformationSystem'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -31,6 +32,10 @@ export default class Patient extends Model {
       address: this.attr(''),
       addressReference: this.attr(''),
       accountstatus: this.boolean(true),
+      hisLocation: this.attr(''),
+      hisLocationName: this.attr(''),
+      hisUuid: this.attr(''),
+      his_id: this.attr(''),
       province_id: this.attr(''),
       district_id: this.attr(''),
       postoAdministrativo_id: this.attr(''),
@@ -47,6 +52,7 @@ export default class Patient extends Model {
       postoAdministrativo: this.belongsTo(PostoAdministrativo, 'postoAdministrativo_id'),
       bairro: this.belongsTo(Localidade, 'bairro_id'),
       clinic: this.belongsTo(Clinic, 'clinic_id'),
+      his: this.belongsTo(HealthInformationSystem, 'his_id'),
       patientVisits: this.hasMany(PatientVisit, 'patient_id')
     }
   }
