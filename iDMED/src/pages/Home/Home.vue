@@ -212,10 +212,10 @@ export default {
       },
       doPackGet (clinicId, offset, max) {
         Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPackGet(clinicId, offset, max), 2)
-              }
+              // if (resp.response.data.length > 0) {
+              //   offset = offset + max
+              //   setTimeout(this.doPackGet(clinicId, offset, max), 2)
+              // }
           }).catch(error => {
               console.log(error)
           })

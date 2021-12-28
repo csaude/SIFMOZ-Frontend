@@ -80,20 +80,20 @@ module.exports = configure(function (ctx) {
       open: true, // opens browser window automatically
       proxy: {
         // proxy all requests starting with /openmrs to jsonplaceholder
-        // '/session': {
-        //   target: 'http://localhost:8080/openmrs/ws/rest/v1/session',
-        //   changeOrigin: true,
-        //   pathRewrite: {
-        //     '^/session': ''
-        //   }
-        // },
-        // '/patients': {
-        //   target: 'http://localhost:8080/openmrs/ws/rest/v1/patient',
-        //   changeOrigin: true,
-        //   pathRewrite: {
-        //     '^/patients': ''
-        //   }
-        // }
+        '/session': {
+          target: 'http://metadata.epts.e-saude.net/openmrs/ws/rest/v1/session',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/session': ''
+          }
+        },
+        '/patients': {
+          target: 'http://metadata.epts.e-saude.net/openmrs/ws/rest/v1/patient',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/patients': ''
+          }
+        }
       }
     },
 
