@@ -18,7 +18,7 @@ export default class Drug extends Model {
       defaultTimes: this.attr(''),
       defaultTreatment: this.attr(''),
       defaultPeriodTreatment: this.attr(''),
-      active: this.attr(''),
+      active: this.boolean(true),
       form_id: this.attr(''),
       // Relationships
       form: this.belongsTo(Form, 'form_id'),
@@ -26,6 +26,23 @@ export default class Drug extends Model {
       packaged_drugs: this.hasMany(PackagedDrug, 'drug_id'),
       stocks: this.hasMany(Stock, 'drug_id')
     }
+  }
+
+  getCurStockAmount () {
+    if (this.stocks.length <= 0) return 0
+    let curStock = 0
+    Object.keys(this.stocks).forEach(function (i) {
+      curStock = curStock + this.stocks[i].stockMoviment
+    }.bind(this))
+    return curStock
+  }
+
+  getMonthAVGConsuption () {
+    return 0
+  }
+
+  getConsuptionState () {
+    return 'Acima do Consumo'
   }
 
   static async apiGetAll () {

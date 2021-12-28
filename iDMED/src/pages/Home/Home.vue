@@ -74,6 +74,12 @@ import FacilityType from '../../store/models/facilityType/FacilityType'
 import InteroperabilityType from '../../store/models/interoperabilityType/InteroperabilityType'
 import InteroperabilityAttribute from '../../store/models/interoperabilityAttribute/InteroperabilityAttribute'
 import HealthInformationSystem from '../../store/models/healthInformationSystem/HealthInformationSystem'
+import StockCenter from '../../store/models/stockcenter/StockCenter'
+import StockEntrance from '../../store/models/stockentrance/StockEntrance'
+import Stock from '../../store/models/stock/Stock'
+import { InventoryStockAdjustment } from '../../store/models/stockadjustment/InventoryStockAdjustment'
+import Inventory from '../../store/models/stockinventory/Inventory'
+import StockOperationType from '../../store/models/stockoperation/StockOperationType'
 export default {
     components: {
     },
@@ -105,6 +111,10 @@ export default {
         InteroperabilityType.apiGetAll()
         InteroperabilityAttribute.apiGetAll()
         HealthInformationSystem.apiGetAll()
+        StockCenter.apiGetAll()
+        Stock.apiGetAll()
+        InventoryStockAdjustment.apiGetAll()
+        StockOperationType.apiGetAll()
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
@@ -116,10 +126,20 @@ export default {
         const max = 100
         this.doPackGet(this.clinic.id, offset, max)
       },
+      getAllInventoriesOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doInventoryGet(this.clinic.id, offset, max)
+      },
       getAllPrescriptionOfClinic () {
         const offset = 0
         const max = 100
         this.doPrescriptionkGet(this.clinic.id, offset, max)
+      },
+      getAllStockOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doStockEntranceGet(this.clinic.id, offset, max)
       },
       getAllPatientVisitsOfClinic () {
         const offset = 0
@@ -146,11 +166,31 @@ export default {
         const max = 100
         this.doEpisodeGet(this.clinic.id, offset, max)
       },
+      doInventoryGet (clinicId, offset, max) {
+        Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doInventoryGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      },
       doPackGet (clinicId, offset, max) {
         Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
                 offset = offset + max
                 setTimeout(this.doPackGet(clinicId, offset, max), 2)
+              }
+          }).catch(error => {
+              console.log(error)
+          })
+      },
+      doStockEntranceGet (clinicId, offset, max) {
+        StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+              if (resp.response.data.length > 0) {
+                offset = offset + max
+                setTimeout(this.doStockEntranceGet(clinicId, offset, max), 2)
               }
           }).catch(error => {
               console.log(error)
@@ -224,8 +264,10 @@ export default {
       this.getAllPrescriptionOfClinic()
       this.getAllEpisodesOfClinic()
       this.getAllPatientVisitsOfClinic()
+      this.getAllStockOfClinic()
       this.getAllPacksOfClinic()
       this.getAlPatientVisitDetailsOfClinic()
+      this.getAllInventoriesOfClinic()
       PackagedDrug.apiGetAll()
       PrescribedDrug.apiGetAll()
       PrescriptionDetail.apiGetAll()

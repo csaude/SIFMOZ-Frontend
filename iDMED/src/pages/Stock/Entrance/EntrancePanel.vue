@@ -13,6 +13,7 @@
             <TextInput
               v-model="currStockEntrance.orderNumber"
               label="Número"
+              :rules="[ val => !!val || 'Por favor indicar o número da guia']"
               disable
               dense
               class="col q-ma-sm" />
@@ -21,15 +22,15 @@
                 outlined
                 disable
                 class="col q-ma-sm"
-                v-model="currStockEntrance.dateReceived"
+                v-model="dateReceived"
                 mask="date"
-                ref="birthDate"
+                ref="dateReceived"
                 :rules="['date']"
                 label="Data de Criação">
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="currStockEntrance.dateReceived" >
+                        <q-date v-model="dateReceived" >
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -59,7 +60,8 @@
             <q-table
                 class="col"
                 dense
-                :rows="stocks"
+                flat
+                :rows="stockList"
                 :columns="columns"
                 row-key="id"
                 >
@@ -85,6 +87,7 @@
                 <template #body="props">
                   <q-tr :props="props">
                     <q-td key="order" :props="props">
+                    {{index}}
                     </q-td>
                     <q-td key="drug" :props="props">
                       <q-select
@@ -112,14 +115,14 @@
                         :disable="!props.row.enabled"
                         outlined
                         class="col"
-                        v-model="props.row.expireDate"
+                        v-model="props.row.auxExpireDate"
                         mask="date"
-                        ref="birthDate"
-                        label="Data de Criação">
+                        ref="expireDate"
+                        label="Data de Validade">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="props.row.expireDate" >
+                                <q-date v-model="props.row.auxExpireDate" >
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -178,13 +181,15 @@ import Stock from '../../../store/models/stock/Stock'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import { ref } from 'vue'
 import StockCenter from '../../../store/models/stockcenter/StockCenter'
+import { date, SessionStorage } from 'quasar'
+import Clinic from '../../../store/models/clinic/Clinic'
 const columns = [
-  { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
+  { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'left', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
   { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
   { name: 'expireDate', align: 'left', label: 'Data de Validade', sortable: false },
   { name: 'unitsReceived', align: 'left', label: 'Quantidade', sortable: true },
-  { name: 'options', align: 'center', label: 'Opções', sortable: false }
+  { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
   data () {
@@ -195,13 +200,15 @@ export default {
         msg: ''
       }),
       columns,
-      expireDate: '',
-      currStockEntrance: new StockEntrance(),
       step: 'display',
-      selectedStock: ''
+      selectedStock: '',
+      stockList: ref([])
     }
   },
   methods: {
+    formatDate (dateString) {
+      return date.formatDate(dateString, 'YYYY-MM-DD')
+    },
     initNewStock () {
       if (this.isEditionStep || this.isCreationStep) {
         this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a adição de novo registo.')
@@ -209,30 +216,55 @@ export default {
         this.step = 'create'
         const newStock = new Stock({
           drug: new Drug(),
-          enabled: true
+          center: this.stockCenter,
+          enabled: true,
+          clinic: this.currClinic,
+          entrance: this.currStockEntrance
         })
-        this.currStockEntrance.stocks.push(newStock)
+        this.stockList.push(newStock)
       }
     },
-    saveStock (stock) {
-      // save stock
-      stock.stockEntrance = this.currStockEntrance
-      stock.stockCenter = this.stockCenter
-      Stock.apiSave(stock).then(resp => {
-        // this.fetchStockEntrance()
+    async saveStock (stock) {
+      stock.expireDate = new Date(stock.auxExpireDate)
+      stock.stockMoviment = stock.unitsReceived
+
+      console.log(stock)
+      await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         stock.enabled = false
         this.step = 'display'
       }).catch(error => {
-        console.log(error)
-      })
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
     },
     async fetchStockEntrance () {
       await StockEntrance.apiFetchById(this.currStockEntrance.id).then(resp => {
         this.currStockEntrance = resp.response.data
       }).catch(error => {
-        console.log(error)
-      })
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
     },
     cancel (stock) {
       if (this.isEditionStep) {
@@ -242,8 +274,8 @@ export default {
         stock.unitsReceived = this.selectedStock.unitsReceived
         stock.enabled = false
       } else if (this.isCreationStep) {
-        const i = this.currStockEntrance.stocks.map(toRemove => toRemove.id).indexOf(stock.id) // find index of your object
-        this.currStockEntrance.stocks.splice(i, 1)
+        const i = this.stockList.map(toRemove => toRemove.id).indexOf(stock.id) // find index of your object
+        this.stockList.splice(i, 1)
       }
       this.step = 'display'
     },
@@ -271,11 +303,37 @@ export default {
     },
     closeDialog () {
       this.alert.visible = false
+    },
+    getCurrStockEntrance () {
+      const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
+      return StockEntrance.query()
+                          .withAll()
+                          .where('id', e.id)
+                          .first()
+    },
+    loadStockList () {
+      console.log(this.currStockEntrance)
+      if (this.currStockEntrance.stocks.length > 0) {
+        Object.keys(this.currStockEntrance.stocks).forEach(function (k) {
+          this.stockList.push(this.currStockEntrance.stocks[k])
+        }.bind(this))
+      }
     }
   },
+  mounted () {
+    this.loadStockList()
+  },
   computed: {
-    stocks () {
-      return this.currStockEntrance.stocks
+    dateReceived: {
+      get () {
+        return this.formatDate(this.currStockEntrance.dateReceived)
+      },
+      set (value) {
+        this.currStockEntrance.dateReceived = new Date(value)
+      }
+    },
+    currStockEntrance () {
+      return this.getCurrStockEntrance()
     },
     drugs () {
       return Drug.query().with('form').get()
@@ -296,8 +354,14 @@ export default {
       return this.isEditionStep || this.isCreationStep
     },
     stockCenter () {
-      return StockCenter.query().first()
-    }
+      return StockCenter.query().with('clinic.province').first()
+    },
+    currClinic () {
+        return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+      }
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,

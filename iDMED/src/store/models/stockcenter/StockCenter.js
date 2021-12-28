@@ -1,5 +1,5 @@
 import { Model } from '@vuex-orm/core'
-import Stock from '../stock/Stock'
+import Clinic from '../clinic/Clinic'
 
 export default class StockCenter extends Model {
     static entity = 'stockCenters'
@@ -8,10 +8,15 @@ export default class StockCenter extends Model {
         return {
             id: this.attr(null),
             name: this.attr(''),
-            prefered: this.attr(''),
+            prefered: this.boolean(false),
             code: this.attr(''),
+            clinic_id: this.attr(''),
             // relationships
-            stocks: this.hasMany(Stock, 'stock_center_id')
+            clinic: this.belongsTo(Clinic, 'clinic_id')
         }
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/stockCenter')
     }
 }

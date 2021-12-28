@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import Clinic from '../clinic/Clinic'
 import Stock from '../stock/Stock'
 
 export default class StockEntrance extends Model {
@@ -9,8 +10,10 @@ export default class StockEntrance extends Model {
             id: this.attr(null),
             orderNumber: this.attr(''),
             dateReceived: this.attr(''),
+            clinic_id: this.attr(''),
             // relationships
-            stocks: this.hasMany(Stock, 'stock_entrance_id')
+            clinic: this.belongsTo(Clinic, 'clinic_id'),
+            stocks: this.hasMany(Stock, 'entrance_id')
         }
     }
 

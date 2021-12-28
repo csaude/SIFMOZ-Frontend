@@ -20,17 +20,17 @@
                 <q-td key="order" :props="props">
                 </q-td>
                 <q-td key="orderNumber" :props="props">
-                  {{props.row.drug.orderNumber}}
+                  {{props.row.orderNumber}}
                 </q-td>
                 <q-td key="dateReceived" :props="props">
-                  {{props.row.dateReceived}}
+                  {{formatDate(props.row.dateReceived)}}
                 </q-td>
                 <q-td key="options" :props="props">
                   <div class="col">
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
-                    @click="editPatient(props.row)">
+                    @click="editStockEntrance(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
                   </div>
@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import { date, SessionStorage } from 'quasar'
+import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
   { name: 'orderNumber', align: 'left', label: 'Nr. de Guia', sortable: true },
@@ -54,9 +56,18 @@ export default {
       columns
     }
   },
+  methods: {
+    formatDate (dateString) {
+      return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    editStockEntrance (currStockEntrance) {
+      SessionStorage.set('currStockEntrance', currStockEntrance)
+      this.$router.push('/stock/entrance')
+    }
+  },
   computed: {
     stockEntrances () {
-      return []
+      return StockEntrance.query().withAll().get()
     }
   }
 }

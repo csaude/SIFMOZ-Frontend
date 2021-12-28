@@ -10,6 +10,7 @@ const routes = [
       { path: 'groups', component: () => import('pages/Groups/Groups.vue') },
       { path: 'stock', component: () => import('pages/Stock/Stock.vue') },
       { path: 'stock/entrance', component: () => import('pages/Stock/Entrance/EntrancePanel.vue') },
+      { path: 'stock/inventory', component: () => import('pages/Stock/Inventory/InventoryPanel.vue') },
       { path: 'dashboard', component: () => import('pages/Dashboard/Dashboard.vue') },
       { path: 'reports', component: () => import('pages/Reports/Reports.vue') },
       { path: 'settings', component: () => import('pages/Settings/Settings.vue') },

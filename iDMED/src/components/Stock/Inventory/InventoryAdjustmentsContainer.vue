@@ -1,0 +1,255 @@
+<template>
+  <div>
+          <ListHeader
+            :addVisible="false"
+            :doneVisible="isEditStep"
+            :mainContainer="false"
+            @done="saveAdjustments"
+            bgColor="bg-primary">{{drug.name}}
+          </ListHeader>
+          <div class="box-border q-pb-md">
+            <q-table
+                class="col"
+                dense
+                flat
+                :rows="adjustments"
+                :columns="columns"
+                row-key="id"
+                >
+                <template v-slot:no-data="{ icon, filter }">
+                  <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                    <span>
+                      Sem resultados para visualizar
+                    </span>
+                    <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+                  </div>
+                </template>
+                <template #header="props">
+                  <q-tr class="text-left bg-grey-3"  :props="props">
+                    <q-th style="width: 70px" >{{columns[0].label}}</q-th>
+                    <q-th style="width: 110px" >{{columns[1].label}}</q-th>
+                    <q-th style="width: 190px" >{{columns[2].label}}</q-th>
+                    <q-th style="width: 190px" >{{columns[3].label}}</q-th>
+                    <q-th style="width: 190px" >{{columns[4].label}}</q-th>
+                    <q-th class="col" >{{columns[5].label}}</q-th>
+                  </q-tr>
+
+                </template>
+                <template #body="props">
+                  <q-tr :props="props">
+                    <q-td key="order" :props="props">
+                      {{props.row.index}}
+                    </q-td>
+                    <q-td key="batchNumber" :props="props">
+                      <TextInput
+                        v-model="props.row.adjustedStock.batchNumber"
+                        disable
+                        label="Lote"
+                        dense
+                        class="col" />
+                    </q-td>
+                    <q-td key="expireDate" :props="props">
+                      <TextInput
+                        v-bind:val="props.row.adjustedStock.getFormatedExpireDate()"
+                        disable
+                        label="Lote"
+                        dense
+                        class="col" />
+                    </q-td>
+                    <q-td key="currQty" :props="props">
+                      <div class="row">
+                        <TextInput
+                          v-model="props.row.adjustedStock.stockMoviment"
+                          disable
+                          label="Quantidade"
+                          dense
+                          class="col" />
+                        <TextInput
+                          v-model="props.row.adjustedStock.drug.form.description"
+                          disable
+                          label="Forma"
+                          dense
+                          class="col q-ml-sm" />
+                      </div>
+                    </q-td>
+                      <q-td key="adjustedValue" :props="props">
+                      <div class="row">
+                        <TextInput
+                          v-model="props.row.adjustedValue"
+                          @update:model-value="changeStepToEdition()"
+                          label="Quantidade"
+                          dense
+                          class="col" />
+                        <TextInput
+                          v-model="props.row.adjustedStock.drug.form.description"
+                          disable
+                          label="Foma"
+                          dense
+                          class="col q-ml-sm" />
+                      </div>
+                    </q-td>
+                    <q-td key="notes" :props="props">
+                      <TextInput
+                        v-model="props.row.notes"
+                        @update:model-value="changeStepToEdition()"
+                        label="Notas"
+                        dense
+                        class="col" />
+                    </q-td>
+                  </q-tr>
+                </template>
+            </q-table>
+          </div>
+          <q-dialog v-model="alert.visible" persistent>
+            <Dialog :type="alert.type" @closeDialog="closeDialog">
+              <template v-slot:title> Informação</template>
+              <template v-slot:msg> {{alert.msg}} </template>
+            </Dialog>
+          </q-dialog>
+        </div>
+</template>
+
+<script>
+import { InventoryStockAdjustment } from '../../../store/models/stockadjustment/InventoryStockAdjustment'
+import { ref } from 'vue'
+import { date, SessionStorage } from 'quasar'
+import Clinic from '../../../store/models/clinic/Clinic'
+import Stock from '../../../store/models/stock/Stock'
+import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
+const columns = [
+  { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
+  { name: 'batchNumber', align: 'center', label: 'Lote', sortable: true },
+  { name: 'expireDate', align: 'center', label: 'Data de Validade', sortable: false },
+  { name: 'currQty', align: 'center', label: 'Saldo Actual', sortable: true },
+  { name: 'adjustedValue', align: 'center', label: 'Quantidade Contada', sortable: true },
+  { name: 'notes', align: 'center', label: 'Notas', sortable: false }
+]
+export default {
+  props: ['drug', 'inventory'],
+  data () {
+    return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
+      columns,
+      adjustments: ref([]),
+      step: 'display'
+    }
+  },
+  methods: {
+    formatDate (dateString) {
+      return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    init () {
+      let i = 1
+      Object.keys(this.drug.stocks).forEach(function (k) {
+        this.initNewAdjustment(this.drug.stocks[k], this.drug, i)
+        i = i + 1
+      }.bind(this))
+    },
+    initNewAdjustment (stock, drug, i) {
+      let newAdjustment = null
+      newAdjustment = InventoryStockAdjustment.query()
+                                            .with('adjustedStock')
+                                            .with('inventory')
+                                            .with('clinic.province')
+                                            .with('operation')
+                                            .where('adjusted_stock_id', stock.id)
+                                            .where((_record, query) => {
+                                                    query.where('inventory_id', this.inventory.id)
+                                                  })
+                                            .first()
+      if (newAdjustment === null) {
+        newAdjustment = new InventoryStockAdjustment({
+          inventory: this.inventory,
+          clinic: this.currClinic
+        })
+      }
+      newAdjustment.index = i
+      newAdjustment.adjustedStock = Stock.query()
+                                          .with('clinic.province')
+                                          .with('entrance.clinic.province')
+                                          .with('center.clinic.province')
+                                          .where('id', stock.id)
+                                          .first()
+      newAdjustment.adjustedStock.drug = drug
+      this.adjustments.push(newAdjustment)
+    },
+    saveAdjustments () {
+      Object.keys(this.adjustments).forEach(function (k) {
+        const adjustment = this.adjustments[k]
+        let operation = null
+        if (adjustment.adjustedValue > adjustment.adjustedStock.stockMoviment) {
+          operation = StockOperationType.query().where('code', 'AJUSTE_POSETIVO').first()
+        } else if (adjustment.adjustedValue < adjustment.adjustedStock.stockMoviment) {
+          operation = StockOperationType.query().where('code', 'AJUSTE_NEGATIVO').first()
+        }
+        this.adjustments[k].captureDate = new Date()
+        this.adjustments[k].operation = operation
+      }.bind(this))
+      this.doSave(0)
+      this.step = 'display'
+    },
+    doSave (i) {
+      if (this.adjustments[i] !== undefined) {
+        console.log(this.adjustments[i])
+        InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
+          this.adjustments[i].id = resp.response.data.id
+          i = i + 1
+          setTimeout(this.doSave(i), 2)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', listErrors)
+          })
+      }
+    },
+    changeStepToEdition () {
+      this.step = 'edit'
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+    }
+  },
+  mounted () {
+    this.init()
+  },
+  components: {
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
+    ListHeader: require('components/Shared/ListHeader.vue').default,
+    TextInput: require('components/Shared/Input/TextField.vue').default
+  },
+  computed: {
+    isEditStep () {
+      return this.step === 'edit'
+    },
+    currClinic () {
+      return Clinic.query()
+                  .with('province')
+                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .first()
+    }
+  }
+}
+</script>
+
+<style>
+
+</style>
