@@ -304,10 +304,10 @@ export default {
       },
       doPackGet (clinicId, offset, max) {
         Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPackGet(clinicId, offset, max), 2)
-              }
+              // if (resp.response.data.length > 0) {
+              //   offset = offset + max
+              //   setTimeout(this.doPackGet(clinicId, offset, max), 2)
+              // }
           }).catch(error => {
               console.log(error)
           })
@@ -456,11 +456,10 @@ export default {
                                                    .first()
         console.log(urlBase.value)
      //   const baseUrlHis = (urlBase !== null && urlBase !== undefined) ? urlBase.value : 'http://localhost:8080/openmrs'
-        const openMRSInstance = axios.create({
-        timeout: 10000,
-        baseURL: 'session' // baseUrlHis + '/session'
+       const openMRSInstance = axios.create({
+        baseURL: 'session'
         })
-        openMRSInstance.get('', { headers: { Authorization: 'Basic ' + btoa(this.username + ':' + this.password) } })
+        openMRSInstance.get('session', { headers: { Authorization: 'Basic ' + btoa(this.username + ':' + this.password) } })
                        .then((response) => {
                          if (response.data.authenticated === false || response.data.authenticated === undefined) {
                             this.$q.notify({

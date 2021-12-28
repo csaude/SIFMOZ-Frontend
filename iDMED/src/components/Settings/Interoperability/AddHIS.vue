@@ -29,7 +29,7 @@
             </div>
       <div class="row q-mt-md">
        <q-table
-      class="col"
+      class="col my-sticky-header-table"
       title="Atributos"
       :rows="interoperabilityAttributes"
       :columns="columnsAttributes"
@@ -232,9 +232,22 @@ export default {
 
 }
 </script>
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
 
-<style>
-    .fild-radius {
-        border-radius: 5px;
-    }
+  .q-table__top
+    /* bg color is important for th; just specify one */
+    background-color: #0ba58b
+
+  thead tr th
+    position: sticky
+    z-index: 0
+  thead tr
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 0px
 </style>

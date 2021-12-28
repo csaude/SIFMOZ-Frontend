@@ -3,8 +3,19 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
+    beforeEnter (to, from, next) {
+      const authUser = localStorage.getItem('user')
+      if (authUser === null || String(authUser).includes('null')) {
+          next('/Login')
+        } else {
+          next()
+        }
+    },
     children: [
-      { path: '', component: () => import('pages/Home/Home.vue') },
+      {
+        path: '',
+        component: () => import('pages/Home/Home.vue')
+      },
       { path: 'patients', component: () => import('pages/Patient/Patient.vue') },
       { path: 'patientpanel', component: () => import('pages/Patient/Panel/PatientPanel.vue') },
       // { path: 'groups', component: () => import('pages/Groups/Groups.vue') },
