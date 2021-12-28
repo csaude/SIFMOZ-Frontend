@@ -1,33 +1,35 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+        <q-card-section>
+            <div class="text-h6"> Sistema para Interoperabilidade!</div>
+        </q-card-section>
         <form @submit.prevent="validateHis" >
         <q-stepper
-      v-model="step"
-      ref="stepper"
-      contracted
-      animated
-    >
+            v-model="step"
+            ref="stepper"
+            animated
+          >
       <q-step
         :name="1"
-        title="Atributos"
-      >
-               <div class="row q-mt-md">
-                <nameInput
-                    ref="nome"
-                    v-model="his.description"
-                    label="Nome do Sistema de Informação *" />
+        title="Selecção de Atributos"
+        >
+        <div class="row q-mt-md">
+        <nameInput
+            ref="nome"
+            v-model="his.description"
+            label="Nome do Sistema de Informação *" />
+        </div>
+        <div class="row q-mt-md">
+          <codeInput
+              ref="code"
+              v-model="his.abbreviation"
+              :rules="[val => codeRules (val)]"
+              lazy-rules
+              label="Abreviatura *" />
             </div>
-              <div class="row q-mt-md">
-                <codeInput
-                    ref="code"
-                    v-model="his.abbreviation"
-                   :rules="[val => codeRules (val)]"
-                    lazy-rules
-                    label="Abreviatura *" />
-            </div>
-            <div class="row q-mt-md">
+      <div class="row q-mt-md">
        <q-table
-      class="col"
+      class="col my-sticky-header-table"
       title="Atributos"
       :rows="interoperabilityAttributes"
       :columns="columnsAttributes"
@@ -44,11 +46,11 @@
               </div>
             </template>
        </q-table>
-                    </div>
+      </div>
       </q-step>
        <q-step
           :name="2"
-           title="Atributos"
+          title="Adicionar valor do atributo"
       >
          <div class="">
                   <selectedAttributesTable  :rows="healthInformationAttributeTypes" :columns="columnsSelectedAttributes"/>
@@ -202,13 +204,13 @@ export default {
           }
         },
     fetchInteroperabilityAttributes () {
-        InteroperabilityType.apiGetAll()
+        InteroperabilityType.apiGetAll(0, 100)
     },
       codeRules (val) {
       if (this.his.code === '') {
-        return 'o Codigo e obrigatorio'
+        return 'o Código e obrigatorio'
       } else if (!this.his.id && this.selectedHis.id === this.his.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }
     },
     addAttributesOnHealthInformationSystem () {
@@ -230,9 +232,22 @@ export default {
 
 }
 </script>
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
 
-<style>
-    .fild-radius {
-        border-radius: 5px;
-    }
+  .q-table__top
+    /* bg color is important for th; just specify one */
+    background-color: #0ba58b
+
+  thead tr th
+    position: sticky
+    z-index: 0
+  thead tr
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 0px
 </style>

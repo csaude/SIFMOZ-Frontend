@@ -1,15 +1,12 @@
 <template>
-  <div>
+  <div class="q-pa-md">
     <q-splitter
-      v-model="splitterModel"
-    >
-
+      v-model="splitterModel">
       <template v-slot:before>
        <q-tabs
           v-model="selectedTab"
          vertical
-         class="text-teal"
-        >
+         class="text-teal">
           <q-tab v-for="tab in tabs" :key="tab.name" v-bind="tab" />
         </q-tabs>
       </template>
@@ -28,10 +25,10 @@
             <clinics> </clinics>
           </q-tab-panel>
 
-          <q-tab-panel name="national_clinic">
+          <!--q-tab-panel name="national_clinic">
             <div class="text-h4 q-mb-md"></div>
             <nationalClinic> </nationalClinic>
-          </q-tab-panel>
+          </q-tab-panel-->
 
           <q-tab-panel name="clinic_sector">
             <div class="text-h4 q-mb-md"></div>
@@ -67,31 +64,31 @@
 import { ref } from 'vue'
 
 const tabs = [
-  { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
+  // { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
   { name: 'clinic', icon: 'local_hospital', label: 'Farmácias' },
   { name: 'clinic_sector', icon: 'local_pharmacy', label: 'Sector Clínico' },
   { name: 'doctor', icon: 'psychology', label: 'Clínicos' },
- { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
+  { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
   { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapêutico' },
-    { name: 'clinical_service', icon: 'local_pharmacy', label: 'Serviço Clínico' },
+  { name: 'clinical_service', icon: 'local_pharmacy', label: 'Serviço Clínico' },
   { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' }
 ]
 export default {
   setup () {
     return {
     //  tabs: ref('national_clinic'),
-      selectedTab: ref('national_clinic'),
+      selectedTab: ref('clinic'),
       tabs,
       splitterModel: ref(15)
     }
   },
    components: {
-        doctor: require('components/Settings/Doctor/Doctors.vue').default,
-     //    AddClinic: require('components/Settings/AddClinic.vue').default
-          drug: require('components/Settings/Drug/Drugs.vue').default,
-         clinicSectors: require('components/Settings/ClinicSector/ClinicSectors.vue').default,
-           nationalClinic: require('components/Settings/NationalClinic/NationalClinics.vue').default,
-      clinics: require('components/Settings/Clinic/Clinics.vue').default,
+       doctor: require('components/Settings/Doctor/Doctors.vue').default,
+    // AddClinic: require('components/Settings/AddClinic.vue').default
+       drug: require('components/Settings/Drug/Drugs.vue').default,
+       clinicSectors: require('components/Settings/ClinicSector/ClinicSectors.vue').default,
+      //  nationalClinic: require('components/Settings/NationalClinic/NationalClinics.vue').default,
+       clinics: require('components/Settings/Clinic/Clinics.vue').default,
        clinicalServices: require('components/Settings/ClinicalService/ClinicalService.vue').default,
        therapeuticRegimen: require('components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue').default,
        interoperability: require('components/Settings/Interoperability/His.vue').default

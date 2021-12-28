@@ -1,11 +1,14 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+<q-card-section>
+            <div class="text-h6">Sector Clínico!</div>
+        </q-card-section>
         <form @submit.prevent="validateClinicSector" >
             <q-card-section class="q-px-md">
                <div class="row q-mt-md">
                 <nameInput
                     v-model="clinicSector.description"
-                    label="Nome do Sector Clinico *"
+                    label="Nome do Sector Clínico *"
                     ref="nome"
                      :disable="onlyView" />
             </div>
@@ -16,7 +19,7 @@
                    :rules="[val => codeRules (val)]"
                     lazy-rules
                      :disable="onlyView"
-                    label="Codigo *" />
+                    label="Código *" />
             </div>
              <div class="row q-mb-md">
                 <q-select
@@ -37,7 +40,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary" v-if="!onlyView"/>
+                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -60,6 +63,7 @@ export default {
     data () {
         return {
             databaseCodes: [],
+            submitting: false,
            clinicSector: new ClinicSector(),
             alert: ref({
               type: '',
@@ -106,10 +110,13 @@ export default {
         },
         submitClinicSector () {
           this.clinicSector.active = true
+          this.submitting = true
            ClinicSector.apiSave(this.clinicSector).then(resp => {
+             this.submitting = false
                 console.log(resp.response.data)
                 this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clinico adiconado com sucesso.' : 'Sector Clinico actualizado com sucesso.')
             }).catch(error => {
+              this.submitting = false
                this.displayAlert('error', error)
             })
         },
@@ -140,9 +147,9 @@ export default {
     },
     codeRules (val) {
       if (this.clinicSector.code === '') {
-        return 'o Codigo é obrigatorio'
+        return 'o Código é obrigatorio'
       } else if (!this.clinicSector.id && this.selectedClinicSector.id === this.clinicSector.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado já existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado já existe'
          }
     }
     },

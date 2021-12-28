@@ -1,12 +1,12 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" :bgColor="clinicalServiceHeaderColor" >{{ curIdentifier.service.code }} </ListHeader>
+    <ListHeader :addVisible="false" :bgColor="clinicalServiceHeaderColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
     <q-card class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
             <div class="col-4 text-grey-9 text-weight-medium">Serviço de Saúde:</div>
-            <div class="col text-grey-8">{{ curIdentifier.service.description }}</div>
+            <div class="col text-grey-8">{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.description  }}</div>
           </div>
           <div class="row ">
             <div class="col-4 text-grey-9 text-weight-medium">Data de Admissão:</div>
@@ -105,7 +105,7 @@ export default {
     },
     editClinicService () {
       if (!this.canEdit) {
-        this.displayAlert('error', 'Não pode fazer alterações sobre este serviço de saúde pois o mesmo ja possui registos de visitas do pacinete/utente associados.')
+        this.displayAlert('error', 'Não pode fazer alterações sobre este serviço de saúde pois o mesmo ja possui registos de visitas do paciente/utente associados.')
       } else {
         this.$emit('editClinicService', this.curIdentifier)
       }
@@ -113,7 +113,7 @@ export default {
     editEpisode (episode) {
       const eps = Episode.query().withAll().where('id', episode.id).first()
       if (eps.hasVisits()) {
-        this.displayAlert('error', 'Não pode fazer alterações sobre este episódio pois o mesmo ja possui registos de visitas do pacinete/utente associados.')
+        this.displayAlert('error', 'Não pode fazer alterações sobre este episódio pois o mesmo ja possui registos de visitas do paciente/utente associados.')
       } else {
         this.step = 'edit'
         this.selectedEpisode = Object.assign({}, episode)
@@ -123,7 +123,7 @@ export default {
     removeEpisode (episode) {
       const eps = Episode.query().withAll().where('id', episode.id).first()
       if (eps.hasVisits()) {
-        this.displayAlert('error', 'Não pode remover este episódio pois o mesmo ja possui registos de visitas do pacinete/utente associados.')
+        this.displayAlert('error', 'Não pode remover este episódio pois o mesmo ja possui registos de visitas do paciente/utente associados.')
       } else {
         Episode.apiRemove(episode).then(resp => {
           Episode.delete(episode.id)
@@ -198,7 +198,7 @@ export default {
     },
     patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
+      return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
                             .with('attributes')
                             .with('appointments')

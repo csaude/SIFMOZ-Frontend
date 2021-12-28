@@ -1,5 +1,8 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+     <q-card-section>
+            <div class="text-h6">Regime Terapêutico!</div>
+        </q-card-section>
         <form @submit.prevent="validateTherapeuticRegimen" >
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
@@ -18,18 +21,16 @@
                     </div>
                      <div class="row q-mt-md">
        <q-table
-        style="height: 500px"
-      class="col"
-      title="Medicamentos"
-      :rows="drugs"
-      :columns="columnsDrug"
-      :filter="filter"
-      :rows-per-page-options="[0]"
-      virtual-scroll
-      row-key="fnmCode"
-      selection="multiple"
-      v-model:selected="therapeuticRegimen.drugs"
-      v-if="!onlyView"
+          style="height: 500px"
+          class="col"
+          title="Medicamentos"
+          :rows="drugs"
+          :columns="columnsDrug"
+          :filter="filter"
+          row-key="fnmCode"
+          selection="multiple"
+          v-model:selected="therapeuticRegimen.drugs"
+          v-if="!onlyView"
         >
          <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
@@ -52,7 +53,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                <q-btn type="submit" label="Submeter" color="primary" v-if="!onlyView"/>
+                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -73,7 +74,7 @@ const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
 const columnsDrug = [
-  { name: 'fnmCode', required: true, label: 'Codigo FNM', align: 'left', field: row => row.fnmCode, format: val => `${val}`, sortable: true },
+  { name: 'fnmCode', required: true, label: 'Código FNM', align: 'left', field: row => row.fnmCode, format: val => `${val}`, sortable: true },
   { name: 'name', required: true, label: 'Nome', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true }
 ]
 export default {
@@ -81,6 +82,7 @@ export default {
     data () {
       const formOptions = ref(this.forms)
         return {
+          submitting: false,
           columnsDrug,
           filter: ref(''),
            alert: ref({
@@ -112,13 +114,16 @@ export default {
             }
         },
      async   submitTherapeuticRegimen () {
+       this.submitting = true
         this.therapeuticRegimen.active = true
             console.log(this.therapeuticRegimen)
        await TherapeuticRegimen.apiSave(this.therapeuticRegimen).then(resp => {
+         this.submitting = false
                 console.log(resp.response.data.id)
               TherapeuticRegimen.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', 'Regime Terapeutico gravado com sucesso.')
             }).catch(error => {
+              this.submitting = false
                 this.displayAlert('error', error)
             })
         },
@@ -139,7 +144,7 @@ export default {
     },
         codeRules (val) {
        if (!this.therapeuticRegimen.id && this.selectedTherapeuticRegimen.id === this.therapeuticRegimen.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }
     }
     },

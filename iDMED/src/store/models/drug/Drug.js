@@ -47,6 +47,8 @@ export default class Drug extends Model {
 
   static async apiGetAll () {
     return await this.api().get('/drug')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/drug?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

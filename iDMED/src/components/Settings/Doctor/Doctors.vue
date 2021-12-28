@@ -3,7 +3,7 @@
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-       Clinicos
+       Clínicos
         </div>
         <q-table
      :rows="doctors"

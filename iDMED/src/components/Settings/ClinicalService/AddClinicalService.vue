@@ -1,22 +1,24 @@
 <template>
-<q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+<q-card style="width: 1010px; max-width: 90vw;" class="q-pt-lg">
+     <q-card-section>
+            <div class="text-h6"> Serviço Clínico!</div>
+        </q-card-section>
         <form  >
-            <q-stepper
-      v-model="step"
-      ref="stepper"
-      contracted
-      animated
-    >
+        <q-stepper
+          v-model="step"
+          ref="stepper"
+          animated
+        >
       <q-step
         :name="1"
         title="Dados Iniciais"
       >
-               <div class="row q-mt-md">
-                <nameInput
-                    v-model="clinicalService.description"
-                     ref="nome"
-                     :disable="onlyView"
-                    label="Nome do Servico Clinico *" />
+            <div class="row q-mt-md">
+            <nameInput
+              v-model="clinicalService.description"
+                ref="nome"
+                :disable="onlyView"
+                label="Nome do Servico Clinico *" />
             </div>
               <div class="row q-mt-md">
                 <codeInput
@@ -24,101 +26,101 @@
                     v-model="clinicalService.code"
                     lazy-rules
                      :disable="onlyView"
-                    label="Codigo*"
+                    label="Código*"
                      :rules="[val => codeRules (val)]" />
             </div>
               <div class="row q-mt-md">
-                             <q-select
-                              class="col"
-                          dense outlined
-                          :disable="onlyView"
-                          v-model="clinicalService.identifierType"
-                          :options="identifierTypes"
-                          :rules="[ val => ( val != null ) || ' Por favor indique o tipo de identificador']"
-                          option-value="id"
-                          ref="identifierType"
-                          option-label="description"
-                          label="Tipo de Identificador*" />
-                     </div>
+                  <q-select
+                      class="col"
+                      dense outlined
+                      :disable="onlyView"
+                      v-model="clinicalService.identifierType"
+                      :options="identifierTypes"
+                      :rules="[ val => ( val != null ) || ' Por favor indique o tipo de identificador']"
+                      option-value="id"
+                      ref="identifierType"
+                      option-label="description"
+                      label="Tipo de Identificador*" />
+                </div>
                <div class="row">
                 <div class="col-4 col-md-6">
          <q-table
-         style="max-width: 450px;max-height: 350px"
-      title="Atributos Para a Prescrição"
-      :rows="clinicalServiceAttributes"
-      :columns="columnAttributes"
-      row-key="code"
-       v-if="onlyView"
-        class="my-sticky-header-table"
-        />
-                </div>
-                <div class="col-4 col-md-6">
+            style="max-width: 450px;max-height: 350px"
+            title="Atributos Para a Prescrição"
+            :rows="clinicalServiceAttributes"
+            :columns="columnAttributes"
+            row-key="code"
+            v-if="onlyView"
+            class="my-sticky-header-table"
+          />
+          </div>
+          <div class="col-4 col-md-6">
          <q-table
-          style="max-width: 450px; max-height: 350px"
-      title="Regimes Terapeuticos"
-      :rows="therapeuticRegimens"
-      :columns="columnsRegimen"
-      row-key="code"
-       v-if="onlyView && therapeuticRegimens.length > 0"
-        class="my-sticky-header-table"
-        />
-              </div>
-              <div class="col-4 col-md-6 pa-md">
+            style="max-width: 450px; max-height: 350px"
+            title="Regimes Terapeuticos"
+            :rows="therapeuticRegimens"
+            :columns="columnsRegimen"
+            row-key="code"
+            v-if="onlyView && therapeuticRegimens.length > 0"
+            class="my-sticky-header-table"
+          />
+        </div>
+        <div class="col-4 col-md-6 pa-md">
          <q-table
-          style="max-width: 450px; max-height: 350px"
-      title="Sectores Clinicos"
-      :rows="clinicSectors"
-      :columns="columnsSectors"
-      row-key="code"
-       v-if="onlyView "
-        class="my-sticky-header-table"
+            style="max-width: 450px; max-height: 350px"
+            title="Sectores Clinicos"
+            :rows="clinicSectors"
+            :columns="columnsSectors"
+            row-key="code"
+            v-if="onlyView "
+            class="my-sticky-header-table"
         />
-              </div>
-               </div>
+        </div>
+       </div>
       </q-step>
- <q-step
+      <q-step
           :name="2"
+          title="Adicionar Variáveis da Prescrição"
       >
        <q-card-section class="q-px-md">
                <div class="q-pa-md">
          <q-table
-      title="Atributos Para a Prescrição"
-      :rows="clinicalServiceAttributes"
-      :columns="columnAttributes"
-      row-key="code"
-      selection="multiple"
-      v-model:selected="selectedAttributes"
-      class="my-sticky-header-table"
-       v-if="!onlyView"
+          title="Atributos Para a Prescrição"
+          :rows="clinicalServiceAttributes"
+          :columns="columnAttributes"
+          row-key="code"
+          selection="multiple"
+          v-model:selected="selectedAttributes"
+          class="my-sticky-header-table"
+          v-if="!onlyView"
         >
          <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
-            <template v-slot:append>
-                <q-icon name="search" />
-            </template>
-                </q-input>
+              <template v-slot:append>
+                  <q-icon name="search" />
+              </template>
+            </q-input>
         </template>
          </q-table>
-              </div>
-            </q-card-section>
-         </q-step>
+          </div>
+        </q-card-section>
+       </q-step>
        <q-step
           :name="3"
+          title="Adicionar Sector Clínico"
       >
        <q-card-section class="q-px-md">
-               <div class="q-pa-md">
+        <div class="q-pa-md">
          <q-table
-      title="Sectores Clinicos"
-      :rows="clinicSectors"
-      :columns="columnsSectors"
-       :filter="filter"
-      row-key="code"
-      selection="multiple"
-       virtual-scroll
-      :rows-per-page-options="[0]"
-      v-model:selected="clinicalService.clinicSectors"
-       class="my-sticky-header-table"
-        >
+            title="Sectores Clinicos"
+            :rows="clinicSectors"
+            :columns="columnsSectors"
+            :filter="filter"
+            row-key="code"
+            selection="multiple"
+            v-model:selected="clinicalService.clinicSectors"
+            class="my-sticky-header-table"
+          >
          <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
@@ -132,28 +134,27 @@
          </q-step>
          <q-step
           :name="4"
+          title="Adicionar Regimes Terapêuticos"
       >
        <q-card-section class="q-px-md">
-               <div class="q-pa-md">
+        <div class="q-pa-md">
          <q-table
-      title="Regimes Terapeuticos"
-      :rows="therapeuticRegimens"
-      :columns="columnsRegimen"
-      row-key="code"
-      selection="multiple"
-       virtual-scroll
-      :rows-per-page-options="[0]"
-      v-model:selected="clinicalService.therapeuticRegimens"
-       class="my-sticky-header-table"
+            title="Regimes Terapêuticos"
+            :rows="therapeuticRegimens"
+            :columns="columnsRegimen"
+            row-key="code"
+            selection="multiple"
+            v-model:selected="clinicalService.therapeuticRegimens"
+            class="my-sticky-header-table"
         />
-              </div>
-            </q-card-section>
+        </div>
+        </q-card-section>
          </q-step>
             </q-stepper>
            <q-card-actions align="right" class="q-mb-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                 <q-btn v-if="step > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+                <q-btn v-if="step > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
           <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="step !== 3 ? 'Proximo' : 'Submeter'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
@@ -184,7 +185,7 @@ const columnsRegimen = [
 ]
 
 const columnsSectors = [
-  { name: 'code', required: true, label: 'Codigo', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
+  { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
   { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
 
@@ -303,7 +304,7 @@ export default {
           this.$refs.stepper.next()
         } else {
           this.submitClinicalService()
-             }
+          }
         }
         } else if (this.step === 4) {
              if (this.clinicalService.therapeuticRegimens.length <= 0) {
@@ -327,9 +328,9 @@ export default {
     },
     codeRules (val) {
       if (this.clinicalService.code === '') {
-        return 'o Codigo e obrigatorio'
+        return 'o Código e obrigatorio'
       } else if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }
     }
   },

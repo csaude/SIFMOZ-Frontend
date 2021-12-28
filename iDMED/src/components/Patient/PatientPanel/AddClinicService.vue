@@ -3,7 +3,7 @@
         <form @submit.prevent="submitForm" >
             <q-card-section >
               <div class="row items-center text-subtitle1">
-                <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
+                <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos</div>
@@ -326,12 +326,12 @@ export default {
                     this.displayAlert('error', 'A data de admissão indicada é maior que a data do primeiro episódio registado.')
                   } else if (this.hasVisitsMade && (this.identifier.service.id !== this.identifierToEdit.service.id)) {
                     this.displayAlert('error', 'Não pode alterar o serviço de saúde pois ja existem registos de visitas associados.')
-                  } else if (this.patient.hasPreferedId() && this.identifier.isPrefered()) {
+                  } else if (this.patient.hasPreferedId() && this.identifier.prefered) {
                     this.displayAlert('confirmation', 'O identificador neste momento em associação passará a ser considerado como preferido, deseja continuar neste modo?')
                   } else {
                     this.doSave()
                   }
-                } else if (this.patient.hasPreferedId() && this.identifier.isPrefered()) {
+                } else if (this.patient.hasPreferedId() && this.identifier.prefered) {
                     this.displayAlert('confirmation', 'O identificador neste momento em associação passará a ser considerado como preferido, deseja continuar neste modo?')
                 } else {
                   this.doSave()
@@ -365,6 +365,7 @@ export default {
       },
       canEditIdentifier () {
         const identifier = PatientServiceIdentifier.query()
+                                                  .with(['clinic.province', 'clinic.district.province'])
                                                   .with('episodes.patientVisitDetails')
                                                   .where('id', this.identifierToEdit.id)
                                                   .first()
@@ -451,6 +452,7 @@ export default {
     created () {
         if (!this.isCreateStep) {
           this.identifier = Object.assign({}, this.identifierToEdit)
+          this.identifier.clinic = this.currClinic
           this.identifierstartDate = this.identifier.startDate
           this.identifier.service = ClinicalService.query()
                                                   .with('identifierType')
@@ -481,7 +483,7 @@ export default {
         return this.canEditIdentifier()
       },
       clinicalServices () {
-        return ClinicalService.query().with('identifierType').get()
+        return ClinicalService.query().with('identifierType').has('code').get()
       },
       clinicSerctors () {
         return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()

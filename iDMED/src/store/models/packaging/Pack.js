@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
+import DispenseMode from '../dispenseMode/DispenseMode'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 
@@ -15,16 +16,18 @@ export default class Pack extends Model {
         pickupDate: this.attr(''),
         nextPickUpDate: this.attr(''),
         weeksSupply: this.attr(''),
-        dispenseMode: this.attr(''),
+        dispenseMode_id: this.attr(''),
         dateReturned: this.attr(''),
         stockReturned: this.number(0),
         packageReturned: this.number(0),
         reasonForPackageReturn: this.attr(''),
         patientVisitDetails_id: this.attr(''),
         clinic_id: this.attr(''),
+        syncStatus: this.attr(''),
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
         patientVisitDetails: this.belongsTo(PatientVisitDetails, 'patientVisitDetails_id'),
+        dispenseMode: this.belongsTo(DispenseMode, 'dispenseMode_id'),
         packagedDrugs: this.hasMany(PackagedDrug, 'pack_id')
       }
     }

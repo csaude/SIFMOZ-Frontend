@@ -1,5 +1,8 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+          <q-card-section>
+            <div class="text-h6">Medicamento!</div>
+        </q-card-section>
         <form @submit.prevent="validateDrug" >
             <q-card-section class="q-px-md">
                 <div class="q-mt-md">
@@ -51,7 +54,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                <q-btn type="submit" label="Submeter" color="primary" v-if="!onlyView"/>
+                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -75,6 +78,7 @@ export default {
     data () {
       const formOptions = ref(this.forms)
         return {
+          submitting: false,
            alert: ref({
               type: '',
               visible: false,
@@ -116,12 +120,15 @@ export default {
             }
         },
         submitDrug () {
+            this.submitting = true
            this.drug.active = true
            Drug.apiSave(this.drug).then(resp => {
+               this.submitting = false
                 console.log(resp.response.data)
                  Drug.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', this.drug.id === null ? 'Medicamento adiconado com sucesso.' : 'Medicamento actualizado com sucesso.')
             }).catch(error => {
+                this.submitting = false
                 this.displayAlert('error', error)
             })
         },
@@ -142,7 +149,7 @@ export default {
     },
     codeRules (val) {
        if (!this.drug.id && this.selectedDrug.id === this.drug.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }
     }
     },
@@ -154,7 +161,7 @@ export default {
     },
     components: {
         nameInput: require('components/Shared/NameInput.vue').default,
-         codeInput: require('components/Shared/CodeInput.vue').default,
+        codeInput: require('components/Shared/CodeInput.vue').default,
         numberField: require('components/Shared/Input/NumberField.vue').default,
         Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },

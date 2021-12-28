@@ -24,6 +24,7 @@
                               mask="date"
                               ref="birthDate"
                               :rules="['date']"
+                              :input="idadeCalculator()"
                               label="Data de Nascimento *">
                               <template v-slot:append>
                                   <q-icon name="event" class="cursor-pointer">
@@ -37,7 +38,7 @@
                                   </q-icon>
                               </template>
                           </q-input>
-                            <numberInput v-model="age" label="Idade" class="q-ml-md"/>
+                            <numberInput v-model="age" label="Idade" class="q-ml-md" readonly/>
                         <q-select
                           class="col q-ml-md"
                           dense outlined
@@ -130,8 +131,10 @@ import Patient from '../../../store/models/patient/Patient'
 import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import District from '../../../store/models/district/District'
+import moment from 'moment'
 export default {
-    props: ['clinic', 'selectedPatient'],
+    props: ['clinic', 'selectedPatient', 'newPatient'],
+    emits: ['update:newPatient'],
     data () {
         return {
             alert: ref({
@@ -141,7 +144,7 @@ export default {
             }),
             dateOfBirth: '',
             selectedProvince: {},
-            genders: ['Masculino', 'Femenino'],
+            genders: ['Masculino', 'Feminino'],
             age: '',
             patient: new Patient()
         }
@@ -172,14 +175,34 @@ export default {
         }
       },
       async savePatient () {
+        if (this.patient.hasIdentifiers) {
+            if (this.patient.identifiers[0] === null) {
+              this.patient.identifiers = []
+            } else {
+                if (this.patient.identifiers[0].id === null) {
+                  this.patient.identifiers = []
+                }
+            }
+        }
           this.patient.dateOfBirth = new Date(this.dateOfBirth)
-          this.patient.identifiers = []
-          console.log(this.patient)
           await Patient.apiSave(this.patient).then(resp => {
-            this.patient = resp.response.data
+            this.patient.id = resp.response.data.id
+            this.patient.$id = resp.response.data.id
+            SessionStorage.set('selectedPatient', new Patient(this.patient))
             this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           }).catch(error => {
-            this.displayAlert('error', error)
+            this.listErrors = []
+          if (error.request.status !== 0) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              this.listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                this.listErrors.push(element.message)
+              })
+            }
+          }
+            this.displayAlert('error', this.listErrors)
           })
       },
       displayAlert (type, msg) {
@@ -189,29 +212,47 @@ export default {
       },
       closeDialog () {
         this.alert.visible = false
-        if (this.alert.type === 'info' && !this.isEditStep) {
+        if (this.alert.type === 'info' && this.newPatient) {
+          this.$emit('update:newPatient', false)
           this.$emit('close')
-          SessionStorage.set('selectedPatient', this.patient)
           this.$router.push('/patientpanel')
         } else if (this.alert.type === 'info' && this.isEditStep) {
+          this.$emit('update:newPatient', false)
           this.$emit('close')
         }
       },
       initPatient () {
-        if (this.isEditStep) {
-          this.patient = Patient.query().with('province')
+       if (this.newPatient === false) {
+          if (this.isEditStep) {
+              this.patient = Patient.query().with('province')
                                         .with('district.province')
                                         .with('identifiers.*')
                                         .with('postoAdministrativo')
                                         .with('bairro')
                                         .with('clinic.*')
                                         .where('id', this.selectedPatient.id).first()
-          this.dateOfBirth = this.patient.dateOfBirth
+              this.dateOfBirth = this.patient.dateOfBirth
+          }
         } else {
-          this.patient.clinic = this.currClinic
-          this.patient.province = this.currClinic.province
+              if (this.selectedPatient === null) {
+                this.patient.clinic = this.currClinic
+                this.patient.province = this.currClinic.province
+              } else {
+                this.patient = this.selectedPatient
+                this.dateOfBirth = this.patient.dateOfBirth
+                this.patient.clinic = this.currClinic
+              }
+          }
+      },
+      moment,
+        idadeCalculator () {
+            if (this.dateOfBirth && moment(this.dateOfBirth).isValid()) {
+                const utentBirthDate = moment(this.dateOfBirth)
+                const todayDate = moment(new Date())
+                const idade = todayDate.diff(utentBirthDate, 'years')
+                this.age = idade
+            }
         }
-      }
     },
     components: {
         TextInput: require('components/Shared/Input/TextField.vue').default,
@@ -224,11 +265,15 @@ export default {
     },
     computed: {
       provinces () {
-          return Province.query().with('districts.*').get()
+          return Province.query().with('districts.*').has('code').get()
       },
       districts () {
-        if (this.patient.province === null) return null
-        return District.query().with('province').where('province_id', this.patient.province.id).get()
+        if (this.patient.province !== null && this.patient.province !== undefined) {
+          console.log(this.patient.province)
+        return District.query().with('province').where('province_id', this.patient.province.id).has('code').get()
+        } else {
+          return null
+        }
       },
       currClinic () {
         return Clinic.query()

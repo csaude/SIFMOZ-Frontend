@@ -16,7 +16,7 @@
                    :rules="[val => codeRules (val)]"
                    :disable="onlyView"
                     lazy-rules
-                    label="Codigo" />
+                    label="Código" />
             </div>
               <div class="row q-mb-md">
                 <q-select
@@ -148,9 +148,9 @@ export default {
     },
     codeRules (val) {
       if (this.nationalClinic.code === '') {
-        return 'o Codigo é obrigatorio'
+        return 'o Código é obrigatorio'
       } else if (!this.nationalClinic.id && this.selectedNationalClinic.id === this.nationalClinic.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado já existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado já existe'
          }
     }
     },

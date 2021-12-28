@@ -6,13 +6,9 @@
         <div class="">
                  <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
         <q-table
-          style="height: 700px"
-     :rows="drugs"
-      :columns="columns"
-      :filter="filter"
-      v-model:pagination="pagination"
-      :rows-per-page-options="[0]"
-      virtual-scroll>
+          :rows="drugs"
+          :columns="columns"
+          :filter="filter">
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>

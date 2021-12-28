@@ -1,5 +1,8 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+        <q-card-section>
+            <div class="text-h6">Farmácia!</div>
+        </q-card-section>
         <form @submit.prevent="validateClinic" >
             <q-card-section class="q-px-md">
                <div class="row q-mt-md">
@@ -16,7 +19,7 @@
                     :rules="[val => codeRules (val)]"
                     :disable="onlyView"
                     lazy-rules
-                    label="Codigo *" />
+                    label="Código *" />
             </div>
              <div class="row q-mb-md">
                 <q-select
@@ -69,7 +72,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary"  v-if="!onlyView"/>
+                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary"  v-if="!onlyView"/>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
@@ -92,7 +95,8 @@ export default {
     data () {
         return {
             databaseCodes: [],
-           clinic: new Clinic(),
+            submitting: false,
+            clinic: new Clinic(),
             clinico: '',
             alert: ref({
               type: '',
@@ -140,13 +144,16 @@ export default {
             }
         },
         submitClinic () {
+           this.submitting = true
             this.clinic.mainClinic = 0
             this.clinic.active = true
             this.clinic.province.districts = []
             console.log(this.clinic)
            Clinic.apiSave(this.clinic).then(resp => {
+              this.submitting = false
                  this.displayAlert('info', this.clinic.id === null ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
             }).catch(error => {
+               this.submitting = false
                   this.displayAlert('error', error)
             })
     },
@@ -167,9 +174,9 @@ export default {
     },
     codeRules (val) {
       if (this.clinic.code === '') {
-        return 'o Codigo e obrigatorio'
+        return 'o Código e obrigatorio'
       } else if (!this.clinic.id && this.selectedClinic.id === this.clinic.id) {
-      return !this.databaseCodes.includes(val) || 'o Codigo indicado ja existe'
+      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }
     }
     },

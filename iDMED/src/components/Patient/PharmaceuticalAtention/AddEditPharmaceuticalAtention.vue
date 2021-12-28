@@ -3,7 +3,7 @@
         <form @submit.prevent="submitMobilizer" >
             <q-card-section class="q-pa-none">
               <div class="row items-center text-subtitle1 q-pa-md">
-                <q-icon  :name="patient.gender == 'Femenino' ? 'female' : 'male'" size="md" color="primary"/>
+                <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
@@ -81,7 +81,7 @@
                 <q-step
                   :name="3"
                   title="Rastreio de Gravidez"
-                  v-if="this.patient.gender === 'Femenino'"
+                  v-if="this.patient.gender === 'Feminino'"
                   icon="show_chart"
                   :done="step > 3"
                 >
