@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TitleBar>Detalhe da Guia</TitleBar>
+    <TitleBar>Detalhes do Inventário</TitleBar>
     <div class="row">
       <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg">
         <div>
@@ -42,7 +42,12 @@
             <div class="row q-pa-sm">
               <q-btn unelevated color="blue" class="col" label="Voltar" />
               <q-space />
-              <q-btn unelevated color="red" class="q-ml-md col" label="Fechar" />
+              <q-btn
+                unelevated
+                color="red"
+                class="q-ml-md col"
+                @click="initInventoryClosure()"
+                label="Fechar" />
             </div>
           </div>
         </div>
@@ -57,8 +62,8 @@
       </div>
     </div>
     <q-dialog v-model="alert.visible" persistent>
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
+      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="closeInventory">
+        <template v-slot:title> {{dialogTitle}}</template>
         <template v-slot:msg> {{alert.msg}} </template>
       </Dialog>
     </q-dialog>
@@ -67,8 +72,6 @@
 
 <script>
 import Drug from '../../../store/models/drug/Drug'
-import Stock from '../../../store/models/stock/Stock'
-import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import { ref } from 'vue'
 import { date, SessionStorage } from 'quasar'
 import Inventory from '../../../store/models/stockinventory/Inventory'
@@ -82,13 +85,25 @@ export default {
         visible: false,
         msg: ''
       }),
+      dialogTitle: 'Informação',
       adjustments: ref([]),
       step: 'display'
     }
   },
   methods: {
-    saveAdjustment () {
-
+    initInventoryClosure () {
+      this.dialogTitle = 'Confirmação do fecho do inventário.'
+      this.displayAlert('confirmation', 'Nota: Ao encerrar o presente inventário o stock será actualizado para os dados informados e está operação não poderá ser desfeita. Continuar?')
+    },
+    closeInventory () {
+      console.log('close invenctory')
+      Inventory.apiClose(this.currInventory.id).then(resp => {
+        this.step = 'display'
+        this.fecthInventory()
+      })
+    },
+    fecthInventory () {
+      Inventory.apiFetchById(this.currInventory.id)
     },
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
@@ -102,78 +117,6 @@ export default {
                    .get()
       } else {
         return this.currInventory.drugs
-      }
-    },
-    saveStock (stock) {
-      // save stock
-      stock.stockEntrance = this.currStockEntrance
-      stock.stockCenter = this.stockCenter
-      Stock.apiSave(stock).then(resp => {
-        // this.fetchStockEntrance()
-        stock.id = resp.response.data.id
-        stock.enabled = false
-        this.step = 'display'
-      }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
-            }
-          }
-          this.displayAlert('error', listErrors)
-        })
-    },
-    async fetchStockEntrance () {
-      await StockEntrance.apiFetchById(this.currStockEntrance.id).then(resp => {
-        this.currStockEntrance = resp.response.data
-      }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
-            }
-          }
-          this.displayAlert('error', listErrors)
-        })
-    },
-    cancel (stock) {
-      if (this.isEditionStep) {
-        stock.drug = this.selectedStock.drug
-        stock.expireDate = this.selectedStock.expireDate
-        stock.batchNumber = this.selectedStock.batchNumber
-        stock.unitsReceived = this.selectedStock.unitsReceived
-        stock.enabled = false
-      } else if (this.isCreationStep) {
-        const i = this.currStockEntrance.stocks.map(toRemove => toRemove.id).indexOf(stock.id) // find index of your object
-        this.currStockEntrance.stocks.splice(i, 1)
-      }
-      this.step = 'display'
-    },
-    initStockEdition (stock) {
-      this.selectedStock = Object.assign({}, stock)
-      if (this.isEditionStep || this.isCreationStep) {
-        this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a edição deste registo.')
-      } else {
-        stock.enabled = true
-        this.step = 'edit'
-      }
-    },
-    promptStockDeletion (stock) {
-      if (this.isEditionStep || this.isCreationStep) {
-        this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a remoção deste registo.')
-      } else {
-        // prompt
-        this.step = 'delete'
       }
     },
     displayAlert (type, msg) {

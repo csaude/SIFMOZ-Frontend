@@ -56,7 +56,7 @@
             @showAdd="initNewStock"
             bgColor="bg-primary">Medicamentos
           </ListHeader>
-          <div class="box-border q-py-md">
+          <div class="box-border q-pb-md">
             <q-table
                 class="col"
                 dense
@@ -74,7 +74,7 @@
                   </div>
                 </template>
                 <template #header="props">
-                  <q-tr class="text-left"  :props="props">
+                  <q-tr class="text-left bg-grey-3"  :props="props">
                     <q-th style="width: 70px" >{{columns[0].label}}</q-th>
                     <q-th class="col" >{{columns[1].label}}</q-th>
                     <q-th style="width: 190px" >{{columns[2].label}}</q-th>
@@ -141,11 +141,16 @@
                         class="col" />
                     </q-td>
                     <q-td key="options" :props="props">
-                      <div class="col">
+                      <div class="col" v-if="!props.row.isInUse()">
                         <q-btn v-if="props.row.enabled" flat dense round color="primary" icon="done" @click="saveStock(props.row)"/>
                         <q-btn v-if="props.row.enabled" flat dense round color="red" icon="clear" @click="cancel(props.row)"/>
                         <q-btn v-if="!props.row.enabled" flat dense round color="orange-5" icon="edit" class="q-ml-sm"  @click="initStockEdition(props.row)" />
                         <q-btn v-if="!props.row.enabled" flat dense round color="red" icon="delete_forever" class="q-ml-sm"  @click="promptStockDeletion(props.row)"/>
+                      </div>
+                      <div class="col" v-else>
+                        <q-chip color="info" text-color="white">
+                          Em Uso
+                        </q-chip>
                       </div>
                     </q-td>
                   </q-tr>
@@ -167,7 +172,7 @@
       </div>
     </div>
     <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
+      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemoveStock">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{alert.msg}} </template>
       </Dialog>
@@ -208,6 +213,28 @@ export default {
   methods: {
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
+    },
+    doRemoveStock () {
+      this.step = 'delete'
+      Stock.apiRemove(this.selectedStock.id).then(resp => {
+        Stock.delete(this.selectedStock.id)
+        this.removeFromList(this.selectedStock)
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+      }).catch(error => {
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
+      this.step = 'display'
     },
     initNewStock () {
       if (this.isEditionStep || this.isCreationStep) {
@@ -274,10 +301,13 @@ export default {
         stock.unitsReceived = this.selectedStock.unitsReceived
         stock.enabled = false
       } else if (this.isCreationStep) {
-        const i = this.stockList.map(toRemove => toRemove.id).indexOf(stock.id) // find index of your object
-        this.stockList.splice(i, 1)
+        this.removeFromList(stock)
       }
       this.step = 'display'
+    },
+    removeFromList (stock) {
+      const i = this.stockList.map(toRemove => toRemove.id).indexOf(stock.id) // find index of your object
+      this.stockList.splice(i, 1)
     },
     initStockEdition (stock) {
       this.selectedStock = Object.assign({}, stock)
@@ -292,8 +322,8 @@ export default {
       if (this.isEditionStep || this.isCreationStep) {
         this.displayAlert('error', 'Por favor concluir ou cancelar a operação em curso antes de iniciar a remoção deste registo.')
       } else {
-        // prompt
-        this.step = 'delete'
+        this.selectedStock = stock
+        this.displayAlert('confirmation', 'Confirma a remoção do lote [' + stock.batchNumber + ']?')
       }
     },
     displayAlert (type, msg) {
@@ -315,7 +345,16 @@ export default {
       console.log(this.currStockEntrance)
       if (this.currStockEntrance.stocks.length > 0) {
         Object.keys(this.currStockEntrance.stocks).forEach(function (k) {
-          this.stockList.push(this.currStockEntrance.stocks[k])
+          const stock = Stock.query()
+                                   .with('clinic.province')
+                                   .with('entrance.clinic.province')
+                                   .with('center.clinic.province')
+                                   .with('packagedDrugs')
+                                   .with('drug.form')
+                                   .where('id', this.currStockEntrance.stocks[k].id)
+                                   .first()
+          stock.auxExpireDate = this.formatDate(stock.expireDate)
+          this.stockList.push(stock)
         }.bind(this))
       }
     }

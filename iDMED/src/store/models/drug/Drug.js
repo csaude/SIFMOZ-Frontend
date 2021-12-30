@@ -38,15 +38,18 @@ export default class Drug extends Model {
   }
 
   getMonthAVGConsuption () {
-    return 0
+    if (this.packaged_drugs.length <= 0) return 0
+    let qtyConsumed = 0
+    Object.keys(this.packaged_drugs).forEach(function (i) {
+      qtyConsumed = qtyConsumed + this.packaged_drugs[i].quantitySupplied
+    }.bind(this))
+    return Number(qtyConsumed / 3)
   }
 
   getConsuptionState () {
     return 'Acima do Consumo'
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/drug')
   static async apiGetAll (offset, max) {
     return await this.api().get('/drug?offset=' + offset + '&max=' + max)
   }

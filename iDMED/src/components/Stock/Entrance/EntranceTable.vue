@@ -5,8 +5,30 @@
             dense
             :rows="stockEntrances"
             :columns="columns"
+            :filter="filter"
             row-key="id"
             >
+            <template v-slot:top-right>
+              <q-input
+                outlined
+                dense
+                style="width: 400px"
+                debounce="300"
+                v-model="filter"
+                placeholder="Pesquisar">
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+            </template>
+            <template #header="props">
+                  <q-tr class="text-left bg-grey-3"  :props="props">
+                    <q-th style="width: 100px"  >{{columns[0].label}}</q-th>
+                    <q-th class="col" >{{columns[1].label}}</q-th>
+                    <q-th class="text-center" >{{columns[2].label}}</q-th>
+                    <q-th class="text-center" >{{columns[3].label}}</q-th>
+                  </q-tr>
+            </template>
             <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
                 <span>
@@ -29,9 +51,9 @@
                   <div class="col">
                     <q-btn flat round
                     color="amber-8"
-                    icon="edit"
+                    icon="reorder"
                     @click="editStockEntrance(props.row)">
-                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
+                    <q-tooltip class="bg-amber-5">Visualizar Guia</q-tooltip>
                   </q-btn>
                   </div>
                 </q-td>
@@ -44,15 +66,17 @@
 <script>
 import { date, SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
+import { ref } from 'vue'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
   { name: 'orderNumber', align: 'left', label: 'Nr. de Guia', sortable: true },
-  { name: 'dateReceived', align: 'left', label: 'Data de Entrada', sortable: false },
+  { name: 'dateReceived', align: 'center', label: 'Data de Entrada', sortable: false },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
   data () {
     return {
+      filter: ref(''),
       columns
     }
   },
@@ -67,7 +91,11 @@ export default {
   },
   computed: {
     stockEntrances () {
-      return StockEntrance.query().withAll().get()
+      return StockEntrance.query()
+                          .with('clinic.province')
+                          .with('stocks.drug')
+                          .orderBy('dateReceived', 'desc')
+                          .get()
     }
   }
 }

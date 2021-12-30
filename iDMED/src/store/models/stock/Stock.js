@@ -6,6 +6,7 @@ import StockCenter from '../stockcenter/StockCenter'
 import Drug from '../drug/Drug'
 import Clinic from '../clinic/Clinic'
 import { date } from 'quasar'
+import PackagedDrug from '../packagedDrug/PackagedDrug'
 
 export default class Stock extends Model {
     static entity = 'stocks'
@@ -33,7 +34,8 @@ export default class Stock extends Model {
             entrance: this.belongsTo(StockEntrance, 'entrance_id'),
             center: this.belongsTo(StockCenter, 'stock_center_id'),
             stockLevel: this.hasOne(StockLevel, 'stock_id'),
-            drug: this.belongsTo(Drug, 'drug_id')
+            drug: this.belongsTo(Drug, 'drug_id'),
+            packagedDrugs: this.hasMany(PackagedDrug, 'stock_id')
         }
     }
 
@@ -53,12 +55,8 @@ export default class Stock extends Model {
       return await this.api().get('/stock')
     }
 
-    getConsumeAVG () {
-      return 1
-    }
-
-    getState () {
-      return 'Normal'
+    isInUse () {
+      return this.packagedDrugs.length > 0
     }
 
     getFormatedExpireDate () {

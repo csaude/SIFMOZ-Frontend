@@ -30,6 +30,14 @@ export default class Inventory extends Model {
       }
     }
 
+    getChipColor () {
+      if (this.open) {
+        return 'primary'
+      } else {
+        return 'negative'
+      }
+    }
+
     getFormatedStartDate () {
       return this.formatDate(this.startDate)
     }
@@ -56,6 +64,10 @@ export default class Inventory extends Model {
 
     static async apiUpdate (inventory) {
       return await this.api().patch('/inventory', inventory)
+    }
+
+    static async apiClose (id) {
+      return await this.api().patch(`/inventory/close/${id}`)
     }
 
     static async apiRemove (id) {
