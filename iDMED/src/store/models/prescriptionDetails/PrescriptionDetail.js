@@ -27,6 +27,10 @@ export default class PrescriptionDetail extends Model {
     }
 
     static async apiGetAll () {
-      return await this.api().get('/prescriptionDetail')
+      return await this.api().get('/prescriptionDetail?offset=' + 0 + '&max=' + 200)
+    }
+
+    static async apiFetchById (id) {
+      return await this.api().get(`/prescriptionDetail/${id}`)
     }
 }

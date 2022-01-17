@@ -2,10 +2,34 @@
   <div> <q-table
             class="col"
             dense
-            :rows="inventorys"
+            :rows="inventories"
             :columns="columns"
+            :filter="filter"
             row-key="id"
             >
+            <template v-slot:top-right>
+              <q-input
+                outlined
+                dense
+                style="width: 400px"
+                debounce="300"
+                v-model="filter"
+                placeholder="Pesquisar">
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+            </template>
+            <template #header="props">
+                  <q-tr class="text-left bg-grey-3"  :props="props">
+                    <q-th style="width: 70px"  >{{columns[0].label}}</q-th>
+                    <q-th class="col" >{{columns[1].label}}</q-th>
+                    <q-th class="text-center" >{{columns[2].label}}</q-th>
+                    <q-th class="text-center" >{{columns[3].label}}</q-th>
+                    <q-th class="text-center" >{{columns[4].label}}</q-th>
+                    <q-th class="text-center" >{{columns[5].label}}</q-th>
+                  </q-tr>
+            </template>
             <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
                 <span>
@@ -19,24 +43,26 @@
                 <q-td key="order" :props="props">
                 </q-td>
                 <q-td key="generic" :props="props">
-                  {{props.row.generic}}
+                  {{props.row.getInventoryType()}}
                 </q-td>
                 <q-td key="startDate" :props="props">
-                  {{props.row.startDate}}
+                  {{props.row.getFormatedStartDate()}}
                 </q-td>
                 <q-td key="endDate" :props="props">
-                  {{props.row.endDate}}
+                  {{props.row.getFormatedEndDate()}}
                 </q-td>
                 <q-td key="open" :props="props">
-                  {{props.row.open}}
+                  <q-chip :color="props.row.getChipColor()" text-color="white">
+                    {{props.row.getInventoryStatus()}}
+                  </q-chip>
                 </q-td>
                 <q-td key="options" :props="props">
                   <div class="col">
                     <q-btn flat round
                     color="amber-8"
-                    icon="edit"
-                    @click="editPatient(props.row)">
-                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
+                    icon="list_alt"
+                    @click="openFile(props.row)">
+                    <q-tooltip class="bg-amber-5">{{props.row.open ? 'Abrir Ficha' : 'Visualizar Ficha'}}</q-tooltip>
                   </q-btn>
                   </div>
                 </q-td>
@@ -47,23 +73,33 @@
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import Inventory from '../../../store/models/stockinventory/Inventory'
+import { ref } from 'vue'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
   { name: 'generic', align: 'left', label: 'Tipo de Inventário', sortable: true },
   { name: 'startDate', align: 'center', label: 'Data de Abertura', sortable: false },
-  { name: 'currUnits', align: 'center', label: 'Data de Fecho', sortable: true },
+  { name: 'endDate', align: 'center', label: 'Data de Fecho', sortable: true },
   { name: 'open', align: 'center', label: 'Estado', sortable: true },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
   data () {
     return {
+      filter: ref(''),
       columns
     }
   },
+  methods: {
+    openFile (inventory) {
+      SessionStorage.set('currInventory', inventory)
+      this.$router.push('/stock/inventory')
+    }
+  },
   computed: {
-    inventorys () {
-      return []
+    inventories () {
+      return Inventory.query().withAll().orderBy('startDate', 'desc').get()
     }
   }
 }

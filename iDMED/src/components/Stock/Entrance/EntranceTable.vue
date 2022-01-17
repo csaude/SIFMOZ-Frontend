@@ -1,11 +1,34 @@
 <template>
-  <div> <q-table
+  <div>
+        <q-table
             class="col"
             dense
             :rows="stockEntrances"
             :columns="columns"
+            :filter="filter"
             row-key="id"
             >
+            <template v-slot:top-right>
+              <q-input
+                outlined
+                dense
+                style="width: 400px"
+                debounce="300"
+                v-model="filter"
+                placeholder="Pesquisar">
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+            </template>
+            <template #header="props">
+                  <q-tr class="text-left bg-grey-3"  :props="props">
+                    <q-th style="width: 100px"  >{{columns[0].label}}</q-th>
+                    <q-th class="col" >{{columns[1].label}}</q-th>
+                    <q-th class="text-center" >{{columns[2].label}}</q-th>
+                    <q-th class="text-center" >{{columns[3].label}}</q-th>
+                  </q-tr>
+            </template>
             <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
                 <span>
@@ -19,18 +42,18 @@
                 <q-td key="order" :props="props">
                 </q-td>
                 <q-td key="orderNumber" :props="props">
-                  {{props.row.drug.orderNumber}}
+                  {{props.row.orderNumber}}
                 </q-td>
                 <q-td key="dateReceived" :props="props">
-                  {{props.row.dateReceived}}
+                  {{formatDate(props.row.dateReceived)}}
                 </q-td>
                 <q-td key="options" :props="props">
                   <div class="col">
                     <q-btn flat round
                     color="amber-8"
-                    icon="edit"
-                    @click="editPatient(props.row)">
-                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
+                    icon="reorder"
+                    @click="editStockEntrance(props.row)">
+                    <q-tooltip class="bg-amber-5">Visualizar Guia</q-tooltip>
                   </q-btn>
                   </div>
                 </q-td>
@@ -41,21 +64,38 @@
 </template>
 
 <script>
+import { date, SessionStorage } from 'quasar'
+import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
+import { ref } from 'vue'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
   { name: 'orderNumber', align: 'left', label: 'Nr. de Guia', sortable: true },
-  { name: 'dateReceived', align: 'left', label: 'Data de Entrada', sortable: false },
+  { name: 'dateReceived', align: 'center', label: 'Data de Entrada', sortable: false },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
   data () {
     return {
+      filter: ref(''),
       columns
+    }
+  },
+  methods: {
+    formatDate (dateString) {
+      return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    editStockEntrance (currStockEntrance) {
+      SessionStorage.set('currStockEntrance', currStockEntrance)
+      this.$router.push('/stock/entrance')
     }
   },
   computed: {
     stockEntrances () {
-      return []
+      return StockEntrance.query()
+                          .with('clinic.province')
+                          .with('stocks.drug')
+                          .orderBy('dateReceived', 'desc')
+                          .get()
     }
   }
 }

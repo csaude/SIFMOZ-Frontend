@@ -14,4 +14,20 @@ export class InventoryStockAdjustment extends StockAdjustment {
             inventory: this.belongsTo(Inventory, 'inventory_id')
         }
     }
+
+    static async apiSave (adjustment) {
+      return await this.api().post('/inventoryStockAdjustment', adjustment)
+    }
+
+    static async apiRemove (id) {
+      return await this.api().delete(`/inventoryStockAdjustment/${id}`)
+    }
+
+    static async apiUpdate (adjustment) {
+      return await this.api().patch('/inventoryStockAdjustment', adjustment)
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/inventoryStockAdjustment')
+    }
 }

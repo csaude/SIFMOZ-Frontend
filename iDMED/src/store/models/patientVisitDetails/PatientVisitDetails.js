@@ -41,6 +41,7 @@ export default class PatientVisitDetails extends Model {
   }
 
   getPrescriptionRemainigDuration () {
+    if (this.prescriptions[0] === null) return 0
     const prescriptionDuration = Number(this.prescriptions[0].duration.weeks)
     let packagedWeeks = 0
     Object.keys(this.packs).forEach(function (k) {

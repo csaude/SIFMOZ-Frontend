@@ -40,6 +40,10 @@ export default class Pack extends Model {
       return await this.api().get('/pack/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
     }
 
+    static async apiFetchById (id) {
+      return await this.api().get(`/pack/${id}`)
+    }
+
     getDrugsString () {
       let drugsString = ''
       Object.keys(this.packagedDrugs).forEach(function (k) {

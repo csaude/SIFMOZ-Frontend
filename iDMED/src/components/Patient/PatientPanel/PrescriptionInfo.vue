@@ -14,8 +14,7 @@
       <PrescriptionInfoContainer
         :identifier="identifier"
         @addNewPack="addNewPack"
-        @editPack="editPack"
-        @editClinicService="editClinicService"/>
+        @editPack="editPack"/>
     </span>
   </div>
 

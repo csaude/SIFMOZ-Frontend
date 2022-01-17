@@ -191,7 +191,7 @@
                 <q-banner
                   dense
                   inline-actions
-                  class="col text-white q-pa-none bg-orange-3">
+                  class="col text-white q-pa-none bg-orange-4">
                     <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
                     <template v-slot:action class="items-center">
                         <q-select
@@ -541,7 +541,7 @@ export default {
         visitDetails.packs[0].packagedDrugs.push(packDrug)
       })
     },
-    async proccedToDispense () {
+    proccedToDispense () {
       if (this.isNewPackStep || this.isEditPackStep || this.isFirstPack) {
         this.curPatientVisitDetails[0].patientVisit = null
         this.curPatientVisitDetails[0].prescriptions[0].patientVisitDetails = null
@@ -565,11 +565,9 @@ export default {
 
 console.log(this.patientVisit)
 
-      await PatientVisit.apiSave(this.patientVisit).then(resp => {
-        console.log(resp.response.data)
-        PatientVisit.apiFetchById(resp.response.data.id)
-        this.showDispenseMode = false
-        this.displayAlert('info', 'Dispensa efectuada com sucesso.')
+      PatientVisit.apiSave(this.patientVisit).then(resp => {
+        this.fecthVisit(resp.response.data.id)
+        this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
       }).catch(error => {
         this.displayAlert('error', error)
       })
@@ -585,6 +583,30 @@ console.log(this.patientVisit)
         this.$emit('close')
         this.$router.push('/patientpanel')
       }
+    },
+    fecthVisit (id) {
+      PatientVisit.apiFetchById(id).then(resp => {
+        console.log(resp.response.data)
+        this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
+        this.fecthPrescription(resp.response.data.patientVisitDetails[0].prescriptions[0].id)
+        if (resp.response.data.patientVisitDetails[0].packs.length > 0) this.fecthPack(resp.response.data.patientVisitDetails[0].packs[0].id)
+      })
+    },
+    fecthVisitDetails (id) {
+      PatientVisitDetails.apiFetchById(id).then(resp => {
+        console.log(resp.response.data)
+      })
+    },
+    fecthPrescription (id) {
+      Prescription.apiFetchById(id).then(resp => {
+        console.log(resp.response.data)
+        PrescriptionDetail.apiFetchById(resp.response.data.prescriptionDetails[0].id)
+      })
+    },
+    fecthPack (id) {
+      Pack.apiFetchById(id).then(resp => {
+        console.log(resp.response.data)
+      })
     },
     doDispenseModeGetAll (offset) {
          DispenseMode.api().get('/dispenseMode?offset=' + offset + '&max=100').then(resp => {

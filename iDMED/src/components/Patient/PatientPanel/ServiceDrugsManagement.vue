@@ -197,6 +197,7 @@ export default {
   },
   components: {
     AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     PrescriptionDrugsLestHeader: require('components/Patient/Prescription/PrescriptionDrugsListHeader.vue').default
   }
 }

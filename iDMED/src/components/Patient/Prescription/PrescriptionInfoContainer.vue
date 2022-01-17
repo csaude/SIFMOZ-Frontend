@@ -8,25 +8,25 @@
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Regime Terapêutico:</div>
-            <div class="col text-grey-8">{{ prescriptionDetails.therapeuticRegimen.description }}</div>
+            <div class="col text-grey-8">{{ (prescriptionDetails.therapeuticRegimen === null || prescriptionDetails.therapeuticRegimen === undefined) ? 'Sem Info' : prescriptionDetails.therapeuticRegimen.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Tipo Paciente:</div>
             <div class="col text-grey-8">Manutenção</div>
           </div>
           <div class="row ">
             <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-9 text-weight-medium">Linha Terapêutica:</div>
-            <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-8">{{ prescriptionDetails.therapeuticLine.description }}</div>
+            <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-8">{{ (prescriptionDetails.therapeuticLine === null || prescriptionDetails.therapeuticLine === undefined) ? 'Sem Info' : prescriptionDetails.therapeuticLine.description }}</div>
             <div class="col text-grey-10">Clínico:</div>
-            <div class="col text-grey-10">{{ prescription.doctor.fullName }}</div>
+            <div v-if="prescription.doctor !== null" class="col text-grey-10">{{ (prescription.doctor === null || prescription.doctor === undefined) ? 'Sem Info' : prescription.doctor.fullName }}</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Tipo Dispensa:</div>
-            <div class="col text-grey-8">{{ prescriptionDetails.dispenseType.description }}</div>
+            <div v-if="prescriptionDetails.dispenseType !== null" class="col text-grey-8">{{ (prescriptionDetails.dispenseType === null || prescriptionDetails.dispenseType === undefined) ? 'Sem Info' : prescriptionDetails.dispenseType.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Validade:</div>
-            <div class="col" :class="validadeColor">{{ patientVisitDetais.getPrescriptionRemainigDuration() }} mes(es)</div>
+            <div class="col" :class="validadeColor">{{ (prescriptionDetails === null || prescriptionDetails === undefined) ? 'Sem Info' : patientVisitDetais.getPrescriptionRemainigDuration() }} mes(es)</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Duração:</div>
-            <div class="col text-grey-8">{{ prescription.duration.description }}</div>
+            <div class="col text-grey-8">{{ (prescription === null || prescription === undefined) ? 'Sem Info' : prescription.duration.description }}</div>
             <div class="col text-grey-9 text-weight-medium"></div>
             <div class="col text-grey-8"></div>
           </div>
@@ -154,6 +154,7 @@ export default {
       return PatientServiceIdentifier.query().withAllRecursive().where('id', this.identifier.id).first()
     },
     prescriptionDetails () {
+      console.log(this.prescription)
       if (this.prescription === null) return null
 
       return this.prescription.prescriptionDetails[0]
@@ -164,7 +165,7 @@ export default {
       return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
     },
     prescription () {
-      if (this.lastStartEpisode.lastVisit() === null) return null
+      if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
 
       return Prescription.query()
                         .with('clinic')

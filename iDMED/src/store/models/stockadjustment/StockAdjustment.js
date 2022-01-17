@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import Clinic from '../clinic/Clinic'
 import Stock from '../stock/Stock'
 import StockOperationType from '../stockoperation/StockOperationType'
 import { InventoryStockAdjustment, StockDestructionAdjustment, StockReferenceAdjustment } from './StockAdjustmentHierarchy'
@@ -17,13 +18,18 @@ export class StockAdjustment extends Model {
     static fields () {
         return {
             id: this.attr(null),
+            index: this.number(0),
             notes: this.attr(''),
-            stockTake: this.attr(null),
-            adjustedValue: this.attr(null),
-            finalised: this.attr(''),
+            stockTake: this.number(0),
+            adjustedValue: this.number(0),
+            captureDate: this.attr(''),
+            finalized: this.boolean(false),
             adjusted_stock_id: this.attr(null),
             operation_id: this.attr(null),
+            clinic_id: this.attr(''),
+            type: this.attr('STOCKREFERENCEADJUSTMENT'),
             // relationships
+            clinic: this.belongsTo(Clinic, 'clinic_id'),
             adjustedStock: this.belongsTo(Stock, 'adjusted_stock_id'),
             operation: this.belongsTo(StockOperationType, 'operation_id')
         }

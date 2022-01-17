@@ -13,4 +13,8 @@ export default class StockOperationType extends Model {
       adjustments: this.hasMany(StockAdjustment, 'operation_id')
     }
   }
+
+  static async apiGetAll () {
+    return await this.api().get('/stockOperationType')
+  }
 }
