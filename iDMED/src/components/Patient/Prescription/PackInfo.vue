@@ -13,6 +13,7 @@
           <q-table
             class="col"
             dense
+            flat
             unelevated
             :rows="packagedDrugs"
             :columns="columns"

@@ -31,7 +31,7 @@ export default class PrescribedDrug extends Model {
     }
 
     static async apiGetAll () {
-      return await this.api().get('/prescribedDrug')
+      return await this.api().get('/prescribedDrug?offset=' + 0 + '&max=' + 200)
     }
 
     getQtyPrescribed (drugsDuration) {

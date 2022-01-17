@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { date } from 'quasar'
+import { date, SessionStorage } from 'quasar'
 import Drug from '../../store/models/drug/Drug'
 import { ref } from 'vue'
 const columns = [
@@ -94,7 +94,8 @@ export default {
   },
   methods: {
     openDrugFile (drug) {
-
+      SessionStorage.set('selectedDrug', drug)
+      this.$router.push('/stock/drugFile')
     }
   },
   computed: {

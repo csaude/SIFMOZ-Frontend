@@ -69,7 +69,7 @@ export default {
     async submitForm () {
       this.$refs.dateReceived.validate()
       this.$refs.orderNumber.$refs.ref.validate()
-      if (!this.$refs.orderNumber.$refs.ref.hasError) {
+      if (!this.$refs.orderNumber.$refs.ref.hasError && date.isValid(this.stockEntrance.dateReceived)) {
         this.stockEntrance.clinic = this.currClinic
         await StockEntrance.apiSave(this.stockEntrance).then(resp => {
         SessionStorage.set('currStockEntrance', resp.response.data)

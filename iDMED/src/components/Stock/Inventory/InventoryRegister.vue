@@ -11,26 +11,27 @@
                 <div class="q-mt-md">
                     <div class="row">
                       <q-input
-                          dense
-                          outlined
-                          class="col q-ml-md"
-                          v-model="startDate"
-                          mask="date"
-                          ref="startDate"
-                          :rules="['date']"
-                          label="Data e Hora do Inventário *">
-                          <template v-slot:append>
-                              <q-icon name="event" class="cursor-pointer">
-                              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                  <q-date v-model="startDate" >
-                                  <div class="row items-center justify-end">
-                                      <q-btn v-close-popup label="Close" color="primary" flat />
-                                  </div>
-                                  </q-date>
-                              </q-popup-proxy>
-                              </q-icon>
-                          </template>
-                      </q-input>
+                        dense
+                        outlined
+                        class="col q-ml-md"
+                        v-model="startDate"
+                        mask="date"
+                        ref="startDate"
+                        :rules="['date']"
+                        lazy-rules
+                        label="Data do Inventário *">
+                        <template v-slot:append>
+                            <q-icon name="event" class="cursor-pointer">
+                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                <q-date v-model="startDate" >
+                                <div class="row items-center justify-end">
+                                    <q-btn v-close-popup label="Close" color="primary" flat />
+                                </div>
+                                </q-date>
+                            </q-popup-proxy>
+                            </q-icon>
+                        </template>
+                    </q-input>
                     </div>
                 </div>
                 <div class="row">
@@ -45,13 +46,36 @@
                   <q-table
                     class="col"
                     dense
+                    title="Medicamentos"
                     :rows="drugs"
                     :columns="columns"
+                    :filter="filter"
                     row-key="id"
                     :selected-rows-label="getSelectedString"
                     selection="multiple"
                     v-model:selected="selected"
-                  />
+                  >
+                    <template v-slot:top-right class="bg-grey-3">
+                      <q-input
+                        outlined
+                        dense
+                        style="width: 400px"
+                        debounce="300"
+                        v-model="filter"
+                        placeholder="Pesquisar">
+                        <template v-slot:append>
+                          <q-icon name="search" />
+                        </template>
+                      </q-input>
+                    </template>
+                    <template #header="props">
+                  <q-tr class="text-left bg-grey-3"  :props="props">
+                    <q-th style="width: 70px"  ></q-th>
+                    <q-th style="width: 120px" >{{columns[0].label}}</q-th>
+                    <q-th class="col" >{{columns[1].label}}</q-th>
+                  </q-tr>
+            </template>
+                  </q-table>
                 </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
@@ -84,6 +108,7 @@ const columns = [
 export default {
   data () {
     return {
+      filter: ref(''),
       alert: ref({
         type: '',
         visible: false,
@@ -109,7 +134,22 @@ export default {
     getSelectedString () {
       return this.selected.length === 0 ? '' : `${this.selected.length} registo${this.selected.length > 1 ? 's' : ''} selecionado de ${this.drugs.length}`
     },
-    async submitForm () {
+    submitForm () {
+      if (date.isValid(this.currInventory.startDate)) {
+        if (this.currInventory.generic) {
+          this.initInventory()
+        } else {
+          if (this.selected.length <= 0) {
+            this.displayAlert('error', 'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.')
+          } else {
+            this.initInventory()
+          }
+        }
+      } else {
+        this.displayAlert('error', 'Por favor indicar uma data de início válida!')
+      }
+    },
+    async initInventory () {
       if (!this.currInventory.generic) {
         this.doBeforeSave()
       }

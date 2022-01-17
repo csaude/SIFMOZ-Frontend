@@ -116,11 +116,11 @@
         <div class="q-mt-md"></div>
       </div>
       <q-page-sticky position="bottom-right" :offset="[18, 18]">
-          <q-btn class="q-mb-xl q-mr-xl" fab color="primary" icon="add" @click="showPatientRegister = true, this.newPatient = true"/>
+          <q-btn class="q-mb-xl q-mr-xl" fab color="primary" icon="add" @click="showPatientRegister = true, newPatient = true"/>
       </q-page-sticky>
       <q-dialog persistent v-model="showPatientRegister">
           <patientRegister
-            :newPatient="this.newPatient"
+            :newPatient="newPatient"
             :selectedPatient="currPatient"
             :clinic="currClinic"
             @close="showPatientRegister = false" />

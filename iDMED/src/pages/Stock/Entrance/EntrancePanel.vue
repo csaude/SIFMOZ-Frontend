@@ -80,7 +80,7 @@
                     <q-th style="width: 190px" >{{columns[2].label}}</q-th>
                     <q-th style="width: 190px" >{{columns[3].label}}</q-th>
                     <q-th style="width: 120px" >{{columns[4].label}}</q-th>
-                    <q-th style="width: 150px" >{{columns[5].label}}</q-th>
+                    <q-th style="width: 150px; text-align: center" >{{columns[5].label}}</q-th>
                   </q-tr>
 
                 </template>
@@ -142,9 +142,9 @@
                     </q-td>
                     <q-td key="options" :props="props">
                       <div class="col" v-if="!props.row.isInUse()">
-                        <q-btn v-if="props.row.enabled" flat dense round color="primary" icon="done" @click="saveStock(props.row)"/>
+                        <q-btn v-if="props.row.enabled" flat dense round color="primary" icon="done" @click="validateStock(props.row)"/>
                         <q-btn v-if="props.row.enabled" flat dense round color="red" icon="clear" @click="cancel(props.row)"/>
-                        <q-btn v-if="!props.row.enabled" flat dense round color="orange-5" icon="edit" class="q-ml-sm"  @click="initStockEdition(props.row)" />
+                        <q-btn v-if="!props.row.enabled" flat dense round color="orange-5" icon="edit"  @click="initStockEdition(props.row)" />
                         <q-btn v-if="!props.row.enabled" flat dense round color="red" icon="delete_forever" class="q-ml-sm"  @click="promptStockDeletion(props.row)"/>
                       </div>
                       <div class="col" v-else>
@@ -171,7 +171,7 @@
         </div>
       </div>
     </div>
-    <q-dialog v-model="alert.visible">
+    <q-dialog v-model="alert.visible" persistent>
       <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemoveStock">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{alert.msg}} </template>
@@ -194,7 +194,7 @@ const columns = [
   { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
   { name: 'expireDate', align: 'left', label: 'Data de Validade', sortable: false },
   { name: 'unitsReceived', align: 'left', label: 'Quantidade', sortable: true },
-  { name: 'options', align: 'left', label: 'Opções', sortable: false }
+  { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
   data () {
@@ -251,7 +251,21 @@ export default {
         this.stockList.push(newStock)
       }
     },
-    async saveStock (stock) {
+    validateStock (stock) {
+      console.log(stock)
+      if (stock.drug.id === null) {
+        this.displayAlert('error', 'Por favor indicar o medicamento!')
+      } else if (stock.batchNumber === '') {
+        this.displayAlert('error', 'Por favor indicar o lote!')
+      } else if (!date.isValid(stock.expireDate)) {
+        this.displayAlert('error', 'Por favor indicar uma data de validade válida!')
+      } else if (Number(stock.unitsReceived) <= 0) {
+        this.displayAlert('error', 'Por favor indicar uma quantidade válida!')
+      } else {
+        this.doSave(stock)
+      }
+    },
+    async doSave (stock) {
       stock.expireDate = new Date(stock.auxExpireDate)
       stock.stockMoviment = stock.unitsReceived
 

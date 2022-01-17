@@ -194,7 +194,6 @@ export default {
     },
     doSave (i) {
       if (this.adjustments[i] !== undefined) {
-        console.log(this.adjustments[i])
         InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
           this.adjustments[i].id = resp.response.data.id
           i = i + 1

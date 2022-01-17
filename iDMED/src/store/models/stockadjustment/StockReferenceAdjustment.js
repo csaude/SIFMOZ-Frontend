@@ -14,4 +14,20 @@ export class StockReferenceAdjustment extends StockAdjustment {
             reference: this.belongsTo(ReferedStockMoviment, 'reference_id')
         }
     }
+
+    static async apiSave (adjustment) {
+      return await this.api().post('/stockReferenceAdjustment', adjustment)
+    }
+
+    static async apiRemove (id) {
+      return await this.api().delete(`/stockReferenceAdjustment/${id}`)
+    }
+
+    static async apiUpdate (adjustment) {
+      return await this.api().patch('/stockReferenceAdjustment', adjustment)
+    }
+
+    static async apiGetAll () {
+      return await this.api().get('/stockReferenceAdjustment')
+    }
 }

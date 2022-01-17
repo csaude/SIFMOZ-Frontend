@@ -26,6 +26,6 @@ export default class PackagedDrug extends Model {
     }
 
     static async apiGetAll () {
-      return await this.api().get('/packagedDrug')
+      return await this.api().get('/packagedDrug?offset=' + 0 + '&max=' + 200)
     }
 }

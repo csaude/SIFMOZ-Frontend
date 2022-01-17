@@ -48,7 +48,7 @@ export default class Stock extends Model {
     }
 
     static async apiUpdate (stock) {
-      return await this.api().patch('/stock', stock)
+      return await this.api().post('/stock', stock)
     }
 
     static async apiGetAll () {

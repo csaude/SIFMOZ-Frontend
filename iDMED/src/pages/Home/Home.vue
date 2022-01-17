@@ -144,6 +144,8 @@ import Stock from '../../store/models/stock/Stock'
 import { InventoryStockAdjustment } from '../../store/models/stockadjustment/InventoryStockAdjustment'
 import Inventory from '../../store/models/stockinventory/Inventory'
 import StockOperationType from '../../store/models/stockoperation/StockOperationType'
+import ReferedStockMoviment from '../../store/models/stockrefered/ReferedStockMoviment'
+import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
 export default {
     components: {
     },
@@ -179,26 +181,18 @@ export default {
         Stock.apiGetAll()
         InventoryStockAdjustment.apiGetAll()
         StockOperationType.apiGetAll()
+        ReferedStockMoviment.apiGetAll()
+        DestroyedStock.apiGetAll()
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },
-      getAllPacksOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPackGet(this.clinic.id, offset, max)
-      },
       getAllInventoriesOfClinic () {
         const offset = 0
         const max = 100
         this.doInventoryGet(this.clinic.id, offset, max)
-      },
-      getAllPrescriptionOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPrescriptionkGet(this.clinic.id, offset, max)
       },
       getAllStockOfClinic () {
         const offset = 0
@@ -229,6 +223,16 @@ export default {
         const offset = 0
         const max = 100
         this.doEpisodeGet(this.clinic.id, offset, max)
+      },
+      getAllPrescriptionOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPrescriptionkGet(this.clinic.id, offset, max)
+      },
+      getAllPacksOfClinic () {
+        const offset = 0
+        const max = 100
+        this.doPackGet(this.clinic.id, offset, max)
       },
       doInventoryGet (clinicId, offset, max) {
         Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {

@@ -85,14 +85,14 @@
                       :rules="[ val => !!val || 'Por favor indicar o identificador']"
                       v-model="identifier.value"/>
                     <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido
-                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="true" label="Sim" />
-                      <q-radio keep-color color="primary" v-model="identifier.prefered" val="false" label="Nao"/>
+                      <q-radio keep-color color="primary" v-model="identifier.prefered" v-bind:val="true" label="Sim" />
+                      <q-radio keep-color color="primary" v-model="identifier.prefered" v-bind:val="false" label="Nao"/>
                     </div>
                 </div>
                 <div class="row">
-                    <div v-if="isCreateStep && patient.identifiers.length > 0" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
-                        <q-radio keep-color color="primary"  val="true" label="Sim" />
-                        <q-radio keep-color color="primary"  val="false" label="Nao"/>
+                    <div v-if="isCreateStep && patient.identifiers.length > 0 && identifier.id === null" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
+                        <q-radio keep-color color="primary"  v-bind:val="true" label="Sim" />
+                        <q-radio keep-color color="primary"  v-bind:val="false" label="Nao"/>
                     </div>
                 </div>
               </span>
@@ -408,6 +408,7 @@ export default {
           } else if (this.isCreateStep) {
             msg = 'Serviço de saúde adicionado com sucesso.'
           } else if (this.isEditStep) {
+            this.identifier.id = resp.response.data.id
             msg = 'Serviço de saúde actualizado com sucesso.'
           } else if (this.isReOpenStep) {
             msg = 'Serviço de saúde reaberto com sucesso.'

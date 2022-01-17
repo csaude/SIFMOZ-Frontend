@@ -27,6 +27,7 @@ export class StockAdjustment extends Model {
             adjusted_stock_id: this.attr(null),
             operation_id: this.attr(null),
             clinic_id: this.attr(''),
+            type: this.attr('STOCKREFERENCEADJUSTMENT'),
             // relationships
             clinic: this.belongsTo(Clinic, 'clinic_id'),
             adjustedStock: this.belongsTo(Stock, 'adjusted_stock_id'),
