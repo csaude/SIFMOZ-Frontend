@@ -14,13 +14,12 @@
               style="margin:2px; width: 200px"
               v-model="pickupDate"
               @update:model-value="determineNextPickUpDate()"
-              mask="date"
               ref="pickupDate"
               label="Data de Levantamento">
               <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                      <q-date v-model="pickupDate" @update:model-value="determineNextPickUpDate()" >
+                      <q-date v-model="pickupDate" mask="DD-MM-YYYY" @update:model-value="determineNextPickUpDate()" >
                       <div class="row items-center justify-end">
                           <q-btn v-close-popup label="Close" color="primary" flat />
                       </div>
@@ -51,12 +50,11 @@
             label="Proximo Levantamento"
             bg-color="white"
             style="margin:2px; width: 200px"
-            mask="date"
             ref="nextPickupDate">
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                  <q-date v-model="nextPDate">
+                  <q-date v-model="nextPDate" mask="DD-MM-YYYY">
                     <div class="row items-center justify-end">
                       <q-btn v-close-popup label="Close" color="primary" flat />
                     </div>
@@ -83,6 +81,7 @@
 import { ref } from 'vue'
 import { date } from 'quasar'
 import Duration from '../../../store/models/Duration/Duration'
+import moment from 'moment'
 export default {
     props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate', 'duration'],
     data () {
@@ -124,32 +123,32 @@ export default {
         if (this.visitDetails.createPackLater) {
           this.$emit('showAdd', null, null, null)
         } else {
-          if (!date.isValid(this.pickupDate)) {
+          if (!date.isValid(this.getJSDateFromDDMMYYY(this.pickupDate))) {
             this.displayAlert('error', 'A data de levantamento é inválida')
-          } else if (!date.isValid(this.nextPDate)) {
+          } else if (!date.isValid(this.getJSDateFromDDMMYYY(this.nextPDate))) {
             this.displayAlert('error', 'A data do próximo levantamento é inválida')
           } else if (this.drugsDuration === '') {
             this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
-          } else if (new Date(this.pickupDate) < this.curVisitDetails.prescriptions[0].prescriptionDate) {
+          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) < this.curVisitDetails.prescriptions[0].prescriptionDate) {
             this.displayAlert('error', 'A data de levantamento indicada é menor que a data da prescrição')
-          } else if (new Date(this.pickupDate) > new Date()) {
+          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) > new Date()) {
             this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')
-          } else if (new Date(this.pickupDate) > new Date(this.nextPDate)) {
+          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) > this.getJSDateFromDDMMYYY(this.nextPDate)) {
             this.displayAlert('error', 'A data do levantamento é maior que a data do próximo levantamento')
-          } else if (this.newPickUpDate !== '' && (new Date(this.pickupDate) < this.newPickUpDate)) {
+          } else if (this.newPickUpDate !== '' && (this.getJSDateFromDDMMYYY(this.pickupDate) < this.newPickUpDate)) {
             this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.formatDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
           } else {
-            this.$emit('showAdd', this.pickupDate, this.nextPDate, this.drugsDuration)
+            this.$emit('showAdd', this.getJSDateFromDDMMYYY(this.pickupDate), this.getJSDateFromDDMMYYY(this.nextPDate), this.drugsDuration)
           }
         }
       },
       determineNextPickUpDate () {
-        if (date.isValid(this.pickupDate) && this.drugsDuration !== '') {
-          const newDate = new Date(this.pickupDate)
+        if (date.isValid(this.getJSDateFromDDMMYYY(this.pickupDate)) && this.drugsDuration !== '') {
+          const newDate = this.getJSDateFromDDMMYYY(this.pickupDate)
           let lostDays = parseInt((this.drugsDuration.weeks / 4) * 2)
           if (this.drugsDuration.weeks <= 1) lostDays = 0
           const daysToAdd = parseInt((this.drugsDuration.weeks * 7) + lostDays)
-          this.nextPDate = this.formatDate(date.addToDate(newDate, { days: daysToAdd }))
+          this.nextPDate = this.getDDMMYYYFromJSDate(date.addToDate(newDate, { days: daysToAdd }))
           this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
         }
       },
@@ -165,8 +164,15 @@ export default {
         return date.formatDate(dateString, 'YYYY-MM-DD')
       },
       init () {
-        this.pickupDate = this.formatDate(this.newPickUpDate)
+        this.pickupDate = this.getDDMMYYYFromJSDate(this.newPickUpDate)
         this.tryToDetermineDefaultTakePeriod()
+      },
+      getJSDateFromDDMMYYY (dateString) {
+        const dateParts = dateString.split('-')
+        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+      },
+      getDDMMYYYFromJSDate (jsDate) {
+        return moment(jsDate).format('DD-MM-YYYY')
       }
     },
     components: {

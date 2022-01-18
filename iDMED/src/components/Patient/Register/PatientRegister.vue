@@ -21,15 +21,13 @@
                               outlined
                               class="col"
                               v-model="dateOfBirth"
-                              mask="date"
                               ref="birthDate"
-                              :rules="['date']"
                               :input="idadeCalculator()"
                               label="Data de Nascimento *">
                               <template v-slot:append>
                                   <q-icon name="event" class="cursor-pointer">
                                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                      <q-date v-model="dateOfBirth" >
+                                      <q-date v-model="dateOfBirth" mask="DD-MM-YYYY" >
                                       <div class="row items-center justify-end">
                                           <q-btn v-close-popup label="Close" color="primary" flat />
                                       </div>
@@ -84,7 +82,6 @@
                        v-model="patient.postoAdministrativo"
                       option-value="id"
                       option-label="description"
-                      :options="postosAdministrativos"
                       label="Posto Administivo" />
                 </div>
                 <div class="row q-mt-md">
@@ -93,7 +90,6 @@
                       dense
                       outlined
                       v-model="patient.bairro"
-                      :options="bairros"
                       label="Localidade/Bairro" />
                     <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
                     <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
@@ -154,20 +150,19 @@ export default {
         this.$refs.firstNames.$refs.nome.$refs.ref.validate()
         this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
         this.$refs.lastNames.$refs.lastName.$refs.ref.validate()
-        this.$refs.birthDate.validate()
         this.$refs.gender.validate()
         this.$refs.province.validate()
         this.$refs.district.validate()
         if (!this.$refs.firstNames.$refs.nome.$refs.ref.hasError &&
             !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
             !this.$refs.lastNames.$refs.lastName.$refs.ref.hasError &&
-            !this.$refs.birthDate.hasError &&
             !this.$refs.province.hasError &&
             !this.$refs.gender.hasError &&
             !this.$refs.district.hasError) {
-              if (new Date(this.dateOfBirth) > new Date()) {
+              const dateObject = this.getJSDateFromDDMMYYY(this.dateOfBirth)
+              if (dateObject > new Date()) {
                 this.displayAlert('error', 'A data de nascimento indicada é maior que a data da corrente.')
-              } else if (this.isEditStep && (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < new Date(this.dateOfBirth)))) {
+              } else if (this.isEditStep && (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < dateObject))) {
                 this.displayAlert('error', 'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
               } else {
                 this.savePatient()
@@ -185,7 +180,7 @@ export default {
                 }
             }
         }
-          this.patient.dateOfBirth = new Date(this.dateOfBirth)
+          this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           await Patient.apiSave(this.patient).then(resp => {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id
@@ -232,7 +227,7 @@ export default {
                                         .with('bairro')
                                         .with('clinic.*')
                                         .where('id', this.selectedPatient.id).first()
-              this.dateOfBirth = this.patient.dateOfBirth
+              this.dateOfBirth = moment(this.patient.dateOfBirth).format('DD-MM-YYYY')
           }
         } else {
               if (this.selectedPatient === null) {
@@ -240,14 +235,25 @@ export default {
                 this.patient.province = this.currClinic.province
               } else {
                 this.patient = this.selectedPatient
-                this.dateOfBirth = this.patient.dateOfBirth
+                if (this.patient.dateOfBirth !== '') this.dateOfBirth = moment(this.patient.dateOfBirth).format('DD-MM-YYYY')
                 this.patient.clinic = this.currClinic
+                this.patient.province = this.currClinic.province
               }
           }
+      },
+      getJSDateFromDDMMYYY (dateString) {
+        const dateParts = dateString.split('-')
+        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+      },
+      formatDate (dateString) {
+        if (!dateString || !moment(dateString).isValid()) return ''
+        const dateMoment = moment(dateString).format('DD-MM-YYYY')
+        return dateMoment
       },
       moment,
         idadeCalculator () {
             if (this.dateOfBirth && moment(this.dateOfBirth).isValid()) {
+              console.log('calculating age')
                 const utentBirthDate = moment(this.dateOfBirth)
                 const todayDate = moment(new Date())
                 const idade = todayDate.diff(utentBirthDate, 'years')
@@ -265,6 +271,15 @@ export default {
         lastNameInput: require('components/Patient/Inputs/PatientLastNameInput.vue').default
     },
     computed: {
+      /* dateOfBirth: {
+        get () {
+          return this.formatedDateOfBirth
+        },
+        set (value) {
+          console.log(value)
+          if (value || moment(value).isValid()) this.formatedDateOfBirth = moment(value).format('DD-MM-YYYY')
+        }
+      }, */
       provinces () {
           return Province.query().with('districts.*').has('code').get()
       },
