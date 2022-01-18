@@ -37,17 +37,15 @@
               <q-input
                 dense
                 outlined
-                class="col"
+                class="col q-mb-md"
                 v-model="prescriptionDate"
                 :disable="isNewPackStep || isEditPackStep"
-                mask="date"
                 ref="prescriptionDate"
-                :rules="['date']"
                 label="Data da Prescrição">
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="prescriptionDate">
+                        <q-date v-model="prescriptionDate" mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -263,6 +261,7 @@ import Duration from '../../../store/models/Duration/Duration'
 import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
+import moment from 'moment'
 export default {
   props: ['selectedVisitDetails', 'step'],
   data () {
@@ -348,7 +347,7 @@ export default {
                                                                                             .withAll()
                                                                                             .where('id', this.curPatientVisitDetail.prescriptions[0].prescriptionDetails[0].id)
                                                                                             .get()
-        this.prescriptionDate = this.curPatientVisitDetail.prescriptions[0].prescriptionDate
+        this.prescriptionDate = this.getDDMMYYYFromJSDate(this.curPatientVisitDetail.prescriptions[0].prescriptionDate)
 
         this.selectedClinicalService = ClinicalService.query()
                                                       .with('attributes.*')
@@ -467,7 +466,6 @@ export default {
     validateForm () {
       this.$refs.patientStatus.validate()
       this.$refs.clinicalService.validate()
-      this.$refs.prescriptionDate.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
       if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
       this.$refs.duration.validate()
@@ -477,19 +475,18 @@ export default {
 
       if (!this.$refs.patientStatus.hasError &&
           !this.$refs.clinicalService.hasError &&
-          !this.$refs.prescriptionDate.hasError &&
           (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
           (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
           !this.$refs.duration.hasError &&
           !this.$refs.doctor.hasError &&
           (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
-            if (new Date(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
+            if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
             } else if (new Date(this.pickupDate) > new Date()) {
               this.displayAlert('error', 'A data da prescrição indicada é maior que a data da corrente')
             } else {
-              this.curPatientVisitDetail.prescriptions[0].prescriptionDate = new Date(this.prescriptionDate)
+              this.curPatientVisitDetail.prescriptions[0].prescriptionDate = this.getJSDateFromDDMMYYY(this.prescriptionDate)
               this.showServiceDrugsManagement = true
             }
       }
@@ -617,6 +614,13 @@ console.log(this.patientVisit)
             }).catch(error => {
                 console.log(error)
             })
+    },
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
     }
   },
   computed: {

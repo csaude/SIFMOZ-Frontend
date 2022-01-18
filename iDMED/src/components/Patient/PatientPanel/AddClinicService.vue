@@ -43,14 +43,12 @@
                       class="col q-ml-md"
                       v-model="identifierstartDate"
                       :disable="isCloseStep || isReOpenStep"
-                      mask="date"
                       ref="startDate"
-                      :rules="['date']"
                       label="Data de Admissão *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="identifierstartDate" >
+                              <q-date v-model="identifierstartDate" mask="DD-MM-YYYY" >
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -109,14 +107,12 @@
                       outlined
                       class="col"
                       v-model="endDate"
-                      mask="date"
                       ref="endDate"
-                      :rules="['date']"
                       label="Data de Fim *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="endDate" >
+                              <q-date v-model="endDate" mask="DD-MM-YYYY" >
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -168,14 +164,12 @@
                       outlined
                       class="col"
                       v-model="reOpenDate"
-                      mask="date"
                       ref="reOpenDate"
-                      :rules="['date']"
                       label="Data de Reabertura *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="reOpenDate" >
+                              <q-date v-model="reOpenDate" mask="DD-MM-YYYY" >
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -230,6 +224,7 @@ import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import Episode from '../../../store/models/episode/Episode'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
+import moment from 'moment'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'step'],
     data () {
@@ -253,11 +248,9 @@ export default {
       },
       submitForm () {
         if (this.isCloseStep) {
-          this.$refs.endDate.validate()
           this.$refs.stopReason.validate()
           this.$refs.closingNotes.$refs.ref.validate()
-          if (!this.$refs.endDate.hasError &&
-              !this.$refs.stopReason.hasError &&
+              if (!this.$refs.stopReason.hasError &&
               !this.$refs.closingNotes.$refs.ref.hasError) {
               const episode = Episode.query()
                                       .with('startStopReason')
@@ -269,22 +262,20 @@ export default {
                                       .where('patientServiceIdentifier_id', this.identifier.id)
                                       .orderBy('creationDate', 'desc')
                                       .first()
-              if (new Date(this.endDate) > new Date()) {
+              if (this.getJSDateFromDDMMYYY(this.endDate) > new Date()) {
                 this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
-              } else if (new Date(this.endDate) < new Date(episode.episodeDate)) {
+              } else if (episode !== null && this.getJSDateFromDDMMYYY(this.endDate) < new Date(episode.episodeDate)) {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data de inicio ao tratamento.')
-              } else if (episode.hasVisits() && (new Date(this.endDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+              } else if (episode !== null && episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.endDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
               } else {
                 this.doSave()
               }
           }
         } else if (this.isReOpenStep) {
-          this.$refs.reOpenDate.validate()
           this.$refs.reOpenReason.validate()
           this.$refs.reOpenNotes.$refs.ref.validate()
-          if (!this.$refs.reOpenDate.hasError &&
-              !this.$refs.reOpenReason.hasError &&
+              if (!this.$refs.reOpenReason.hasError &&
               !this.$refs.reOpenNotes.$refs.ref.hasError) {
               const episode = Episode.query()
                                       .with('startStopReason')
@@ -294,9 +285,9 @@ export default {
                                       .where('patientServiceIdentifier_id', this.identifier.id)
                                       .orderBy('creationDate', 'desc')
                                       .first()
-              if (new Date(this.reOpenDate) > new Date()) {
+              if (this.getJSDateFromDDMMYYY(this.reOpenDate) > new Date()) {
                 this.displayAlert('error', 'A data de abertura indicada é maior que a data da corrente.')
-              } else if (new Date(this.reOpenDate) < new Date(episode.episodeDate)) {
+              } else if (this.getJSDateFromDDMMYYY(this.reOpenDate) < new Date(episode.episodeDate)) {
                 this.displayAlert('error', 'A data de abertura indicada é menor que a data do ultimo fecho efectuado.')
               } else {
                 this.doSave()
@@ -304,16 +295,15 @@ export default {
           }
         } else if (this.isCreateStep || this.isEditStep) {
           this.$refs.clinicalService.validate()
-          this.$refs.startDate.validate()
           this.$refs.state.validate()
           this.$refs.identifier.$refs.identifier.validate()
           if (!this.$refs.clinicalService.hasError &&
-              !this.$refs.startDate.hasError &&
               !this.$refs.state.hasError &&
               !this.$refs.identifier.$refs.identifier.hasError) {
-                if (new Date(this.identifierstartDate) > new Date()) {
+                console.log(this.identifierstartDate)
+                if (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date()) {
                 this.displayAlert('error', 'A data de admissão indicada é maior que a data corrente.')
-              } else if (new Date(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
+              } else if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
               } else {
                 if (this.isEditStep) {
@@ -322,7 +312,7 @@ export default {
                                         .where('patientServiceIdentifier_id', this.identifier.id)
                                         .orderBy('creationDate', 'desc')
                                         .first()
-                  if (episode !== null && (new Date(this.identifierstartDate) > new Date(episode.episodeDate))) {
+                  if (episode !== null && (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date(episode.episodeDate))) {
                     this.displayAlert('error', 'A data de admissão indicada é maior que a data do primeiro episódio registado.')
                   } else if (this.hasVisitsMade && (this.identifier.service.id !== this.identifierToEdit.service.id)) {
                     this.displayAlert('error', 'Não pode alterar o serviço de saúde pois ja existem registos de visitas associados.')
@@ -375,13 +365,13 @@ export default {
         this.identifier.episodes = []
         if (this.isCloseStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
-          this.closureEpisode.episodeDate = new Date(this.endDate)
-          this.identifier.endDate = new Date(this.endDate)
+          this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.endDate)
+          this.identifier.endDate = this.getJSDateFromDDMMYYY(this.endDate)
         }
         if (this.isReOpenStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
-          this.closureEpisode.episodeDate = new Date(this.reOpenDate)
-          this.identifier.reopenDate = new Date(this.reOpenDate)
+          this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.reOpenDate)
+          this.identifier.reopenDate = this.getJSDateFromDDMMYYY(this.reOpenDate)
           this.identifier.endDate = ''
         }
         if (this.isCloseStep || this.isReOpenStep) {
@@ -394,7 +384,7 @@ export default {
         }
         if (this.isCreateStep) {
           this.identifier.clinic = this.currClinic
-          this.identifier.startDate = new Date(this.identifierstartDate)
+          this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
           this.identifier.identifierType = this.identifier.service.identifierType
         }
         console.log(this.identifier)
@@ -448,13 +438,20 @@ export default {
       },
       commitOperation () {
         this.doSave()
+      },
+      getJSDateFromDDMMYYY (dateString) {
+        const dateParts = dateString.split('-')
+        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+      },
+      getDDMMYYYFromJSDate (jsDate) {
+        return moment(jsDate).format('DD-MM-YYYY')
       }
     },
     created () {
         if (!this.isCreateStep) {
           this.identifier = Object.assign({}, this.identifierToEdit)
           this.identifier.clinic = this.currClinic
-          this.identifierstartDate = this.identifier.startDate
+          this.identifierstartDate = this.getDDMMYYYFromJSDate(this.identifier.startDate)
           this.identifier.service = ClinicalService.query()
                                                   .with('identifierType')
                                                   .where('id', this.identifier.service.id)

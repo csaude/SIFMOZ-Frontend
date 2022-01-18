@@ -154,7 +154,6 @@ export default {
       return PatientServiceIdentifier.query().withAllRecursive().where('id', this.identifier.id).first()
     },
     prescriptionDetails () {
-      console.log(this.prescription)
       if (this.prescription === null) return null
 
       return this.prescription.prescriptionDetails[0]

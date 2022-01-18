@@ -22,16 +22,14 @@
                   outlined
                   style="width: 350px"
                   v-model="visitDate"
-                  mask="date"
                   filled
                   ref="data"
                   :disable="this.editMode"
-                  :rules="[ visitDate => !!visitDate || 'A data da Consulta e obrigatoria']"
                   label="Data da Consulta">
                   <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                          <q-date v-model="visitDate"  @update:model-value="verifyHasSameDay()">
+                          <q-date v-model="visitDate" mask="DD-MM-YYYY"  @update:model-value="verifyHasSameDay()">
                           <div class="row items-center justify-end">
                               <q-btn v-close-popup label="Close" color="primary" flat />
                           </div>
@@ -134,6 +132,7 @@ import PregnancyScreening from '../../../store/models/screening/PregnancyScreeni
 import AdherenceScreening from '../../../store/models/screening/AdherenceScreening'
 import RAMScreening from '../../../store/models/screening/RAMScreening'
 import Clinic from '../../../store/models/clinic/Clinic'
+import moment from 'moment'
 export default {
     props: ['editPatientVisit', 'editMode'],
     data () {
@@ -158,7 +157,7 @@ export default {
     created () {
         if (this.editPatientVisit) {
         this.patientVisit = Object.assign({}, this.editPatientVisit)
-        this.visitDate = this.editPatientVisit.visitDate
+        this.visitDate = this.getDDMMYYYFromJSDate(this.editPatientVisit.visitDate)
         this.vitalSigns = Object.assign({}, this.editPatientVisit.vitalSigns[0])
         this.TBScreening = Object.assign({}, this.editPatientVisit.tbScreening[0])
         }
@@ -191,9 +190,9 @@ export default {
            //  this.$refs.data.$refs.ref.validate()
            if (this.visitDate === '') {
               this.displayAlert('error', 'Por Favor Preencha data de consulta')
-           } else if (new Date(this.visitDate) < new Date(this.patient.dateOfBirth)) {
+           } else if (this.getJSDateFromDDMMYYY(this.visitDate) < new Date(this.patient.dateOfBirth)) {
               this.displayAlert('error', 'A data de consulta indicada é maior que a data de nascimento do paciente/utente')
-           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) > new Date(this.visitDate))) {
+           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) > this.getJSDateFromDDMMYYY(this.visitDate))) {
               this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
            } else if (this.hasVisitSameDay && !this.editMode) {
              this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')
@@ -241,7 +240,7 @@ export default {
              } else {
             this.patientVisit.clinic = this.currClinic
             this.patientVisit.patient = this.patient
-             this.patientVisit.visitDate = new Date(this.visitDate)
+             this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
             this.patientVisit.vitalSigns.push(this.vitalSigns)
             this.patientVisit.tbScreening.push(this.TBScreening)
             this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
@@ -285,10 +284,10 @@ export default {
                           .with('clinic').where('patient_id', this.patient.id).has('clinic').has('vitalSigns').get()
 
                       for (const visit of visits) {
-                   if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length > 0) {
+                   if (new Date(visit.visitDate).getTime() === this.getJSDateFromDDMMYYY(this.visitDate).getTime() && visit.vitalSigns.length > 0) {
                                this.hasVisitSameDay = true
                                break
-                          } else if (new Date(visit.visitDate).getTime() === new Date(this.visitDate).getTime() && visit.vitalSigns.length === 0) {
+                          } else if (new Date(visit.visitDate).getTime() === this.getJSDateFromDDMMYYY(this.visitDate).getTime() && visit.vitalSigns.length === 0) {
                                  this.patientVisit = visit
                                this.hasVisitSameDay = false
                           } else {
@@ -296,19 +295,26 @@ export default {
                           }
                        }
          },
-    getImcDescription () {
-        const imc = this.vitalSigns.imc
-      if (imc >= 16 && imc <= 16.9) {
-         this.imcDescription = 'Muito abaixo do peso'
-      } else if (imc >= 17 && imc <= 18.4) {
-         this.imcDescription = 'Abaixo do peso'
-      } else if (imc >= 18.5 && imc <= 24.9) {
-         this.imcDescription = 'Peso normal'
-      } else if (imc >= 25 && imc <= 29.9) {
-         this.imcDescription = 'Acima do peso'
+      getImcDescription () {
+          const imc = this.vitalSigns.imc
+        if (imc >= 16 && imc <= 16.9) {
+          this.imcDescription = 'Muito abaixo do peso'
+        } else if (imc >= 17 && imc <= 18.4) {
+          this.imcDescription = 'Abaixo do peso'
+        } else if (imc >= 18.5 && imc <= 24.9) {
+          this.imcDescription = 'Peso normal'
+        } else if (imc >= 25 && imc <= 29.9) {
+          this.imcDescription = 'Acima do peso'
+        }
+        return this.imcDescription
+      },
+      getJSDateFromDDMMYYY (dateString) {
+        const dateParts = dateString.split('-')
+        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+      },
+      getDDMMYYYFromJSDate (jsDate) {
+        return moment(jsDate).format('DD-MM-YYYY')
       }
-      return this.imcDescription
-    }
     },
     components: {
        TextInput: require('components/Shared/Input/TextField.vue').default,
