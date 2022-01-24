@@ -417,7 +417,6 @@ export default {
       }
     },
     initPatientVisitDetails (episode) {
-      console.log(this.patient)
       const pack = new Pack({
         clinic: this.currClinic,
         syncStatus: this.patient.his_id.length > 10 ? 'R' : 'N'
@@ -560,8 +559,6 @@ export default {
         }
       }.bind(this))
 
-console.log(this.patientVisit)
-
       PatientVisit.apiSave(this.patientVisit).then(resp => {
         this.fecthVisit(resp.response.data.id)
         this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
@@ -583,7 +580,6 @@ console.log(this.patientVisit)
     },
     fecthVisit (id) {
       PatientVisit.apiFetchById(id).then(resp => {
-        console.log(resp.response.data)
         this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
         this.fecthPrescription(resp.response.data.patientVisitDetails[0].prescriptions[0].id)
         if (resp.response.data.patientVisitDetails[0].packs.length > 0) this.fecthPack(resp.response.data.patientVisitDetails[0].packs[0].id)
@@ -591,18 +587,15 @@ console.log(this.patientVisit)
     },
     fecthVisitDetails (id) {
       PatientVisitDetails.apiFetchById(id).then(resp => {
-        console.log(resp.response.data)
       })
     },
     fecthPrescription (id) {
       Prescription.apiFetchById(id).then(resp => {
-        console.log(resp.response.data)
         PrescriptionDetail.apiFetchById(resp.response.data.prescriptionDetails[0].id)
       })
     },
     fecthPack (id) {
       Pack.apiFetchById(id).then(resp => {
-        console.log(resp.response.data)
       })
     },
     doDispenseModeGetAll (offset) {

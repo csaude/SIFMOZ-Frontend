@@ -2,7 +2,7 @@
   <div>
   <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (identifier.service === null || identifier.service === undefined) ? 'Sem Info' : identifier.service.code }} </ListHeader>
     <q-card
-      v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null"
+      v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
       class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
@@ -73,6 +73,12 @@ import Episode from '../../../store/models/episode/Episode'
 import Prescription from '../../../store/models/prescription/Prescription'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Pack from '../../../store/models/packaging/Pack'
+import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
+import Doctor from '../../../store/models/doctor/Doctor'
+import Duration from '../../../store/models/Duration/Duration'
+import DispenseType from '../../../store/models/dispenseType/DispenseType'
+import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
 export default {
   props: ['identifier'],
   data () {
@@ -137,6 +143,19 @@ export default {
         }
       })
       return episode
+    },
+    reloadParams () {
+      TherapeuticRegimen.apiGetAll()
+      TherapeuticLine.apiGetAll()
+      Doctor.apiGetAll()
+      Duration.apiGetAll()
+      DispenseType.apiGetAll()
+    },
+    async reloadPrescriptionDetails (id) {
+      await PrescriptionDetail.apiFetchById(id)
+    },
+    async reloadPrescription (id) {
+      await Prescription.apiFetchById(id)
     }
   },
   computed: {
@@ -155,26 +174,24 @@ export default {
     },
     prescriptionDetails () {
       if (this.prescription === null) return null
-
-      return this.prescription.prescriptionDetails[0]
+      return PrescriptionDetail.query().withAll().where('prescription_id', this.prescription.id).first()
     },
     patientVisitDetais () {
       if (this.prescription === null) return null
-
       return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
     },
     prescription () {
       if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
-
-      return Prescription.query()
-                        .with('clinic')
-                        .with('doctor')
-                        .with('patientVisitDetails')
-                        .with('prescriptionDetails.*')
-                        .with('duration')
-                        .with('prescribedDrugs.*')
-                        .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
-                        .first()
+      const presc = Prescription.query()
+                                .with('clinic')
+                                .with('doctor')
+                                .with('patientVisitDetails')
+                                .with('prescriptionDetails.*')
+                                .with('duration')
+                                .with('prescribedDrugs.*')
+                                .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
+                                .first()
+      return presc
     },
     lastStartEpisode () {
       return this.lastStartEpisodeWithPrescription()
@@ -211,6 +228,7 @@ export default {
   created () {
       // this.curIdentifier = new PatientServiceIdentifier(this.identifier)
       this.patient = Object.assign({}, this.selectedPatient)
+    this.reloadParams()
   },
   mounted () {
   }

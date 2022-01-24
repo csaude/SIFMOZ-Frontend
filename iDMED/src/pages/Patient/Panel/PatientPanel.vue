@@ -236,8 +236,10 @@ export default {
     // this.getPatientVisits()
   },
   computed: {
-    clinic () {
-        return new Clinic(SessionStorage.getItem('currClinic'))
+    clinic: {
+        get () {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
       },
     patient: {
       get () {

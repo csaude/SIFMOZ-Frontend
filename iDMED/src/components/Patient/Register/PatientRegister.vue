@@ -170,8 +170,8 @@ export default {
         }
       },
       async savePatient () {
-        console.log(this.patient.hasIdentifiers)
-        if (this.patient.hasIdentifiers) {
+        console.log(this.patient.hasIdentifiers())
+        if (this.patient.hasIdentifiers()) {
             if (this.patient.identifiers[0] === null) {
               this.patient.identifiers = []
             } else {
@@ -250,6 +250,10 @@ export default {
         const dateMoment = moment(dateString).format('DD-MM-YYYY')
         return dateMoment
       },
+      initParams () {
+        Province.apiGetAll()
+        Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
+      },
       moment,
         idadeCalculator () {
             if (this.dateOfBirth && moment(this.dateOfBirth).isValid()) {
@@ -271,36 +275,34 @@ export default {
         lastNameInput: require('components/Patient/Inputs/PatientLastNameInput.vue').default
     },
     computed: {
-      /* dateOfBirth: {
+      provinces: {
         get () {
-          return this.formatedDateOfBirth
-        },
-        set (value) {
-          console.log(value)
-          if (value || moment(value).isValid()) this.formatedDateOfBirth = moment(value).format('DD-MM-YYYY')
-        }
-      }, */
-      provinces () {
           return Province.query().with('districts.*').has('code').get()
+          }
       },
-      districts () {
-        if (this.patient.province !== null && this.patient.province !== undefined) {
-          return District.query().with('province').where('province_id', this.patient.province.id).has('code').get()
-        } else {
-          return null
+      districts: {
+        get () {
+          if (this.patient.province !== null && this.patient.province !== undefined) {
+            return District.query().with('province').where('province_id', this.patient.province.id).has('code').get()
+          } else {
+            return null
+          }
         }
       },
-      currClinic () {
-        return Clinic.query()
+      currClinic: {
+        get () {
+          return Clinic.query()
                     .with('province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
+        }
       },
       isEditStep () {
         return this.selectedPatient.id !== null
       }
     },
     mounted () {
+      this.initParams()
       this.initPatient()
     }
 }

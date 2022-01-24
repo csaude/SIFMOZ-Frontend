@@ -155,7 +155,7 @@
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
                 <q-btn v-if="step > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="step !== 3 ? 'Proximo' : 'Submeter'" class="q-ml-sm"/>
+          <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="step !== 4 ? 'Proximo' : 'Submeter'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
                <q-dialog v-model="alert.visible">
