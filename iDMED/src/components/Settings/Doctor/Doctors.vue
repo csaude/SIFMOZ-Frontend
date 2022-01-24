@@ -192,10 +192,13 @@ export default {
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
+        },
+        getDoctors () {
+          Doctor.apiGetAll()
         }
   },
   mounted () {
-  //  this.getDoctors()
+    this.getDoctors()
   },
   components: {
      addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default,

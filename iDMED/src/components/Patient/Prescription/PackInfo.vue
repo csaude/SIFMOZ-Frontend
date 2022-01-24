@@ -1,13 +1,16 @@
 <template>
   <div>
     <ListHeader
+      v-if="currPack !== null && packagedDrugs !== null && packagedDrugs.length > 0"
       :addVisible="false"
       :isClosed="isClosed"
       @removePack="removePack"
       @editPack="editPack"
       bgColor="bg-grey-4" >Data de Levantamento: {{formatDate(currPack.pickupDate)}}
     </ListHeader>
-    <q-card flat bordered class="noRadius">
+    <q-card flat
+      v-if="currPack !== null && packagedDrugs !== null && packagedDrugs.length > 0"
+      bordered class="noRadius">
       <q-card-section class="row q-pa-sm">
         <div class="col-12">
           <q-table
@@ -42,6 +45,7 @@
 <script>
 import { date } from 'quasar'
 import Pack from '../../../store/models/packaging/Pack'
+import Drug from '../../../store/models/drug/Drug'
 const columns = [
   { name: 'drug', required: true, field: 'row.drug.name', label: 'Medicamento', align: 'left', sortable: true },
   { name: 'qty', align: 'left', field: 'row.quantitySupplied', label: 'Quantidade', sortable: true },
@@ -64,6 +68,9 @@ export default {
     },
     removePack () {
       // this.$emit('removePack', this.currPack)
+    },
+    reloadDrugs () {
+      Drug.apiGetAll(0, 200)
     }
   },
   components: {
@@ -76,6 +83,9 @@ export default {
     packagedDrugs () {
       return this.currPack.packagedDrugs
     }
+  },
+  mounted () {
+    this.reloadDrugs()
   }
 }
 </script>
