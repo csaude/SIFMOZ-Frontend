@@ -44,9 +44,15 @@ export default {
   created () {
   },
   computed: {
+    patient: {
+      get () {
+        return new Patient(SessionStorage.getItem('selectedPatient'))
+      }
+    },
+    /*
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
-    },
+    }, */
     patientVisits () {
       const pvts = PatientVisit.query()
                           .where('patient_id', this.patient.id)

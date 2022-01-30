@@ -188,6 +188,7 @@ export default {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
+        // console.log(this.clinic)
       },
       getAllInventoriesOfClinic () {
         const offset = 0
@@ -337,6 +338,7 @@ export default {
       PackagedDrug.apiGetAll()
       PrescribedDrug.apiGetAll()
       PrescriptionDetail.apiGetAll()
+      console.log(this.clinic)
     },
     created () {
       this.$q.loading.show({
@@ -352,6 +354,21 @@ export default {
       this.saveCurrClinic()
     },
     computed: {
+      /*
+      clinic: {
+        get () {
+          return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+        }
+      } */
+      /*
+      clinic: {
+        get () {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
+      } */
       clinic () {
         return new Clinic(SessionStorage.getItem('currClinic'))
       }

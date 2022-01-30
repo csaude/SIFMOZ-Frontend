@@ -1,7 +1,7 @@
 <template>
   <div>
     <TitleBar>Detalhe do Utente/Paciente</TitleBar>
-    <div class="row q-mt-md">
+    <div class="row q-mt-md"  v-if="patient !== null">
       <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
         <PatientInfo :selectedPatient="patient"/>
       </div>
@@ -57,9 +57,9 @@ import Episode from 'src/store/models/episode/Episode'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
-import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
-import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
+// import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
+// import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
+// import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
 // import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   setup () {
@@ -84,6 +84,13 @@ export default {
     }
   },
   methods: {
+    init () {
+      if (this.patient !== null) {
+        console.log('Paciente ainda bem carregado')
+      } else {
+        Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
+      }
+    },
     loadAppParameters () {
         Duration.apiGetAll()
         Province.apiGetAll()
@@ -222,29 +229,37 @@ export default {
   //     }
   },
   mounted () {
-    this.loadAppParameters()
+    /* this.loadAppParameters()
     this.getAllPatientsOfClinic()
-      this.getAllIdentifiersOfClinic()
-      this.getAllPrescriptionOfClinic()
-      this.getAllEpisodesOfClinic()
-      this.getAllPatientVisitsOfClinic()
-      this.getAllPacksOfClinic()
-      this.getAlPatientVisitDetailsOfClinic()
-      PackagedDrug.apiGetAll()
-      PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll()
-    // this.getPatientVisits()
+    this.getAllIdentifiersOfClinic()
+    this.getAllPrescriptionOfClinic()
+    this.getAllEpisodesOfClinic()
+    this.getAllPatientVisitsOfClinic()
+    this.getAllPacksOfClinic()
+    this.getAlPatientVisitDetailsOfClinic()
+    PackagedDrug.apiGetAll()
+    PrescribedDrug.apiGetAll()
+    PrescriptionDetail.apiGetAll()
+    // this.getPatientVisits() */
   },
   computed: {
-    clinic: {
+    /* clinic: {
         get () {
           return new Clinic(SessionStorage.getItem('currClinic'))
+        }
+      }, */
+    clinic: {
+        get () {
+          return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
         }
       },
     patient: {
       get () {
       const selectedP = SessionStorage.getItem('selectedPatient')
-      return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+      return Patient.query().with(['identifiers', 'identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
                             .with('attributes')
                             .with('appointments')
@@ -267,8 +282,7 @@ export default {
       PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
   },
   created () {
-  //   this.getPatientVisits()
-   //  console.log(this.getPatientVisits())
+    this.init()
   }
 }
 </script>

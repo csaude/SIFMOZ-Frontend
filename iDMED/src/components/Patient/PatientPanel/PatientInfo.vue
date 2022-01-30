@@ -83,8 +83,8 @@
 </template>
 
 <script>
-// import { SessionStorage } from 'quasar'
-// import Patient from '../../../store/models/patient/Patient'
+import { SessionStorage } from 'quasar'
+import Patient from '../../../store/models/patient/Patient'
 export default {
   data () {
     return {
@@ -94,10 +94,20 @@ export default {
   },
   props: ['selectedPatient'],
   methods: {
+    init () {
+      if (this.selectedPatient !== null) {
+        console.log('')
+      } else {
+        Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
+      }
+      },
     editPatient () {
       this.patient = this.selectedPatient
       this.showPatientRegister = true
     }
+  },
+  created () {
+    this.init()
   },
   computed: {
   },

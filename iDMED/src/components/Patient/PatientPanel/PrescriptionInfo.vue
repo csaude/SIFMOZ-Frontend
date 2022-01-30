@@ -42,6 +42,16 @@ export default {
     }
   },
   methods: {
+    init () {
+      /*
+      if (this.selectedPatient !== null) {
+        console.log('Paciente ainda bem carregado')
+      } else {
+        alert('rdtrfyhijik')
+        Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
+      } */
+      console.log(this.selectedPatient)
+    },
     expandLess (value) {
       this.infoVisible = value
     },
@@ -56,10 +66,28 @@ export default {
       this.showAddPrescription = true
     }
   },
+  created () {
+    this.init()
+  },
   computed: {
     showAddButton () {
       return this.patientHasEpisodes
     },
+    patient: {
+      get () {
+        const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with('identifiers.*')
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic')
+                            .where('id', selectedP.id).first()
+      }
+    },
+    /*
     patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with('identifiers.*')
@@ -71,7 +99,7 @@ export default {
                             .with('bairro')
                             .with('clinic')
                             .where('id', selectedP.id).first()
-    },
+    }, */
     patientHasEpisodes () {
       if (!this.patient.hasIdentifiers()) return false
 

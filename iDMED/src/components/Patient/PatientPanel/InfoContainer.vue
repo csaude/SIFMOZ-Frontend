@@ -98,6 +98,16 @@ export default {
     AddEditEpisode: require('components/Patient/PatientPanel/AddEditEpisode.vue').default
   },
   methods: {
+    init () {
+      ClinicalService.apiFetchById(this.curIdentifier.service.id).then(resp => {
+          console.log('Recarrregamento do service')
+          console.log(resp.response.data)
+        })
+      PatientServiceIdentifier.apiFetchById(this.curIdentifier.id).then(resp => {
+          console.log('Recarrregamento a curIdentifier')
+          console.log(resp.response.data)
+        })
+    },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {
         this.isPatientActive = true
@@ -164,7 +174,50 @@ export default {
       this.alert.visible = false
     }
   },
+  mounted () {
+    this.init()
+    console.log('Viva infoContainer.vue')
+    console.log(this.selectedPatient)
+    console.log('identifier')
+    console.log(this.identifier)
+    console.log('curIdentifier')
+    console.log(this.curIdentifier)
+    console.log('Last episode')
+    console.log(this.lastEpisode)
+    // issue: o last episode sempre muda no reload
+  },
   computed: {
+    identifiers: {
+      get () {
+        console.log('--------------------------------------')
+        console.log(this.selectedPatient.identifiers)
+        return this.selectedPatient.identifiers
+      }
+    },
+    /*
+    curIdentifier: {
+      get () {
+        return PatientServiceIdentifier.query()
+                                      .with('identifierType')
+                                      .with('service')
+                                      .with('episodes.*', (query) => {
+                                              query.orderBy('creationDate', 'desc')
+                                            })
+                                      .where('id', this.identifier.id).first()
+    }
+      }, */
+      curIdentifier: {
+        get () {
+          return PatientServiceIdentifier.query()
+                                      .with('identifierType')
+                                      .with('service')
+                                      .with('episodes.*', (query) => {
+                                              query.orderBy('creationDate', 'desc')
+                                            })
+                                      .where('id', this.identifier.id).first()
+        }
+      },
+      /*
     curIdentifier () {
       return PatientServiceIdentifier.query()
                                       .with('identifierType')
@@ -174,6 +227,7 @@ export default {
                                             })
                                       .where('id', this.identifier.id).first()
     },
+    */
     clinicalServiceHeaderColor () {
       if (!this.showEndDetails) {
         return 'bg-grey-4'
@@ -181,6 +235,23 @@ export default {
         return 'bg-red-7'
       }
     },
+    episodes: {
+      get () {
+          const episodes = Episode.query()
+                                .withAll()
+                                .with('episodeType')
+                                .with('clinicSector')
+                                .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                                .orderBy('creationDate', 'desc')
+                                .limit(2)
+                                .get()
+        if (episodes.length > 0) {
+          episodes[0].isLast = true
+        }
+        return episodes
+      }
+    },
+    /*
     episodes () {
       const episodes = Episode.query()
                               .withAll()
@@ -192,10 +263,30 @@ export default {
         episodes[0].isLast = true
       }
       return episodes
+    }, */
+    services: {
+      get () {
+        return ClinicalService.query().hasNot('code').get()
+      }
     },
+    /*
     services () {
       return ClinicalService.query().hasNot('code').get()
+    }, */
+    patient: {
+      get () {
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
+      }
     },
+    /*
     patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
@@ -206,17 +297,33 @@ export default {
                             .with('postoAdministrativo')
                             .with('bairro')
                             .with('clinic').where('id', selectedP.id).first()
+    }, */
+    episodeTypes: {
+      get () {
+        return EpisodeType.all()
+      }
     },
+    /*
     episodeTypes () {
       return EpisodeType.all()
+    }, */
+    lastEpisode: {
+      get () {
+        return Episode.query()
+                    .withAll()
+                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                    .orderBy('creationDate', 'desc')
+                    .first()
+      }
     },
+    /*
     lastEpisode () {
       return Episode.query()
                     .withAll()
                     .where('patientServiceIdentifier_id', this.curIdentifier.id)
                     .orderBy('creationDate', 'desc')
                     .first()
-    },
+    }, */
     showEndDetails () {
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
     },
