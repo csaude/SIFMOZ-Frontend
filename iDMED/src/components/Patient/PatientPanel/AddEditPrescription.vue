@@ -262,6 +262,8 @@ import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 import moment from 'moment'
+import Stock from '../../../store/models/stock/Stock'
+import PackagedDrugStock from '../../../store/models/packagedDrug/PackagedDrugStock'
 export default {
   props: ['selectedVisitDetails', 'step'],
   data () {
@@ -527,10 +529,60 @@ export default {
         this.displayAlert('error', 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de [' + error + ' ]')
       }
     },
+    initPackageStock (stock, drug, quantitySupplied) {
+      const packagedDrugStock = new PackagedDrugStock()
+      packagedDrugStock.drug = drug
+      packagedDrugStock.stock = stock
+      packagedDrugStock.quantitySupplied = quantitySupplied
+      packagedDrugStock.creationDate = new Date()
+      return packagedDrugStock
+    },
     generatePacks (visitDetails) {
       Object.keys(visitDetails.prescriptions[0].prescribedDrugs).forEach(function (k) {
+        const packagedDrugStocks = []
+        const stocksToMoviment = []
         const prescribedDrug = visitDetails.prescriptions[0].prescribedDrugs[k]
+        let qtyPrescribed = prescribedDrug.qtyPrescribed
         const packDrug = new PackagedDrug()
+        const stocks = Stock.query()
+                            .with('clinic.province')
+                            .with('entrance.clinic')
+                            .with('center.clinic')
+                            .with('drug.form')
+                            .where('drug_id', prescribedDrug.drug.id)
+                            .orderBy('expireDate', 'asc')
+                            .get()
+        const validStock = stocks.filter((item) => {
+          return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
+        })
+        let i = 0
+        while (qtyPrescribed > 0) {
+          if (validStock[i].stockMoviment >= qtyPrescribed) {
+            validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
+            stocksToMoviment.push(validStock[i])
+            qtyPrescribed = 0
+            // const pkstock = this.initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
+            const packagedDrugStock = new PackagedDrugStock()
+            packagedDrugStock.drug = prescribedDrug.drug
+            packagedDrugStock.stock = validStock[i]
+            packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
+            packagedDrugStock.creationDate = new Date()
+            console.log(packagedDrugStock)
+            packagedDrugStocks.push(packagedDrugStock)
+          } else {
+            const availableBalance = validStock[i].stockMoviment
+            qtyPrescribed = Number(qtyPrescribed - validStock[i].stockMoviment)
+            validStock[i].stockMoviment = 0
+            stocksToMoviment.push(validStock[i])
+            const packagedDrugStock = new PackagedDrugStock()
+            packagedDrugStock.drug = prescribedDrug.drug
+            packagedDrugStock.stock = validStock[i]
+            packagedDrugStock.quantitySupplied = availableBalance
+            packagedDrugStock.creationDate = new Date()
+            i = i + 1
+          }
+        }
+        packDrug.packagedDrugStocks = packagedDrugStocks
         packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
         packDrug.drug = prescribedDrug.drug
         packDrug.toContinue = prescribedDrug.toContinue
@@ -558,13 +610,24 @@ export default {
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
-
+console.log(this.patientVisit)
       PatientVisit.apiSave(this.patientVisit).then(resp => {
         this.fecthVisit(resp.response.data.id)
         this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
       }).catch(error => {
-        this.displayAlert('error', error)
-      })
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
     },
     displayAlert (type, msg) {
       this.alert.type = type
@@ -617,125 +680,177 @@ export default {
     }
   },
   computed: {
-    dispenseModes () {
-        return DispenseMode.all()
+    dispenseModes: {
+        get () {
+          return DispenseMode.all()
+        }
     },
-    isFirstPack () {
-      return this.lastPackFull === null
-    },
-    dispenseLabel () {
-      if (this.hasVisitsToPackNow) {
-        return 'Dispensar'
-      } else {
-        return 'Gravar'
+    isFirstPack: {
+      get () {
+        return this.lastPackFull === null
       }
     },
-    hasVisitsToPackLater () {
-      let createPackLater = false
-      if (this.curPatientVisitDetails.length <= 0) return false
-
-      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-        const visitDetails = this.curPatientVisitDetails[k]
-        if (createPackLater === false) {
-          createPackLater = visitDetails.createPackLater
+    dispenseLabel: {
+      get () {
+        if (this.hasVisitsToPackNow) {
+          return 'Dispensar'
+        } else {
+          return 'Gravar'
         }
-      }.bind(this))
-      return createPackLater
+      }
     },
-    hasVisitsToPackNow () {
-      let createPackLater = true
-      if (this.curPatientVisitDetails.length <= 0) return false
+    hasVisitsToPackLater: {
+      get () {
+        let createPackLater = false
+        if (this.curPatientVisitDetails.length <= 0) return false
 
-      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-        const visitDetails = this.curPatientVisitDetails[k]
-        if (createPackLater === true) {
-          createPackLater = visitDetails.createPackLater
-        }
-      }.bind(this))
+        Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+          const visitDetails = this.curPatientVisitDetails[k]
+          if (createPackLater === false) {
+            createPackLater = visitDetails.createPackLater
+          }
+        }.bind(this))
+        return createPackLater
+      }
+    },
+    hasVisitsToPackNow: {
+      get () {
+        let createPackLater = true
+        if (this.curPatientVisitDetails.length <= 0) return false
+
+        Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+          const visitDetails = this.curPatientVisitDetails[k]
+          if (createPackLater === true) {
+            createPackLater = visitDetails.createPackLater
+          }
+        }.bind(this))
       return !createPackLater
+      }
     },
-    isNewPackStep () {
-      return this.step === 'addNewPack'
+    isNewPackStep: {
+      get () {
+        return this.step === 'addNewPack'
+      }
     },
-    isEditPackStep () {
-      return this.step === 'editPack'
+    isEditPackStep: {
+      get () {
+        return this.step === 'editPack'
+      }
     },
-    isNewPrescriptionStep () {
-      return this.curPatientVisitDetail.prescriptions[0].id === null
+    isNewPrescriptionStep: {
+      get () {
+        return this.curPatientVisitDetail.prescriptions[0].id === null
+      }
     },
-    lastPackFull () {
-      return Pack.query()
-                 .with('packagedDrugs.*')
-                 .with('patientVisitDetails')
-                 .where('patientVisitDetails_id', this.selectedVisitDetails.id)
-                 .orderBy('pickupDate', 'desc')
-                 .first()
+    lastPackFull: {
+      get () {
+        return Pack.query()
+                  .with('packagedDrugs.*')
+                  .with('patientVisitDetails')
+                  .where('patientVisitDetails_id', this.selectedVisitDetails.id)
+                  .orderBy('pickupDate', 'desc')
+                  .first()
+      }
     },
-    lastPack () {
-      return Pack.query()
-                 .withAll()
-                 .where('patientVisitDetails_id', this.curPatientVisitDetail.id)
-                 .orderBy('pickupDate', 'desc').first()
+    lastPack: {
+      get () {
+        return Pack.query()
+                  .withAll()
+                  .where('patientVisitDetails_id', this.curPatientVisitDetail.id)
+                  .orderBy('pickupDate', 'desc').first()
+      }
     },
-    curPrescription () {
-      return this.curPatientVisitDetail.prescriptions[0]
+    curPrescription: {
+      get () {
+        return this.curPatientVisitDetail.prescriptions[0]
+      }
     },
-    curPack () {
-      return this.curPatientVisitDetail.packs[0]
+    curPack: {
+      get () {
+        return this.curPatientVisitDetail.packs[0]
+      }
     },
-    curPrescriptionDetails () {
-      if (this.curPrescription === null) return null
-      return this.curPrescription.prescriptionDetails[0]
+    curPrescriptionDetails: {
+      get () {
+        if (this.curPrescription === null) return null
+        return this.curPrescription.prescriptionDetails[0]
+      }
     },
-    hasTherapeuticalRegimen () {
-      return this.checkClinicalServiceAttr('THERAPEUTICAL_REGIMEN')
+    hasTherapeuticalRegimen: {
+      get () {
+        return this.checkClinicalServiceAttr('THERAPEUTICAL_REGIMEN')
+      }
     },
-    hasTherapeuticalLine () {
-      return this.checkClinicalServiceAttr('THERAPEUTICAL_LINE')
+    hasTherapeuticalLine: {
+      get () {
+        return this.checkClinicalServiceAttr('THERAPEUTICAL_LINE')
+      }
     },
-    hasPatientType () {
-      return this.checkClinicalServiceAttr('PATIENT_TYPE')
+    hasPatientType: {
+      get () {
+        return this.checkClinicalServiceAttr('PATIENT_TYPE')
+      }
     },
-    hasPrescriptionChangeMotive () {
-      return this.checkClinicalServiceAttr('PRESCRIPTION_CHANGE_MOTIVE')
+    hasPrescriptionChangeMotive: {
+      get () {
+        return this.checkClinicalServiceAttr('PRESCRIPTION_CHANGE_MOTIVE')
+      }
     },
-    patient () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
-                            .with('province')
-                            .with('attributes')
-                            .with('appointments')
-                            .with('district')
-                            .with('postoAdministrativo')
-                            .with('bairro')
-                            .with('clinic').where('id', selectedP.id).first()
+    patient: {
+      get () {
+        const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+        return Patient.query().with('identifiers.*')
+                              .with('province')
+                              .with('attributes')
+                              .with('appointments')
+                              .with('district')
+                              .with('postoAdministrativo')
+                              .with('bairro')
+                              .with('clinic')
+                              .where('id', selectedP.id)
+                              .first()
+      }
     },
-    simplePatient () {
-      return Patient.query().where('id', this.patient.id).first()
+    simplePatient: {
+      get () {
+        return Patient.query().where('id', this.patient.id).first()
+      }
     },
-    therapeuticRegimens () {
-      return TherapeuticRegimen.query()
-                              .with('clinicalService')
-                              .has('code')
-                              .where('active', true)
-                              .where('clinical_service_id', this.selectedClinicalService.id)
-                              .get()
+    therapeuticRegimens: {
+      get () {
+        return TherapeuticRegimen.query()
+                                .with('clinicalService')
+                                .has('code')
+                                .where('active', true)
+                                .where('clinical_service_id', this.selectedClinicalService.id)
+                                .get()
+      }
     },
-    therapeuticLines () {
-      return TherapeuticLine.all()
+    therapeuticLines: {
+      get () {
+        return TherapeuticLine.all()
+      }
     },
-    doctors () {
-      return Doctor.query().where('clinic_id', this.currClinic.id)
-                   .get()
+    doctors: {
+      get () {
+        return Doctor.query().where('clinic_id', this.currClinic.id)
+                    .get()
+      }
     },
-    dispenseTypes () {
-      return DispenseType.all()
+    dispenseTypes: {
+      get () {
+        return DispenseType.all()
+      }
     },
-    durations () {
-      return Duration.all()
+    durations: {
+      get () {
+        return Duration.all()
+      }
     },
-    currClinic () {
-      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+    currClinic: {
+      get () {
+        return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+      }
     }
   },
   created () {

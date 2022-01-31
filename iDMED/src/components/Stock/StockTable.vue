@@ -102,8 +102,10 @@ export default {
     stockList () {
       return []
     },
-    drugs () {
-      return Drug.query()
+    drugs: {
+      get () {
+        console.log('getDrugs')
+        return Drug.query()
                  .with('stocks')
                  .with('packaged_drugs.pack', (query) => {
                         query.where((pack) => {
@@ -112,6 +114,7 @@ export default {
                       })
                  .orderBy('name')
                  .get()
+      }
     }
   }
 }

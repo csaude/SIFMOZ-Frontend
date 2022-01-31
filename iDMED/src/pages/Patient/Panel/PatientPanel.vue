@@ -57,9 +57,9 @@ import Episode from 'src/store/models/episode/Episode'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
-import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
-import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
+// import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
+// import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
+// import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
 // import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   setup () {
@@ -222,7 +222,7 @@ export default {
   //     }
   },
   mounted () {
-    this.loadAppParameters()
+    /* this.loadAppParameters()
     this.getAllPatientsOfClinic()
       this.getAllIdentifiersOfClinic()
       this.getAllPrescriptionOfClinic()
@@ -232,7 +232,7 @@ export default {
       this.getAlPatientVisitDetailsOfClinic()
       PackagedDrug.apiGetAll()
       PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll()
+      PrescriptionDetail.apiGetAll() */
     // this.getPatientVisits()
   },
   computed: {

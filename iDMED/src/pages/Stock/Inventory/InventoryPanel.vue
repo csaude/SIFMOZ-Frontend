@@ -21,15 +21,14 @@
                 outlined
                 disable
                 class="col q-ma-sm"
-                v-model="currInventory.startDate"
-                mask="date"
+                v-model="startDate"
                 ref="dateReceived"
                 :rules="['date']"
                 label="Data de Abertura">
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="currInventory.startDate" >
+                        <q-date v-model="startDate" mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -40,14 +39,15 @@
             </q-input>
             <q-separator class="q-mx-sm"/>
             <div class="row q-pa-sm">
-              <q-btn unelevated color="blue" class="col" label="Voltar" />
-              <q-space />
+              <q-btn unelevated color="blue" class="col" label="Voltar" @click="goBack"/>
+              <q-space v-if="currInventory.open"/>
               <q-btn
+                v-if="currInventory.open"
                 unelevated
                 color="red"
                 class="q-ml-md col"
                 @click="initInventoryClosure()"
-                label="Fechar" />
+                label="Fechar Inventário" />
             </div>
           </div>
         </div>
@@ -56,6 +56,7 @@
           <span
             v-for="drug in drugs" :key="drug.id" >
             <AdjustmentTable
+              v-if="drug.stocks.length > 0"
               :drug="drug"
               :inventory="currInventory" />
           </span>
@@ -73,9 +74,13 @@
 <script>
 import Drug from '../../../store/models/drug/Drug'
 import { ref } from 'vue'
-import { date, SessionStorage } from 'quasar'
+import { date, QSpinnerBall, SessionStorage } from 'quasar'
 import Inventory from '../../../store/models/stockinventory/Inventory'
 import Clinic from '../../../store/models/clinic/Clinic'
+import { InventoryStockAdjustment } from '../../../store/models/stockadjustment/InventoryStockAdjustment'
+import Stock from '../../../store/models/stock/Stock'
+import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
+import moment from 'moment'
 
 export default {
   data () {
@@ -87,26 +92,121 @@ export default {
       }),
       dialogTitle: 'Informação',
       adjustments: ref([]),
-      step: 'display'
+      step: 'display',
+      processedAdjustments: []
     }
   },
   methods: {
+    goBack () {
+      this.$router.go(-1)
+    },
     initInventoryClosure () {
       this.dialogTitle = 'Confirmação do fecho do inventário.'
       this.displayAlert('confirmation', 'Nota: Ao encerrar o presente inventário o stock será actualizado para os dados informados e está operação não poderá ser desfeita. Continuar?')
     },
     closeInventory () {
+      this.$q.loading.show({
+        message: 'A fechar inventário ...',
+        spinnerColor: 'grey-4',
+        spinner: QSpinnerBall
+        // delay: 400 // ms
+      })
+
+      setTimeout(() => {
+        this.$q.loading.hide()
+      }, 800)
       console.log('close invenctory')
-      Inventory.apiClose(this.currInventory.id).then(resp => {
-        this.step = 'display'
-        this.fecthInventory()
+      Inventory.apiFetchById(this.currInventory.id).then(resp => {
+        this.doProcessAndClose()
       })
     },
-    fecthInventory () {
-      Inventory.apiFetchById(this.currInventory.id)
+    doProcessAndClose () {
+      const inventory = Inventory.query()
+                                 .with('adjustments.*')
+                                 .with('clinic.province')
+                                 .where('id', this.currInventory.id)
+                                 .first()
+      inventory.endDate = new Date()
+      inventory.open = false
+      console.log(inventory)
+      inventory.adjustments.forEach((adjustment) => {
+        this.processAdjustment(adjustment, inventory)
+      })
+      this.doSaveAdjustment(0)
+      Inventory.apiUpdate(inventory).then(resp => {
+        this.step = 'display'
+        this.getAllStockOfClinic()
+        Drug.apiGetAll(0, 200)
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+      }).catch(error => {
+          const listErrors = []
+          if (error !== undefined && error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+      })
+    },
+    doSaveAdjustment (i) {
+      if (this.processAdjustment[i] !== undefined) {
+        InventoryStockAdjustment.apiUpdate(this.processAdjustment[i]).then(resp => {
+          i = i + 1
+          setTimeout(this.doSaveAdjustment(i), 2)
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', listErrors)
+          })
+      }
+    },
+    processAdjustment (adjustment, inventory) {
+      const iv = Object.assign({}, inventory)
+      iv.adjustments = []
+      adjustment.inventory = iv
+      adjustment.clinic = this.currClinic
+      adjustment.finalised = true
+      adjustment.adjustedStock = Stock.query()
+                                      .with('entrance.clinic.province')
+                                      .with('drug.form')
+                                      .with('center.clinic.province')
+                                      .with('clinic.province')
+                                      .where('id', adjustment.adjustedStock.id)
+                                      .first()
+      adjustment.adjustedStock.stockMoviment = adjustment.balance
+      this.processedAdjustments.push(adjustment)
     },
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
+    },
+    getAllStockOfClinic () {
+      const offset = 0
+      const max = 100
+      this.doStockEntranceGet(this.clinic.id, offset, max)
+    },
+    doStockEntranceGet (clinicId, offset, max) {
+      StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+            if (resp.response.data.length > 0) {
+              offset = offset + max
+              setTimeout(this.doStockEntranceGet(clinicId, offset, max), 2)
+            }
+        }).catch(error => {
+            console.log(error)
+        })
     },
     getDrugs () {
       if (this.currInventory.generic) {
@@ -144,11 +244,23 @@ export default {
         })
         if (isNewDrug) drugList.push(drug)
       }
+    },
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
     }
   },
   computed: {
-    expireDate: {
-
+    startDate: {
+      get () {
+        return this.getDDMMYYYFromJSDate(this.currInventory.startDate)
+      },
+      set (value) {
+        this.currInventory.startDate = value
+      }
     },
     isDisplayStep () {
       return this.step === 'display'

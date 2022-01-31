@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Form from '../form/Form'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
+import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
 import Stock from '../stock/Stock'
 // import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 
@@ -24,6 +25,7 @@ export default class Drug extends Model {
       form: this.belongsTo(Form, 'form_id'),
      // therapeutic_regimens: this.hasMany(TherapeuticRegimen, 'drug_id'),
       packaged_drugs: this.hasMany(PackagedDrug, 'drug_id'),
+      packagedDrugStocks: this.hasMany(PackagedDrugStock, 'drug_id'),
       stocks: this.hasMany(Stock, 'drug_id')
     }
   }
@@ -43,7 +45,7 @@ export default class Drug extends Model {
     Object.keys(this.packaged_drugs).forEach(function (i) {
       qtyConsumed = qtyConsumed + this.packaged_drugs[i].quantitySupplied
     }.bind(this))
-    return Number(qtyConsumed / 3)
+    return Math.round(Number(qtyConsumed / 3))
   }
 
   getConsuptionState () {

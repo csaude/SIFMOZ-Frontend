@@ -76,6 +76,7 @@ import { ref } from 'vue'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import Duration from '../../../store/models/Duration/Duration'
 import Prescription from '../../../store/models/prescription/Prescription'
+import Stock from '../../../store/models/stock/Stock'
 const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
@@ -118,22 +119,43 @@ export default {
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
     },
     addPrescribedDrug (prescribedDrug) {
-      let preferedId = ''
-      if (this.prescribedDrugs.length > 0) {
-        Object.keys(this.prescribedDrugs).forEach(function (k) {
-          const pd = this.prescribedDrugs[k]
-          if (prescribedDrug === '' && (pd.drug.id === prescribedDrug.drug.id)) {
-            preferedId = pd
-          }
-        }.bind(this))
-      }
-      if (preferedId === '') {
-        this.showAddEditDrug = false
-        if (!this.visitDetails.createPackLater) prescribedDrug.nextPickUpDate = this.nextPUpDate
-        this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
-        this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+      const prescribedDrugExists = this.prescribedDrugs.some((item) => {
+        return item.drug.id === prescribedDrug.drug.id
+      })
+      if (!prescribedDrugExists) {
+        const hasStock = this.checkStock(prescribedDrug)
+        if (hasStock) {
+          this.showAddEditDrug = false
+          if (!this.visitDetails.createPackLater) prescribedDrug.nextPickUpDate = this.nextPUpDate
+          this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
+          this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+        } else {
+          this.displayAlert('error', 'O medicamento seleccionado não possui stock suficinete para dispensar.')
+        }
       } else {
         this.displayAlert('error', 'Não pode adicionar o medicamento seleccionado, pois ja existe na lista dos medicamentos prescritos.')
+      }
+    },
+    checkStock (prescribedDrug) {
+      let qtyInStock = 0
+      const qtyPrescribed = prescribedDrug.getQtyPrescribed(this.drugsDuration)
+      const stocks = Stock.query()
+                          .where('drug_id', prescribedDrug.drug.id)
+                          .get()
+      const validStock = stocks.filter((item) => {
+        return new Date(item.expireDate) > new Date()
+      })
+      if (validStock.length <= 0) {
+        return false
+      } else {
+        validStock.forEach((item) => {
+          qtyInStock = Number(qtyInStock + item.stockMoviment)
+        })
+        if (qtyInStock < qtyPrescribed) {
+          return false
+        } else {
+          return true
+        }
       }
     },
     displayAlert (type, msg) {
@@ -162,33 +184,42 @@ export default {
     this.init()
   },
   computed: {
-    duration () {
-      if (this.isEditPackStep) {
-        return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
-      } else {
-        return Duration.query()
-                       .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
-                       .first()
+    duration: {
+      get () {
+        if (this.isEditPackStep) {
+          return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
+        } else {
+          return Duration.query()
+                        .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
+                        .first()
+        }
       }
     },
-    newPickUpDate () {
-      // if (this.lastPack === null) return ''
-      if (this.isNewPrescriptionStep || this.lastPack === null) {
-        return this.currPrescription.prescriptionDate
-      } else if (this.isEditPackStep) {
-        return this.lastPack.pickupDate
-      } else {
-        return this.lastPack.nextPickUpDate
+    newPickUpDate: {
+      get () {
+        if (this.isNewPrescriptionStep || this.lastPack === null) {
+          return this.currPrescription.prescriptionDate
+        } else if (this.isEditPackStep) {
+          return this.lastPack.pickupDate
+        } else {
+          return this.lastPack.nextPickUpDate
+        }
       }
     },
-    isEditPackStep () {
-      return this.step === 'editPack'
+    isEditPackStep: {
+      get () {
+        return this.step === 'editPack'
+      }
     },
-    isNewPackStep () {
-      return this.step === 'addNewPack'
+    isNewPackStep: {
+      get () {
+        return this.step === 'addNewPack'
+      }
     },
-    isNewPrescriptionStep () {
-      return this.currPrescription.id === null
+    isNewPrescriptionStep: {
+      get () {
+        return this.currPrescription.id === null
+      }
     }
   },
   created () {

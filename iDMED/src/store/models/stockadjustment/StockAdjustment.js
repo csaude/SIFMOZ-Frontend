@@ -22,8 +22,9 @@ export class StockAdjustment extends Model {
             notes: this.attr(''),
             stockTake: this.number(0),
             adjustedValue: this.number(0),
+            balance: this.number(0),
             captureDate: this.attr(''),
-            finalized: this.boolean(false),
+            finalised: this.boolean(false),
             adjusted_stock_id: this.attr(null),
             operation_id: this.attr(null),
             clinic_id: this.attr(''),
@@ -33,5 +34,9 @@ export class StockAdjustment extends Model {
             adjustedStock: this.belongsTo(Stock, 'adjusted_stock_id'),
             operation: this.belongsTo(StockOperationType, 'operation_id')
         }
+    }
+
+    isPosetiveAdjustment () {
+      return this.operation.code === 'AJUSTE_POSETIVO'
     }
 }

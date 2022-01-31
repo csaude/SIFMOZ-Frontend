@@ -63,6 +63,7 @@ import InteroperbilityAttribute from './models/interoperabilityAttribute/Interop
 import InteroperabilityType from './models/interoperabilityType/InteroperabilityType'
 import ClinicalServiceSector from './models/ClinicalServiceClinicSector/ClinicalServiceSector'
 import DispenseMode from './models/dispenseMode/DispenseMode'
+import PackagedDrugStock from './models/packagedDrug/PackagedDrugStock'
 
 // Vue.use(Vuex)
 
@@ -139,6 +140,7 @@ database.register(HealthInformationSystem)
 database.register(InteroperbilityAttribute)
 database.register(InteroperabilityType)
 database.register(ClinicalServiceSector)
+database.register(PackagedDrugStock)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
