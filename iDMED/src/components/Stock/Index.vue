@@ -44,6 +44,7 @@
 
 <script>
 import { ref } from 'vue'
+import StockEntrance from '../../store/models/stockentrance/StockEntrance'
 
 export default {
   data () {
@@ -60,6 +61,22 @@ export default {
       } else {
         this.createInventory = true
       }
+    },
+    getAllStockOfClinic () {
+      const offset = 0
+      const max = 100
+      this.doStockEntranceGet(this.clinic.id, offset, max)
+    },
+    doStockEntranceGet (clinicId, offset, max) {
+      StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+        console.log(resp.response.data)
+            if (resp.response.data.length > 0) {
+              offset = offset + max
+              setTimeout(this.doStockEntranceGet(clinicId, offset, max), 2)
+            }
+        }).catch(error => {
+            console.log(error)
+        })
     }
   },
   components: {

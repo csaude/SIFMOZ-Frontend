@@ -22,14 +22,11 @@
                           outlined
                           class="col q-ml-md"
                           v-model="dateReceived"
-                          mask="date"
-                          ref="dateReceived"
-                          :rules="['date']"
                           label="Data de Criação *">
                           <template v-slot:append>
                               <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                  <q-date v-model="dateReceived" >
+                                  <q-date v-model="dateReceived" mask="DD-MM-YYYY" >
                                   <div class="row items-center justify-end">
                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                   </div>
@@ -53,23 +50,32 @@
 import { date, SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import Clinic from '../../../store/models/clinic/Clinic'
+import moment from 'moment'
 export default {
   data () {
     return {
-      stockEntrance: new StockEntrance()
+      stockEntrance: new StockEntrance(),
+      dateReceived: ''
     }
   },
   components: {
     TextInput: require('components/Shared/Input/TextField.vue').default
   },
   methods: {
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
+    },
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
     },
     async submitForm () {
-      this.$refs.dateReceived.validate()
+      this.stockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
       this.$refs.orderNumber.$refs.ref.validate()
-      if (!this.$refs.orderNumber.$refs.ref.hasError && date.isValid(this.stockEntrance.dateReceived)) {
+      if (!this.$refs.orderNumber.$refs.ref.hasError) {
         this.stockEntrance.clinic = this.currClinic
         await StockEntrance.apiSave(this.stockEntrance).then(resp => {
         SessionStorage.set('currStockEntrance', resp.response.data)
@@ -92,14 +98,6 @@ export default {
     }
   },
   computed: {
-    dateReceived: {
-      get () {
-        return this.formatDate(this.stockEntrance.dateReceived)
-      },
-      set (value) {
-        this.stockEntrance.dateReceived = new Date(value)
-      }
-    },
     currClinic () {
       return Clinic.query()
                   .with('province')

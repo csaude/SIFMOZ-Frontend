@@ -63,7 +63,7 @@ export default class Inventory extends Model {
     }
 
     static async apiUpdate (inventory) {
-      return await this.api().patch('/inventory', inventory)
+      return await this.api().post('/inventory', inventory)
     }
 
     static async apiClose (id) {

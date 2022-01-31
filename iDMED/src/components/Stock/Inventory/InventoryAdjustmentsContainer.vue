@@ -49,12 +49,26 @@
                         class="col" />
                     </q-td>
                     <q-td key="expireDate" :props="props">
-                      <TextInput
-                        v-bind:val="props.row.adjustedStock.getFormatedExpireDate()"
-                        disable
-                        label="Lote"
+                      <q-input
                         dense
-                        class="col" />
+                        outlined
+                        disable
+                        class="col"
+                        v-model="props.row.adjustedStock.auxExpireDate"
+                        ref="reOpenDate"
+                        label="Data de Validade">
+                        <template v-slot:append>
+                            <q-icon name="event" class="cursor-pointer">
+                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                <q-date v-model="reOpenDate" mask="DD-MM-YYYY" >
+                                <div class="row items-center justify-end">
+                                    <q-btn v-close-popup label="Close" color="primary" flat />
+                                </div>
+                                </q-date>
+                            </q-popup-proxy>
+                            </q-icon>
+                        </template>
+                      </q-input>
                     </q-td>
                     <q-td key="currQty" :props="props">
                       <div class="row">
@@ -72,10 +86,11 @@
                           class="col q-ml-sm" />
                       </div>
                     </q-td>
-                      <q-td key="adjustedValue" :props="props">
+                      <q-td key="balance" :props="props">
                       <div class="row">
                         <TextInput
-                          v-model="props.row.adjustedValue"
+                          v-model="props.row.balance"
+                          :disable="!inventory.open"
                           @update:model-value="changeStepToEdition()"
                           label="Quantidade"
                           dense
@@ -91,6 +106,7 @@
                     <q-td key="notes" :props="props">
                       <TextInput
                         v-model="props.row.notes"
+                        :disable="!inventory.open"
                         @update:model-value="changeStepToEdition()"
                         label="Notas"
                         dense
@@ -116,12 +132,13 @@ import { date, SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
+import moment from 'moment'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
   { name: 'batchNumber', align: 'center', label: 'Lote', sortable: true },
   { name: 'expireDate', align: 'center', label: 'Data de Validade', sortable: false },
   { name: 'currQty', align: 'center', label: 'Saldo Actual', sortable: true },
-  { name: 'adjustedValue', align: 'center', label: 'Quantidade Contada', sortable: true },
+  { name: 'balance', align: 'center', label: 'Quantidade Contada', sortable: true },
   { name: 'notes', align: 'center', label: 'Notas', sortable: false }
 ]
 export default {
@@ -144,10 +161,12 @@ export default {
     },
     init () {
       let i = 1
-      Object.keys(this.drug.stocks).forEach(function (k) {
-        this.initNewAdjustment(this.drug.stocks[k], this.drug, i)
-        i = i + 1
-      }.bind(this))
+       if (this.drug.stocks.length > 0) {
+          Object.keys(this.drug.stocks).forEach(function (k) {
+            this.initNewAdjustment(this.drug.stocks[k], this.drug, i)
+            i = i + 1
+          }.bind(this))
+       }
     },
     initNewAdjustment (stock, drug, i) {
       let newAdjustment = null
@@ -174,6 +193,7 @@ export default {
                                           .with('center.clinic.province')
                                           .where('id', stock.id)
                                           .first()
+      newAdjustment.adjustedStock.auxExpireDate = this.getDDMMYYYFromJSDate(newAdjustment.adjustedStock.expireDate)
       newAdjustment.adjustedStock.drug = drug
       this.adjustments.push(newAdjustment)
     },
@@ -181,13 +201,18 @@ export default {
       Object.keys(this.adjustments).forEach(function (k) {
         const adjustment = this.adjustments[k]
         let operation = null
-        if (adjustment.adjustedValue > adjustment.adjustedStock.stockMoviment) {
+        if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
           operation = StockOperationType.query().where('code', 'AJUSTE_POSETIVO').first()
-        } else if (adjustment.adjustedValue < adjustment.adjustedStock.stockMoviment) {
+        } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
           operation = StockOperationType.query().where('code', 'AJUSTE_NEGATIVO').first()
         }
         this.adjustments[k].captureDate = new Date()
         this.adjustments[k].operation = operation
+        if (this.adjustments[k].isPosetiveAdjustment()) {
+          this.adjustments[k].adjustedValue = Number(this.adjustments[k].balance - this.adjustments[k].adjustedStock.stockMoviment)
+        } else {
+          this.adjustments[k].adjustedValue = Number(this.adjustments[k].adjustedStock.stockMoviment - this.adjustments[k].balance)
+        }
       }.bind(this))
       this.doSave(0)
       this.step = 'display'
@@ -225,6 +250,13 @@ export default {
     },
     closeDialog () {
       this.alert.visible = false
+    },
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
     }
   },
   mounted () {

@@ -44,7 +44,7 @@
             <template #body="props">
               <q-tr :props="props">
                 <q-td key="eventDate" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <q-input
                         dense
                         outlined
@@ -69,7 +69,7 @@
                   <span v-else>{{formatDate(props.row.eventDate)}}</span>
                 </q-td>
                 <q-td key="moviment" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.moviment"
                       label="Tipo de Movimento"
@@ -79,7 +79,7 @@
                   <span v-else>{{props.row.moviment}}</span>
                 </q-td>
                 <q-td key="orderNumber" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.orderNumber"
                       :disable="isLossAdjustment"
@@ -90,7 +90,7 @@
                   <span v-else>{{props.row.orderNumber}}</span>
                 </q-td>
                 <q-td key="incomes" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.incomes"
                       disable
@@ -101,7 +101,7 @@
                   <span v-else>{{props.row.incomes}}</span>
                 </q-td>
                 <q-td key="outcomes" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.outcomes"
                       disable
@@ -112,7 +112,7 @@
                   <span v-else>{{props.row.outcomes}}</span>
                 </q-td>
                 <q-td key="posetiveAdjustment" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.posetiveAdjustment"
                       :disable="!isPosetiveAdjustment"
@@ -123,7 +123,7 @@
                   <span v-else>{{props.row.posetiveAdjustment}}</span>
                 </q-td>
                 <q-td key="negativeAdjustment" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.negativeAdjustment"
                       :disable="!isNegativeAdjustment"
@@ -134,7 +134,7 @@
                   <span v-else>{{props.row.negativeAdjustment}}</span>
                 </q-td>
                 <q-td key="loses" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.loses"
                       :disable="!isLossAdjustment"
@@ -145,7 +145,7 @@
                   <span v-else>{{props.row.loses}}</span>
                 </q-td>
                 <q-td key="balance" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.balance"
                       disable
@@ -156,7 +156,7 @@
                   <span v-else>{{props.row.balance}}</span>
                 </q-td>
                 <q-td key="notes" :props="props">
-                  <span v-if="props.row.id === null">
+                  <span v-if="props.row.id === null && !isDisplayStep">
                     <TextInput
                       v-model="props.row.notes"
                       label="Notas"
@@ -271,18 +271,18 @@ export default {
         adjustment.clinic = this.currClinic
         adjustment.notes = this.curEvent.notes
         adjustment.captureDate = new Date(this.curEvent.eventDate)
-        adjustment.finalized = true
+        adjustment.finalised = true
         if (this.isPosetiveAdjustment) {
           adjustment.adjustedStock.stockMoviment = Number(adjustment.adjustedStock.stockMoviment + adjustment.adjustedValue)
         } else {
           adjustment.adjustedStock.stockMoviment = Number(adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue)
         }
+        adjustment.balance = adjustment.adjustedStock.stockMoviment
+        this.curEvent.balance = adjustment.balance
         this.doSave(reference, destruction)
       }
     },
     doSave (reference, destruction) {
-      console.log(reference)
-      console.log(destruction)
       if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
         ReferedStockMoviment.apiSave(reference).then(resp => {
           this.updateRelatedStock(reference.adjustments[0].adjustedStock)
@@ -351,14 +351,14 @@ export default {
             id: null,
             eventDate: '',
             moviment: '',
-            orderNumber: '',
-            incomes: '',
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
+            orderNumber: '-',
+            incomes: '-',
+            outcomes: '-',
+            posetiveAdjustment: '-',
+            negativeAdjustment: '-',
+            loses: '-',
             balance: '',
-            notes: ''
+            notes: '-'
           }
           console.log(event)
       this.curEvent = event
@@ -388,52 +388,52 @@ export default {
       })
     },
     loadRelatedAdjustments (adjustment, stock) {
-      const event = {
-            id: '',
-            eventDate: '',
-            moviment: '',
-            orderNumber: '',
-            incomes: '',
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
-            balance: stock.stockMoviment,
-            notes: ''
+      if (adjustment.finalised) {
+        const event = {
+              id: '',
+              eventDate: '',
+              moviment: '',
+              orderNumber: '-',
+              incomes: '-',
+              outcomes: '-',
+              posetiveAdjustment: '-',
+              negativeAdjustment: '-',
+              loses: '-',
+              balance: adjustment.balance,
+              notes: '-'
+            }
+        if (adjustment.type === 'STOCKDESTRUCTIONADJUSTMENT') {
+          adjustment.destruction = DestroyedStock.find(adjustment.destruction_id)
+          event.id = adjustment.destruction.id
+          event.eventDate = adjustment.captureDate
+          event.moviment = adjustment.destruction.notes
+          event.loses = adjustment.adjustedValue
+        } else if (adjustment.type === 'STOCKREFERENCEADJUSTMENT') {
+          adjustment.reference = ReferedStockMoviment.find(adjustment.reference_id)
+          event.id = adjustment.reference.id
+          event.eventDate = adjustment.reference.date
+          event.moviment = adjustment.reference.origin
+          event.orderNumber = adjustment.reference.orderNumber
+          if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+            event.posetiveAdjustment = adjustment.adjustedValue
+          } else {
+            event.negativeAdjustment = adjustment.adjustedValue
           }
-      if (adjustment.type === 'STOCKDESTRUCTIONADJUSTMENT') {
-        adjustment.destruction = DestroyedStock.find(adjustment.destruction_id)
-        event.id = adjustment.destruction.id
-        event.eventDate = adjustment.captureDate
-        event.moviment = adjustment.destruction.notes
-        event.outcomes = adjustment.adjustedValue
-        event.loses = adjustment.adjustedValue
-      } else if (adjustment.type === 'STOCKREFERENCEADJUSTMENT') {
-        adjustment.reference = ReferedStockMoviment.find(adjustment.reference_id)
-        event.id = adjustment.reference.id
-        event.eventDate = adjustment.reference.date
-        event.moviment = adjustment.reference.origin
-        event.orderNumber = adjustment.reference.orderNumber
-        if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
-          event.posetiveAdjustment = adjustment.adjustedValue
-        } else {
-          event.negativeAdjustment = adjustment.adjustedValue
-          event.outcomes = adjustment.adjustedValue
+        } else if (adjustment.type === 'INVENTORYSTOCKADJUSTMENT') {
+          adjustment.inventory = Inventory.find(adjustment.inventory_id)
+          event.id = adjustment.inventory.id
+          event.eventDate = adjustment.inventory.startDate
+          event.moviment = 'Inventário'
+          if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+            event.posetiveAdjustment = adjustment.adjustedValue
+          } else {
+            event.negativeAdjustment = adjustment.adjustedValue
+            event.outcomes = adjustment.adjustedValue
+          }
         }
-      } else if (adjustment.type === 'INVENTORYSTOCKADJUSTMENT') {
-        adjustment.inventory = Inventory.find(adjustment.inventory_id)
-        event.id = adjustment.inventory.id
-        event.eventDate = adjustment.inventory.startDate
-        event.moviment = 'Inventário'
-        if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
-          event.posetiveAdjustment = adjustment.adjustedValue
-        } else {
-          event.negativeAdjustment = adjustment.adjustedValue
-          event.outcomes = adjustment.adjustedValue
-        }
+        event.notes = adjustment.notes
+        this.drugEventList.push(event)
       }
-      event.notes = adjustment.notes
-      this.drugEventList.push(event)
     },
     loadRelatedEntrance (entrance, stock) {
       const event = {
@@ -442,12 +442,12 @@ export default {
             moviment: stock.center.name,
             orderNumber: entrance.orderNumber,
             incomes: stock.unitsReceived,
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
+            outcomes: '-',
+            posetiveAdjustment: '-',
+            negativeAdjustment: '-',
+            loses: '-',
             balance: stock.unitsReceived,
-            notes: ''
+            notes: '-'
           }
       this.drugEventList.push(event)
     },

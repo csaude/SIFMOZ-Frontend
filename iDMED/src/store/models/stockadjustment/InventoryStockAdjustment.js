@@ -24,7 +24,7 @@ export class InventoryStockAdjustment extends StockAdjustment {
     }
 
     static async apiUpdate (adjustment) {
-      return await this.api().patch('/inventoryStockAdjustment', adjustment)
+      return await this.api().post('/inventoryStockAdjustment', adjustment)
     }
 
     static async apiGetAll () {
