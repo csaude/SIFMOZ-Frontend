@@ -318,12 +318,11 @@ export default {
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
-
-      console.log(stock)
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         stock.enabled = false
         this.step = 'display'
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
       }).catch(error => {
           const listErrors = []
           if (error.request.response != null) {

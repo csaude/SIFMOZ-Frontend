@@ -23,7 +23,6 @@
                 class="col q-ma-sm"
                 v-model="startDate"
                 ref="dateReceived"
-                :rules="['date']"
                 label="Data de Abertura">
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
@@ -56,7 +55,6 @@
           <span
             v-for="drug in drugs" :key="drug.id" >
             <AdjustmentTable
-              v-if="drug.stocks.length > 0"
               :drug="drug"
               :inventory="currInventory" />
           </span>
@@ -128,50 +126,28 @@ export default {
                                  .first()
       inventory.endDate = new Date()
       inventory.open = false
-      console.log(inventory)
       inventory.adjustments.forEach((adjustment) => {
         this.processAdjustment(adjustment, inventory)
       })
       this.doSaveAdjustment(0)
+      console.log(inventory)
+      console.log(this.currInventory)
       Inventory.apiUpdate(inventory).then(resp => {
         this.step = 'display'
-        this.getAllStockOfClinic()
+        this.currInventory.open = false
+        Inventory.apiFetchById(this.currInventory.id)
+        this.getAllStockOfClinic(this.currClinic.id)
+        Stock.apiGetAll()
         Drug.apiGetAll(0, 200)
         this.displayAlert('info', 'Operação efectuada com sucesso.')
-      }).catch(error => {
-          const listErrors = []
-          if (error !== undefined && error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
-            }
-          }
-          this.displayAlert('error', listErrors)
       })
     },
     doSaveAdjustment (i) {
-      if (this.processAdjustment[i] !== undefined) {
+      if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
         InventoryStockAdjustment.apiUpdate(this.processAdjustment[i]).then(resp => {
           i = i + 1
           setTimeout(this.doSaveAdjustment(i), 2)
-        }).catch(error => {
-            const listErrors = []
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response)
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message)
-              } else {
-                arrayErrors._embedded.errors.forEach(element => {
-                  listErrors.push(element.message)
-                })
-              }
-            }
-            this.displayAlert('error', listErrors)
-          })
+        })
       }
     },
     processAdjustment (adjustment, inventory) {
@@ -185,7 +161,7 @@ export default {
                                       .with('drug.form')
                                       .with('center.clinic.province')
                                       .with('clinic.province')
-                                      .where('id', adjustment.adjustedStock.id)
+                                      .where('id', adjustment.adjusted_stock_id)
                                       .first()
       adjustment.adjustedStock.stockMoviment = adjustment.balance
       this.processedAdjustments.push(adjustment)
@@ -196,7 +172,7 @@ export default {
     getAllStockOfClinic () {
       const offset = 0
       const max = 100
-      this.doStockEntranceGet(this.clinic.id, offset, max)
+      this.doStockEntranceGet(this.currClinic.id, offset, max)
     },
     doStockEntranceGet (clinicId, offset, max) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -229,6 +205,12 @@ export default {
     },
     retriveRelatedDrug (adjustment, drugList) {
       let isNewDrug = true
+      console.log(adjustment)
+      if (adjustment.adjustedStock === null) {
+        adjustment.adjustedStock = Stock.query()
+                                        .where('id', adjustment.adjusted_stock_id)
+                                        .first()
+      }
       const drug = Drug.query()
                       .with('stocks')
                       .with('form')
@@ -280,21 +262,30 @@ export default {
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
       return Inventory.query()
-                          .with('clinic.province')
-                          .with('adjustments.adjustedStock')
-                          .where('id', e.id)
-                          .first()
+                      .with('clinic.province')
+                      .with('adjustments.adjustedStock')
+                      .where('id', e.id)
+                      .first()
     },
     drugs () {
       if (this.currInventory.generic) {
         return Drug.query()
                    .with('stocks')
                    .with('form')
+                   .has('stocks')
                    .where('active', true)
                    .get()
       } else {
         const drugList = []
+        console.log(this.currInventory)
         Object.keys(this.currInventory.adjustments).forEach(function (i) {
+          this.currInventory.adjustments[i].adjustedStock = Stock.query()
+                                                                 .with('drug.form')
+                                                                 .with('center.clinic')
+                                                                 .with('entrance.clinic')
+                                                                 .where('id', this.currInventory.adjustments[i].adjusted_stock_id)
+                                                                 .first()
+          console.log(this.currInventory.adjustments[i])
           this.retriveRelatedDrug(this.currInventory.adjustments[i], drugList)
         }.bind(this))
         return drugList

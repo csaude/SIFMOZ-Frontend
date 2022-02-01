@@ -157,6 +157,7 @@ export default {
       this.currInventory.clinic = this.currClinic
       await Inventory.apiSave(this.currInventory).then(resp => {
         SessionStorage.set('currInventory', resp.response.data)
+        Inventory.apiFetchById(resp.response.data.id)
         this.$router.push('/stock/inventory')
       }).catch(error => {
           const listErrors = []
