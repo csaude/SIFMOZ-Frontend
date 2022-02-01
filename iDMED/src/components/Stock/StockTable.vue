@@ -53,7 +53,7 @@
                   {{props.row.getCurStockAmount()}}
                 </q-td>
                 <q-td key="state" :props="props">
-                  <q-chip color="primary" text-color="white">
+                  <q-chip :color="props.row.getConsuptionRelatedColor()" text-color="white">
                     {{props.row.getConsuptionState()}}
                   </q-chip>
                 </q-td>
@@ -104,7 +104,6 @@ export default {
     },
     drugs: {
       get () {
-        console.log('getDrugs')
         return Drug.query()
                  .with('stocks')
                  .with('packaged_drugs.pack', (query) => {

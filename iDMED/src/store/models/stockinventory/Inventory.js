@@ -78,6 +78,10 @@ export default class Inventory extends Model {
       return await this.api().get('/inventory/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
     }
 
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/inventory?offset=' + offset + '&max=' + max)
+    }
+
     static async apiFetchById (id) {
       return await this.api().get(`/inventory/${id}`)
     }

@@ -49,7 +49,35 @@ export default class Drug extends Model {
   }
 
   getConsuptionState () {
-    return 'Acima do Consumo'
+    const currStock = this.getCurStockAmount()
+    const quantityDispensed = this.getQuantityDispensed()
+    if (quantityDispensed > currStock) {
+      return 'Ruptura de Stock'
+    } else if (quantityDispensed < currStock) {
+      return 'Acima do Consumo Máximo'
+    } else {
+      return 'Stock Normal'
+    }
+  }
+
+  getConsuptionRelatedColor () {
+    const currStock = this.getCurStockAmount()
+    const quantityDispensed = this.getQuantityDispensed()
+    if (quantityDispensed > currStock) {
+      return 'red'
+    } else if (quantityDispensed < currStock) {
+      return 'info'
+    } else {
+      return 'primary'
+    }
+  }
+
+  getQuantityDispensed () {
+    let quantityDispensed = 0
+    this.packaged_drugs.forEach((item) => {
+      quantityDispensed = quantityDispensed + item.quantitySupplied
+    })
+    return quantityDispensed
   }
 
   static async apiGetAll (offset, max) {
