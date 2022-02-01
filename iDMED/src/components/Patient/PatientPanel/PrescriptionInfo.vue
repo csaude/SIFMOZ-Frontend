@@ -1,17 +1,17 @@
 <template>
 <div>
-  <ListHeader
+  <ListHeader v-if="flagGo"
     :addVisible="showAddButton"
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="selectedPatient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
+  <EmptyList v-if="selectedPatient.identifiers.length <= 0 && flagGo" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-show="infoVisible" >
     <span
       v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
-      <PrescriptionInfoContainer
+      <PrescriptionInfoContainer v-if="flagGo"
         :identifier="identifier"
         @addNewPack="addNewPack"
         @editPack="editPack"/>
@@ -19,7 +19,7 @@
   </div>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
-      <AddEditPrescription
+      <AddEditPrescription  v-if="flagGo"
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
         :step="step"
@@ -31,6 +31,9 @@
 <script>
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
+import Episode from '../../../store/models/episode/Episode'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import Pack from '../../../store/models/packaging/Pack'
 export default {
   props: ['selectedPatient'],
   data () {
@@ -38,19 +41,25 @@ export default {
       showAddPrescription: false,
       infoVisible: true,
       selectedVisitDetails: '',
-      step: ''
+      step: '',
+      flagGo: false
     }
   },
   methods: {
     init () {
-      /*
-      if (this.selectedPatient !== null) {
-        console.log('Paciente ainda bem carregado')
-      } else {
-        alert('rdtrfyhijik')
-        Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
-      } */
-      console.log(this.selectedPatient)
+      this.identifiers.forEach(identifier => {
+        Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+          resp.response.data.forEach(episode => {
+            PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
+              resp.response.data.forEach(patientVisitDetails => {
+                Pack.apiGetAllByPatientVisitDetailsId(patientVisitDetails.id).then(resp => {
+                  this.flagGo = true
+                })
+              })
+            })
+          })
+        })
+      })
     },
     expandLess (value) {
       this.infoVisible = value
@@ -69,9 +78,14 @@ export default {
   created () {
     this.init()
   },
+  mounted () {
+  },
   computed: {
     showAddButton () {
       return this.patientHasEpisodes
+    },
+    identifiers () {
+      return this.selectedPatient.identifiers
     },
     patient: {
       get () {

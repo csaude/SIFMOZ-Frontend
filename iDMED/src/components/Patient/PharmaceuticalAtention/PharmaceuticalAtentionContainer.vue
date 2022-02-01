@@ -154,6 +154,9 @@ export default {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default
   },
   methods: {
+    init () {
+      PatientVisit.apiFetchById(this.selectedPatientVisit.id)
+    },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {
         this.isPatientActive = true
@@ -234,6 +237,7 @@ export default {
     }
   },
   created () {
+    this.init()
   }
 }
 </script>

@@ -46,7 +46,6 @@ export default {
       }
     },
     mounted () {
-      console.log(this.clinic)
       // this.getAllPatientsOfClinic()
     },
     computed: {

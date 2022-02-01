@@ -87,9 +87,6 @@ export default {
   created () {
   },
   mounted () {
-    console.log('Viva ClinicServiceInfo.vue')
-    console.log(this.selectedPatient)
-    console.log(this.identifiers)
   },
   computed: {
     clinicServiceInfoVisible () {

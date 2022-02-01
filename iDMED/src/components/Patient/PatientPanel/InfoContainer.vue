@@ -99,14 +99,8 @@ export default {
   },
   methods: {
     init () {
-      ClinicalService.apiFetchById(this.curIdentifier.service.id).then(resp => {
-          console.log('Recarrregamento do service')
-          console.log(resp.response.data)
-        })
-      PatientServiceIdentifier.apiFetchById(this.curIdentifier.id).then(resp => {
-          console.log('Recarrregamento a curIdentifier')
-          console.log(resp.response.data)
-        })
+      PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
+      Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
     },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {
@@ -176,21 +170,10 @@ export default {
   },
   mounted () {
     this.init()
-    console.log('Viva infoContainer.vue')
-    console.log(this.selectedPatient)
-    console.log('identifier')
-    console.log(this.identifier)
-    console.log('curIdentifier')
-    console.log(this.curIdentifier)
-    console.log('Last episode')
-    console.log(this.lastEpisode)
-    // issue: o last episode sempre muda no reload
   },
   computed: {
     identifiers: {
       get () {
-        console.log('--------------------------------------')
-        console.log(this.selectedPatient.identifiers)
         return this.selectedPatient.identifiers
       }
     },
@@ -332,6 +315,7 @@ export default {
     }
   },
   created () {
+    PatientServiceIdentifier.apiGetAllByPatientId(SessionStorage.getItem('selectedPatient').id)
   }
 }
 </script>
