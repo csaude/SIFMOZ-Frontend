@@ -63,7 +63,7 @@ export default class Inventory extends Model {
     }
 
     static async apiUpdate (inventory) {
-      return await this.api().patch('/inventory', inventory)
+      return await this.api().post('/inventory', inventory)
     }
 
     static async apiClose (id) {
@@ -76,6 +76,10 @@ export default class Inventory extends Model {
 
     static async apiGetAllByClinicId (clinicId, offset, max) {
       return await this.api().get('/inventory/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+    }
+
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/inventory?offset=' + offset + '&max=' + max)
     }
 
     static async apiFetchById (id) {

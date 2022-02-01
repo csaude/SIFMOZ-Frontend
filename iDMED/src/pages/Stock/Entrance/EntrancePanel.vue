@@ -14,23 +14,20 @@
               v-model="currStockEntrance.orderNumber"
               label="Número"
               :rules="[ val => !!val || 'Por favor indicar o número da guia']"
-              disable
+              :disable="!isGuiaEditionStep"
               dense
               class="col q-ma-sm" />
             <q-input
                 dense
                 outlined
-                disable
+                :disable="!isGuiaEditionStep"
                 class="col q-ma-sm"
                 v-model="dateReceived"
-                mask="date"
-                ref="dateReceived"
-                :rules="['date']"
                 label="Data de Criação">
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="dateReceived" >
+                        <q-date v-model="dateReceived" mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -40,10 +37,14 @@
                 </template>
             </q-input>
             <q-separator class="q-mx-sm"/>
-            <div class="row q-pa-sm">
-              <q-btn unelevated color="blue" class="col" label="Voltar" />
-              <q-btn unelevated color="orange-5" class="q-ml-md col" label="Editar" />
-              <q-btn unelevated color="red" class="q-ml-md col" label="Remover" />
+            <div class="row q-pa-sm" v-if="isGuiaDisplayStep">
+              <q-btn unelevated color="blue" class="col" label="Voltar" @click="goBack"/>
+              <q-btn unelevated color="orange-5" class="q-ml-md col" label="Editar" @click="initGuiaEdition"/>
+              <q-btn unelevated color="red" class="q-ml-md col" label="Remover" @click="removeGuia"/>
+            </div>
+            <div class="row q-pa-sm" v-if="isGuiaEditionStep">
+              <q-btn unelevated color="blue" class="col" label="Cancelar" @click="cancelOperation"/>
+              <q-btn unelevated color="orange-5" class="q-ml-md col" label="Gravar" @click="doSaveGuia"/>
             </div>
           </div>
         </div>
@@ -51,7 +52,7 @@
       <div class="col q-pt-md q-mr-lg">
       <div>
           <ListHeader
-            :addVisible="true"
+            :addVisible="isGuiaDisplayStep"
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary">Medicamentos
@@ -116,13 +117,12 @@
                         outlined
                         class="col"
                         v-model="props.row.auxExpireDate"
-                        mask="date"
                         ref="expireDate"
                         label="Data de Validade">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="props.row.auxExpireDate" >
+                                <q-date v-model="props.row.auxExpireDate" mask="DD-MM-YYYY">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -172,7 +172,7 @@
       </div>
     </div>
     <q-dialog v-model="alert.visible" persistent>
-      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemoveStock">
+      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemove">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{alert.msg}} </template>
       </Dialog>
@@ -188,6 +188,7 @@ import { ref } from 'vue'
 import StockCenter from '../../../store/models/stockcenter/StockCenter'
 import { date, SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
+import moment from 'moment'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'left', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
@@ -205,36 +206,85 @@ export default {
         msg: ''
       }),
       columns,
+      dateReceived: '',
       step: 'display',
+      guiaStep: 'display',
       selectedStock: '',
       stockList: ref([])
     }
   },
   methods: {
+    goBack () {
+      this.$router.go(-1)
+    },
+    init () {
+      this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
+    },
+    cancelOperation () {
+      this.guiaStep = 'display'
+    },
+    doSaveGuia () {
+
+    },
+    initGuiaEdition () {
+      if (this.currStockEntrance.stocks.length > 0 || this.stockList.length > 0) {
+        this.displayAlert('error', 'Não pode editar os dados da guia, pois ja existem registos de lotes associados.')
+      } else {
+        this.guiaStep = 'edit'
+      }
+    },
+    removeGuia () {
+      if (this.currStockEntrance.stocks.length > 0 || this.stockList.length > 0) {
+        this.displayAlert('error', 'Não pode remover esta guia, pois ja existem registos de lotes associados.')
+      } else {
+        this.guiaStep = 'delete'
+        this.displayAlert('confirmation', 'Deseja remover a presente guia de entrada de stock?')
+      }
+    },
+    doRemoveGuia () {
+      StockEntrance.apiRemove(this.currStockEntrance.id).then(resp => {
+        this.goBack()
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+      })
+    },
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
     },
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
+    },
+    doRemove () {
+      if (!this.isGuiaDeletionStep) {
+        this.doRemoveStock()
+      } else {
+        this.doRemoveGuia()
+      }
+    },
     doRemoveStock () {
       this.step = 'delete'
-      Stock.apiRemove(this.selectedStock.id).then(resp => {
-        Stock.delete(this.selectedStock.id)
-        this.removeFromList(this.selectedStock)
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
-      }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
+        Stock.apiRemove(this.selectedStock.id).then(resp => {
+          Stock.delete(this.selectedStock.id)
+          this.removeFromList(this.selectedStock)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
             }
-          }
-          this.displayAlert('error', listErrors)
-        })
-      this.step = 'display'
+            this.displayAlert('error', listErrors)
+          })
+        this.step = 'display'
     },
     initNewStock () {
       if (this.isEditionStep || this.isCreationStep) {
@@ -253,6 +303,7 @@ export default {
     },
     validateStock (stock) {
       console.log(stock)
+      stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.id === null) {
         this.displayAlert('error', 'Por favor indicar o medicamento!')
       } else if (stock.batchNumber === '') {
@@ -266,14 +317,12 @@ export default {
       }
     },
     async doSave (stock) {
-      stock.expireDate = new Date(stock.auxExpireDate)
       stock.stockMoviment = stock.unitsReceived
-
-      console.log(stock)
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         stock.enabled = false
         this.step = 'display'
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
       }).catch(error => {
           const listErrors = []
           if (error.request.response != null) {
@@ -356,7 +405,6 @@ export default {
                           .first()
     },
     loadStockList () {
-      console.log(this.currStockEntrance)
       if (this.currStockEntrance.stocks.length > 0) {
         Object.keys(this.currStockEntrance.stocks).forEach(function (k) {
           const stock = Stock.query()
@@ -364,27 +412,21 @@ export default {
                                    .with('entrance.clinic.province')
                                    .with('center.clinic.province')
                                    .with('packagedDrugs')
+                                   .with('adjustments')
                                    .with('drug.form')
                                    .where('id', this.currStockEntrance.stocks[k].id)
                                    .first()
-          stock.auxExpireDate = this.formatDate(stock.expireDate)
+          stock.auxExpireDate = this.getDDMMYYYFromJSDate(stock.expireDate)
           this.stockList.push(stock)
         }.bind(this))
       }
     }
   },
   mounted () {
+    this.init()
     this.loadStockList()
   },
   computed: {
-    dateReceived: {
-      get () {
-        return this.formatDate(this.currStockEntrance.dateReceived)
-      },
-      set (value) {
-        this.currStockEntrance.dateReceived = new Date(value)
-      }
-    },
     currStockEntrance () {
       return this.getCurrStockEntrance()
     },
@@ -405,6 +447,15 @@ export default {
     },
     enableFields () {
       return this.isEditionStep || this.isCreationStep
+    },
+    isGuiaDeletionStep () {
+      return this.guiaStep === 'delete'
+    },
+    isGuiaEditionStep () {
+      return this.guiaStep === 'edit'
+    },
+    isGuiaDisplayStep () {
+      return this.guiaStep === 'display'
     },
     stockCenter () {
       return StockCenter.query().with('clinic.province').first()

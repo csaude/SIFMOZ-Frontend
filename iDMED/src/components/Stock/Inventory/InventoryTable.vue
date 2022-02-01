@@ -97,9 +97,12 @@ export default {
       this.$router.push('/stock/inventory')
     }
   },
+  mounted () {
+    Inventory.apiGetAll(0, 100)
+  },
   computed: {
     inventories () {
-      return Inventory.query().withAll().orderBy('startDate', 'desc').get()
+      return Inventory.query().withAll().orderBy('startDate', 'desc').orderBy('open').get()
     }
   }
 }

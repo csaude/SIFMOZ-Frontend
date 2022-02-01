@@ -11,7 +11,7 @@
       <div class="box-border q-pb-md">
       <div class="row q-pa-md">
         <q-space />
-        <q-btn unelevated color="blue" label="Voltar" />
+        <q-btn unelevated color="blue" label="Voltar" @click="goBack"/>
         <q-btn unelevated color="green-4" class="q-ml-md" label="Imprimir" />
       </div>
         <q-table
@@ -109,6 +109,9 @@ import Drug from '../../../store/models/drug/Drug'
 import { date, SessionStorage } from 'quasar'
 import Stock from '../../../store/models/stock/Stock'
 import Inventory from '../../../store/models/stockinventory/Inventory'
+import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
+import DestroyedStock from '../../../store/models/stockdestruction/DestroyedStock'
+import ReferedStockMoviment from '../../../store/models/stockrefered/ReferedStockMoviment'
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
   { name: 'moviment', align: 'center', label: 'Movimento', sortable: true },
@@ -130,25 +133,40 @@ export default {
         msg: ''
       }),
       columns,
-      drugEventList: []
+      drugEventList: [],
+      inventoryList: [],
+      entranceList: []
     }
   },
   methods: {
+    goBack () {
+      this.$router.go(-1)
+    },
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
     },
     generateDrugEventList () {
       const stockList = Stock.query()
                              .with('adjustments.*')
-                             .with('entrance')
+                             .with('entrance.stocks')
                              .with('drug')
                              .with('center')
                              .with('clinic.province')
                              .where('drug_id', this.drug.id)
                              .get()
+
       Object.keys(stockList).forEach(function (i) {
-        this.loadRelatedEntrance(stockList[i].entrance)
+        const entranceIncluded = this.entranceList.some((item) => {
+          return item.id === stockList[i].entrance.id
+        })
+        if (!entranceIncluded) {
+          this.entranceList.push(stockList[i].entrance)
+        }
       }.bind(this))
+
+      this.entranceList.forEach((item) => {
+        this.loadRelatedEntrance(item)
+      })
 
       Object.keys(stockList).forEach(function (i) {
         const stock = stockList[i]
@@ -156,6 +174,8 @@ export default {
           Object.keys(stock.adjustments).forEach(function (k) {
             if (stock.adjustments[k].type === 'INVENTORYSTOCKADJUSTMENT') {
               this.loadRelatedInventories(stock.adjustments[k])
+            } else {
+              this.loadRelatedAdjustments(stock.adjustments[k], stock)
             }
           }.bind(this))
         }
@@ -166,96 +186,125 @@ export default {
         return d2 - d1
       })
     },
-    loadRelatedInventories (adjustment) {
-      console.log(adjustment)
-      const inventory = Inventory.query()
-                                 .with('adjustments.adjustedStock', (query) => {
-                                   query.where((adjustedStock) => {
-                                      return adjustedStock.drug_id === this.drug.id
-                                    })
-                                      })
-                                 .where('id', adjustment.inventory_id)
-                                 .first()
-console.log(inventory)
-      if (this.drugEventList.length <= 0) {
+    generateEvent (inventory) {
+      const processedInventory = this.drugEventList.some((item) => {
+        return item.id === inventory.id
+      })
+
+      if (!processedInventory && !inventory.open) {
         const event = {
-            id: inventory.id,
-            eventDate: inventory.startDate,
-            moviment: 'Inventário',
-            orderNumber: '',
-            incomes: '',
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
-            balance: '',
-            notes: ''
+              id: inventory.id,
+              eventDate: inventory.startDate,
+              moviment: 'Inventário',
+              orderNumber: '-',
+              incomes: '-',
+              outcomes: '-',
+              posetiveAdjustment: 0,
+              negativeAdjustment: 0,
+              loses: '-',
+              balance: 0,
+              notes: '-'
+            }
+        inventory.adjustments.forEach((item) => {
+          if (item.adjustedStock.drug_id === this.drug.id) {
+            item.operation = StockOperationType.find(item.operation_id)
+            if (item.isPosetiveAdjustment()) {
+              event.posetiveAdjustment = Number(event.posetiveAdjustment + item.adjustedValue)
+            } else {
+              event.negativeAdjustment = Number(event.negativeAdjustment + item.adjustedValue)
+            }
+            event.balance = Number(event.balance + item.balance)
           }
-          this.drugEventList.push(event)
-      } else {
-        let entranceExists = false
-        Object.keys(this.drugEventList).forEach(function (i) {
-          if (!entranceExists && this.drugEventList[i].id === inventory.id) {
-            entranceExists = true
-          }
-        }.bind(this))
-        if (!entranceExists) {
-          const event = {
-            id: inventory.id,
-            eventDate: inventory.startDate,
-            moviment: 'Inventário',
-            orderNumber: '',
-            incomes: '',
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
-            balance: '',
-            notes: ''
-          }
-          this.drugEventList.push(event)
-        }
+        })
+        this.drugEventList.push(event)
       }
     },
+    loadRelatedInventories (adjustment) {
+      // console.log(adjustment)
+      const inventory = Inventory.query()
+                                 .with('adjustments.adjustedStock.drug', (query) => {
+                                    query.where((adjustedStock) => {
+                                        return adjustedStock.drug_id === this.drug.id
+                                      })
+                                    })
+                                 .where('id', adjustment.inventory_id)
+                                 .first()
+      const inventoryIsOnList = this.inventoryList.some((item) => {
+        return item.id === inventory.id
+      })
+
+      if (!inventoryIsOnList) this.inventoryList.push(inventory)
+      this.inventoryList.forEach((item) => {
+        this.generateEvent(item)
+      })
+    },
     loadRelatedEntrance (entrance) {
-      if (this.drugEventList.length <= 0) {
-        const event = {
+      const event = {
             id: entrance.id,
             eventDate: entrance.dateReceived,
             moviment: 'Entrada de Stock',
             orderNumber: entrance.orderNumber,
-            incomes: '',
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
-            balance: '',
-            notes: ''
+            incomes: '-',
+            outcomes: '-',
+            posetiveAdjustment: '-',
+            negativeAdjustment: '-',
+            loses: '-',
+            balance: 0,
+            notes: '-'
           }
-          this.drugEventList.push(event)
-      } else {
-        let entranceExists = false
-        Object.keys(this.drugEventList).forEach(function (i) {
-          if (!entranceExists && this.drugEventList[i].id === entrance.id) {
-            entranceExists = true
-          }
-        }.bind(this))
-        if (!entranceExists) {
-          const event = {
-            id: entrance.id,
-            eventDate: entrance.dateReceived,
-            moviment: 'Entrada de Stock',
-            orderNumber: entrance.orderNumber,
-            incomes: '',
-            outcomes: '',
-            posetiveAdjustment: '',
-            negativeAdjustment: '',
-            loses: '',
-            balance: '',
-            notes: ''
-          }
-          this.drugEventList.push(event)
+      entrance.stocks.forEach((stock) => {
+        if (stock.drug_id === this.drug.id) {
+          event.balance = Number(event.balance + stock.unitsReceived)
         }
+      })
+      this.drugEventList.push(event)
+    },
+    loadRelatedAdjustments (adjustment, stock) {
+      if (adjustment.finalised) {
+        const event = {
+              id: '',
+              eventDate: '',
+              moviment: '',
+              orderNumber: '-',
+              incomes: '-',
+              outcomes: '-',
+              posetiveAdjustment: '-',
+              negativeAdjustment: '-',
+              loses: '-',
+              balance: adjustment.balance,
+              notes: '-'
+            }
+        if (adjustment.type === 'STOCKDESTRUCTIONADJUSTMENT') {
+          adjustment.destruction = DestroyedStock.find(adjustment.destruction_id)
+          event.id = adjustment.destruction.id
+          event.eventDate = adjustment.captureDate
+          event.moviment = adjustment.destruction.notes
+          event.loses = adjustment.adjustedValue
+        } else if (adjustment.type === 'STOCKREFERENCEADJUSTMENT') {
+          adjustment.reference = ReferedStockMoviment.find(adjustment.reference_id)
+          event.id = adjustment.reference.id
+          event.eventDate = adjustment.reference.date
+          event.moviment = adjustment.reference.origin
+          event.orderNumber = adjustment.reference.orderNumber
+          if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+            event.posetiveAdjustment = adjustment.adjustedValue
+          } else {
+            event.negativeAdjustment = adjustment.adjustedValue
+          }
+        } else if (adjustment.type === 'INVENTORYSTOCKADJUSTMENT') {
+          adjustment.inventory = Inventory.find(adjustment.inventory_id)
+          event.id = adjustment.inventory.id
+          event.eventDate = adjustment.inventory.startDate
+          event.moviment = 'Inventário'
+          if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+            event.posetiveAdjustment = adjustment.adjustedValue
+          } else {
+            event.negativeAdjustment = adjustment.adjustedValue
+            event.outcomes = adjustment.adjustedValue
+          }
+        }
+        event.notes = adjustment.notes
+        this.drugEventList.push(event)
       }
     }
   },

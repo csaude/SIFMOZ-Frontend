@@ -154,6 +154,7 @@ export default {
         Duration.apiGetAll()
         Province.apiGetAll()
         District.apiGetAll()
+        // this.getAllInventoriesOfClinic()
         ClinicalServiceAttributeType.apiGetAll()
         ClinicalService.apiGetAll()
         ClinicSector.apiGetAll()
