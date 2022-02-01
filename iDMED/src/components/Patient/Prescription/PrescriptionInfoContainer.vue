@@ -1,6 +1,6 @@
   <template>
-  <div>
-  <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (identifier.service === null || identifier.service === undefined) ? 'Sem Info' : identifier.service.code }} </ListHeader>
+  <div v-if="lastStartEpisode !== null">
+  <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
     <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
       class="noRadius">
@@ -79,6 +79,7 @@ import Doctor from '../../../store/models/doctor/Doctor'
 import Duration from '../../../store/models/Duration/Duration'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
+import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 export default {
   props: ['identifier'],
   data () {
@@ -100,6 +101,17 @@ export default {
     PackInfo: require('components/Patient/Prescription/PackInfo.vue').default
   },
   methods: {
+     init () {
+      if (this.identifier !== null) {
+        PatientServiceIdentifier.apiFetchById(this.identifier.id)
+        if (this.identifier.service !== null) {
+           ClinicalService.apiFetchById(this.identifier.service.id)
+        }
+      }
+      if (this.prescriptionDetails !== null) {
+      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
+      }
+    },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {
         this.isPatientActive = true
@@ -159,9 +171,31 @@ export default {
     }
   },
   computed: {
+    episodes: {
+      get () {
+          const episodes = Episode.query()
+                                .withAll()
+                                .with('episodeType')
+                                .with('clinicSector')
+                                .where('patientServiceIdentifier_id', this.identifier.id)
+                                .orderBy('creationDate', 'desc')
+                                .limit(2)
+                                .get()
+        if (episodes.length > 0) {
+          episodes[0].isLast = true
+        }
+        return episodes
+      }
+    },
+    patient: {
+      get () {
+        return new Patient(SessionStorage.getItem('selectedPatient'))
+      }
+    },
+    /*
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
-    },
+    }, */
     validadeColor () {
       if (this.patientVisitDetais.getPrescriptionRemainigDuration() > 0) {
         return 'text-primary'
@@ -169,17 +203,61 @@ export default {
         return 'text-red'
       }
     },
+    curIdentifier: {
+        get () {
+          return PatientServiceIdentifier.query()
+                                      .with('identifierType')
+                                      .with('service.*')
+                                      .with('episodes.*', (query) => {
+                                              query.orderBy('creationDate', 'desc')
+                                            })
+                                      .where('id', this.identifier.id).first()
+        }
+      },
+    /*
     curIdentifier () {
       return PatientServiceIdentifier.query().withAllRecursive().where('id', this.identifier.id).first()
+    }, */
+    prescriptionDetails: {
+      get () {
+        if (this.prescription === null) return null
+        return PrescriptionDetail.query().withAll().where('prescription_id', this.prescription.id).first()
+      }
     },
+    /*
     prescriptionDetails () {
       if (this.prescription === null) return null
       return PrescriptionDetail.query().withAll().where('prescription_id', this.prescription.id).first()
+    }, */
+
+    patientVisitDetais: {
+      get () {
+        if (this.prescription === null) return null
+        return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
+      }
     },
+    /*
     patientVisitDetais () {
       if (this.prescription === null) return null
       return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
+    }, */
+
+    prescription: {
+      get () {
+        if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
+        const presc = Prescription.query()
+                                  .with('clinic')
+                                  .with('doctor')
+                                  .with('patientVisitDetails')
+                                  .with('prescriptionDetails.*')
+                                  .with('duration')
+                                  .with('prescribedDrugs.*')
+                                  .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
+                                  .first()
+        return presc
+      }
     },
+    /*
     prescription () {
       if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
       const presc = Prescription.query()
@@ -192,10 +270,21 @@ export default {
                                 .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
                                 .first()
       return presc
-    },
+    }, */
     lastStartEpisode () {
       return this.lastStartEpisodeWithPrescription()
     },
+    lastPack: {
+      get () {
+         return Pack.query()
+                 .with('packagedDrugs.*')
+                 .with('patientVisitDetails')
+                 .where('patientVisitDetails_id', this.patientVisitDetais.id)
+                 .orderBy('pickupDate', 'desc')
+                 .first()
+      }
+    },
+    /*
     lastPack () {
       return Pack.query()
                  .with('packagedDrugs.*')
@@ -203,14 +292,24 @@ export default {
                  .where('patientVisitDetails_id', this.patientVisitDetais.id)
                  .orderBy('pickupDate', 'desc')
                  .first()
+    }, */
+    lastEpisode: {
+      get () {
+        return Episode.query()
+                    .withAll()
+                    .where('patientServiceIdentifier_id', this.identifier.id)
+                    .orderBy('creationDate', 'desc')
+                    .first()
+      }
     },
+    /*
     lastEpisode () {
       return Episode.query()
                     .withAll()
                     .where('patientServiceIdentifier_id', this.identifier.id)
                     .orderBy('creationDate', 'desc')
                     .first()
-    },
+    }, */
     showEndDetails () {
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
     },
@@ -226,8 +325,8 @@ export default {
     }
   },
   created () {
-      // this.curIdentifier = new PatientServiceIdentifier(this.identifier)
-      this.patient = Object.assign({}, this.selectedPatient)
+    this.init()
+    this.patient = Object.assign({}, this.selectedPatient)
     this.reloadParams()
   },
   mounted () {

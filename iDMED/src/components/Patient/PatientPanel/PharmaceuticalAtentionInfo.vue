@@ -27,26 +27,58 @@
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import PregnancyScreening from '../../../store/models/screening/PregnancyScreening'
 export default {
   props: ['selectedPatient'],
   data () {
     return {
       showAddPharmAttention: false,
       infoVisible: true,
-      showAddPharmaceuticalAtention: false
+      showAddPharmaceuticalAtention: false,
+      flagGo: false
     }
   },
   methods: {
+    init () {
+      this.patientVisits.forEach(patientVisit => {
+        console.log(patientVisit)
+        PregnancyScreening.apiGetAllByPatientVisitId(patientVisit.id).then(resp => {
+          console.log('PregnancyScreening:   ')
+          console.log(resp.response.data)
+          this.flagGo = true
+        })
+      })
+    },
     expandLess (value) {
       this.infoVisible = true
     }
   },
   created () {
+    this.init()
   },
   computed: {
+    patient: {
+      get () {
+        return new Patient(SessionStorage.getItem('selectedPatient'))
+      }
+    },
+    /*
     patient () {
       return new Patient(SessionStorage.getItem('selectedPatient'))
+    }, */
+    patientVisits: {
+      get () {
+        const pvts = PatientVisit.query()
+                          .where('patient_id', this.patient.id)
+                          .limit(4)
+                          .has('vitalSigns')
+                          .orderBy('visitDate', 'desc')
+                          .get()
+      if (pvts.length > 0) pvts[0].isLast = true
+      return pvts
+      }
     },
+    /*
     patientVisits () {
       const pvts = PatientVisit.query()
                           .where('patient_id', this.patient.id)
@@ -56,7 +88,7 @@ export default {
                           .get()
       if (pvts.length > 0) pvts[0].isLast = true
       return pvts
-    },
+    }, */
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0
     }

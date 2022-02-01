@@ -64,4 +64,8 @@ export default class PatientServiceIdentifier extends Model {
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patientServiceIdentifier/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
+
+  static async apiGetAllByPatientId (patientId, offset, max) {
+    return await this.api().get('/patientServiceIdentifier/patient/' + patientId + '?offset=' + offset + '&max=' + max)
+  }
 }

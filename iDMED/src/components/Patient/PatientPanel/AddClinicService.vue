@@ -459,9 +459,26 @@ export default {
         }
     },
     mounted () {
+      alert('abc add clinic service.vue')
+      console.log(this.patient)
       this.init()
     },
     computed: {
+      patient: {
+        get () {
+          return Patient.query()
+            .with('identifiers.*')
+            .with('province')
+            .with('attributes')
+            .with('appointments')
+            .with('district')
+            .with('postoAdministrativo')
+            .with('bairro')
+            .with('clinic')
+            .where('id', SessionStorage.getItem('selectedPatient').id).first()
+        }
+      },
+      /*
       patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with('identifiers.*')
@@ -473,7 +490,7 @@ export default {
                             .with('bairro')
                             .with('clinic')
                             .where('id', selectedP.id).first()
-      },
+      }, */
       hasVisitsMade () {
         return this.lastStartEpisodeWithPrescription() !== null
       },
@@ -515,13 +532,23 @@ export default {
         return StartStopReason.query()
                               .where('isStartReason', true).get()
       },
+      lastEpisode: {
+        get () {
+          return Episode.query()
+                      .withAll()
+                      .where('patientServiceIdentifier_id', this.patient.PatientServiceIdentifier.id)
+                      .orderBy('creationDate', 'desc')
+                      .first()
+        }
+      }
+      /*
       lastEpisode () {
         return Episode.query()
                       .withAll()
                       .where('patientServiceIdentifier_id', this.identifier.id)
                       .orderBy('creationDate', 'desc')
                       .first()
-      }
+      } */
     },
     components: {
       TextInput: require('components/Shared/Input/TextField.vue').default,

@@ -84,6 +84,10 @@ export default {
       this.showAddEditEpisode = true
     }
   },
+  created () {
+  },
+  mounted () {
+  },
   computed: {
     clinicServiceInfoVisible () {
       return LocalStorage.getItem('clinicServiceInfoVisible')
@@ -91,10 +95,17 @@ export default {
     canEdit () {
       return this.canEditIdentifier()
     },
+    identifiers: {
+      get () {
+        return this.patient.identifiers
+      }
+    },
+    /*
     identifiers () {
       return this.patient.identifiers
-    },
-    patient () {
+    }, */
+    patient: {
+      get () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
@@ -105,6 +116,19 @@ export default {
                             .with('bairro')
                             .with('clinic').where('id', selectedP.id).first()
       }
+    }
+    /*
+    patient () {
+      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
+      return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', selectedP.id).first()
+      } */
   },
   components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
