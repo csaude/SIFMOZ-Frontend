@@ -157,6 +157,8 @@ export default ({
         this.submitting = false
       }, 500)
       localStorage.setItem('user', 'admin')
+      localStorage.setItem('hisUser', this.username)
+      localStorage.setItem('hisPass', this.password)
        this.$router.push({ path: '/' })
       // UsersService.login({
       //   'username': this.username,

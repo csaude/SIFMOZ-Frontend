@@ -125,7 +125,6 @@
             :clinic="currClinic"
             @close="showPatientRegister = false" />
       </q-dialog>
-    </div>
   </div>
 </template>
 
@@ -197,14 +196,14 @@ export default {
         },
         patients: [],
         newPatient: false,
-        username: 'admin',
-        password: 'ESaudeMz321'
+        username: localStorage.getItem('hisUser'), // 'admin',
+        password: localStorage.getItem('hisPass') // 'ESaudeMz321'
       }
     },
     methods: {
       init () {},
       search () {
-        (this.selectedDataSources.id.length > 4) ? this.openMRSSerach() : this.localSearch()
+        (this.selectedDataSources.id.length > 4) ? this.openMRSSerach(this.selectedDataSources) : this.localSearch()
       },
       editPatient (patient) {
         this.currPatient = Object.assign({}, patient)
@@ -425,43 +424,52 @@ export default {
                                         })
                               .get()
       },
-      openMRSSerach () {
+      openMRSSerach (his) {
         const openMRSInstance = axios.create({
-        baseURL: 'patients'
+          baseURL: 'http://localhost:8884'
         })
-        console.log(this.currPatient)
-        openMRSInstance.get('?q=' + this.currPatient.identifiers[0].value + '&v=full&limit=5', { headers: { Authorization: 'Basic ' + btoa(this.username + ':' + this.password) } })
-                       .then((response) => {
-                         this.patients = []
-                         if (response.data.results.length > 0) {
-                          response.data.results.forEach(pacienteOpenMRS => {
-                           const localpatient = new Patient({
-                              identifiers: []
-                            })
-                             this.patients.push(this.buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS))
+        console.log(his)
+        const nid = this.currPatient.identifiers[0].value.replaceAll('/', '-')
+
+        if (nid.length <= 0) {
+            this.$q.notify({
+            color: 'negative',
+            position: 'center',
+            message: 'Não contem nenhum parâmetro de pesquisa. Por favor, indtroduza um Nº de Identificador',
+            icon: 'report_problem'
+          })
+        } else {
+          openMRSInstance.get('/patient/openmrsSearch/' + his.id + '/' + nid + '/' + this.username + '/' + this.password)
+                        .then((response) => {
+                          this.patients = []
+                          if (response.data.results.length > 0) {
+                            response.data.results.forEach(pacienteOpenMRS => {
+                            const localpatient = new Patient({
+                                identifiers: []
+                              })
+                              this.patients.push(this.buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS))
+                            }
+                            )
+                          } else {
+                                 this.$q.notify({
+                                color: 'negative',
+                                position: 'center',
+                                message: 'Nenhum resultado encontrado para o identificador ' + nid + '',
+                                icon: 'report_problem'
+                              })
                           }
-                          )
-                         }
-                       })
+                        })
+        }
       },
       checkOpenMRS (his) {
         console.log('HIS')
-         const urlBase = InteroperabilityAttribute.query()
-                                                   .with('interoperabilityType')
-                                                   .where('healthInformationSystem_id', his.id)
-                                                   .whereHas('interoperabilityType',
-                                                              (query) => {
-                                                                  query.where('code', 'URL_BASE')
-                                                              })
-                                                   .first()
-        console.log(urlBase.value)
-     //   const baseUrlHis = (urlBase !== null && urlBase !== undefined) ? urlBase.value : 'http://localhost:8080/openmrs'
-       const openMRSInstance = axios.create({
-        baseURL: 'session'
+        const openMRSInstance = axios.create({
+           baseURL: 'http://localhost:8884'
         })
-        openMRSInstance.get('session', { headers: { Authorization: 'Basic ' + btoa(this.username + ':' + this.password) } })
+        openMRSInstance.get('/patient/openmrsSession/' + his.id + '/' + this.username + '/' + this.password)
                        .then((response) => {
-                         if (response.data.authenticated === false || response.data.authenticated === undefined) {
+                         console.log(response)
+                         if (response.data.authenticated === false || response.data.authenticated === undefined || response.data.authenticated === null) {
                             this.$q.notify({
                             color: 'negative',
                             position: 'center',
@@ -524,7 +532,7 @@ export default {
               localpatient.cellphone = (cellphoneObject !== null && cellphoneObject !== undefined) ? cellphoneObject.value : ''
               localpatient.address = pacienteOpenMRS.person.addresses[0].address5
               // localpatient.addressReference = pacienteOpenMRS.person.names[0]
-                localpatient.province = Province.query().where('description', pacienteOpenMRS.person.addresses[0].countyDistrict).first()
+              localpatient.province = Province.query().where('description', pacienteOpenMRS.person.addresses[0].countyDistrict).first()
               // localpatient.district = localpatient.district.province
               // localpatient.postoAdministrativo_id = pacienteOpenMRS.person.names[0]
               // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
