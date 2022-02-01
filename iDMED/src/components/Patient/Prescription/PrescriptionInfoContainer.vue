@@ -45,7 +45,7 @@
         <div class="col q-py-md">
           <ListHeader :addVisible="!isClosed" bgColor="bg-primary" @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())">Dispensa</ListHeader>
           <EmptyList v-if="lastPack === null" >Nenhum registo de Levantamentos</EmptyList>
-          <span v-if="lastPack !== null">
+          <span v-if="lastPack !== null && lastPack.packagedDrugs.length > 0 && lastPack.packagedDrugs[0].drug !== null">
             <PackInfo
               @editPack="editPack"
               :isClosed="isClosed"
@@ -79,6 +79,7 @@ import Doctor from '../../../store/models/doctor/Doctor'
 import Duration from '../../../store/models/Duration/Duration'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
+import Drug from '../../../store/models/drug/Drug'
 export default {
   props: ['identifier'],
   data () {
@@ -150,6 +151,7 @@ export default {
       Doctor.apiGetAll()
       Duration.apiGetAll()
       DispenseType.apiGetAll()
+      Drug.apiGetAll(0, 200)
     },
     async reloadPrescriptionDetails (id) {
       await PrescriptionDetail.apiFetchById(id)

@@ -126,6 +126,7 @@
             @close="showPatientRegister = false" />
       </q-dialog>
   </div>
+  </div>
 </template>
 
 <script>

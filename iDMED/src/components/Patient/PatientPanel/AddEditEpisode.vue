@@ -160,7 +160,7 @@
 
 <script>
 import { ref } from 'vue'
-import { SessionStorage } from 'quasar'
+import { date, SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import Episode from '../../../store/models/episode/Episode'
@@ -196,7 +196,9 @@ export default {
               !this.$refs.clinicSerctor.hasError) {
                 if (this.getJSDateFromDDMMYYY(this.startDate) > new Date()) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (this.getJSDateFromDDMMYYY(this.startDate) < new Date(this.curIdentifier.startDate)) {
+                } else if (this.getJSDateFromDDMMYYY(this.startDate) < date.adjustDate(this.curIdentifier.startDate, { hours: 0, minutes: 0, seconds: 0 })) {
+                  console.log(this.getJSDateFromDDMMYYY(this.startDate))
+                  console.log(date.adjustDate(this.curIdentifier.startDate, { hours: 0, minutes: 0, seconds: 0 }))
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {
