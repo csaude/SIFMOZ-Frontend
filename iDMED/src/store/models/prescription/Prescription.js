@@ -44,4 +44,8 @@ export default class Prescription extends Model {
     static async apiFetchById (id) {
       return await this.api().get(`/prescription/${id}`)
     }
+
+    static async apiFetchByPatientVisitDetailsId (pvdsId, offset, max) {
+      return await this.api().get('/prescription/visits/' + pvdsId + '?offset=' + offset + '&max=' + max)
+    }
 }

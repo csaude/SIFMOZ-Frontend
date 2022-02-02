@@ -74,4 +74,12 @@ export default class Episode extends Model {
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/episode/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
+
+  static async apiFetchById (id) {
+    return await this.api().get(`/episode/${id}`)
+  }
+
+  static async apiGetAllByIdentifierId (identifierId, offset, max) {
+    return await this.api().get('/episode/identifier/' + identifierId + '?offset=' + offset + '&max=' + max)
+  }
 }

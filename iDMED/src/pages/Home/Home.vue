@@ -353,9 +353,30 @@ export default {
       this.saveCurrClinic()
     },
     computed: {
+      /*
+      clinic: {
+        get () {
+          return Clinic.query()
+                    .with('province')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+        }
+      } */
+      /*
+      clinic: {
+        get () {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
+      } */
+      clinic: {
+        get () {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
+      }
+      /*
       clinic () {
         return new Clinic(SessionStorage.getItem('currClinic'))
-      }
+      } */
     }
 }
 </script>
