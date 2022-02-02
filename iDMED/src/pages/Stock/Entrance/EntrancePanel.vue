@@ -431,7 +431,7 @@ export default {
       return this.getCurrStockEntrance()
     },
     drugs () {
-      return Drug.query().with('form').get()
+      return Drug.query().with('form').where('active', true).get()
     },
     isDisplayStep () {
       return this.step === 'display'

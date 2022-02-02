@@ -93,7 +93,7 @@ export default {
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').get()
+        drugs = Drug.query().with('form').where('active', true).get()
       }
       return drugs
     },

@@ -7,7 +7,7 @@
                         <img class="bg-white" src="../assets/LogoiDMED.png">
                     </q-avatar>
 
-                    <q-toolbar-title class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">SiDMED</q-toolbar-title>
+                    <q-toolbar-title class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">iDMED</q-toolbar-title>
 
                     <q-tabs
                       class="absolute-center"
