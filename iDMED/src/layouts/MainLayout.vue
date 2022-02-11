@@ -19,7 +19,7 @@
                       narrow-indicator>
                         <q-route-tab exact default :to="'/home'" name="home" icon="home" label="Inicial" />
                         <q-route-tab exact :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
-                        <q-route-tab exact :to="'/groups'" name="groups" icon="groups" label="Grupos" />
+                        <q-route-tab exact :to="'/group/search'" name="groups" icon="groups" label="Grupos" />
                         <q-route-tab exact :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
                         <q-route-tab exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
                         <q-route-tab exact :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />

@@ -18,7 +18,7 @@
      </router-link>
     </div>
     <div class="col">
-    <router-link :to="`/groups`">
+    <router-link :to="`/group/search`">
         <q-btn round>
           <q-avatar size="190px">
             <img src="~assets/groupsButton.png">
@@ -126,9 +126,6 @@ import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import Pack from '../../store/models/packaging/Pack'
 import Prescription from '../../store/models/prescription/Prescription'
-import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
-import PrescribedDrug from '../../store/models/prescriptionDrug/PrescribedDrug'
-import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
 import RAMScreening from '../../store/models/screening/RAMScreening'
 import AdherenceScreening from '../../store/models/screening/AdherenceScreening'
 import PregnancyScreening from '../../store/models/screening/PregnancyScreening'
@@ -335,9 +332,9 @@ export default {
       // this.getAllPatientVisitsOfClinic()
       // this.getAllPacksOfClinic()
       // this.getAlPatientVisitDetailsOfClinic()
-      PackagedDrug.apiGetAll()
-      PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll()
+      // PackagedDrug.apiGetAll()
+      // PrescribedDrug.apiGetAll()
+      // PrescriptionDetail.apiGetAll()
     },
     created () {
       this.$q.loading.show({

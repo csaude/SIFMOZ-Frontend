@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import DispenseMode from '../dispenseMode/DispenseMode'
+import GroupPack from '../group/GroupPack'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 
@@ -28,7 +29,8 @@ export default class Pack extends Model {
         clinic: this.belongsTo(Clinic, 'clinic_id'),
         patientVisitDetails: this.belongsTo(PatientVisitDetails, 'patientVisitDetails_id'),
         dispenseMode: this.belongsTo(DispenseMode, 'dispenseMode_id'),
-        packagedDrugs: this.hasMany(PackagedDrug, 'pack_id')
+        packagedDrugs: this.hasMany(PackagedDrug, 'pack_id'),
+        groupPack: this.belongsTo(GroupPack, 'pack_id')
       }
     }
 
