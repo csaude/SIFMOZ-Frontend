@@ -14,7 +14,7 @@ export default class StockOperationType extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/stockOperationType')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/stockOperationType?offset=' + offset + '&max=' + max)
   }
 }

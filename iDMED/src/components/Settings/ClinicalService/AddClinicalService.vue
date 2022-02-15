@@ -335,8 +335,10 @@ export default {
     }
   },
   mounted () {
-    ClinicalServiceAttributeType.apiGetAll()
-    IdentifierType.apiGetAll()
+      const offset = 0
+      const max = 100
+    ClinicalServiceAttributeType.apiGetAll(offset, max)
+    IdentifierType.apiGetAll(offset, max)
   },
    created () {
         if (this.clinicalService !== '') {

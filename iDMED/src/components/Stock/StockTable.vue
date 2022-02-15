@@ -106,6 +106,7 @@ export default {
       get () {
         return Drug.query()
                  .with('stocks')
+                 .has('stocks')
                  .with('packaged_drugs.pack', (query) => {
                         query.where((pack) => {
                           return pack.pickupDate >= date.subtractFromDate(new Date(), { months: 3 })

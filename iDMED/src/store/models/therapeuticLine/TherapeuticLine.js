@@ -12,8 +12,8 @@ export default class TherapeuticLine extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/therapeuticLine')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/therapeuticLine?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

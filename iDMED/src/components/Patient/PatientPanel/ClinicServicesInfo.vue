@@ -6,7 +6,7 @@
       bgColor="bg-primary"
       @expandLess="expandLess"
       @showAdd="addClinicService()">
-      Serviços de Saúde
+      Serviços de Saúde da Farmácia
     </ListHeader>
     <EmptyList v-if="identifiers.length <= 0" >Nenhum Serviço de Saúde Adicionado</EmptyList>
     <div v-show="serviceInfoVisible">

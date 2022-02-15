@@ -18,7 +18,7 @@ export default class AdherenceScreening extends Model {
         }
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/adherenceScreening')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/adherenceScreening?offset=' + offset + '&max=' + max)
     }
 }

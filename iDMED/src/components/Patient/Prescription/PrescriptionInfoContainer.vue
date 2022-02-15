@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
+import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
 import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
@@ -83,6 +83,7 @@ import ClinicalService from '../../../store/models/ClinicalService/ClinicalServi
 export default {
   props: ['identifier'],
   data () {
+    const $q = useQuasar()
     return {
       alert: ref({
         type: '',
@@ -91,7 +92,8 @@ export default {
       }),
       isPatientActive: false,
       selectedPack: new Pack(),
-      showAddEditEpisode: false
+      showAddEditEpisode: false,
+      $q
     }
   },
   components: {
@@ -107,9 +109,14 @@ export default {
         if (this.identifier.service !== null) {
            ClinicalService.apiFetchById(this.identifier.service.id)
         }
+         this.$q.loading.hide()
+      } else {
+         this.$q.loading.hide()
       }
       if (this.prescriptionDetails !== null) {
-      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
+        PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
+      } else {
+         this.$q.loading.hide()
       }
     },
     checkPatientStatusOnService () {
@@ -157,11 +164,13 @@ export default {
       return episode
     },
     reloadParams () {
-      TherapeuticRegimen.apiGetAll()
-      TherapeuticLine.apiGetAll()
-      Doctor.apiGetAll()
-      Duration.apiGetAll()
-      DispenseType.apiGetAll()
+      const offset = 0
+      const max = 0
+      TherapeuticRegimen.apiGetAll(offset, max)
+      TherapeuticLine.apiGetAll(offset, max)
+      Doctor.apiGetAll(offset, max)
+      Duration.apiGetAll(offset, max)
+      DispenseType.apiGetAll(offset, max)
     },
     async reloadPrescriptionDetails (id) {
       await PrescriptionDetail.apiFetchById(id)
@@ -325,11 +334,15 @@ export default {
     }
   },
   created () {
+  },
+  mounted () {
+    this.$q.loading.show({
+      spinner: QSpinnerBall,
+      message: 'Por favor, aguarde...'
+    })
     this.init()
     this.patient = Object.assign({}, this.selectedPatient)
     this.reloadParams()
-  },
-  mounted () {
   }
 }
 </script>

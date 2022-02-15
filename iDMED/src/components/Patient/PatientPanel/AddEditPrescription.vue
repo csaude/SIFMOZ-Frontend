@@ -26,7 +26,7 @@
                   dense outlined
                   :disable="isNewPackStep || isEditPackStep"
                   options-dense
-                  :options="clinicalServices"
+                  :options="this.clinicalServices"
                   ref="clinicalService"
                   :rules="[ val => !!val || 'Por favor indicar o serviço clínico']"
                   v-model="selectedClinicalService"
@@ -88,7 +88,7 @@
                   :rules="[ val => !!val || 'Por favor indicar a duração']"
                   option-value="id"
                   option-label="description"
-                  label="Duração [1S, 2S, 1M, 2M, ...]" />
+                  label="Duração" />
               <q-select
                   class="col"
                   dense outlined
@@ -106,16 +106,15 @@
                 </div>
                 <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
               </div>
-              <q-select
-                  v-if="hasPatientType"
-                  class="col"
-                  dense outlined
-                  ref="patientType"
-                  :disable="isNewPackStep || isEditPackStep"
-                  :rules="[ val => !!val || 'Por favor indicar o tipo de paciente']"
-                  v-model="curPrescription.patientType"
-                  :options="patientTypes"
-                  label="Tipo Paciente [Inicio, Manter, Alterar]" />
+              <div class="row">
+              <div class="col">
+                <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
+              </div>
+                <div class="col">
+                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="" label="Não" />
+                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="Alterar" label="Sim" />
+                </div>
+              </div>
                 <q-select
                   v-if="hasPrescriptionChangeMotive && String(curPrescription.patientType).includes('Alterar')"
                   class="col q-mb-sm"
@@ -126,7 +125,7 @@
                   :options="reasonsForUpdate"
                   v-model="curPrescriptionDetails.reasonForUpdate"
                   option-label="description"
-                  label="Motivo Alteração [FT, Alergia ...]" />
+                  label="Motivo Alteração" />
                 <q-select
                   class="col"
                   dense outlined
@@ -137,7 +136,7 @@
                   :options="dispenseTypes"
                   option-value="id"
                   option-label="description"
-                  label="Paciente em [DM, DT, DS, DA]" />
+                  label="Paciente em " />
                 <q-select
                   class="col"
                   ref="patientStatus"
@@ -147,10 +146,10 @@
                   :options="patientStatus"
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
-                <q-toggle
+                <!--q-toggle
                   v-model="curPatientVisitDetail.createPackLater"
                   :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
-                  label="Para Dispensar à Posterior" />
+                  label="Para Dispensar à Posterior" /-->
                 <div class="row q-mb-sm">
                   <q-btn
                     unelevated
@@ -190,19 +189,25 @@
                   dense
                   inline-actions
                   class="col text-white q-pa-none bg-orange-4">
-                    <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
+                   <div class="q-pa-md">
+                        <div class="q-gutter-sm">
+                          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="US_" label="Farmácia Pública" />
+                          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DD_" label="Dipensa Descentralizada" />
+                          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DC_" label="Dispensa Comunitária" />
+                        </div>
+                   </div>
                     <template v-slot:action class="items-center">
-                        <q-select
-                          style="width: 320px"
-                          class="col q-ma-sm"
-                          bg-color="white"
-                          dense outlined
-                          ref="dispenseMode"
-                          v-model="dispenseMode"
-                          :options="dispenseModes"
-                          option-value="id"
-                          option-label="description"
-                          label="Modo de dispensa" />
+                       <q-select
+                            style="width: 320px"
+                            class="col q-ma-sm"
+                            bg-color="white"
+                            dense outlined
+                            ref="dispenseMode"
+                            v-model="dispenseMode"
+                            :options="dispenseModes"
+                            option-value="id"
+                            option-label="description"
+                            label="Modo de dispensa" />
                     </template>
                 </q-banner>
               </div>
@@ -273,6 +278,7 @@ export default {
         visible: false,
         msg: ''
       }),
+      mds: ref('US_'),
       identifiers: [],
       patientVisit: new PatientVisit(),
       curPatientVisitDetails: [],
@@ -280,8 +286,8 @@ export default {
       clinicalServices: [],
       selectedClinicalService: new ClinicalService(),
       reasonsForUpdate: ['FT', 'Alergia'],
-      patientStatus: ['Novo', 'Manutenção'],
-      patientTypes: ['Inicio', 'Manter', 'Alterar', 'Reinício'],
+      patientStatus: ['Inicio', 'Manutenção'],
+      patientTypes: ['Sim', 'Não'],
       showServiceDrugsManagement: false,
       prescriptionDate: '',
       showDispenseMode: false,
@@ -404,7 +410,7 @@ export default {
     init () {
       if (!this.isNewPackStep && !this.isEditPackStep) {
         Object.keys(this.patient.identifiers).forEach(function (key) {
-          if (this.patient.identifiers[key].endDate === '') {
+          if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
             const episode = Episode.query()
                                     .withAll()
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
@@ -682,7 +688,9 @@ console.log(this.patientVisit)
   computed: {
     dispenseModes: {
         get () {
-          return DispenseMode.all()
+          return DispenseMode.query().where((dispenseMode) => {
+            return dispenseMode.code.includes(this.mds)
+          }).get()
         }
     },
     isFirstPack: {
@@ -844,7 +852,7 @@ console.log(this.patientVisit)
     },
     durations: {
       get () {
-        return Duration.all()
+        return Duration.query().orderBy('weeks', 'asc').get()
       }
     },
     currClinic: {

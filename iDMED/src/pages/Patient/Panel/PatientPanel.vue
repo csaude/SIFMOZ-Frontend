@@ -86,38 +86,40 @@ export default {
   methods: {
     init () {
       if (this.patient !== null) {
-        console.log('Paciente ainda bem carregado')
+        console.log(this.patient)
       } else {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
     },
     loadAppParameters () {
-        Duration.apiGetAll()
-        Province.apiGetAll()
-        District.apiGetAll()
-        ClinicalServiceAttributeType.apiGetAll()
-        ClinicalService.apiGetAll()
-        ClinicSector.apiGetAll()
-        IdentifierType.apiGetAll()
-        EpisodeType.apiGetAll()
-        FacilityType.apiGetAll()
-        StartStopReason.apiGetAll()
-        ClinicalServiceAttribute.apiGetAll()
-        Drug.apiGetAll(0, 100)
-        TherapeuticRegimen.apiGetAll()
-        TherapeuticLine.apiGetAll()
-        Form.apiGetAll()
+      const offset = 0
+      const max = 0
+        Duration.apiGetAll(offset, max)
+        Province.apiGetAll(offset, max)
+        District.apiGetAll(offset, max)
+        ClinicalServiceAttributeType.apiGetAll(offset, max)
+        ClinicalService.apiGetAll(offset, max)
+        ClinicSector.apiGetAll(offset, max)
+        IdentifierType.apiGetAll(offset, max)
+        EpisodeType.apiGetAll(offset, max)
+        FacilityType.apiGetAll(offset, max)
+        StartStopReason.apiGetAll(offset, max)
+        ClinicalServiceAttribute.apiGetAll(offset, max)
+        Drug.apiGetAll(offset, max)
+        TherapeuticRegimen.apiGetAll(offset, max)
+        TherapeuticLine.apiGetAll(offset, max)
+        Form.apiGetAll(offset, max)
         Doctor.apiFetchByClinicId(this.clinic.id)
-        DispenseType.apiGetAll()
-        Clinic.apiGetAll()
-        RAMScreening.apiGetAll()
-        AdherenceScreening.apiGetAll()
-        PregnancyScreening.apiGetAll()
-        TBScreening.apiGetAll()
-        VitalSignsScreening.apiGetAll()
-        InteroperabilityType.apiGetAll(0, 100)
-        InteroperabilityAttribute.apiGetAll()
-        HealthInformationSystem.apiGetAll()
+        DispenseType.apiGetAll(offset, max)
+        Clinic.apiGetAll(offset, max)
+        RAMScreening.apiGetAll(offset, max)
+        AdherenceScreening.apiGetAll(offset, max)
+        PregnancyScreening.apiGetAll(offset, max)
+        TBScreening.apiGetAll(offset, max)
+        VitalSignsScreening.apiGetAll(offset, max)
+        InteroperabilityType.apiGetAll(offset, max)
+        InteroperabilityAttribute.apiGetAll(offset, max)
+        HealthInformationSystem.apiGetAll(offset, max)
       },
        getAllPacksOfClinic () {
         const offset = 0

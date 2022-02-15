@@ -40,8 +40,8 @@ export default class DispenseType extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/dispenseType')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/dispenseType?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

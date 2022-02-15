@@ -45,10 +45,10 @@
                       :options="forms"
                       option-value="id"
                       option-label="description"
-                      label="Forma *"
+                      label="Forma Farmacêutica *"
                       @filter="filterForm"
                       :disable="onlyView"
-                       :rules="[ val => ( val != null ) || ' Por favor indique a forma a tomar']"/>
+                       :rules="[ val => ( val != null ) || ' Por favor indique a forma farmacêutica']"/>
                       </div>
                 </div>
             </q-card-section>
