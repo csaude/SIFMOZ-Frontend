@@ -1,6 +1,6 @@
 <template>
 <div>
-  <ListHeader v-if="flagGo"
+  <ListHeader
     :addVisible="showAddButton"
     :mainContainer="true"
     bgColor="bg-primary"
@@ -8,9 +8,9 @@
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
   <EmptyList v-if="selectedPatient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
-  <div v-show="infoVisible" >
+  <div v-if="flagGo" >
     <span
-      v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
+      v-for="identifier in patient.identifiers" :key="identifier.id" >
       <PrescriptionInfoContainer
         :identifier="identifier"
         @addNewPack="addNewPack"
@@ -33,6 +33,8 @@ import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import Pack from '../../../store/models/packaging/Pack'
+import Prescription from '../../../store/models/prescription/Prescription'
 export default {
   props: ['selectedPatient'],
   data () {
@@ -50,13 +52,25 @@ export default {
         Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
           resp.response.data.forEach(episode => {
             PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
-              resp.response.data.forEach(patientVisitDetails => {
-                this.flagGo = true
+              const i = 0
+              this.loadVisitDetailsInfo(resp.response.data, i)
               })
             })
           })
         })
-      })
+    },
+    loadVisitDetailsInfo (visitDetails, i) {
+      if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
+        Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
+          console.log(resp.response.data)
+          Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+            i = i + 1
+            this.loadVisitDetailsInfo(visitDetails, i)
+          })
+        })
+      } else {
+        this.flagGo = true
+      }
     },
     expandLess (value) {
       this.infoVisible = value
@@ -82,7 +96,7 @@ export default {
       return this.patientHasEpisodes
     },
     identifiers () {
-      return this.selectedPatient.identifiers
+      return this.patient.identifiers
     },
     patient: {
       get () {
@@ -98,19 +112,6 @@ export default {
                             .where('id', selectedP.id).first()
       }
     },
-    /*
-    patient () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
-                            .with('province')
-                            .with('attributes')
-                            .with('appointments')
-                            .with('district')
-                            .with('postoAdministrativo')
-                            .with('bairro')
-                            .with('clinic')
-                            .where('id', selectedP.id).first()
-    }, */
     patientHasEpisodes () {
       if (!this.patient.hasIdentifiers()) return false
 
