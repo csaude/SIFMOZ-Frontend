@@ -17,8 +17,8 @@ export default class ClinicSector extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/clinicSector')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/clinicSector?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

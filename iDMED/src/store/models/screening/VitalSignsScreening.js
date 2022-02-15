@@ -18,7 +18,7 @@ export default class VitalSignsScreening extends Model {
         }
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/vitalSignsScreening')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/vitalSignsScreening?offset=' + offset + '&max=' + max)
     }
 }

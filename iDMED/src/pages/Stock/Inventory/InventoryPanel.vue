@@ -119,6 +119,8 @@ export default {
       })
     },
     doProcessAndClose () {
+      const offset = 0
+      const max = 100
       const inventory = Inventory.query()
                                  .with('adjustments.*')
                                  .with('clinic.province')
@@ -137,8 +139,8 @@ export default {
         this.currInventory.open = false
         Inventory.apiFetchById(this.currInventory.id)
         this.getAllStockOfClinic(this.currClinic.id)
-        Stock.apiGetAll()
-        Drug.apiGetAll(0, 200)
+        Stock.apiGetAll(offset, max)
+        Drug.apiGetAll(offset, max)
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
     },

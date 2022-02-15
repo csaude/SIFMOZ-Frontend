@@ -116,7 +116,7 @@
                     <TextInput
                       v-model="props.row.posetiveAdjustment"
                       :disable="!isPosetiveAdjustment"
-                      label="Ajuste Posetivo"
+                      label="Ajuste Positivo"
                       dense
                       class="col" />
                   </span>
@@ -194,7 +194,7 @@ const columns = [
   { name: 'orderNumber', align: 'center', label: 'Nr. Guia', sortable: false },
   { name: 'incomes', align: 'center', label: 'Entrada', sortable: true },
   { name: 'outcomes', align: 'center', label: 'Saídas', sortable: true },
-  { name: 'posetiveAdjustment', align: 'center', label: 'Ajuste Posetivo (+)', sortable: true },
+  { name: 'posetiveAdjustment', align: 'center', label: 'Ajuste Positivo (+)', sortable: true },
   { name: 'negativeAdjustment', align: 'center', label: 'Ajuste Negativo (-)', sortable: true },
   { name: 'loses', align: 'center', label: 'Perdas', sortable: true },
   { name: 'balance', align: 'center', label: 'Saldo', sortable: true },

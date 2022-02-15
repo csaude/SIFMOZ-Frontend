@@ -15,7 +15,7 @@
             >
               <q-list style="min-width: 150px">
                 <q-item clickable v-close-popup>
-                  <q-item-section @click="createAdjustment('POSETIVE')">Ajuste Posetivo</q-item-section>
+                  <q-item-section @click="createAdjustment('POSETIVE')">Ajuste Positivo</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup>
                   <q-item-section @click="createAdjustment('NEGATIVE')">Ajuste Negativo</q-item-section>

@@ -23,7 +23,7 @@ export default class TBScreening extends Model {
         }
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/TBScreening')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/TBScreening?offset=' + offset + '&max=' + max)
     }
 }

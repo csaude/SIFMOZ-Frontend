@@ -204,7 +204,9 @@ export default {
           }
         },
     fetchInteroperabilityAttributes () {
-        InteroperabilityType.apiGetAll(0, 100)
+      const offset = 0
+      const max = 100
+      InteroperabilityType.apiGetAll(offset, max)
     },
       codeRules (val) {
       if (this.his.code === '') {

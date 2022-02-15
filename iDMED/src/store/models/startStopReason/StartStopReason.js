@@ -12,8 +12,8 @@ export default class StartStopReason extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/startStopReason')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/startStopReason?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

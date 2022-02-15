@@ -12,8 +12,8 @@ export default class IdentifierType extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/identifierType')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/identifierType?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

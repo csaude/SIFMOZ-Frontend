@@ -6,23 +6,31 @@
     class="text-white q-pa-none">
       <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
       <template v-slot:action class="items-center">
+       <div class="q-pa-md">
+        <div class="q-gutter-sm">
+          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="US" label="Farmácia Pública" />
+          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DD" label="Dipensa Descentralizada" />
+          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DC" label="Dispensa Comunitária" />
           <q-select
-            class="col q-my-md"
             dense outlined
             v-model="dispenseMode"
             :options="dispenseModes"
             option-value="id"
             option-label="description"
             label="Modo de dispensa" />
+        </div>
+       </div>
       </template>
   </q-banner>
 </template>
 
 <script>
+import { ref } from 'vue'
 import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 export default {
   data () {
     return {
+      mds: ref('US'),
       dispenseMode: []
     }
   },

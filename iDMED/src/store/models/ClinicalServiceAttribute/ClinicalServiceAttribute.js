@@ -16,8 +16,8 @@ export default class ClinicalServiceAttribute extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/clinicalServiceAttribute')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/clinicalServiceAttribute?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

@@ -29,7 +29,7 @@ export default class DestroyedStock extends Model {
       return await this.api().patch('/destroyedStock', destroyedStock)
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/destroyedStock')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/destroyedStock?offset=' + offset + '&max=' + max)
     }
 }

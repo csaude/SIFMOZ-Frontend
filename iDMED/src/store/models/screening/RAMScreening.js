@@ -16,7 +16,7 @@ export default class RAMScreening extends Model {
         }
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/RAMScreening')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/RAMScreening?offset=' + offset + '&max=' + max)
     }
 }

@@ -27,7 +27,7 @@ export class InventoryStockAdjustment extends StockAdjustment {
       return await this.api().post('/inventoryStockAdjustment', adjustment)
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/inventoryStockAdjustment')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/inventoryStockAdjustment?offset=' + offset + '&max=' + max)
     }
 }
