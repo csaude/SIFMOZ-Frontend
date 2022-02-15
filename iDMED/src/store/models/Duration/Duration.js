@@ -14,7 +14,7 @@ export default class Duration extends Model {
   }
 
   static async apiGetAll (offset, max) {
-    return await this.api().get('/duration?offset=' + offset + '&max=' + max)
+    return await this.api().get('/duration?offset=0&max=100')
   }
 
   static async apiFetchById (id) {

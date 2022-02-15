@@ -160,7 +160,7 @@
 
 <script>
 import { ref } from 'vue'
-import { date, SessionStorage } from 'quasar'
+import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import Episode from '../../../store/models/episode/Episode'

@@ -127,7 +127,6 @@
       </q-dialog>
     </div>
   </div>
-  </div>
 </template>
 
 <script>
@@ -218,7 +217,20 @@ export default {
         this.newPatient = true
       },
       goToPatientPanel (selectedPatient) {
-        SessionStorage.set('selectedPatient', selectedPatient)
+        this.$q.loading.show({
+          message: 'Carregando ...',
+          spinnerColor: 'grey-4',
+          spinner: QSpinnerBall
+        })
+
+        setTimeout(() => {
+          this.$q.loading.hide()
+        }, 5000)
+        setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
+      },
+       proccedToPatientPanel (patient) {
+         console.log('goToPanel')
+         SessionStorage.set('selectedPatient', patient)
         this.$router.push('/patientpanel')
       },
       filterPatient (patient) {
@@ -261,11 +273,6 @@ export default {
         Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll(offset, max)
         Clinic.apiGetAll(offset, max)
-        RAMScreening.apiGetAll(offset, max)
-        AdherenceScreening.apiGetAll(offset, max)
-        PregnancyScreening.apiGetAll(offset, max)
-        TBScreening.apiGetAll(offset, max)
-        VitalSignsScreening.apiGetAll(offset, max)
         InteroperabilityType.apiGetAll(offset, max)
         InteroperabilityAttribute.apiGetAll(offset, max)
         HealthInformationSystem.apiGetAll(offset, max)

@@ -1,13 +1,13 @@
 <template>
 <div>
-  <ListHeader
+  <ListHeader v-if="flagGo"
     :addVisible="showAddButton"
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="!flagGo">Nenhuma Prescrição Adicionada</EmptyList>
+  <EmptyList v-if="selectedPatient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-show="infoVisible" >
     <span
       v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
@@ -19,7 +19,7 @@
   </div>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
-      <AddEditPrescription v-if="flagGo"
+      <AddEditPrescription  v-if="flagGo"
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
         :step="step"
@@ -29,22 +29,19 @@
 </template>
 
 <script>
-import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
+import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import Pack from '../../../store/models/packaging/Pack'
 export default {
   props: ['selectedPatient'],
   data () {
-    const $q = useQuasar()
     return {
       showAddPrescription: false,
       infoVisible: true,
       selectedVisitDetails: '',
       step: '',
-      flagGo: false,
-      $q
+      flagGo: false
     }
   },
   methods: {
@@ -54,26 +51,12 @@ export default {
           resp.response.data.forEach(episode => {
             PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
               resp.response.data.forEach(patientVisitDetails => {
-                Pack.apiGetAllByPatientVisitDetailsId(patientVisitDetails.id).then(resp => {
-                  this.flagGo = true
-                }).catch(error => {
-                    console.log(error)
-                })
+                this.flagGo = true
               })
-              this.$q.loading.hide()
-            }).catch(error => {
-            this.$q.loading.hide()
-            console.log(error)
             })
+          })
         })
-          this.$q.loading.hide()
-        }).catch(error => {
-            this.$q.loading.hide()
-            console.log(error)
-        })
-      } else {
-        this.flagGo = true
-      }
+      })
     },
     expandLess (value) {
       this.infoVisible = value
@@ -90,20 +73,13 @@ export default {
     }
   },
   created () {
+    this.init()
   },
   mounted () {
-    this.$q.loading.show({
-    spinner: QSpinnerBall,
-    message: 'Por favor, aguarde...'
-     })
-    this.init()
   },
   computed: {
     showAddButton () {
       return this.patientHasEpisodes
-    },
-    dataFechtComplete () {
-      return this.flagGo
     },
     identifiers () {
       return this.selectedPatient.identifiers
@@ -111,7 +87,7 @@ export default {
     patient: {
       get () {
         const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-        return Patient.query().with('identifiers.*')
+      return Patient.query().with('identifiers.*')
                             .with('province')
                             .with('attributes')
                             .with('appointments')

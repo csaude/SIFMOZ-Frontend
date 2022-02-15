@@ -41,8 +41,8 @@ export default class Pack extends Model {
       return await this.api().get('/pack/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
     }
 
-    static async apiGetAllByPatientVisitDetailsId (patientVisitDetailsId, offset, max) {
-      return await this.api().get('/pack/patientVisitDetails/' + patientVisitDetailsId + '?offset=' + offset + '&max=' + max)
+    static async apiGetAllByPatientVisitDetail9sId (patientVisitDetailsId, offset, max) {
+      return await this.api().get('/pack/patientVisitDetails/' + patientVisitDetailsId + '?offset=0&max=200')
     }
 
     static async apiGetAllByPrescriptionId (prescriptionId, offset, max) {

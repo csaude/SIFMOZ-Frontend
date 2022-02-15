@@ -26,7 +26,7 @@ export default class TherapeuticRegimen extends Model {
   }
 
   static async apiGetAll (offset, max) {
-    return await this.api().get('/therapeuticRegimen?offset=' + offset + '&max=' + max)
+    return await this.api().get('/therapeuticRegimen?offset=0&max=200')
   }
 
   static async apiFetchById (id) {

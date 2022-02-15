@@ -35,6 +35,18 @@ export default class PatientServiceIdentifier extends Model {
     return this.prefered
   }
 
+  lastStartEpisodeWithPrescription () {
+    let lastVisit = null
+    this.patientVisitDetails.forEach((visit) => {
+      if (lastVisit === null) {
+        lastVisit = visit
+      } else if (visit.pack.pickupDate > lastVisit.pack.pickupDate) {
+        lastVisit = visit
+      }
+    })
+    return lastVisit.pack
+  }
+
   checkClinicalServiceAttr (attr) {
     if (this.service === '' || this.service === null) return false
     const has = this.service.attributes.some((attribute) => {

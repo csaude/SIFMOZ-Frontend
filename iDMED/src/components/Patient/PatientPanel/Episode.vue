@@ -55,13 +55,6 @@ export default {
                     .first()
       }
       },
-      /*
-    currEpisode () {
-      return Episode.query()
-                    .withAll()
-                    .where('id', this.episode.id)
-                    .first()
-    }, */
     canEdit () {
       return this.canBeEdited()
     }

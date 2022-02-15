@@ -1,5 +1,5 @@
   <template>
-  <div>
+  <div v-if="lastStartEpisode !== null">
   <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
     <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
+import { SessionStorage } from 'quasar'
 import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
@@ -84,7 +84,6 @@ import ClinicalService from '../../../store/models/ClinicalService/ClinicalServi
 export default {
   props: ['identifier'],
   data () {
-    const $q = useQuasar()
     return {
       alert: ref({
         type: '',
@@ -93,8 +92,7 @@ export default {
       }),
       isPatientActive: false,
       selectedPack: new Pack(),
-      showAddEditEpisode: false,
-      $q
+      showAddEditEpisode: false
     }
   },
   components: {
@@ -110,14 +108,9 @@ export default {
         if (this.identifier.service !== null) {
            ClinicalService.apiFetchById(this.identifier.service.id)
         }
-         this.$q.loading.hide()
-      } else {
-         this.$q.loading.hide()
       }
       if (this.prescriptionDetails !== null) {
-        PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
-      } else {
-         this.$q.loading.hide()
+      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
       }
     },
     checkPatientStatusOnService () {
@@ -165,13 +158,12 @@ export default {
       return episode
     },
     reloadParams () {
-      const offset = 0
-      const max = 100
-      TherapeuticRegimen.apiGetAll(offset, max)
-      TherapeuticLine.apiGetAll(offset, max)
-      Doctor.apiGetAll(offset, max)
-      Duration.apiGetAll(offset, max)
-      DispenseType.apiGetAll(offset, max)
+      TherapeuticRegimen.apiGetAll()
+      TherapeuticLine.apiGetAll()
+      Doctor.apiGetAll()
+      Duration.apiGetAll()
+      DispenseType.apiGetAll()
+      Drug.apiGetAll(0, 200)
     },
     async reloadPrescriptionDetails (id) {
       await PrescriptionDetail.apiFetchById(id)
@@ -243,7 +235,7 @@ export default {
     patientVisitDetais: {
       get () {
         if (this.prescription === null) return null
-        return PatientVisitDetails.query().with('pack').with('prescription.*').where('id', this.prescription.patientVisitDetails.id).first()
+        return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
       }
     },
     /*
@@ -258,11 +250,11 @@ export default {
         const presc = Prescription.query()
                                   .with('clinic')
                                   .with('doctor')
-                                  .with('patientVisitDetails.*')
+                                  .with('patientVisitDetails')
                                   .with('prescriptionDetails.*')
                                   .with('duration')
                                   .with('prescribedDrugs.*')
-                                  .where('id', this.lastStartEpisode.lastVisit().prscription.id)
+                                  .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
                                   .first()
         return presc
       }
@@ -286,11 +278,10 @@ export default {
     },
     lastPack: {
       get () {
-        if (this.prescription === null) return null
          return Pack.query()
                  .with('packagedDrugs.*')
                  .with('patientVisitDetails')
-                 .where('id', this.prescription.lastPackOnPrescription().id)
+                 .where('patientVisitDetails_id', this.patientVisitDetais.id)
                  .orderBy('pickupDate', 'desc')
                  .first()
       }
@@ -336,15 +327,11 @@ export default {
     }
   },
   created () {
-  },
-  mounted () {
-    this.$q.loading.show({
-      spinner: QSpinnerBall,
-      message: 'Por favor, aguarde...'
-    })
     this.init()
     this.patient = Object.assign({}, this.selectedPatient)
     this.reloadParams()
+  },
+  mounted () {
   }
 }
 </script>
