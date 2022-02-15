@@ -45,7 +45,7 @@
         <div class="col q-py-md">
           <ListHeader :addVisible="!isClosed" bgColor="bg-primary" @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())">Dispensa</ListHeader>
           <EmptyList v-if="lastPack === null" >Nenhum registo de Levantamentos</EmptyList>
-          <span v-if="lastPack !== null">
+          <span v-if="lastPack !== null && lastPack.packagedDrugs.length > 0 && lastPack.packagedDrugs[0].drug !== null">
             <PackInfo
               @editPack="editPack"
               :isClosed="isClosed"
@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
+import { SessionStorage } from 'quasar'
 import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
@@ -79,11 +79,11 @@ import Doctor from '../../../store/models/doctor/Doctor'
 import Duration from '../../../store/models/Duration/Duration'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
+import Drug from '../../../store/models/drug/Drug'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 export default {
   props: ['identifier'],
   data () {
-    const $q = useQuasar()
     return {
       alert: ref({
         type: '',
@@ -92,8 +92,7 @@ export default {
       }),
       isPatientActive: false,
       selectedPack: new Pack(),
-      showAddEditEpisode: false,
-      $q
+      showAddEditEpisode: false
     }
   },
   components: {
@@ -109,14 +108,9 @@ export default {
         if (this.identifier.service !== null) {
            ClinicalService.apiFetchById(this.identifier.service.id)
         }
-         this.$q.loading.hide()
-      } else {
-         this.$q.loading.hide()
       }
       if (this.prescriptionDetails !== null) {
-        PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
-      } else {
-         this.$q.loading.hide()
+      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
       }
     },
     checkPatientStatusOnService () {
@@ -164,13 +158,12 @@ export default {
       return episode
     },
     reloadParams () {
-      const offset = 0
-      const max = 0
-      TherapeuticRegimen.apiGetAll(offset, max)
-      TherapeuticLine.apiGetAll(offset, max)
-      Doctor.apiGetAll(offset, max)
-      Duration.apiGetAll(offset, max)
-      DispenseType.apiGetAll(offset, max)
+      TherapeuticRegimen.apiGetAll()
+      TherapeuticLine.apiGetAll()
+      Doctor.apiGetAll()
+      Duration.apiGetAll()
+      DispenseType.apiGetAll()
+      Drug.apiGetAll(0, 200)
     },
     async reloadPrescriptionDetails (id) {
       await PrescriptionDetail.apiFetchById(id)
@@ -334,15 +327,11 @@ export default {
     }
   },
   created () {
-  },
-  mounted () {
-    this.$q.loading.show({
-      spinner: QSpinnerBall,
-      message: 'Por favor, aguarde...'
-    })
     this.init()
     this.patient = Object.assign({}, this.selectedPatient)
     this.reloadParams()
+  },
+  mounted () {
   }
 }
 </script>

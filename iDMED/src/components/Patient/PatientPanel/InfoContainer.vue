@@ -99,8 +99,11 @@ export default {
   },
   methods: {
     init () {
+      console.log(this.curIdentifier)
       PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
-      Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+      Episode.apiGetAllByIdentifierId(this.curIdentifier.id).then(resp => {
+        console.log(resp.response.data)
+      })
     },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {

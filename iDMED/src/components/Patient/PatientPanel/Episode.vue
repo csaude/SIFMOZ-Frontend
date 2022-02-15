@@ -50,19 +50,11 @@ export default {
     currEpisode: {
       get () {
         return Episode.query()
-                    .with('episodeType')
-                    .with('clinicSector')
+                    .withAll()
                     .where('id', this.episode.id)
                     .first()
       }
       },
-      /*
-    currEpisode () {
-      return Episode.query()
-                    .withAll()
-                    .where('id', this.episode.id)
-                    .first()
-    }, */
     canEdit () {
       return this.canBeEdited()
     }

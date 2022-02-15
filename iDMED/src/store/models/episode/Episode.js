@@ -48,18 +48,14 @@ export default class Episode extends Model {
   }
 
   lastVisit () {
-    if (this.patientVisitDetails.length <= 0) return null
-    let lastVisit = ''
-    Object.keys(this.patientVisitDetails).forEach(function (k) {
-      const id = this.patientVisitDetails[k]
-      if (lastVisit === '') {
-        lastVisit = id
-      } else if (lastVisit.id !== '') {
-        if (new Date(lastVisit.patientVisit.visitDate) < new Date(id.patientVisit.visitDate)) {
-          lastVisit = id
-        }
+    let lastVisit = null
+    this.patientVisitDetails.forEach((visit) => {
+      if (lastVisit === null) {
+        lastVisit = visit
+      } else if (visit.patientVisit.visitDate > lastVisit.patientVisit.visitDate) {
+        lastVisit = visit
       }
-    }.bind(this))
+    })
     return lastVisit
   }
 
@@ -72,7 +68,7 @@ export default class Episode extends Model {
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
-    return await this.api().get('/episode/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+    return await this.api().get('/episode/clinic/' + clinicId + '?offset=0&max=100')
   }
 
   static async apiFetchById (id) {
@@ -80,6 +76,6 @@ export default class Episode extends Model {
   }
 
   static async apiGetAllByIdentifierId (identifierId, offset, max) {
-    return await this.api().get('/episode/identifier/' + identifierId + '?offset=' + offset + '&max=' + max)
+    return await this.api().get('/episode/identifier/' + identifierId + '?offset=0&max=100')
   }
 }

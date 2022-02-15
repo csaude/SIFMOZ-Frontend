@@ -112,6 +112,7 @@ export default {
                           return pack.pickupDate >= date.subtractFromDate(new Date(), { months: 3 })
                         })
                       })
+                  .where('active', true)
                  .orderBy('name')
                  .get()
       }

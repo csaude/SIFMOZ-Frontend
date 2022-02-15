@@ -150,11 +150,11 @@ import TherapeuticLine from 'src/store/models/therapeuticLine/TherapeuticLine'
 import Form from 'src/store/models/form/Form'
 import Doctor from 'src/store/models/doctor/Doctor'
 import DispenseType from 'src/store/models/dispenseType/DispenseType'
-import RAMScreening from 'src/store/models/screening/RAMScreening'
-import AdherenceScreening from 'src/store/models/screening/AdherenceScreening'
-import PregnancyScreening from 'src/store/models/screening/PregnancyScreening'
-import TBScreening from 'src/store/models/screening/TBScreening'
-import VitalSignsScreening from 'src/store/models/screening/VitalSignsScreening'
+// import RAMScreening from 'src/store/models/screening/RAMScreening'
+// import AdherenceScreening from 'src/store/models/screening/AdherenceScreening'
+// import PregnancyScreening from 'src/store/models/screening/PregnancyScreening'
+// import TBScreening from 'src/store/models/screening/TBScreening'
+// import VitalSignsScreening from 'src/store/models/screening/VitalSignsScreening'
 import InteroperabilityType from 'src/store/models/interoperabilityType/InteroperabilityType'
 import InteroperabilityAttribute from 'src/store/models/interoperabilityAttribute/InteroperabilityAttribute'
 import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
@@ -164,9 +164,9 @@ import Episode from 'src/store/models/episode/Episode'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
-import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
-import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
+// import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
+// import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
+// import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
 const columns = [
@@ -217,7 +217,20 @@ export default {
         this.newPatient = true
       },
       goToPatientPanel (selectedPatient) {
-        SessionStorage.set('selectedPatient', selectedPatient)
+        this.$q.loading.show({
+          message: 'Carregando ...',
+          spinnerColor: 'grey-4',
+          spinner: QSpinnerBall
+        })
+
+        setTimeout(() => {
+          this.$q.loading.hide()
+        }, 5000)
+        setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
+      },
+       proccedToPatientPanel (patient) {
+         console.log('goToPanel')
+         SessionStorage.set('selectedPatient', patient)
         this.$router.push('/patientpanel')
       },
       filterPatient (patient) {
@@ -260,11 +273,6 @@ export default {
         Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll(offset, max)
         Clinic.apiGetAll(offset, max)
-        RAMScreening.apiGetAll(offset, max)
-        AdherenceScreening.apiGetAll(offset, max)
-        PregnancyScreening.apiGetAll(offset, max)
-        TBScreening.apiGetAll(offset, max)
-        VitalSignsScreening.apiGetAll(offset, max)
         InteroperabilityType.apiGetAll(offset, max)
         InteroperabilityAttribute.apiGetAll(offset, max)
         HealthInformationSystem.apiGetAll(offset, max)
@@ -559,7 +567,7 @@ export default {
     mounted () {
       this.saveDefaultHIS()
       this.getAllDataSources(0)
-      this.loadAppParameters()
+      /* this.loadAppParameters()
       this.getAllPatientsOfClinic()
       this.getAllIdentifiersOfClinic()
       this.getAllPrescriptionOfClinic()
@@ -569,7 +577,9 @@ export default {
       this.getAlPatientVisitDetailsOfClinic()
       PackagedDrug.apiGetAll()
       PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll()
+      PrescriptionDetail.apiGetAll() */
+      this.getAllPatientsOfClinic()
+      this.loadAppParameters()
     },
     components: {
         TitleBar: require('components/Shared/TitleBar.vue').default,

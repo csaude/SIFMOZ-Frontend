@@ -92,7 +92,7 @@ export default {
           !this.$refs.amtPerTime.hasError &&
           !this.$refs.form.$refs.ref.hasError &&
           !this.$refs.times.hasError) {
-        this.$emit('addPrescribedDrug', this.prescribedDrug)
+        this.$emit('addPrescribedDrug', this.prescribedDrug, this.visitDetails)
       }
     },
     getDrugs () {
@@ -100,7 +100,7 @@ export default {
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').has('stocks').get()
+        drugs = Drug.query().with('form').has('stocks').where('active', true).get()
       }
       return drugs
     },
@@ -119,7 +119,7 @@ export default {
     therapeuticRegimen () {
       return TherapeuticRegimen.query()
                                .with('drugs.form')
-                               .where('id', this.visitDetails.prescriptions[0].prescriptionDetails[0].therapeuticRegimen.id).first()
+                               .where('id', this.visitDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id).first()
     }
   },
   mounted () {

@@ -64,6 +64,8 @@ import InteroperabilityType from './models/interoperabilityType/Interoperability
 import ClinicalServiceSector from './models/ClinicalServiceClinicSector/ClinicalServiceSector'
 import DispenseMode from './models/dispenseMode/DispenseMode'
 import PackagedDrugStock from './models/packagedDrug/PackagedDrugStock'
+import GroupPackHeader from './models/group/GroupPackHeader'
+import GroupPack from './models/group/GroupPack'
 
 // Vue.use(Vuex)
 
@@ -72,7 +74,7 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://172.104.236.126:5110/'
+  baseURL: 'http://localhost:8884/'
 })
 
 // VuexORM.use(datePlugin)
@@ -141,6 +143,8 @@ database.register(InteroperbilityAttribute)
 database.register(InteroperabilityType)
 database.register(ClinicalServiceSector)
 database.register(PackagedDrugStock)
+database.register(GroupPackHeader)
+database.register(GroupPack)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

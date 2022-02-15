@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import Clinic from '../clinic/Clinic'
 import Group from '../group/Group'
 import Patient from '../patient/Patient'
 
@@ -12,9 +13,11 @@ export default class GroupMember extends Model {
       endDate: this.attr(''),
       group_id: this.attr(''),
       patient_id: this.attr(''),
+      clinic_id: this.attr(''),
       // Relationships
       group: this.belongsTo(Group, 'group_id'),
-      patient: this.belongsTo(Patient, 'patient_id')
+      patient: this.belongsTo(Patient, 'patient_id'),
+      clinic: this.belongsTo(Clinic, 'clinic_id')
 
     }
   }
