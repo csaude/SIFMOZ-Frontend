@@ -205,10 +205,6 @@ export default {
         return new Patient(SessionStorage.getItem('selectedPatient'))
       }
     },
-    /*
-    patient () {
-      return new Patient(SessionStorage.getItem('selectedPatient'))
-    }, */
     validadeColor () {
       if (this.prescription !== null && this.prescription.remainigDuration() > 0) {
         return 'text-primary'
