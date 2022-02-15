@@ -39,7 +39,6 @@ export default class Prescription extends Model {
       this.patientVisitDetails.forEach((pvd) => {
         packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply)
       })
-      console.log(packagedWeeks)
       return Number((prescriptionDuration - packagedWeeks) / 4)
     }
 

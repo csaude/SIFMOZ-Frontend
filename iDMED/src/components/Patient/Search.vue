@@ -225,7 +225,7 @@ export default {
 
         setTimeout(() => {
           this.$q.loading.hide()
-        }, 5000)
+        }, 1000)
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
        proccedToPatientPanel (patient) {

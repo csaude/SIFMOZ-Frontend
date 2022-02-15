@@ -475,7 +475,7 @@ export default {
       if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
       this.$refs.duration.validate()
       this.$refs.doctor.validate()
-      if (this.hasPatientType) this.$refs.patientType.validate()
+      // if (this.hasPatientType) this.$refs.patientType.validate()
       this.$refs.dispenseType.validate()
 
       if (!this.$refs.patientStatus.hasError &&
@@ -484,7 +484,7 @@ export default {
           (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
           !this.$refs.duration.hasError &&
           !this.$refs.doctor.hasError &&
-          (this.hasPatientType && !this.$refs.patientType.hasError) &&
+          // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
             if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
