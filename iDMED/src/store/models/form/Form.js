@@ -15,8 +15,8 @@ export default class Form extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/form')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/form?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

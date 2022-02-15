@@ -18,7 +18,7 @@ export default class InteroperabilityAttribute extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/interoperabilityAttribute')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/interoperabilityAttribute?offset=' + offset + '&max=' + max)
   }
 }

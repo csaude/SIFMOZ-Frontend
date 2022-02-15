@@ -26,7 +26,7 @@ export default class Province extends Model {
     return await this.api().get(`/province/${id}`)
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/province')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/province?offset=' + offset + '&max=' + max)
   }
 }

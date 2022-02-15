@@ -16,7 +16,7 @@ export default class StockCenter extends Model {
         }
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/stockCenter')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/stockCenter?offset=' + offset + '&max=' + max)
     }
 }

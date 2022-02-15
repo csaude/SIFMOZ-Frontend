@@ -4,7 +4,7 @@
         <q-card-section class="q-pa-none">
           <div class="q-mt-md q-mb-sm">
             <div class="row items-center q-mb-sm q-pa-sm">
-                <span class="text-subtitle2">Adicção de Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}</span>
+                <span class="text-subtitle2">Adição de Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}</span>
             </div>
             <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
           </div>
@@ -32,15 +32,22 @@
               v-model="prescribedDrug.amtPerTime"
               :options="amtPerTimes"
               label="Toma" />
+              <TextInput  v-if="prescribedDrug.drug"
+              :disable="true"
+              v-model="prescribedDrug.drug.form.description"
+              label="Forma Farmacêutica"
+              dense
+              class="col q-ml-md" />
             <TextInput
               v-model="prescribedDrug.timesPerDay"
-              label="Forma"
+              label="Número de vezes a tomar"
               ref="form"
               :rules="[ val => !!val || 'Por favor indicar o numero de vezes a tomar']"
               suffix="Vez(es)"
               dense
               class="col q-ml-md" />
             <q-select
+              prefix="Por "
               class="col q-ml-md"
               dense outlined
               ref="times"
@@ -93,7 +100,7 @@ export default {
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').where('active', true).get()
+        drugs = Drug.query().with('form').has('stocks').where('active', true).get()
       }
       return drugs
     },

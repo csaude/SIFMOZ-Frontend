@@ -12,8 +12,8 @@ export default class FacilityType extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/facilityType')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/facilityType?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

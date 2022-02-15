@@ -194,11 +194,9 @@ export default {
           this.$refs.clinicSerctor.validate()
           if (!this.$refs.startReason.hasError &&
               !this.$refs.clinicSerctor.hasError) {
-                if (this.getJSDateFromDDMMYYY(this.startDate) > new Date()) {
+                if (this.getJSDateFromDDMMYYY(this.startDate) > new Date(new Date().setHours(0, 0, 0, 0))) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (this.getJSDateFromDDMMYYY(this.startDate) < date.adjustDate(this.curIdentifier.startDate, { hours: 0, minutes: 0, seconds: 0 })) {
-                  console.log(this.getJSDateFromDDMMYYY(this.startDate))
-                  console.log(date.adjustDate(this.curIdentifier.startDate, { hours: 0, minutes: 0, seconds: 0 }))
+                } else if (this.getJSDateFromDDMMYYY(this.startDate) < new Date(new Date(this.curIdentifier.startDate).setHours(0, 0, 0, 0))) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {
@@ -208,7 +206,7 @@ export default {
                                       .with('patientVisitDetails.*')
                                       .where('id', this.episodeToEdit.id)
                                       .first()
-                    if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.startDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+                    if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.startDate) < new Date(new Date(episode.lastVisit().lastPack().pickupDate).setHours(0, 0, 0, 0)))) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
                     } else {
                       this.doSave()
@@ -226,7 +224,7 @@ export default {
           this.episode.notes = 'Inicio ao tratamento'
           this.episode.clinic = this.currClinic
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
-          this.episode.creationDate = new Date()
+          this.episode.creationDate = new Date(new Date().setHours(0, 0, 0, 0))
         } else {
           if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
             this.step = 'close'
@@ -238,10 +236,10 @@ export default {
                     this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
                     this.closureEpisode.clinic = this.currClinic
                     this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.stopDate)
-                    this.closureEpisode.creationDate = new Date()
+                    this.closureEpisode.creationDate = new Date(new Date().setHours(0, 0, 0, 0))
                     this.closureEpisode.patientServiceIdentifier = this.identifier
 
-                    if (this.getJSDateFromDDMMYYY(this.stopDate) > new Date()) {
+                    if (this.getJSDateFromDDMMYYY(this.stopDate) > new Date(new Date().setHours(0, 0, 0, 0))) {
                       this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
                     } else if (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(this.episode.episodeDate)) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data de inicio ao tratamento.')
@@ -333,7 +331,9 @@ export default {
       },
       startReasons () {
         return StartStopReason.query()
-                              .where('isStartReason', true).get()
+                              .where('isStartReason', true)
+                              .orderBy('reason', 'asc')
+                              .get()
       },
       stopReasons () {
         return StartStopReason.query()

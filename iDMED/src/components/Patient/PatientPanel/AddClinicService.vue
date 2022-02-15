@@ -237,7 +237,7 @@ export default {
             identifierstartDate: '',
             identifier: new PatientServiceIdentifier(),
             closureEpisode: new Episode(),
-            estados: ['Activo', 'Curado'],
+            estados: ['Activo', 'Inactivo'],
             endDate: '',
             reOpenDate: ''
         }
@@ -459,7 +459,6 @@ export default {
         }
     },
     mounted () {
-      alert('abc add clinic service.vue')
       console.log(this.patient)
       this.init()
     },

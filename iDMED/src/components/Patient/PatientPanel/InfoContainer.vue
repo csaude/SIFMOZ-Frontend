@@ -26,7 +26,7 @@
           </div>
           <div class="row ">
             <div class="col-4 text-grey-9 text-weight-medium">Estado:</div>
-            <div class="col text-grey-8">{{ !isPatientActive ? 'Activo no Serviço' : 'Curado'}}</div>
+            <div class="col text-grey-8">{{ !isPatientActive ? 'Activo no Serviço' : 'Inactivo'}}</div>
           </div>
           <q-separator/>
           <div class="row q-my-md">

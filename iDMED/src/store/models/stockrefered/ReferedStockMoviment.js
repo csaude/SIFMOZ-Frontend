@@ -32,7 +32,7 @@ export default class ReferedStockMoviment extends Model {
       return await this.api().patch('/referedStockMoviment', referedStockMoviment)
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/referedStockMoviment')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/referedStockMoviment?offset=' + offset + '&max=' + max)
     }
 }

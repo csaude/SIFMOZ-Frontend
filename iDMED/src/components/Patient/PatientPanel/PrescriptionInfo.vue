@@ -1,14 +1,14 @@
 <template>
 <div>
-  <ListHeader v-if="dataFechtComplete"
+  <ListHeader
     :addVisible="showAddButton"
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="patient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
-  <div v-else >
+  <EmptyList v-if="!flagGo">Nenhuma Prescrição Adicionada</EmptyList>
+  <div v-show="infoVisible" >
     <span
       v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
       <PrescriptionInfoContainer
@@ -19,7 +19,8 @@
   </div>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
-      <AddEditPrescription  v-if="dataFechtComplete"
+      <AddEditPrescription v-if="flagGo"
+        :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
         :step="step"
         @close="showAddPrescription = false" />
@@ -28,7 +29,7 @@
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
+import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
@@ -36,37 +37,39 @@ import Pack from '../../../store/models/packaging/Pack'
 export default {
   props: ['selectedPatient'],
   data () {
+    const $q = useQuasar()
     return {
       showAddPrescription: false,
       infoVisible: true,
       selectedVisitDetails: '',
       step: '',
-      flagGo: false
+      flagGo: false,
+      $q
     }
   },
   methods: {
     init () {
-      if (this.identifiers.length > 0) {
-        this.identifiers.forEach(identifier => {
-          Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-            if (resp.response.data.length > 0) {
-              resp.response.data.forEach(episode => {
-                PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
-                  if (resp.response.data.length > 0) {
-                    resp.response.data.forEach(patientVisitDetails => {
-                      Pack.apiGetAllByPatientVisitDetailsId(patientVisitDetails.id).then(resp => {
-                        this.flagGo = true
-                      })
-                    })
-                  } else {
-                    this.flagGo = true
-                  }
+      this.identifiers.forEach(identifier => {
+        Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+          resp.response.data.forEach(episode => {
+            PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
+              resp.response.data.forEach(patientVisitDetails => {
+                Pack.apiGetAllByPatientVisitDetailsId(patientVisitDetails.id).then(resp => {
+                  this.flagGo = true
+                }).catch(error => {
+                    console.log(error)
                 })
               })
-            } else {
-              this.flagGo = true
-            }
-          })
+              this.$q.loading.hide()
+            }).catch(error => {
+            this.$q.loading.hide()
+            console.log(error)
+            })
+        })
+          this.$q.loading.hide()
+        }).catch(error => {
+            this.$q.loading.hide()
+            console.log(error)
         })
       } else {
         this.flagGo = true
@@ -87,9 +90,13 @@ export default {
     }
   },
   created () {
-    this.init()
   },
   mounted () {
+    this.$q.loading.show({
+    spinner: QSpinnerBall,
+    message: 'Por favor, aguarde...'
+     })
+    this.init()
   },
   computed: {
     showAddButton () {
@@ -105,14 +112,14 @@ export default {
       get () {
         const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
         return Patient.query().with('identifiers.*')
-                              .with('province')
-                              .with('attributes')
-                              .with('appointments')
-                              .with('district')
-                              .with('postoAdministrativo')
-                              .with('bairro')
-                              .with('clinic')
-                              .where('id', selectedP.id).first()
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic')
+                            .where('id', selectedP.id).first()
       }
     },
     /*

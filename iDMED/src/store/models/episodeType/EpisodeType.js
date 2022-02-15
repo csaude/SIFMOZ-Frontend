@@ -12,8 +12,8 @@ export default class EpisodeType extends Model {
     }
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/episodeType')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/episodeType?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

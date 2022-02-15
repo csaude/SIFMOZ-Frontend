@@ -47,9 +47,9 @@ import { date } from 'quasar'
 import Pack from '../../../store/models/packaging/Pack'
 import Drug from '../../../store/models/drug/Drug'
 const columns = [
-  { name: 'drug', required: true, field: 'row.drug.name', label: 'Medicamento', align: 'left', sortable: true },
-  { name: 'qty', align: 'left', field: 'row.quantitySupplied', label: 'Quantidade', sortable: true },
-  { name: 'nextPickUpDate', align: 'left', field: 'row.nextPickUpDate', label: 'Próximo Levantamento', sortable: false }
+  { name: 'drug', required: true, field: 'name', label: 'Medicamento', align: 'left', sortable: true },
+  { name: 'qty', align: 'left', field: 'quantitySupplied', label: 'Quantidade', sortable: true },
+  { name: 'nextPickUpDate', align: 'left', field: 'nextPickUpDate', label: 'Próximo Levantamento', sortable: false }
 ]
 export default {
   props: ['pack', 'isClosed'],
@@ -70,7 +70,9 @@ export default {
       // this.$emit('removePack', this.currPack)
     },
     reloadDrugs () {
-      Drug.apiGetAll(0, 200)
+      const offset = 0
+      const max = 100
+      Drug.apiGetAll(offset, max)
     }
   },
   components: {

@@ -21,8 +21,8 @@ export default class HealthInformationSystem extends Model {
     return await this.api().get(`/healthInformationSystem/${id}`)
   }
 
-  static async apiGetAll () {
-    return await this.api().get('/healthInformationSystem')
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/healthInformationSystem?offset=' + offset + '&max=' + max)
   }
 
   static async apiSave (his) {

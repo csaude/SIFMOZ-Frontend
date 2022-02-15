@@ -251,7 +251,9 @@ export default {
         return dateMoment
       },
       initParams () {
-        Province.apiGetAll()
+        const offset = 0
+        const max = 100
+        Province.apiGetAll(offset, max)
         Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
       },
       moment,

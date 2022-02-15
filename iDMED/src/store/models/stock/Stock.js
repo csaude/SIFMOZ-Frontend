@@ -51,8 +51,8 @@ export default class Stock extends Model {
       return await this.api().post('/stock', stock)
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/stock')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/stock?offset=' + offset + '&max=' + max)
     }
 
     isInUse () {

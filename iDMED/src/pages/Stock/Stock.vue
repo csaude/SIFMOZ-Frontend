@@ -22,16 +22,18 @@ export default {
   },
   methods: {
     init () {
+      const offset = 0
+      const max = 100
       const stocks = Stock.query().limit(2).get()
       if (stocks.length <= 0) {
-        StockCenter.apiGetAll()
-        Stock.apiGetAll()
-        InventoryStockAdjustment.apiGetAll()
-        StockOperationType.apiGetAll()
-        ReferedStockMoviment.apiGetAll()
-        DestroyedStock.apiGetAll()
-        Drug.apiGetAll(0, 100)
-        Province.apiGetAll()
+        StockCenter.apiGetAll(offset, max)
+        Stock.apiGetAll(offset, max)
+        InventoryStockAdjustment.apiGetAll(offset, max)
+        StockOperationType.apiGetAll(offset, max)
+        ReferedStockMoviment.apiGetAll(offset, max)
+        DestroyedStock.apiGetAll(offset, max)
+        Drug.apiGetAll(offset, max)
+        Province.apiGetAll(offset, max)
         this.getAllStockOfClinic()
       }
     },

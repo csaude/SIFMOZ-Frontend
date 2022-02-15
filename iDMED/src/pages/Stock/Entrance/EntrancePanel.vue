@@ -80,7 +80,8 @@
                     <q-th class="col" >{{columns[1].label}}</q-th>
                     <q-th style="width: 190px" >{{columns[2].label}}</q-th>
                     <q-th style="width: 190px" >{{columns[3].label}}</q-th>
-                    <q-th style="width: 120px" >{{columns[4].label}}</q-th>
+                    <q-th style="width: 190px" >{{columns[4].label}}</q-th>
+                    <q-th style="width: 120px" >{{columns[5].label}}</q-th>
                     <q-th style="width: 150px; text-align: center" >{{columns[5].label}}</q-th>
                   </q-tr>
 
@@ -101,6 +102,14 @@
                         option-value="id"
                         option-label="name"
                         label="Medicamento" />
+                    </q-td>
+                     <q-td key="manufacture" :props="props">
+                      <TextInput
+                        v-model="props.row.manufacture"
+                        :disable="!props.row.enabled"
+                        label="Fabricante"
+                        dense
+                        class="col" />
                     </q-td>
                     <q-td key="batchNumber" :props="props">
                       <TextInput
@@ -142,7 +151,7 @@
                     </q-td>
                     <q-td key="options" :props="props">
                       <div class="col" v-if="!props.row.isInUse()">
-                        <q-btn v-if="props.row.enabled" flat dense round color="primary" icon="done" @click="validateStock(props.row)"/>
+                        <q-btn v-if="props.row.enabled" :loading="submitting" flat dense round color="primary" icon="done" @click="validateStock(props.row)"/>
                         <q-btn v-if="props.row.enabled" flat dense round color="red" icon="clear" @click="cancel(props.row)"/>
                         <q-btn v-if="!props.row.enabled" flat dense round color="orange-5" icon="edit"  @click="initStockEdition(props.row)" />
                         <q-btn v-if="!props.row.enabled" flat dense round color="red" icon="delete_forever" class="q-ml-sm"  @click="promptStockDeletion(props.row)"/>
@@ -192,6 +201,7 @@ import moment from 'moment'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'left', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
+  { name: 'manufacture', align: 'left', label: 'Fabricante', sortable: true },
   { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
   { name: 'expireDate', align: 'left', label: 'Data de Validade', sortable: false },
   { name: 'unitsReceived', align: 'left', label: 'Quantidade', sortable: true },
@@ -205,6 +215,7 @@ export default {
         visible: false,
         msg: ''
       }),
+      submitting: false,
       columns,
       dateReceived: '',
       step: 'display',
@@ -303,14 +314,22 @@ export default {
     },
     validateStock (stock) {
       console.log(stock)
+      this.submitting = true
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.id === null) {
+        this.submitting = false
         this.displayAlert('error', 'Por favor indicar o medicamento!')
       } else if (stock.batchNumber === '') {
+        this.submitting = false
         this.displayAlert('error', 'Por favor indicar o lote!')
+      } else if (stock.manufacture === '') {
+        this.submitting = false
+        this.displayAlert('error', 'Por favor indicar o fabricante!')
       } else if (!date.isValid(stock.expireDate)) {
+        this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma data de validade válida!')
       } else if (Number(stock.unitsReceived) <= 0) {
+        this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma quantidade válida!')
       } else {
         this.doSave(stock)
@@ -320,10 +339,12 @@ export default {
       stock.stockMoviment = stock.unitsReceived
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
+        this.submitting = false
         stock.enabled = false
         this.step = 'display'
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       }).catch(error => {
+          this.submitting = false
           const listErrors = []
           if (error.request.response != null) {
             const arrayErrors = JSON.parse(error.request.response)

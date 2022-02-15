@@ -16,8 +16,8 @@ export default class PregnancyScreening extends Model {
         }
     }
 
-    static async apiGetAll () {
-      return await this.api().get('/pregnancyScreening')
+    static async apiGetAll (offset, max) {
+      return await this.api().get('/pregnancyScreening?offset=' + offset + '&max=' + max)
     }
 
     static async apiGetAllByPatientVisitId (patientVisitId, offset, max) {

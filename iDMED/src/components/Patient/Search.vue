@@ -125,6 +125,7 @@
             :clinic="currClinic"
             @close="showPatientRegister = false" />
       </q-dialog>
+    </div>
   </div>
   </div>
 </template>
@@ -193,7 +194,7 @@ export default {
         }),
         selectedDataSources: {
           id: 0,
-          abbreviation: 'SiDMED'
+          abbreviation: 'iDMED'
         },
         patients: [],
         newPatient: false,
@@ -240,27 +241,34 @@ export default {
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       loadAppParameters () {
-        Duration.apiGetAll()
-        Province.apiGetAll()
-        District.apiGetAll()
-        ClinicalServiceAttributeType.apiGetAll()
-        ClinicalService.apiGetAll()
-        ClinicSector.apiGetAll()
-        IdentifierType.apiGetAll()
-        EpisodeType.apiGetAll()
-        FacilityType.apiGetAll()
-        StartStopReason.apiGetAll()
-        ClinicalServiceAttribute.apiGetAll()
-        Drug.apiGetAll(0, 100)
-        TherapeuticRegimen.apiGetAll()
-        TherapeuticLine.apiGetAll()
-        Form.apiGetAll()
+        const offset = 0
+        const max = 100
+        Duration.apiGetAll(offset, max)
+        Province.apiGetAll(offset, max)
+        District.apiGetAll(offset, max)
+        ClinicalServiceAttributeType.apiGetAll(offset, max)
+        ClinicalService.apiGetAll(offset, max)
+        ClinicSector.apiGetAll(offset, max)
+        IdentifierType.apiGetAll(offset, max)
+        EpisodeType.apiGetAll(offset, max)
+        FacilityType.apiGetAll(offset, max)
+        StartStopReason.apiGetAll(offset, max)
+        ClinicalServiceAttribute.apiGetAll(offset, max)
+        Drug.apiGetAll(offset, max)
+        TherapeuticRegimen.apiGetAll(offset, max)
+        TherapeuticLine.apiGetAll(offset, max)
+        Form.apiGetAll(offset, max)
         Doctor.apiFetchByClinicId(this.clinic.id)
-        DispenseType.apiGetAll()
-        Clinic.apiGetAll()
-        InteroperabilityType.apiGetAll(0, 100)
-        InteroperabilityAttribute.apiGetAll()
-        HealthInformationSystem.apiGetAll()
+        DispenseType.apiGetAll(offset, max)
+        Clinic.apiGetAll(offset, max)
+        RAMScreening.apiGetAll(offset, max)
+        AdherenceScreening.apiGetAll(offset, max)
+        PregnancyScreening.apiGetAll(offset, max)
+        TBScreening.apiGetAll(offset, max)
+        VitalSignsScreening.apiGetAll(offset, max)
+        InteroperabilityType.apiGetAll(offset, max)
+        InteroperabilityAttribute.apiGetAll(offset, max)
+        HealthInformationSystem.apiGetAll(offset, max)
       },
        getAllPacksOfClinic () {
         const offset = 0
@@ -381,7 +389,7 @@ export default {
       },
       saveDefaultHIS () {
         HealthInformationSystem.create({
-            data: { id: -1, abbreviation: 'SiDMED', description: 'SiDMED', active: true }
+            data: { id: -1, abbreviation: 'iDMED', description: 'iDMED', active: true }
       })
       },
       loadHISDataSource () {
@@ -397,7 +405,7 @@ export default {
           this.$q.notify({
             color: 'positive',
             position: 'center',
-            message: 'Pesquisa de Pacientes no SiDMED em funcionamento!!',
+            message: 'Pesquisa de Pacientes no iDMED em funcionamento!!',
             icon: 'verified_user'
           })
            setTimeout(() => {
@@ -422,7 +430,7 @@ export default {
       },
       openMRSSerach (his) {
         const openMRSInstance = axios.create({
-          baseURL: 'http://localhost:8884'
+          baseURL: 'http://172.104.236.126:5110'
         })
         console.log(his)
         const nid = this.currPatient.identifiers[0].value.replaceAll('/', '-')
@@ -460,7 +468,7 @@ export default {
       checkOpenMRS (his) {
         console.log('HIS')
         const openMRSInstance = axios.create({
-           baseURL: 'http://localhost:8884'
+           baseURL: 'http://172.104.236.126:5110'
         })
         openMRSInstance.get('/patient/openmrsSession/' + his.id + '/' + this.username + '/' + this.password)
                        .then((response) => {
