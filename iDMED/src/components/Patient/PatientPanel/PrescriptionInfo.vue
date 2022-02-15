@@ -1,17 +1,17 @@
 <template>
 <div>
-  <ListHeader v-if="flagGo"
+  <ListHeader v-if="dataFechtComplete"
     :addVisible="showAddButton"
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="selectedPatient.identifiers.length <= 0 && flagGo" >Nenhuma Prescrição Adicionada</EmptyList>
-  <div v-show="infoVisible" >
+  <EmptyList v-if="patient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
+  <div v-else >
     <span
       v-for="identifier in selectedPatient.identifiers" :key="identifier.id" >
-      <PrescriptionInfoContainer v-if="flagGo"
+      <PrescriptionInfoContainer
         :identifier="identifier"
         @addNewPack="addNewPack"
         @editPack="editPack"/>
@@ -19,8 +19,7 @@
   </div>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
-      <AddEditPrescription  v-if="flagGo"
-        :patient="selectedPatient"
+      <AddEditPrescription  v-if="dataFechtComplete"
         :selectedVisitDetails="selectedVisitDetails"
         :step="step"
         @close="showAddPrescription = false" />
@@ -47,19 +46,31 @@ export default {
   },
   methods: {
     init () {
-      this.identifiers.forEach(identifier => {
-        Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-          resp.response.data.forEach(episode => {
-            PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
-              resp.response.data.forEach(patientVisitDetails => {
-                Pack.apiGetAllByPatientVisitDetailsId(patientVisitDetails.id).then(resp => {
-                  this.flagGo = true
+      if (this.identifiers.length > 0) {
+        this.identifiers.forEach(identifier => {
+          Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+            if (resp.response.data.length > 0) {
+              resp.response.data.forEach(episode => {
+                PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
+                  if (resp.response.data.length > 0) {
+                    resp.response.data.forEach(patientVisitDetails => {
+                      Pack.apiGetAllByPatientVisitDetailsId(patientVisitDetails.id).then(resp => {
+                        this.flagGo = true
+                      })
+                    })
+                  } else {
+                    this.flagGo = true
+                  }
                 })
               })
-            })
+            } else {
+              this.flagGo = true
+            }
           })
         })
-      })
+      } else {
+        this.flagGo = true
+      }
     },
     expandLess (value) {
       this.infoVisible = value
@@ -84,21 +95,24 @@ export default {
     showAddButton () {
       return this.patientHasEpisodes
     },
+    dataFechtComplete () {
+      return this.flagGo
+    },
     identifiers () {
       return this.selectedPatient.identifiers
     },
     patient: {
       get () {
         const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
-                            .with('province')
-                            .with('attributes')
-                            .with('appointments')
-                            .with('district')
-                            .with('postoAdministrativo')
-                            .with('bairro')
-                            .with('clinic')
-                            .where('id', selectedP.id).first()
+        return Patient.query().with('identifiers.*')
+                              .with('province')
+                              .with('attributes')
+                              .with('appointments')
+                              .with('district')
+                              .with('postoAdministrativo')
+                              .with('bairro')
+                              .with('clinic')
+                              .where('id', selectedP.id).first()
       }
     },
     /*

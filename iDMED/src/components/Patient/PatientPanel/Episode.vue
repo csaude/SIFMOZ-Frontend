@@ -50,8 +50,7 @@ export default {
     currEpisode: {
       get () {
         return Episode.query()
-                    .with('episodeType')
-                    .with('clinicSector')
+                    .withAll()
                     .where('id', this.episode.id)
                     .first()
       }

@@ -15,12 +15,14 @@ export default class PatientVisitDetails extends Model {
       episode_id: this.attr(''),
       clinic_id: this.attr(''),
       createPackLater: this.boolean(false),
+      prescription_id: this.attr(''),
+      pack_id: this.attr(''),
         // Relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
-      packs: this.hasMany(Pack, 'patientVisitDetails_id'),
+      pack: this.belongsTo(Pack, 'pack_id'),
       episode: this.belongsTo(Episode, 'episode_id'),
       patientVisit: this.belongsTo(PatientVisit, 'patient_visit_id'),
-      prescriptions: this.hasMany(Prescription, 'patientVisitDetails_id')
+      prescription: this.belongsTo(Prescription, 'prescription_id')
     }
   }
 

@@ -339,7 +339,6 @@ export default {
       },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-          console.log(resp.response.data)
               if (resp.response.data.length > 0) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)

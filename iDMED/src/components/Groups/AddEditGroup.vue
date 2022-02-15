@@ -197,7 +197,7 @@ import moment from 'moment'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import GroupType from '../../store/models/groupType/GroupType'
 import Clinic from '../../store/models/clinic/Clinic'
-import { SessionStorage } from 'quasar'
+import { QSpinnerBall, SessionStorage } from 'quasar'
 import GroupMember from '../../store/models/groupMember/GroupMember'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
@@ -302,12 +302,32 @@ export default {
       this.doSave()
     },
     doSave () {
+      this.$q.loading.show({
+        message: 'Carregando ...',
+        spinnerColor: 'grey-4',
+        spinner: QSpinnerBall
+      })
+
+      setTimeout(() => {
+        this.$q.loading.hide()
+      }, 700)
       if (this.isCreateStep) {
         this.curGroup.startDate = this.getJSDateFromDDMMYYY(this.startDate)
         this.curGroup.clinic = this.clinic
       }
       Group.apiSave(this.curGroup).then(resp => {
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
+        Group.apiFetchById(resp.response.data.id).then(resp => {
+          this.curGroup = Group.query()
+                               .with('groupType')
+                               .with('members.patient.*')
+                               .with('service.*')
+                               .with('packHeaders.*')
+                               .with('clinic.province')
+                               .where('id', resp.response.data.id)
+                               .first()
+          console.log(this.curGroup)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
       }).catch(error => {
           const listErrors = []
           if (error.request.response != null) {
@@ -332,6 +352,8 @@ export default {
       this.alert.visible = false
       if (this.alert.type === 'info') {
         this.$emit('close')
+        SessionStorage.set('selectedGroup', this.curGroup)
+        this.$router.push('/group/panel')
       }
     }
   },

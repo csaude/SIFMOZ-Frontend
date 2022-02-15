@@ -11,6 +11,7 @@ export default class GroupPackHeader extends Model {
       id: this.attr(null),
       packDate: this.attr(''),
       nextPickUpDate: this.attr(''),
+      isLast: this.boolean(false),
       duration_id: this.attr(''),
       group_id: this.attr(''),
       // Relationships

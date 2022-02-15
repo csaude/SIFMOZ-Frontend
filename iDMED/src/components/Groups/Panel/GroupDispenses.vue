@@ -11,7 +11,7 @@
           class="col"
           dense
           flat
-          :rows="grupPacks"
+          :rows="headers"
           :columns="columns"
           row-key="id"
           >
@@ -27,22 +27,25 @@
             <q-tr :props="props">
               <q-td key="order" :props="props">
               </q-td>
-              <q-td key="id" :props="props">
-              </q-td>
               <q-td key="lastDispenseDate" :props="props">
+                {{this.getDDMMYYYFromJSDate(props.row.packDate)}}
               </q-td>
               <q-td key="nextPickupDate" :props="props">
+                {{this.getDDMMYYYFromJSDate(props.row.nextPickUpDate)}}
               </q-td>
               <q-td key="duration" :props="props">
+                {{props.row.duration.weeks / 4}} mes(es)
               </q-td>
               <q-td key="pickUpDays" :props="props">
+                Passam {{this.getDateDiff(new Date(), props.row.packDate)}} dias após o último levantamento
               </q-td>
               <q-td key="options" :props="props">
                 <div class="col">
                   <q-btn flat round
+                  :disable="!props.row.isLast"
                   color="red-8"
-                  icon="group_remove"
-                  @click="removePatient(props.row)">
+                  icon="delete"
+                  @click="removePack(props.row)">
                   <q-tooltip class="bg-red-5">Remover</q-tooltip>
                 </q-btn>
                 </div>
@@ -56,6 +59,9 @@
 
 <script>
 import { ref } from 'vue'
+import moment from 'moment'
+import { date, SessionStorage } from 'quasar'
+import GroupPackHeader from '../../../store/models/group/GroupPackHeader'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'lastDispenseDate', align: 'left', label: 'Data da Última Dispensa', sortable: false },
@@ -65,10 +71,42 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  props: ['packHeaders'],
   data () {
     return {
       grupPacks: ref([]),
       columns
+    }
+  },
+  methods: {
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    formatDate (dateString) {
+      if (!dateString || !moment(dateString).isValid()) return ''
+      const dateMoment = moment(dateString).format('DD-MM-YYYY')
+      return dateMoment
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
+    },
+    getDateDiff (date1, date2) {
+      return date.getDateDiff(date1, date2, 'days')
+    },
+    loadHeaders () {
+      const headers = GroupPackHeader.query().with('groupPacks.pack').with('duration').where('group_id', SessionStorage.getItem('selectedGroup').id).orderBy('packDate', 'desc').get()
+      if (headers.length > 0) {
+        headers[0].isLast = true
+      }
+      return headers
+    }
+  },
+  computed: {
+    headers: {
+      get () {
+        return this.loadHeaders()
+      }
     }
   },
   components: {

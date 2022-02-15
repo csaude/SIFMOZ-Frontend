@@ -35,6 +35,30 @@ export default class PatientServiceIdentifier extends Model {
     return this.prefered
   }
 
+  checkClinicalServiceAttr (attr) {
+    if (this.service === '' || this.service === null) return false
+    const has = this.service.attributes.some((attribute) => {
+      return attribute.clinicalServiceAttributeType.code === attr
+    })
+    return has
+  }
+
+  hasTherapeuticalRegimen () {
+    return this.checkClinicalServiceAttr('THERAPEUTICAL_REGIMEN')
+  }
+
+  hasTherapeuticalLine () {
+    return this.checkClinicalServiceAttr('THERAPEUTICAL_LINE')
+  }
+
+  hasPatientType () {
+    return this.checkClinicalServiceAttr('PATIENT_TYPE')
+  }
+
+  hasPrescriptionChangeMotive () {
+    return this.checkClinicalServiceAttr('PRESCRIPTION_CHANGE_MOTIVE')
+  }
+
   hasEpisodes () {
     return this.episodes.length > 0
   }

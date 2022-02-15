@@ -35,19 +35,25 @@
                 {{props.row.patient.fullName}}
               </q-td>
               <q-td key="lasPrescriptionDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].patientVisitDetails[0].prescriptions[0].prescriptionDate)}}
+                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDate)}}
               </q-td>
               <q-td key="remainingTime" :props="props">
-                {{props.row.patient.identifiers[0].episodes[0].patientVisitDetails[0].getPrescriptionRemainigDuration()}} mes(es)
+                {{props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.remainigDuration()}} mes(es)
               </q-td>
               <q-td key="lastDispenseDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].patientVisitDetails[0].packs[0].pickupDate)}}
+                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().pickupDate)}}
               </q-td>
               <q-td key="nextPickupDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].patientVisitDetails[0].packs[0].nextPickUpDate)}}
+                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().nextPickUpDate)}}
               </q-td>
               <q-td key="options" :props="props">
                 <div class="col">
+                <q-btn flat round
+                  color="blue-8"
+                  icon="post_add"
+                  @click="newPrescription(props.row.patient, props.row.patient.identifiers[0])">
+                  <q-tooltip class="bg-blue-5">Nova Prescrição</q-tooltip>
+                </q-btn>
                   <q-btn flat round
                   color="red-8"
                   icon="group_remove"
@@ -67,12 +73,13 @@
 <script>
 import { ref } from 'vue'
 import Group from '../../../store/models/group/Group'
-import { QSpinnerBall, SessionStorage } from 'quasar'
+import { SessionStorage } from 'quasar'
 import Episode from '../../../store/models/episode/Episode'
 import Patient from '../../../store/models/patient/Patient'
 import Pack from '../../../store/models/packaging/Pack'
 import Prescription from '../../../store/models/prescription/Prescription'
 import moment from 'moment'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -94,6 +101,9 @@ export default {
     addMember () {
       this.$emit('addNewMember')
     },
+    newPrescription (patient, identifier) {
+      this.$emit('newPrescription', patient, identifier)
+    },
     getJSDateFromDDMMYYY (dateString) {
       const dateParts = dateString.split('-')
       return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
@@ -102,12 +112,6 @@ export default {
       return moment(jsDate).format('DD-MM-YYYY')
     },
     getGroupMembers () {
-      this.$q.loading.show({
-        message: 'Carregando ...',
-        spinnerColor: 'grey-4',
-        spinner: QSpinnerBall
-        // delay: 400 // ms
-      })
       const group = Group.query()
                         .with('service')
                         .with('members.patient.identifiers.identifierType')
@@ -123,33 +127,49 @@ export default {
         })
         member.patient.identifiers[0].episodes = []
         member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-        this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].patientVisitDetails[0])
+        PatientVisitDetails.apiGetAllByEpisodeId(member.patient.identifiers[0].episodes[0].id, 0, 200)
+        this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
       })
       this.members = group.members
-      this.$q.loading.hide()
     },
     fecthMemberPrescriptionData (visitDetails) {
-      Pack.apiFetchById(visitDetails.packs[0].id)
-      Prescription.apiFetchById(visitDetails.prescriptions[0].id).then(resp => {
+      Pack.apiFetchById(visitDetails.pack.id)
+      Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
         this.fecthedMemberData = this.fecthedMemberData + 1
       })
+    },
+    getAllVisitsOfPrescription (prescription) {
+      const visits = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
+      let lastVisit = null
+
+      visits.forEach((visit) => {
+        if (lastVisit === null) {
+          lastVisit = visit
+        } else if (visit.pack.pickupDate > lastVisit.pack.pickupDate) {
+          lastVisit = visit
+        }
+      })
+      return visits
     },
     loadMembers () {
       if (this.dataFechComplete) {
         this.members.forEach((member) => {
-          member.patient.identifiers[0].episodes[0].patientVisitDetails[0].packs = Pack.query()
-                                                                                      .with('dispenseMode')
-                                                                                      .with('packagedDrugs')
-                                                                                      .where('patientVisitDetails_id', member.patient.identifiers[0].episodes[0].patientVisitDetails[0].id)
-                                                                                      .orderBy('pickupDate', 'desc')
-                                                                                      .get()
-          member.patient.identifiers[0].episodes[0].patientVisitDetails[0].prescriptions[0] = Prescription.query()
-                                                                                                          .with('prescriptionDetails')
-                                                                                                          .with('duration')
-                                                                                                          .with('prescribedDrugs')
-                                                                                                          .where('id', member.patient.identifiers[0].episodes[0].patientVisitDetails[0].prescriptions[0].id)
-                                                                                                          .first()
+          member.patient.identifiers[0].episodes[0].lastVisit().pack = Pack.query()
+                                                                            .with('dispenseMode')
+                                                                            .with('packagedDrugs')
+                                                                            .where('id', member.patient.identifiers[0].episodes[0].lastVisit().pack.id)
+                                                                            .first()
+          const prescription = Prescription.query()
+                                          .with('prescriptionDetails')
+                                          .with('duration')
+                                          .with('prescribedDrugs')
+                                          .with('patientVisitDetails.*')
+                                          .where('id', member.patient.identifiers[0].episodes[0].lastVisit().prescription.id)
+                                          .first()
+          prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
+          member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
         })
+        console.log(this.members)
         return this.members
       } else {
         return []
@@ -162,6 +182,7 @@ export default {
                               .with('clinicSector')
                               .with('patientServiceIdentifier')
                               .with('patientVisitDetails.*')
+                              .has('patientVisitDetails')
                               .whereHas('episodeType', (query) => {
                                     query.where('code', 'INICIO')
                                   })

@@ -22,12 +22,11 @@ export default class Pack extends Model {
         stockReturned: this.number(0),
         packageReturned: this.number(0),
         reasonForPackageReturn: this.attr(''),
-        patientVisitDetails_id: this.attr(''),
         clinic_id: this.attr(''),
         syncStatus: this.attr(''),
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
-        patientVisitDetails: this.belongsTo(PatientVisitDetails, 'patientVisitDetails_id'),
+        patientVisitDetails: this.hasMany(PatientVisitDetails, 'pack_id'),
         dispenseMode: this.belongsTo(DispenseMode, 'dispenseMode_id'),
         packagedDrugs: this.hasMany(PackagedDrug, 'pack_id'),
         groupPack: this.belongsTo(GroupPack, 'pack_id')
@@ -44,6 +43,10 @@ export default class Pack extends Model {
 
     static async apiGetAllByPatientVisitDetailsId (patientVisitDetailsId, offset, max) {
       return await this.api().get('/pack/patientVisitDetails/' + patientVisitDetailsId + '?offset=' + offset + '&max=' + max)
+    }
+
+    static async apiGetAllByPrescriptionId (prescriptionId, offset, max) {
+      return await this.api().get('/pack/prescription/' + prescriptionId)
     }
 
     static async apiFetchById (id) {

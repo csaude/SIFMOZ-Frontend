@@ -64,6 +64,8 @@ import InteroperabilityType from './models/interoperabilityType/Interoperability
 import ClinicalServiceSector from './models/ClinicalServiceClinicSector/ClinicalServiceSector'
 import DispenseMode from './models/dispenseMode/DispenseMode'
 import PackagedDrugStock from './models/packagedDrug/PackagedDrugStock'
+import GroupPackHeader from './models/group/GroupPackHeader'
+import GroupPack from './models/group/GroupPack'
 
 // Vue.use(Vuex)
 
@@ -141,6 +143,8 @@ database.register(InteroperbilityAttribute)
 database.register(InteroperabilityType)
 database.register(ClinicalServiceSector)
 database.register(PackagedDrugStock)
+database.register(GroupPackHeader)
+database.register(GroupPack)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

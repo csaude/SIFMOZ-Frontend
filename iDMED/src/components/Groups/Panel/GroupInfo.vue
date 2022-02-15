@@ -31,7 +31,7 @@
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Data Fim:</div>
-        <div class="col text-grey-10">{{group.endDate !== null ? this.getDDMMYYYFromJSDate(group.endDate) : '-'}}</div>
+        <div class="col text-grey-10">{{(group.endDate !== null && group.endDate !== '') ? this.getDDMMYYYFromJSDate(group.endDate): '-'}}</div>
       </div>
       <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
       <div class="row q-my-md">

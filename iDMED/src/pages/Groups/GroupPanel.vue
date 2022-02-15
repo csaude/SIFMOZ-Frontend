@@ -14,8 +14,8 @@
           class="q-pr-md"
         >
           <span v-if="fecthedEpisodes >= group.members.length">
-            <group-members @addNewMember="addNewMember"/>
-            <groupPacks @newPacking="newPacking" />
+            <group-members @addNewMember="addNewMember" @newPrescription="newPrescription"/>
+            <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
           </span>
         </q-scroll-area>
       </div>
@@ -30,15 +30,25 @@
           :group="group"
           @close="showNewPackingForm = false" />
       </q-dialog>
+      <q-dialog persistent v-model="showAddPrescription" full-width>
+          <addEditPrescription
+            :selectedVisitDetails="patientVisitDetails"
+            step="create"
+            @close="showAddPrescription = false" />
+      </q-dialog>
   </div>
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
+import { QSpinnerBall, SessionStorage } from 'quasar'
 import Group from '../../store/models/group/Group'
 import Patient from '../../store/models/patient/Patient'
 import Episode from '../../store/models/episode/Episode'
 import DispenseMode from '../../store/models/dispenseMode/DispenseMode'
+import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
+import PatientVisit from '../../store/models/patientVisit/PatientVisit'
+import Prescription from '../../store/models/prescription/Prescription'
+import Clinic from '../../store/models/clinic/Clinic'
 export default {
   data () {
     return {
@@ -62,11 +72,22 @@ export default {
       fecthedEpisodes: 0,
       showRegisterRegister: false,
       groupAddEditStep: '',
-      showNewPackingForm: false
+      showNewPackingForm: false,
+      showAddPrescription: false,
+      patientVisitDetails: ''
     }
   },
   methods: {
     fecthMembersData () {
+      this.$q.loading.show({
+        message: 'Carregando detalhes do grupo...',
+        spinnerColor: 'grey-4',
+        spinner: QSpinnerBall
+      })
+
+      setTimeout(() => {
+        this.$q.loading.hide()
+      }, 700)
       DispenseMode.apiGetAll()
       this.group.members.forEach((member) => {
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
@@ -76,9 +97,37 @@ export default {
           return identifier.service.id === this.group.service.id
         })
         Episode.apiGetAllByIdentifierId(member.patient.identifiers[0].id).then(resp => {
+          console.log(resp.response.data)
           this.fecthedEpisodes = this.fecthedEpisodes + 1
         })
       })
+    },
+    newPrescription (patient, identifier) {
+      const pvd = new PatientVisitDetails({
+                          patientVisit: new PatientVisit({
+                                          visitDate: new Date(),
+                                          patient: Patient.query()
+                                                          .with('province')
+                                                          .with('district.province')
+                                                          .with('clinic.province')
+                                                          .where('id', patient.id)
+                                                          .first(),
+                                          clinic: this.clinic
+                                        }),
+                          clinic: this.clinic,
+                          createPackLater: true,
+                          prescription: new Prescription(),
+                          episode: Episode.query()
+                                          .with('startStopReason')
+                                          .with('episodeType')
+                                          .with('clinicSector')
+                                          .with('patientServiceIdentifier')
+                                          .where('id', identifier.episodes[0].id)
+                                          .first()
+                        })
+      this.patientVisitDetails = pvd
+      SessionStorage.set('selectedPatient', patient)
+      this.showAddPrescription = true
     },
     addNewMember () {
       this.groupAddEditStep = 'addMember'
@@ -100,11 +149,16 @@ export default {
       get () {
         return Group.query()
                     .with('service')
+                    .with(['packHeaders.groupPacks.pack', 'packHeaders.duration'])
                     .with('members.patient.identifiers.identifierType')
                     .with('groupType')
+                    .with('clinic.province')
                     .where('id', SessionStorage.getItem('selectedGroup').id)
                     .first()
       }
+    },
+    clinic () {
+      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
     }
   },
   components: {
@@ -113,7 +167,8 @@ export default {
     groupRegister: require('components/Groups/AddEditGroup.vue').default,
     groupPack: require('components/Groups/GroupDispense.vue').default,
     groupMembers: require('components/Groups/Panel/GroupMembers.vue').default,
-    groupPacks: require('components/Groups/Panel/GroupDispenses.vue').default
+    groupPacks: require('components/Groups/Panel/GroupDispenses.vue').default,
+    addEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default
   }
 }
 </script>

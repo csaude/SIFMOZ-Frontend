@@ -26,11 +26,33 @@ export default class Prescription extends Model {
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
         doctor: this.belongsTo(Doctor, 'doctor_id'),
-        patientVisitDetails: this.belongsTo(PatientVisitDetails, 'patientVisitDetails_id'),
+        patientVisitDetails: this.hasMany(PatientVisitDetails, 'patientVisitDetails_id'),
         prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id'),
         duration: this.belongsTo(Duration, 'duration_id'),
         prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id')
       }
+    }
+
+    remainigDuration () {
+      const prescriptionDuration = Number(this.duration.weeks)
+      let packagedWeeks = 0
+      this.patientVisitDetails.forEach((pvd) => {
+        packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply)
+      })
+      console.log(packagedWeeks)
+      return Number((prescriptionDuration - packagedWeeks) / 4)
+    }
+
+    lastPackOnPrescription () {
+      let lastVisit = null
+      this.patientVisitDetails.forEach((visit) => {
+        if (lastVisit === null) {
+          lastVisit = visit
+        } else if (visit.pack.pickupDate > lastVisit.pack.pickupDate) {
+          lastVisit = visit
+        }
+      })
+      return lastVisit.pack
     }
 
     static async apiSave (prescription) {
