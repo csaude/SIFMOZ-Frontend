@@ -111,7 +111,7 @@
                 <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
               </div>
                 <div class="col">
-                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="" label="Não" />
+                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="N/A" label="Não" />
                 <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="Alterar" label="Sim" />
                 </div>
               </div>
@@ -477,7 +477,7 @@ export default {
       if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
       this.$refs.duration.validate()
       this.$refs.doctor.validate()
-      if (this.hasPatientType) this.$refs.patientType.validate()
+      // if (this.hasPatientType) this.$refs.patientType.validate()
       this.$refs.dispenseType.validate()
 
       if (!this.$refs.patientStatus.hasError &&
@@ -486,7 +486,7 @@ export default {
           (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
           !this.$refs.duration.hasError &&
           !this.$refs.doctor.hasError &&
-          (this.hasPatientType && !this.$refs.patientType.hasError) &&
+          // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
             if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
@@ -616,7 +616,7 @@ export default {
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
-console.log(this.patientVisit)
+      console.log(this.patientVisit)
       PatientVisit.apiSave(this.patientVisit).then(resp => {
         this.fecthVisit(resp.response.data.id)
         this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
@@ -649,6 +649,7 @@ console.log(this.patientVisit)
     },
     fecthVisit (id) {
       PatientVisit.apiFetchById(id).then(resp => {
+        console.log(resp)
         this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
         this.fecthPrescription(resp.response.data.patientVisitDetails[0].prescriptions[0].id)
         if (resp.response.data.patientVisitDetails[0].packs.length > 0) this.fecthPack(resp.response.data.patientVisitDetails[0].packs[0].id)

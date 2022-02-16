@@ -330,16 +330,11 @@ export default {
     },
     mounted () {
       this.loadAppParameters()
-      // this.getAllPatientsOfClinic()
-      // this.getAllIdentifiersOfClinic()
-      // this.getAllPrescriptionOfClinic()
-      // this.getAllEpisodesOfClinic()
-      // this.getAllPatientVisitsOfClinic()
-      // this.getAllPacksOfClinic()
-      // this.getAlPatientVisitDetailsOfClinic()
       PackagedDrug.apiGetAll()
       PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll()
+      PrescriptionDetail.apiGetAll().then(resp => {
+        this.$q.loading.hide()
+      })
     },
     created () {
       this.$q.loading.show({
@@ -349,9 +344,9 @@ export default {
       // delay: 400 // ms
     })
 
-    setTimeout(() => {
-      this.$q.loading.hide()
-    }, 600)
+    // setTimeout(() => {
+    //   this.$q.loading.hide()
+    // }, 600)
       this.saveCurrClinic()
     },
     computed: {
