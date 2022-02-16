@@ -111,7 +111,7 @@
                 <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
               </div>
                 <div class="col">
-                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="" label="Não" />
+                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="N/A" label="Não" />
                 <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="Alterar" label="Sim" />
                 </div>
               </div>
@@ -614,7 +614,8 @@ export default {
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
-console.log(this.patientVisit)
+
+      console.log(this.patientVisit)
       const i = 0
       this.saveVisitPrescriptionAndPack(this.patientVisit, i)
     },
@@ -671,6 +672,7 @@ console.log(this.patientVisit)
     },
     fecthVisit (id) {
       PatientVisit.apiFetchById(id).then(resp => {
+        console.log(resp)
         this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
         this.fecthPrescription(resp.response.data.patientVisitDetails[0].prescription.id)
         if (resp.response.data.patientVisitDetails[0].pack !== null) this.fecthPack(resp.response.data.patientVisitDetails[0].pack.id)

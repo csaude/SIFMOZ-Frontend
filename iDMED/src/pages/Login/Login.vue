@@ -125,6 +125,7 @@ export default ({
       context: 'login context',
       username: '',
       password: '',
+      isPwd: true,
       submitting: false,
       data: {
         rememberMe: false,
