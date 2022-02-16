@@ -85,9 +85,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.patient !== null) {
-        console.log(this.patient)
-      } else {
+      if (this.patient === null) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
     },

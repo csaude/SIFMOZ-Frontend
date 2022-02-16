@@ -22,7 +22,7 @@
             <div class="col text-grey-9 text-weight-medium">Tipo Dispensa:</div>
             <div v-if="prescriptionDetails.dispenseType !== null" class="col text-grey-8">{{ (prescriptionDetails.dispenseType === null || prescriptionDetails.dispenseType === undefined) ? 'Sem Info' : prescriptionDetails.dispenseType.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Validade:</div>
-            <div class="col" :class="validadeColor">{{ (prescriptionDetails === null || prescriptionDetails === undefined) ? 'Sem Info' : patientVisitDetais.getPrescriptionRemainigDuration() }} mes(es)</div>
+            <div class="col" :class="validadeColor">{{ (prescriptionDetails === null || prescriptionDetails === undefined) ? 'Sem Info' : remainigDuration }} mes(es)</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Duração:</div>
@@ -45,7 +45,7 @@
         <div class="col q-py-md">
           <ListHeader :addVisible="!isClosed" bgColor="bg-primary" @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())">Dispensa</ListHeader>
           <EmptyList v-if="lastPack === null" >Nenhum registo de Levantamentos</EmptyList>
-          <span v-if="lastPack !== null">
+          <span v-if="lastPack !== null && lastPack.packagedDrugs.length > 0 && lastPack.packagedDrugs[0].drug !== null">
             <PackInfo
               @editPack="editPack"
               :isClosed="isClosed"
@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
+import { SessionStorage } from 'quasar'
 import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
@@ -79,11 +79,11 @@ import Doctor from '../../../store/models/doctor/Doctor'
 import Duration from '../../../store/models/Duration/Duration'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
+import Drug from '../../../store/models/drug/Drug'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 export default {
   props: ['identifier'],
   data () {
-    const $q = useQuasar()
     return {
       alert: ref({
         type: '',
@@ -92,8 +92,7 @@ export default {
       }),
       isPatientActive: false,
       selectedPack: new Pack(),
-      showAddEditEpisode: false,
-      $q
+      showAddEditEpisode: false
     }
   },
   components: {
@@ -109,14 +108,9 @@ export default {
         if (this.identifier.service !== null) {
            ClinicalService.apiFetchById(this.identifier.service.id)
         }
-         this.$q.loading.hide()
-      } else {
-         this.$q.loading.hide()
       }
       if (this.prescriptionDetails !== null) {
-        PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
-      } else {
-         this.$q.loading.hide()
+      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
       }
     },
     checkPatientStatusOnService () {
@@ -164,19 +158,29 @@ export default {
       return episode
     },
     reloadParams () {
-      const offset = 0
-      const max = 0
-      TherapeuticRegimen.apiGetAll(offset, max)
-      TherapeuticLine.apiGetAll(offset, max)
-      Doctor.apiGetAll(offset, max)
-      Duration.apiGetAll(offset, max)
-      DispenseType.apiGetAll(offset, max)
+      TherapeuticRegimen.apiGetAll()
+      TherapeuticLine.apiGetAll()
+      Doctor.apiGetAll()
+      Duration.apiGetAll()
+      DispenseType.apiGetAll()
+      Drug.apiGetAll(0, 200)
     },
     async reloadPrescriptionDetails (id) {
       await PrescriptionDetail.apiFetchById(id)
     },
     async reloadPrescription (id) {
       await Prescription.apiFetchById(id)
+    },
+    getRemainigDuration () {
+      if (this.prescription === null) return null
+      if (this.prescription.patientVisitDetails.length <= 0) {
+        this.prescription.patientVisitDetails = PatientVisitDetails.query()
+                                                                   .with('pack')
+                                                                   .where('prescription_id', this.prescription.id)
+                                                                   .get()
+      }
+      console.log(this.prescription.remainigDuration())
+      return this.prescription.remainigDuration()
     }
   },
   computed: {
@@ -201,12 +205,8 @@ export default {
         return new Patient(SessionStorage.getItem('selectedPatient'))
       }
     },
-    /*
-    patient () {
-      return new Patient(SessionStorage.getItem('selectedPatient'))
-    }, */
     validadeColor () {
-      if (this.patientVisitDetais.getPrescriptionRemainigDuration() > 0) {
+      if (this.prescription !== null && this.prescription.remainigDuration() > 0) {
         return 'text-primary'
       } else {
         return 'text-red'
@@ -245,41 +245,23 @@ export default {
         return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
       }
     },
-    /*
-    patientVisitDetais () {
-      if (this.prescription === null) return null
-      return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
-    }, */
 
-    prescription: {
-      get () {
-        if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
+    prescription () {
+      if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
         const presc = Prescription.query()
                                   .with('clinic')
                                   .with('doctor')
-                                  .with('patientVisitDetails')
+                                  .with('patientVisitDetails.pack')
                                   .with('prescriptionDetails.*')
                                   .with('duration')
                                   .with('prescribedDrugs.*')
-                                  .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
+                                  .where('id', this.lastStartEpisode.lastVisit().prescription.id)
                                   .first()
         return presc
-      }
     },
-    /*
-    prescription () {
-      if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
-      const presc = Prescription.query()
-                                .with('clinic')
-                                .with('doctor')
-                                .with('patientVisitDetails')
-                                .with('prescriptionDetails.*')
-                                .with('duration')
-                                .with('prescribedDrugs.*')
-                                .where('patientVisitDetails_id', this.lastStartEpisode.lastVisit().id)
-                                .first()
-      return presc
-    }, */
+    remainigDuration () {
+      return this.getRemainigDuration()
+    },
     lastStartEpisode () {
       return this.lastStartEpisodeWithPrescription()
     },
@@ -288,7 +270,7 @@ export default {
          return Pack.query()
                  .with('packagedDrugs.*')
                  .with('patientVisitDetails')
-                 .where('patientVisitDetails_id', this.patientVisitDetais.id)
+                 .where('id', this.lastStartEpisode.lastVisit().pack.id)
                  .orderBy('pickupDate', 'desc')
                  .first()
       }
@@ -330,19 +312,15 @@ export default {
       }
     },
     isClosed () {
-      return this.showEndDetails || this.patientVisitDetais.getPrescriptionRemainigDuration() <= 0
+      return this.showEndDetails || this.prescription.remainigDuration() <= 0
     }
   },
   created () {
-  },
-  mounted () {
-    this.$q.loading.show({
-      spinner: QSpinnerBall,
-      message: 'Por favor, aguarde...'
-    })
     this.init()
     this.patient = Object.assign({}, this.selectedPatient)
     this.reloadParams()
+  },
+  mounted () {
   }
 }
 </script>

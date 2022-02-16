@@ -170,8 +170,8 @@ export default {
         }
       },
       async savePatient () {
-        console.log(this.patient.hasIdentifiers())
-        if (this.patient.hasIdentifiers()) {
+        console.log(this.patient)
+        if (this.patient.hasIdentifiers) {
             if (this.patient.identifiers[0] === null) {
               this.patient.identifiers = []
             } else {

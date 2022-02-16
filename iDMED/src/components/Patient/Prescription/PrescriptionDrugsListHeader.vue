@@ -129,7 +129,7 @@ export default {
             this.displayAlert('error', 'A data do próximo levantamento é inválida')
           } else if (this.drugsDuration === '') {
             this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
-          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) < this.curVisitDetails.prescriptions[0].prescriptionDate) {
+          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) < this.curVisitDetails.prescription.prescriptionDate) {
             this.displayAlert('error', 'A data de levantamento indicada é menor que a data da prescrição')
           } else if (this.getJSDateFromDDMMYYY(this.pickupDate) > new Date()) {
             this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')

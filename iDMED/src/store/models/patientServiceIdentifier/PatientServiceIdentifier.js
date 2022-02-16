@@ -35,6 +35,42 @@ export default class PatientServiceIdentifier extends Model {
     return this.prefered
   }
 
+  lastStartEpisodeWithPrescription () {
+    let lastVisit = null
+    this.patientVisitDetails.forEach((visit) => {
+      if (lastVisit === null) {
+        lastVisit = visit
+      } else if (visit.pack.pickupDate > lastVisit.pack.pickupDate) {
+        lastVisit = visit
+      }
+    })
+    return lastVisit.pack
+  }
+
+  checkClinicalServiceAttr (attr) {
+    if (this.service === '' || this.service === null) return false
+    const has = this.service.attributes.some((attribute) => {
+      return attribute.clinicalServiceAttributeType.code === attr
+    })
+    return has
+  }
+
+  hasTherapeuticalRegimen () {
+    return this.checkClinicalServiceAttr('THERAPEUTICAL_REGIMEN')
+  }
+
+  hasTherapeuticalLine () {
+    return this.checkClinicalServiceAttr('THERAPEUTICAL_LINE')
+  }
+
+  hasPatientType () {
+    return this.checkClinicalServiceAttr('PATIENT_TYPE')
+  }
+
+  hasPrescriptionChangeMotive () {
+    return this.checkClinicalServiceAttr('PRESCRIPTION_CHANGE_MOTIVE')
+  }
+
   hasEpisodes () {
     return this.episodes.length > 0
   }

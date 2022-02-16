@@ -1,0 +1,396 @@
+<template>
+  <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+        <form @submit.prevent="submitForm" >
+            <q-card-section class="q-px-md">
+                <div class="q-mt-lg">
+                    <div class="row items-center q-mb-md">
+                        <q-icon name="person_outline" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Dados Pessoais</span>
+                    </div>
+                    <q-separator color="grey-13" size="1px"/>
+                </div>
+                <div class="q-mt-md">
+                    <div class="row">
+                      <q-select
+                        class="col"
+                        dense
+                        :disable="isMemberEditionStep"
+                        outlined
+                        :options="clinicServices"
+                        v-model="curGroup.service"
+                        option-value="id"
+                        option-label="code"
+                        label="Serviço de Saúde" />
+                      <TextField
+                        label="Numero do grupo"
+                        v-model="curGroup.code"
+                        :disable="isMemberEditionStep"
+                        class="col q-ml-md"
+                        dense
+                        :rules="[]"/>
+                      <TextField
+                        label="Nome"
+                        v-model="curGroup.name"
+                        :disable="isMemberEditionStep"
+                        dense
+                        :rules="[]"
+                        class="col q-ml-md"/>
+                    </div>
+                    <div class="row q-mt-md">
+                      <q-select
+                        class="col"
+                        dense
+                        outlined
+                        :options="groupTypes"
+                        :disable="isMemberEditionStep"
+                        v-model="curGroup.groupType"
+                        option-value="id"
+                        option-label="description"
+                        label="Tipo" />
+                      <q-input
+                          dense
+                          outlined
+                          class="col q-ml-md"
+                          v-model="startDate"
+                          :disable="isMemberEditionStep"
+                          ref="creationDate"
+                          label="Data de Criação *">
+                          <template v-slot:append>
+                              <q-icon name="event" class="cursor-pointer">
+                              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                  <q-date v-model="startDate" mask="DD-MM-YYYY" >
+                                  <div class="row items-center justify-end">
+                                      <q-btn v-close-popup label="Close" color="primary" flat />
+                                  </div>
+                                  </q-date>
+                              </q-popup-proxy>
+                              </q-icon>
+                          </template>
+                      </q-input>
+                      <q-space/>
+                    </div>
+                </div>
+                <div class="q-mt-lg">
+                    <div class="row items-center q-mb-md">
+                        <q-icon name="house" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Membros</span>
+                    </div>
+                    <q-separator color="grey-13" size="1px"/>
+                </div>
+                <div class="row">
+                  <TextField
+                    label="Pesquisar por Identificador/Nome"
+                    v-model="searchParam"
+                    :disable="curGroup.service === null"
+                    class="q-my-md"
+                    @update:model-value="search()"
+                    style="width: 400px"
+                    dense
+                    :rules="[]"/>
+                </div>
+                <div class="row q-mt-md">
+                <div class="col-6 q-pr-sm">
+                  <q-table
+                    class="col"
+                    dense
+                    flat
+                    :rows="searchResults"
+                    :columns="columns"
+                    row-key="id"
+                    >
+                    <template v-slot:no-data="{ icon, filter }">
+                      <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                        <span>
+                          Sem resultados para visualizar
+                        </span>
+                        <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+                      </div>
+                    </template>
+                    <template #body="props">
+                      <q-tr :props="props">
+                        <!--q-td key="order" :props="props">
+                        </q-td-->
+                        <q-td key="id" :props="props">
+                          {{props.row.preferedIdentifier().value}}
+                        </q-td>
+                        <q-td key="name" :props="props">
+                          {{props.row.fullName}}
+                        </q-td>
+                        <q-td key="options" :props="props">
+                          <div class="col">
+                            <q-btn flat round
+                            color="primary"
+                            icon="group_add"
+                            @click="addPatient(props.row)">
+                            <q-tooltip class="bg-primary">Adicionar</q-tooltip>
+                          </q-btn>
+
+                          </div>
+                        </q-td>
+                      </q-tr>
+                    </template>
+                </q-table>
+                </div>
+                <div class="col-6 q-pl-sm">
+                  <q-table
+                    class="col"
+                    dense
+                    flat
+                    :rows="curGroup.members"
+                    :columns="columns"
+                    row-key="id"
+                    >
+                    <template v-slot:no-data="{ icon, filter }">
+                      <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                        <span>
+                          Nenhum Paciente adicionado
+                        </span>
+                        <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+                      </div>
+                    </template>
+                    <template #body="props">
+                      <q-tr :props="props">
+                        <!--q-td key="order" :props="props">
+                        </q-td-->
+                        <q-td key="id" :props="props">
+                          {{props.row.patient.preferedIdentifier().value}}
+                        </q-td>
+                        <q-td key="name" :props="props">
+                          {{props.row.patient.fullName}}
+                        </q-td>
+                        <q-td key="options" :props="props">
+                          <div class="col">
+                            <q-btn flat round
+                            color="red-8"
+                            icon="group_remove"
+                            @click="removePatient(props.row)">
+                            <q-tooltip class="bg-red-5">Remover</q-tooltip>
+                          </q-btn>
+
+                          </div>
+                        </q-td>
+                      </q-tr>
+                    </template>
+                </q-table>
+                </div>
+                </div>
+            </q-card-section>
+           <q-card-actions align="right" class="q-mb-md q-mr-sm">
+                <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
+                <q-btn type="submit" label="Submeter" color="primary" />
+            </q-card-actions>
+        </form>
+        <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
+    </q-card>
+</template>
+
+<script>
+import { ref } from 'vue'
+import Group from '../../store/models/group/Group'
+import Patient from '../../store/models/patient/Patient'
+import moment from 'moment'
+import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+import GroupType from '../../store/models/groupType/GroupType'
+import Clinic from '../../store/models/clinic/Clinic'
+import { QSpinnerBall, SessionStorage } from 'quasar'
+import GroupMember from '../../store/models/groupMember/GroupMember'
+const columns = [
+  { name: 'id', align: 'left', label: 'Identificador', sortable: false },
+  { name: 'name', align: 'left', label: 'Nome', sortable: false },
+  { name: 'options', align: 'left', label: 'Opções', sortable: false }
+]
+export default {
+  props: ['step'],
+  data () {
+    return {
+      columns,
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
+      curGroup: new Group(),
+      searchParam: '',
+      searchResults: ref([]),
+      startDate: ''
+    }
+  },
+  methods: {
+    init () {
+      if (!this.isCreateStep) {
+        this.curGroup = Group.query()
+                            .with(['service.clinic.province', 'service.identifierType'])
+                            .with(['members.patient', 'members.clinic.province'])
+                            .with('groupType')
+                            .with('clinic.province')
+                            .where('id', SessionStorage.getItem('selectedGroup').id)
+                            .first()
+        this.curGroup.members.forEach((member) => {
+          member.patient = Patient.query()
+                                  .has('identifiers')
+                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                  .with('province')
+                                  .with('district.province')
+                                  .with('clinic.province')
+                                  .where('id', member.patient.id)
+                                  .first()
+        })
+        this.startDate = this.formatDate(this.curGroup.startDate)
+      }
+    },
+    addPatient (patient) {
+      this.curGroup.members.push(this.initNewMember(patient))
+    },
+    initNewMember (patient) {
+      const member = new GroupMember({
+        startDate: this.getJSDateFromDDMMYYY(this.startDate),
+        patient: patient,
+        clinic: this.clinic
+      })
+      return member
+    },
+    removePatient (patient) {
+
+    },
+    search () {
+      const patients = Patient.query()
+                              .has('identifiers')
+                              .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                              .with('province')
+                              .with('district.province')
+                              .with('clinic.province')
+                              .get()
+      this.searchResults = patients.filter((patient) => {
+        return (this.hasIdentifierLike(patient, this.searchParam) || this.stringContains(patient.firstNames, this.searchParam)) && this.isAssociatedToSelectedService(patient)
+      })
+    },
+    isAssociatedToSelectedService (patient) {
+      if (patient.identifiers.length <= 0) return false
+
+      const match = patient.identifiers.some((identifier) => {
+        return identifier.service.id === this.curGroup.service.id
+      })
+      return match
+    },
+    hasIdentifierLike (patientToCheck, identifierString) {
+      if (patientToCheck.identifiers.length <= 0) return false
+
+      const match = patientToCheck.identifiers.some((identifier) => {
+        return this.stringContains(identifier.value, identifierString)
+      })
+      return match
+    },
+    stringContains (stringToCheck, stringText) {
+      if (stringText === '') return false
+      return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
+    },
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    formatDate (dateString) {
+      if (!dateString || !moment(dateString).isValid()) return ''
+      const dateMoment = moment(dateString).format('DD-MM-YYYY')
+      return dateMoment
+    },
+    submitForm () {
+      this.doSave()
+    },
+    doSave () {
+      this.$q.loading.show({
+        message: 'Carregando ...',
+        spinnerColor: 'grey-4',
+        spinner: QSpinnerBall
+      })
+
+      setTimeout(() => {
+        this.$q.loading.hide()
+      }, 700)
+      if (this.isCreateStep) {
+        this.curGroup.startDate = this.getJSDateFromDDMMYYY(this.startDate)
+        this.curGroup.clinic = this.clinic
+      }
+      Group.apiSave(this.curGroup).then(resp => {
+        Group.apiFetchById(resp.response.data.id).then(resp => {
+          this.curGroup = Group.query()
+                               .with('groupType')
+                               .with('members.patient.*')
+                               .with('service.*')
+                               .with('packHeaders.*')
+                               .with('clinic.province')
+                               .where('id', resp.response.data.id)
+                               .first()
+          console.log(this.curGroup)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
+      }).catch(error => {
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+      if (this.alert.type === 'info') {
+        this.$emit('close')
+        SessionStorage.set('selectedGroup', this.curGroup)
+        this.$router.push('/group/panel')
+      }
+    }
+  },
+  computed: {
+    clinicServices: {
+      get () {
+        return ClinicalService.query().with('identifierType').get()
+      }
+    },
+    groupTypes: {
+      get () {
+        return GroupType.query().get()
+      }
+    },
+    clinic () {
+      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+    },
+    isCreateStep () {
+      return this.step === 'create'
+    },
+    isEditStep () {
+      return this.step === 'edit'
+    },
+    isMemberEditionStep () {
+      return this.step === 'addMember'
+    }
+  },
+  mounted () {
+    this.init()
+  },
+  components: {
+      TextField: require('components/Shared/Input/TextField.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default
+  }
+}
+</script>
+
+<style>
+
+</style>

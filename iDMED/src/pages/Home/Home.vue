@@ -18,7 +18,7 @@
      </router-link>
     </div>
     <div class="col">
-    <router-link :to="`/groups`">
+    <router-link :to="`/group/search`">
         <q-btn round>
           <q-avatar size="190px">
             <img src="~assets/groupsButton.png">
@@ -109,10 +109,8 @@ import Patient from '../../store/models/patient/Patient'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import ClinicSector from '../../store/models/clinicSector/ClinicSector'
 import IdentifierType from '../../store/models/identifierType/IdentifierType'
-import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import EpisodeType from '../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../store/models/startStopReason/StartStopReason'
-import Episode from '../../store/models/episode/Episode'
 import ClinicalServiceAttributeType from '../../store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from '../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import Drug from '../../store/models/drug/Drug'
@@ -122,18 +120,6 @@ import Form from '../../store/models/form/Form'
 import Duration from '../../store/models/Duration/Duration'
 // import Doctor from '../../store/models/doctor/Doctor'
 import DispenseType from '../../store/models/dispenseType/DispenseType'
-import PatientVisit from '../../store/models/patientVisit/PatientVisit'
-import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
-import Pack from '../../store/models/packaging/Pack'
-import Prescription from '../../store/models/prescription/Prescription'
-import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
-import PrescribedDrug from '../../store/models/prescriptionDrug/PrescribedDrug'
-import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
-import RAMScreening from '../../store/models/screening/RAMScreening'
-import AdherenceScreening from '../../store/models/screening/AdherenceScreening'
-import PregnancyScreening from '../../store/models/screening/PregnancyScreening'
-import TBScreening from '../../store/models/screening/TBScreening'
-import VitalSignsScreening from '../../store/models/screening/VitalSignsScreening'
 import FacilityType from '../../store/models/facilityType/FacilityType'
 import InteroperabilityType from '../../store/models/interoperabilityType/InteroperabilityType'
 import InteroperabilityAttribute from '../../store/models/interoperabilityAttribute/InteroperabilityAttribute'
@@ -172,11 +158,6 @@ export default {
       //  Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll(offset, max)
         Clinic.apiGetAll(offset, max)
-        RAMScreening.apiGetAll(offset, max)
-        AdherenceScreening.apiGetAll(offset, max)
-        PregnancyScreening.apiGetAll(offset, max)
-        TBScreening.apiGetAll(offset, max)
-        VitalSignsScreening.apiGetAll(offset, max)
         InteroperabilityType.apiGetAll(offset, max)
         InteroperabilityAttribute.apiGetAll(offset, max)
         HealthInformationSystem.apiGetAll(offset, max)
@@ -202,40 +183,10 @@ export default {
         const max = 100
         this.doStockEntranceGet(this.clinic.id, offset, max)
       },
-      getAllPatientVisitsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientVisitGet(this.clinic.id, offset, max)
-      },
-      getAlPatientVisitDetailsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientVisitDetailsGet(this.clinic.id, offset, max)
-      },
       getAllPatientsOfClinic () {
         const offset = 0
         const max = 100
         this.doPatientGet(this.clinic.id, offset, max)
-      },
-      getAllIdentifiersOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doIdentifiersGet(this.clinic.id, offset, max)
-      },
-      getAllEpisodesOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doEpisodeGet(this.clinic.id, offset, max)
-      },
-      getAllPrescriptionOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPrescriptionkGet(this.clinic.id, offset, max)
-      },
-      getAllPacksOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPackGet(this.clinic.id, offset, max)
       },
       doInventoryGet (clinicId, offset, max) {
         Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -243,16 +194,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doInventoryGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
-          })
-      },
-      doPackGet (clinicId, offset, max) {
-        Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              // if (resp.response.data.length > 0) {
-              //   offset = offset + max
-              //   setTimeout(this.doPackGet(clinicId, offset, max), 2)
-              // }
           }).catch(error => {
               console.log(error)
           })
@@ -267,61 +208,11 @@ export default {
               console.log(error)
           })
       },
-      doPrescriptionkGet (clinicId, offset, max) {
-        Prescription.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPrescriptionkGet(clinicId, offset, max), 2)
-              }
-          }).catch(error => {
-              console.log(error)
-          })
-      },
-      doEpisodeGet (clinicId, offset, max) {
-        Episode.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doEpisodeGet(clinicId, offset, max), 2)
-              }
-          }).catch(error => {
-              console.log(error)
-          })
-      },
-      doPatientVisitDetailsGet (clinicId, offset, max) {
-        PatientVisitDetails.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPatientVisitDetailsGet(clinicId, offset, max), 2)
-              }
-          }).catch(error => {
-              console.log(error)
-          })
-      },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
-              }
-          }).catch(error => {
-              console.log(error)
-          })
-      },
-      doPatientVisitGet (clinicId, offset, max) {
-        PatientVisit.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
-              }
-          }).catch(error => {
-              console.log(error)
-          })
-      },
-      doIdentifiersGet (clinicId, offset, max) {
-        PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doIdentifiersGet(clinicId, offset, max), 2)
               }
           }).catch(error => {
               console.log(error)
@@ -335,6 +226,7 @@ export default {
       PrescriptionDetail.apiGetAll().then(resp => {
         this.$q.loading.hide()
       })
+      this.getAllPatientsOfClinic()
     },
     created () {
       this.$q.loading.show({

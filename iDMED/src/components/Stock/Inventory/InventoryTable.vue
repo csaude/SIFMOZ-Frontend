@@ -102,7 +102,7 @@ export default {
   },
   computed: {
     inventories () {
-      return Inventory.query().withAll().orderBy('startDate', 'desc').orderBy('open').get()
+      return Inventory.query().withAll().orderBy('open', 'desc').orderBy('startDate', 'desc').get()
     }
   }
 }
