@@ -44,12 +44,12 @@
         </div>
         <div class="col q-py-md">
           <ListHeader :addVisible="!isClosed" bgColor="bg-primary" @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())">Dispensa</ListHeader>
-          <EmptyList v-if="lastPack === null" >Nenhum registo de Levantamentos</EmptyList>
-          <span v-if="lastPack !== null && lastPack.packagedDrugs.length > 0 && lastPack.packagedDrugs[0].drug !== null">
+          <EmptyList v-if="lastPackOnPrescription === null" >Nenhum registo de Levantamentos</EmptyList>
+          <span v-if="lastPackOnPrescription !== null && lastPackOnPrescription.packagedDrugs.length > 0 && lastPackOnPrescription.packagedDrugs[0].drug !== null">
             <PackInfo
               @editPack="editPack"
               :isClosed="isClosed"
-              :pack="lastPack"/>
+              :pack="lastPackOnPrescription"/>
           </span>
         </div>
       </q-card-section>
@@ -181,6 +181,16 @@ export default {
       }
       console.log(this.prescription.remainigDuration())
       return this.prescription.remainigDuration()
+    },
+    loadAllPacksOfPrescription () {
+      if (this.prescription === null) return null
+      if (this.prescription.patientVisitDetails.length <= 0) {
+        this.prescription.patientVisitDetails = PatientVisitDetails.query()
+                                                                   .with('pack.packagedDrugs.drug')
+                                                                   .where('prescription_id', this.prescription.id)
+                                                                   .get()
+      }
+      return this.prescription.lastPackOnPrescription()
     }
   },
   computed: {
@@ -199,6 +209,14 @@ export default {
         }
         return episodes
       }
+    },
+    lastPackOnPrescription () {
+      return Pack.query()
+                 .with('packagedDrugs.*')
+                 .with('patientVisitDetails')
+                 .where('id', this.loadAllPacksOfPrescription().id)
+                 .orderBy('pickupDate', 'desc')
+                 .first()
     },
     patient: {
       get () {
