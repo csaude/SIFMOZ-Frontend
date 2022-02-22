@@ -152,6 +152,7 @@ export default {
     doMemberRemotion () {
       this.selectedMember.endDate = new Date()
       GroupMember.apiUpdate(this.selectedMember).then(resp => {
+        this.getGroupMembers()
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
     },

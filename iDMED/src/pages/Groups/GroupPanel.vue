@@ -20,6 +20,12 @@
         </q-scroll-area>
       </div>
     </div>
+      <q-dialog v-model="alert.visible" persistent>
+        <Dialog :type="alert.type" @cancelOperation="cancelOperation" @closeDialog="closeDialog" @commitOperation="doOnConfirm">
+          <template v-slot:title> {{dialogTitle}}</template>
+          <template v-slot:msg> {{alert.msg}} </template>
+        </Dialog>
+      </q-dialog>
       <q-dialog persistent v-model="showRegisterRegister">
         <groupRegister
           :step="groupAddEditStep"
@@ -42,6 +48,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import { QSpinnerBall, SessionStorage } from 'quasar'
 import Group from '../../store/models/group/Group'
 import Patient from '../../store/models/patient/Patient'
@@ -55,6 +62,11 @@ import PrescriptionDetail from '../../store/models/prescriptionDetails/Prescript
 export default {
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       contentStyle: {
         backgroundColor: 'rgba(0,0,0,0.02)',
         color: '#555'
@@ -107,7 +119,23 @@ export default {
       })
     },
     desintagrateGroup () {
-
+       this.group.members.forEach((member) => {
+         if (member.isActive()) {
+           member.endDate = new Date()
+         }
+       })
+       this.group.endDate = new Date()
+       Group.apiUpdate(this.group).then(resp => {
+         this.displayAlert('info', 'Operação efectuada com sucesso.')
+       })
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
     },
     newPrescription (patient, identifier) {
       patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDetails[0] = PrescriptionDetail.query()
@@ -189,7 +217,8 @@ export default {
     groupPack: require('components/Groups/GroupDispense.vue').default,
     groupMembers: require('components/Groups/Panel/GroupMembers.vue').default,
     groupPacks: require('components/Groups/Panel/GroupDispenses.vue').default,
-    addEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default
+    addEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default
   }
 }
 </script>
