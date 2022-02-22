@@ -26,7 +26,7 @@
                   dense outlined
                   :disable="isNewPackStep || isEditPackStep"
                   options-dense
-                  :options="this.clinicalServices"
+                  :options="clinicalServices"
                   ref="clinicalService"
                   :rules="[ val => !!val || 'Por favor indicar o serviço clínico']"
                   v-model="selectedClinicalService"
@@ -270,7 +270,7 @@ import moment from 'moment'
 import Stock from '../../../store/models/stock/Stock'
 import PackagedDrugStock from '../../../store/models/packagedDrug/PackagedDrugStock'
 export default {
-  props: ['selectedVisitDetails', 'step'],
+  props: ['selectedVisitDetails', 'step', 'service'],
   data () {
     return {
       alert: ref({
@@ -336,13 +336,31 @@ export default {
         console.log(this.curPatientVisitDetail)
 
       if (!this.isNewPackStep && !this.isEditPackStep) {
-        const prescription = new Prescription({
+        let prescription = new Prescription({
           prescriptionDate: new Date(),
           clinic: this.currClinic
         })
 
-        const prescriptionDetail = new PrescriptionDetail()
-        prescription.prescriptionDetails.push(prescriptionDetail)
+        if (this.service !== null && this.service !== undefined) {
+          console.log(this.service)
+          prescription = this.selectedVisitDetails.prescription
+          this.prescriptionDate = this.getDDMMYYYFromJSDate(new Date())
+          this.prescribedDrugs = prescription.prescribedDrugs
+          this.showServiceDrugsManagement = true
+          prescription.id = null
+          prescription.$id = null
+          prescription.clinic = this.currClinic
+          prescription.prescriptionDetails[0].id = null
+          prescription.prescriptionDetails[0].$id = null
+          prescription.prescribedDrugs.forEach((pd) => {
+            pd.id = null
+            pd.$id = null
+          })
+        } else {
+          const prescriptionDetail = new PrescriptionDetail()
+          prescription.prescriptionDetails.push(prescriptionDetail)
+        }
+
         this.curPatientVisitDetail.pack = pack
         this.curPatientVisitDetail.prescription = prescription
       } else {
@@ -409,6 +427,9 @@ export default {
       this.initPatientVisit()
     },
     init () {
+      if (this.service !== null && this.service !== undefined) {
+        this.selectedClinicalService = this.service
+      }
       if (!this.isNewPackStep && !this.isEditPackStep) {
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
@@ -430,14 +451,29 @@ export default {
         clinic: this.currClinic,
         syncStatus: this.patient.his_id.length > 10 ? 'R' : 'N'
       })
+      console.log('initPatientVisitDetails')
+      let prescription = null
+      if (this.service === null || this.service === undefined) {
+        prescription = new Prescription({
+          prescriptionDate: new Date(),
+          clinic: this.currClinic
+        })
 
-      const prescription = new Prescription({
-        prescriptionDate: new Date(),
-        clinic: this.currClinic
-      })
-
-      const prescriptionDetail = new PrescriptionDetail()
-      prescription.prescriptionDetails.push(prescriptionDetail)
+        const prescriptionDetail = new PrescriptionDetail()
+        prescription.prescriptionDetails.push(prescriptionDetail)
+      } else {
+        console.log(this.service)
+          prescription = this.selectedVisitDetails.prescription
+          prescription.id = null
+          prescription.$id = null
+          prescription.clinic = this.currClinic
+          prescription.prescriptionDetails[0].id = null
+          prescription.prescriptionDetails[0].$id = null
+          prescription.prescribedDrugs.forEach((pd) => {
+            pd.id = null
+            pd.$id = null
+          })
+      }
 
       const curPatientVisitDetail = new PatientVisitDetails({
         patientVisit: this.patientVisit,
@@ -451,9 +487,11 @@ export default {
 
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
+      console.log(this.curPatientVisitDetails)
     },
     checkClinicalServiceAttr (attr) {
-      if (this.selectedClinicalService === '' || this.selectedClinicalService === null) return false
+      console.log(this.selectedClinicalService)
+      if (this.selectedClinicalService === '' || this.selectedClinicalService === null || this.selectedClinicalService === undefined) return false
       const has = this.selectedClinicalService.attributes.some((attribute) => {
         return attribute.clinicalServiceAttributeType.code === attr
       })
@@ -599,6 +637,8 @@ export default {
         this.curPatientVisitDetails[0].prescription.patientVisitDetails = null
         this.curPatientVisitDetails[0].prescription.prescriptionDetails[0].prescription = null
       }
+      console.log(this.curPatientVisitDetails)
+      this.patientVisit.patientVisitDetails = []
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = Object.assign({}, this.curPatientVisitDetails[k])
         if (visitDetails.prescription.prescribedDrugs.length > 0) {
@@ -625,14 +665,18 @@ export default {
         console.log(patientVDetails)
         Prescription.apiSave(patientVDetails.prescription).then(resp => {
           patientVDetails.prescription.id = resp.response.data.id
+          patientVDetails.prescription.$id = resp.response.data.id
           patientVDetails.prescription.prescribedDrugs = []
           patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
-          Pack.apiSave(patientVDetails.pack).then(resp => {
-            patientVDetails.pack.id = resp.response.data.id
-            patientVDetails.pack.packagedDrugs = []
-            i = i + 1
-            setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 4)
-          })
+          if (patientVDetails.pack !== null) {
+            Pack.apiSave(patientVDetails.pack).then(resp => {
+              patientVDetails.pack.id = resp.response.data.id
+              patientVDetails.pack.$id = resp.response.data.id
+              patientVDetails.pack.packagedDrugs = []
+            })
+          }
+          i = i + 1
+          setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
         })
       } else {
         console.log(this.patientVisit)
@@ -641,6 +685,8 @@ export default {
     },
     savePatientVisit (patientVisit) {
       PatientVisit.apiSave(this.patientVisit).then(resp => {
+        this.patientVisit.id = resp.response.data.id
+        this.patientVisit.$id = resp.response.data.id
         this.fecthVisit(resp.response.data.id)
         this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
       }).catch(error => {
@@ -667,7 +713,6 @@ export default {
       this.alert.visible = false
       if (this.alert.type === 'info') {
         this.$emit('close')
-        this.$router.push('/patientpanel')
       }
     },
     fecthVisit (id) {
@@ -804,7 +849,7 @@ export default {
     },
     curPrescriptionDetails: {
       get () {
-        if (this.curPrescription === null) return null
+        if (this.curPrescription === null || this.curPrescription === undefined) return null
         return this.curPrescription.prescriptionDetails[0]
       }
     },

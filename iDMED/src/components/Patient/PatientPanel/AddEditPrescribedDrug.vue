@@ -58,7 +58,6 @@
           </div>
           </div>
         </q-card-section>
-
         <q-card-actions align="right" class="q-my-md q-mr-sm">
             <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
             <q-btn type="submit" label="Adicionar" color="primary" />

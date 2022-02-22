@@ -3,7 +3,7 @@
     <ListHeader
       :addVisible="true"
       :mainContainer="true"
-      @showAdd="$emit('newPacking')"
+      @showAdd="$emit('newPacking', headers[0])"
       bgColor="bg-primary">Dispensas Efectuadas
     </ListHeader>
     <div class="q-mb-md box-border">

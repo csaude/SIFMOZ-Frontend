@@ -14,12 +14,18 @@
           class="q-pr-md"
         >
           <span v-if="fecthedEpisodes >= group.members.length">
-            <group-members @addNewMember="addNewMember" @newPrescription="newPrescription"/>
+            <group-members @addNewMember="addNewMember" @newPrescription="newPrescription" @desintagrateGroup="desintagrateGroup"/>
             <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
           </span>
         </q-scroll-area>
       </div>
     </div>
+      <q-dialog v-model="alert.visible" persistent>
+        <Dialog :type="alert.type" @cancelOperation="cancelOperation" @closeDialog="closeDialog" @commitOperation="doOnConfirm">
+          <template v-slot:title> {{dialogTitle}}</template>
+          <template v-slot:msg> {{alert.msg}} </template>
+        </Dialog>
+      </q-dialog>
       <q-dialog persistent v-model="showRegisterRegister">
         <groupRegister
           :step="groupAddEditStep"
@@ -28,11 +34,13 @@
       <q-dialog persistent v-model="showNewPackingForm" full-width>
         <groupPack
           :group="group"
+          :defaultPickUpDate="defaultPickUpDate"
           @close="showNewPackingForm = false" />
       </q-dialog>
       <q-dialog persistent v-model="showAddPrescription" full-width>
           <addEditPrescription
             :selectedVisitDetails="patientVisitDetails"
+            :service="group.service"
             step="create"
             @close="showAddPrescription = false" />
       </q-dialog>
@@ -40,6 +48,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import { QSpinnerBall, SessionStorage } from 'quasar'
 import Group from '../../store/models/group/Group'
 import Patient from '../../store/models/patient/Patient'
@@ -47,11 +56,17 @@ import Episode from '../../store/models/episode/Episode'
 import DispenseMode from '../../store/models/dispenseMode/DispenseMode'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../store/models/patientVisit/PatientVisit'
-import Prescription from '../../store/models/prescription/Prescription'
 import Clinic from '../../store/models/clinic/Clinic'
+import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
 export default {
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       contentStyle: {
         backgroundColor: 'rgba(0,0,0,0.02)',
         color: '#555'
@@ -74,7 +89,8 @@ export default {
       groupAddEditStep: '',
       showNewPackingForm: false,
       showAddPrescription: false,
-      patientVisitDetails: ''
+      patientVisitDetails: '',
+      defaultPickUpDate: null
     }
   },
   methods: {
@@ -102,7 +118,32 @@ export default {
         })
       })
     },
+    desintagrateGroup () {
+       this.group.members.forEach((member) => {
+         if (member.isActive()) {
+           member.endDate = new Date()
+         }
+       })
+       this.group.endDate = new Date()
+       Group.apiUpdate(this.group).then(resp => {
+         this.displayAlert('info', 'Operação efectuada com sucesso.')
+       })
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+    },
     newPrescription (patient, identifier) {
+      patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDetails[0] = PrescriptionDetail.query()
+                                                                                                          .with('therapeuticLine')
+                                                                                                          .with('therapeuticRegimen')
+                                                                                                          .with('dispenseType')
+                                                                                                          .where('prescription_id', patient.identifiers[0].episodes[0].lastVisit().prescription.id)
+                                                                                                          .first()
       const pvd = new PatientVisitDetails({
                           patientVisit: new PatientVisit({
                                           visitDate: new Date(),
@@ -116,7 +157,7 @@ export default {
                                         }),
                           clinic: this.clinic,
                           createPackLater: true,
-                          prescription: new Prescription(),
+                          prescription: patient.identifiers[0].episodes[0].lastVisit().prescription,
                           episode: Episode.query()
                                           .with('startStopReason')
                                           .with('episodeType')
@@ -126,6 +167,12 @@ export default {
                                           .first()
                         })
       this.patientVisitDetails = pvd
+      this.group.service = ClinicalService.query()
+                                          .with('identifierType')
+                                          .with('attributes.clinicalServiceAttributeType')
+                                          .with('therapeuticRegimens')
+                                          .where('id', this.group.service.id)
+                                          .first()
       SessionStorage.set('selectedPatient', patient)
       this.showAddPrescription = true
     },
@@ -137,7 +184,9 @@ export default {
       this.groupAddEditStep = 'edit'
       this.showRegisterRegister = true
     },
-    newPacking () {
+    newPacking (lasHeader) {
+      console.log(lasHeader)
+      if (lasHeader !== null) this.defaultPickUpDate = lasHeader.nextPickUpDate
       this.showNewPackingForm = true
     }
   },
@@ -168,7 +217,8 @@ export default {
     groupPack: require('components/Groups/GroupDispense.vue').default,
     groupMembers: require('components/Groups/Panel/GroupMembers.vue').default,
     groupPacks: require('components/Groups/Panel/GroupDispenses.vue').default,
-    addEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default
+    addEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default
   }
 }
 </script>

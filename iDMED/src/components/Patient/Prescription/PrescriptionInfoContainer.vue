@@ -211,6 +211,7 @@ export default {
       }
     },
     lastPackOnPrescription () {
+      if (this.loadAllPacksOfPrescription() === null) return null
       return Pack.query()
                  .with('packagedDrugs.*')
                  .with('patientVisitDetails')
