@@ -61,12 +61,16 @@ export default {
     },
     loadVisitDetailsInfo (visitDetails, i) {
       if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
-        Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-          console.log(resp.response.data)
-          Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+          if (visitDetails[i].pack !== null) {
+            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
+              i = i + 1
+              this.loadVisitDetailsInfo(visitDetails, i)
+            })
+          } else {
             i = i + 1
             this.loadVisitDetailsInfo(visitDetails, i)
-          })
+          }
         })
       } else {
         this.flagGo = true

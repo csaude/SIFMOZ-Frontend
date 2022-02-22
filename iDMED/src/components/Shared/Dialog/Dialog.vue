@@ -19,7 +19,7 @@
             color="primary"
             v-close-popup
             class="q-mr-sm"
-            @click="$emit('closeDialog')"/>
+            @click="$emit('cancelOperation')"/>
 
           <q-btn flat
             label="Continuar"

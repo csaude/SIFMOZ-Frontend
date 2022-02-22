@@ -10,7 +10,7 @@ export default class GroupMember extends Model {
     return {
       id: this.attr(null),
       startDate: this.attr(''),
-      endDate: this.attr(''),
+      endDate: this.attr(null),
       group_id: this.attr(''),
       patient_id: this.attr(''),
       clinic_id: this.attr(''),
@@ -20,5 +20,13 @@ export default class GroupMember extends Model {
       clinic: this.belongsTo(Clinic, 'clinic_id')
 
     }
+  }
+
+  isActive () {
+    return this.endDate === null
+  }
+
+  static async apiUpdate (member) {
+    return await this.api().post('/groupMember', member)
   }
 }

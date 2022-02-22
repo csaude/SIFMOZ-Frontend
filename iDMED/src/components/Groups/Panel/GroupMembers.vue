@@ -41,10 +41,20 @@
                 {{props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.remainigDuration()}} mes(es)
               </q-td>
               <q-td key="lastDispenseDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().pickupDate)}}
+                {{
+                  props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription() !== null ?
+                  getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().pickupDate)
+                  :
+                  '-'
+                  }}
               </q-td>
               <q-td key="nextPickupDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().nextPickUpDate)}}
+                {{
+                  props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription() !== null ?
+                  getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().nextPickUpDate)
+                  :
+                  '-'
+                  }}
               </q-td>
               <q-td key="options" :props="props">
                 <div class="col">
@@ -57,8 +67,8 @@
                   <q-btn flat round
                   color="red-8"
                   icon="group_remove"
-                  @click="removePatient(props.row)">
-                  <q-tooltip class="bg-red-5">Remover</q-tooltip>
+                  @click="removeMember(props.row)">
+                  <q-tooltip class="bg-red-5">Remover do Grupo</q-tooltip>
                 </q-btn>
                 </div>
               </q-td>
@@ -67,6 +77,12 @@
         </q-table>
       </div>
     </span>
+    <q-dialog v-model="alert.visible" persistent>
+      <Dialog :type="alert.type" @cancelOperation="cancelOperation" @closeDialog="closeDialog" @commitOperation="doOnConfirm">
+        <template v-slot:title> {{dialogTitle}}</template>
+        <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
+    </q-dialog>
   </div>
 </template>
 
@@ -80,6 +96,7 @@ import Pack from '../../../store/models/packaging/Pack'
 import Prescription from '../../../store/models/prescription/Prescription'
 import moment from 'moment'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import GroupMember from '../../../store/models/groupMember/GroupMember'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -92,14 +109,51 @@ const columns = [
 export default {
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       columns,
       fecthedMemberData: 0,
-      members: ref([])
+      members: ref([]),
+      dialogTitle: 'Informação',
+      selectedMember: null,
+      step: 'display'
     }
   },
   methods: {
     addMember () {
       this.$emit('addNewMember')
+    },
+    removeMember (member) {
+      this.selectedMember = member
+      this.dialogTitle = 'Confirmação da remoção do membro.'
+      if (this.members.length === 1) {
+        this.step = 'desintagrate'
+        this.displayAlert('confirmation', 'Nota: Ao remover este membro o grupo será desintegrado. Continuar?')
+      } else {
+        this.step = 'memberRemotion'
+        this.displayAlert('confirmation', 'Confirma a remoção do membro [' + member.patient.fullName + '], deste grupo?')
+      }
+    },
+    doOnConfirm () {
+      this.alert.visible = false
+      if (this.isGroupDesintagrationStep) {
+        this.emit('desintagrateGroup')
+      } else if (this.isMemberRemotionStep) {
+        this.doMemberRemotion()
+      }
+    },
+    cancelOperation () {
+      this.step = 'display'
+      this.alert.visible = false
+    },
+    doMemberRemotion () {
+      this.selectedMember.endDate = new Date()
+      GroupMember.apiUpdate(this.selectedMember).then(resp => {
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+      })
     },
     newPrescription (patient, identifier) {
       this.$emit('newPrescription', patient, identifier)
@@ -119,21 +173,23 @@ export default {
                         .where('id', SessionStorage.getItem('selectedGroup').id)
                         .first()
       group.members.forEach((member) => {
-        member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
-                                .with('province')
-                                .with('clinic').where('id', member.patient.id).first()
-        member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
-          return identifier.service.id === this.selectedGroup.service.id
-        })
-        member.patient.identifiers[0].episodes = []
-        member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-        PatientVisitDetails.apiGetAllByEpisodeId(member.patient.identifiers[0].episodes[0].id, 0, 200)
-        this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+        if (member.isActive()) {
+          member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
+                                  .with('province')
+                                  .with('clinic').where('id', member.patient.id).first()
+          member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
+            return identifier.service.id === this.selectedGroup.service.id
+          })
+          member.patient.identifiers[0].episodes = []
+          member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
+          PatientVisitDetails.apiGetAllByEpisodeId(member.patient.identifiers[0].episodes[0].id, 0, 200)
+          this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+        }
       })
-      this.members = group.members
+      this.members = group.members.filter((member) => { return member.isActive() })
     },
     fecthMemberPrescriptionData (visitDetails) {
-      Pack.apiFetchById(visitDetails.pack.id)
+      if (visitDetails.pack !== null) Pack.apiFetchById(visitDetails.pack.id)
       Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
         this.fecthedMemberData = this.fecthedMemberData + 1
       })
@@ -145,7 +201,7 @@ export default {
       visits.forEach((visit) => {
         if (lastVisit === null) {
           lastVisit = visit
-        } else if (visit.pack.pickupDate > lastVisit.pack.pickupDate) {
+        } else if (visit.pack !== null && visit.pack.pickupDate > lastVisit.pack.pickupDate) {
           lastVisit = visit
         }
       })
@@ -154,15 +210,18 @@ export default {
     loadMembers () {
       if (this.dataFechComplete) {
         this.members.forEach((member) => {
-          member.patient.identifiers[0].episodes[0].lastVisit().pack = Pack.query()
-                                                                            .with('dispenseMode')
-                                                                            .with('packagedDrugs')
-                                                                            .where('id', member.patient.identifiers[0].episodes[0].lastVisit().pack.id)
-                                                                            .first()
+          if (member.patient.identifiers[0].episodes[0].lastVisit().pack !== null) {
+            member.patient.identifiers[0].episodes[0].lastVisit().pack = Pack.query()
+                                                                              .with('dispenseMode')
+                                                                              .with('packagedDrugs')
+                                                                              .where('id', member.patient.identifiers[0].episodes[0].lastVisit().pack.id)
+                                                                              .first()
+          }
           const prescription = Prescription.query()
                                           .with('prescriptionDetails')
                                           .with('duration')
-                                          .with('prescribedDrugs')
+                                          .with('prescribedDrugs.drug.form')
+                                          .with('doctor')
                                           .with('patientVisitDetails.*')
                                           .where('id', member.patient.identifiers[0].episodes[0].lastVisit().prescription.id)
                                           .first()
@@ -196,6 +255,14 @@ export default {
         }
       })
       return episode
+    },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
     }
   },
   mounted () {
@@ -214,10 +281,20 @@ export default {
       get () {
         return this.loadMembers()
       }
+    },
+    isGroupDesintagrationStep () {
+      return this.step === 'desintagrate'
+    },
+    isMemberRemotionStep () {
+      return this.step === 'memberRemotion'
+    },
+    isDisplayStep () {
+      return this.step === 'display'
     }
   },
   components: {
-    ListHeader: require('components/Shared/ListHeader.vue').default
+    ListHeader: require('components/Shared/ListHeader.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default
   }
 }
 </script>
