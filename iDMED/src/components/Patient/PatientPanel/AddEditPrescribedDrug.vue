@@ -11,6 +11,7 @@
           <div class="q-px-md">
             <q-toggle
               v-model="showOnlyOfRegimen"
+              v-if="hasTherapeuticalRegimen"
               label="Visualizar apenas os medicamentos do regime selecionado" />
             <q-select
               class="col q-my-md"

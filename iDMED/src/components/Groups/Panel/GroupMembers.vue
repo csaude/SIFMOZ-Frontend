@@ -1,7 +1,7 @@
 <template>
   <div>
     <ListHeader
-        :addVisible="true"
+        :addVisible="!selectedGroup.isDesintegrated()"
         :mainContainer="true"
         @showAdd="addMember"
         bgColor="bg-primary">Membros do Grupo
@@ -60,12 +60,14 @@
                 <div class="col">
                 <q-btn flat round
                   color="blue-8"
+                  :disable="selectedGroup.isDesintegrated()"
                   icon="post_add"
                   @click="newPrescription(props.row.patient, props.row.patient.identifiers[0])">
                   <q-tooltip class="bg-blue-5">Nova Prescrição</q-tooltip>
                 </q-btn>
                   <q-btn flat round
                   color="red-8"
+                  :disable="selectedGroup.isDesintegrated()"
                   icon="group_remove"
                   @click="removeMember(props.row)">
                   <q-tooltip class="bg-red-5">Remover do Grupo</q-tooltip>
@@ -97,6 +99,7 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import moment from 'moment'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import GroupMember from '../../../store/models/groupMember/GroupMember'
+import Clinic from '../../../store/models/clinic/Clinic'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -151,7 +154,12 @@ export default {
     },
     doMemberRemotion () {
       this.selectedMember.endDate = new Date()
-      GroupMember.apiUpdate(this.selectedMember).then(resp => {
+      const member = Object.assign({}, this.selectedMember)
+      member.patient = Patient.query().with('clinic.province').with('province').with('district.province').where('id', member.patient.id).first()
+      member.group = Group.query().with('clinic.province').where('id', member.group_id).first()
+      member.clinic = Clinic.query().with('province').where('id', member.clinic_id).first()
+      console.log(member)
+      GroupMember.apiUpdate(member).then(resp => {
         this.getGroupMembers()
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
@@ -174,7 +182,6 @@ export default {
                         .where('id', SessionStorage.getItem('selectedGroup').id)
                         .first()
       group.members.forEach((member) => {
-        if (member.isActive()) {
           member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                   .with('province')
                                   .with('clinic').where('id', member.patient.id).first()
@@ -185,9 +192,12 @@ export default {
           member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
           PatientVisitDetails.apiGetAllByEpisodeId(member.patient.identifiers[0].episodes[0].id, 0, 200)
           this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
-        }
       })
-      this.members = group.members.filter((member) => { return member.isActive() })
+      if (!group.isDesintegrated()) {
+        this.members = group.members.filter((member) => { return member.isActive() })
+      } else {
+        this.members = group.members
+      }
     },
     fecthMemberPrescriptionData (visitDetails) {
       if (visitDetails.pack !== null) Pack.apiFetchById(visitDetails.pack.id)

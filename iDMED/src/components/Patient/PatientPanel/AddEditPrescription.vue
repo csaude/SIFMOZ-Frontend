@@ -1,6 +1,6 @@
 <template>
   <q-card>
-      <q-card-section class="q-pa-none" >
+      <q-card-section class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
           <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
@@ -248,7 +248,7 @@
 
 <script>
 import { ref } from 'vue'
-import { SessionStorage } from 'quasar'
+import { QSpinnerBall, SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
@@ -320,11 +320,24 @@ export default {
       this.patientVisit.patient = this.simplePatient
     },
     setCurVisitDetails () {
+      this.$q.loading.show({
+        message: 'Carregando ...',
+        spinnerColor: 'grey-4',
+        spinner: QSpinnerBall
+      })
+
+      setTimeout(() => {
+        this.$q.loading.hide()
+      }, 400)
       this.showServiceDrugsManagement = false
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         if (visitDetails.episode.patientServiceIdentifier.service.id === this.selectedClinicalService.id) {
           this.curPatientVisitDetail = visitDetails
+          if (visitDetails.prescription.prescribedDrugs.length > 0) {
+            this.prescribedDrugs = visitDetails.prescription.prescribedDrugs
+            this.showServiceDrugsManagement = true
+          }
         }
       }.bind(this))
     },
@@ -433,13 +446,14 @@ export default {
       if (!this.isNewPackStep && !this.isEditPackStep) {
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
+            console.log(this.patient.identifiers[key].lastEpisode())
             const episode = Episode.query()
                                     .withAll()
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
                                     .orderBy('creationDate', 'desc')
                                     .first()
-            this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
             if (!episode.closed()) {
+              this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
               this.initPatientVisitDetails(episode)
             }
           }
@@ -498,7 +512,8 @@ export default {
       return has
     },
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
-      this.curPrescription.prescribedDrugs = prescribedDrugs
+      // this.curPrescription.prescribedDrugs = prescribedDrugs
+      console.log(prescribedDrugs)
       if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.pack !== null) {
         this.curPatientVisitDetail.pack.packDate = new Date(pickupDate)
         this.curPatientVisitDetail.pack.pickupDate = new Date(pickupDate)
@@ -507,6 +522,8 @@ export default {
       }
     },
     validateForm () {
+      console.log(this.hasTherapeuticalRegimen)
+      console.log(this.hasTherapeuticalLine)
       this.$refs.patientStatus.validate()
       this.$refs.clinicalService.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
@@ -518,12 +535,13 @@ export default {
 
       if (!this.$refs.patientStatus.hasError &&
           !this.$refs.clinicalService.hasError &&
-          (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
-          (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
+          // (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
+          // (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
           !this.$refs.duration.hasError &&
           !this.$refs.doctor.hasError &&
           // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
+      console.log(this.hasTherapeuticalLine)
             if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
             } else if (new Date(this.pickupDate) > new Date()) {
@@ -672,10 +690,13 @@ console.log(this.patientVisit)
               patientVDetails.pack.id = resp.response.data.id
               patientVDetails.pack.$id = resp.response.data.id
               patientVDetails.pack.packagedDrugs = []
+              i = i + 1
+              setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
             })
+          } else {
+            i = i + 1
+            setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
           }
-          i = i + 1
-          setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
         })
       } else {
         console.log(this.patientVisit)

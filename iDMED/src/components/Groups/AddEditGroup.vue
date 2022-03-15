@@ -244,6 +244,9 @@ export default {
                             .with('clinic.province')
                             .where('id', SessionStorage.getItem('selectedGroup').id)
                             .first()
+        this.curGroup.members = this.curGroup.members.filter((member) => {
+          return member.endDate === null || member.endDate === ''
+        })
         this.curGroup.members.forEach((member) => {
           member.patient = Patient.query()
                                   .has('identifiers')
@@ -297,6 +300,7 @@ export default {
                               .with('members.group.service')
                               .with('district.province')
                               .with('clinic.province')
+                              .where('clinic_id', this.clinic.id)
                               .get()
       this.searchResults = patients.filter((patient) => {
         return (this.hasIdentifierLike(patient, this.searchParam) || this.stringContains(patient.firstNames, this.searchParam)) && this.isAssociatedToSelectedService(patient)
@@ -319,7 +323,7 @@ export default {
       return match
     },
     stringContains (stringToCheck, stringText) {
-      if (stringText === '') return false
+      if (stringText === '' || stringToCheck === null) return false
       return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     },
     getJSDateFromDDMMYYY (dateString) {

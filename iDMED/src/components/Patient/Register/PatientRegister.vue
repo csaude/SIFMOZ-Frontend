@@ -170,16 +170,8 @@ export default {
         }
       },
       async savePatient () {
+        this.patient.identifiers = []
         console.log(this.patient)
-        if (this.patient.hasIdentifiers) {
-            if (this.patient.identifiers[0] === null) {
-              this.patient.identifiers = []
-            } else {
-                if (this.patient.identifiers[0].id === null) {
-                  this.patient.identifiers = []
-                }
-            }
-        }
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           await Patient.apiSave(this.patient).then(resp => {
             this.patient.id = resp.response.data.id
@@ -218,7 +210,8 @@ export default {
         }
       },
       initPatient () {
-       if (this.newPatient === false) {
+        console.log(this.newPatient)
+       if (!this.newPatient) {
           if (this.isEditStep) {
               this.patient = Patient.query().with('province')
                                         .with('district.province')

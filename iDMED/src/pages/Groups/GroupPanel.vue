@@ -3,7 +3,7 @@
     <TitleBar>Detalhe do Grupo</TitleBar>
     <div class="row q-mt-md">
       <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
-        <groupInfo @editGroup="editGroup"/>
+        <groupInfo @editGroup="editGroup" @desintagrateGroup="desintagrateGroup"/>
       </div>
       <div class="col q-mr-lg">
         <q-scroll-area
@@ -13,7 +13,7 @@
           style="height: 700px;"
           class="q-pr-md"
         >
-          <span v-if="fecthedEpisodes >= group.members.length">
+          <span>
             <group-members @addNewMember="addNewMember" @newPrescription="newPrescription" @desintagrateGroup="desintagrateGroup"/>
             <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
           </span>
@@ -59,6 +59,7 @@ import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import Clinic from '../../store/models/clinic/Clinic'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
+import IdentifierType from '../../store/models/identifierType/IdentifierType'
 export default {
   data () {
     return {
@@ -119,13 +120,20 @@ export default {
       })
     },
     desintagrateGroup () {
-       this.group.members.forEach((member) => {
-         if (member.isActive()) {
-           member.endDate = new Date()
-         }
+      this.group.members = this.group.members.filter((member) => { return member.isActive() })
+          this.group.members.forEach((member) => {
+          member.endDate = new Date()
+          member.patient = Patient.query().with('clinic.province').with('province').with('district.province').where('id', member.patient.id).first()
+          member.group = null
+          member.clinic = Clinic.query().with('province').where('id', member.clinic_id).first()
        })
+       this.group.service.identifierType = IdentifierType.find(this.group.service.identifier_type_id)
        this.group.endDate = new Date()
-       Group.apiUpdate(this.group).then(resp => {
+       const group = Object.assign({}, this.group)
+       group.packHeaders = []
+       console.log(group)
+       Group.apiUpdate(group).then(resp => {
+         Group.apiFetchById(group.id)
          this.displayAlert('info', 'Operação efectuada com sucesso.')
        })
     },

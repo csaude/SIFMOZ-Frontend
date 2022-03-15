@@ -46,9 +46,13 @@
             <div class="text-h4 q-mb-md"></div>
              <clinicalServices> </clinicalServices>
           </q-tab-panel>
-             <q-tab-panel name="therapeutic_regimen">
+          <q-tab-panel name="therapeutic_regimen">
             <div class="text-h4 q-mb-md"></div>
              <therapeuticRegimen> </therapeuticRegimen>
+          </q-tab-panel>
+          <q-tab-panel name="identifierType">
+            <div class="text-h4 q-mb-md"></div>
+             <identifier-type />
           </q-tab-panel>
           <q-tab-panel name="interoperability">
             <div class="text-h4 q-mb-md"></div>
@@ -71,6 +75,7 @@ const tabs = [
   { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
   { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapêutico' },
   { name: 'clinical_service', icon: 'local_pharmacy', label: 'Serviço Clínico' },
+  { name: 'identifier_type', icon: 'pin', label: 'Tipo de Identificador' },
   { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' }
 ]
 export default {
@@ -91,7 +96,8 @@ export default {
        clinics: require('components/Settings/Clinic/Clinics.vue').default,
        clinicalServices: require('components/Settings/ClinicalService/ClinicalService.vue').default,
        therapeuticRegimen: require('components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue').default,
-       interoperability: require('components/Settings/Interoperability/His.vue').default
+       interoperability: require('components/Settings/Interoperability/His.vue').default,
+      identifierType: require('components/Settings/IdentifierType/IdentifierTypeList.vue').default
     }
 }
 </script>

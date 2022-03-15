@@ -1,5 +1,5 @@
   <template>
-  <div v-if="lastStartEpisode !== null">
+  <div>
   <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
     <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
@@ -179,7 +179,6 @@ export default {
                                                                    .where('prescription_id', this.prescription.id)
                                                                    .get()
       }
-      console.log(this.prescription.remainigDuration())
       return this.prescription.remainigDuration()
     },
     loadAllPacksOfPrescription () {

@@ -35,10 +35,10 @@
       </div>
       <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
       <div class="row q-my-md">
-        <q-btn unelevated color="orange-5" label="Editar" class="col" @click="editGroup()"/>
+        <q-btn unelevated color="orange-5" label="Editar" class="col" @click="editGroup()" :disable="group.isDesintegrated()"/>
       </div>
       <div class="row">
-        <q-btn unelevated color="primary" label="Desintegrar" class="col" />
+        <q-btn unelevated color="primary" label="Desintegrar" class="col" @click="$emit('desintagrateGroup')" :disable="group.isDesintegrated()"/>
       </div>
 </div>
 </template>

@@ -28,6 +28,10 @@ export default class Group extends Model {
     }
   }
 
+  isDesintegrated () {
+    return this.endDate !== null
+  }
+
   static async apiFetchById (id) {
     return await this.api().get(`/group/${id}`)
   }

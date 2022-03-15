@@ -167,8 +167,14 @@ export default {
       this.alert.visible = false
     },
     init () {
+        console.log(this.step)
       this.pickupDate = this.newPickUpDate
-      if (this.oldPrescribedDrugs !== null) {
+      if (this.isNewPrescriptionStep) {
+        this.prescribedDrugs = this.visitDetails.prescription.prescribedDrugs
+      } else
+      if (this.oldPrescribedDrugs !== null && this.oldPrescribedDrugs.length > 0) {
+        console.log(this.oldPrescribedDrugs)
+        console.log(this.step)
         this.prescribedDrugs = this.oldPrescribedDrugs
         this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
       }

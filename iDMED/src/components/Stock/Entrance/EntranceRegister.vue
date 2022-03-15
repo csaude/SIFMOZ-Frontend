@@ -43,6 +43,12 @@
                 <q-btn type="submit" label="Avançar" color="primary" />
             </q-card-actions>
         </form>
+        <q-dialog v-model="alert.visible" persistent>
+          <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemove">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
 </template>
 
@@ -51,14 +57,21 @@ import { date, SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
+import { ref } from 'vue'
 export default {
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       stockEntrance: new StockEntrance(),
       dateReceived: ''
     }
   },
   components: {
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     TextInput: require('components/Shared/Input/TextField.vue').default
   },
   methods: {
@@ -72,28 +85,40 @@ export default {
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
     },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+    },
     async submitForm () {
       this.stockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
-      this.$refs.orderNumber.$refs.ref.validate()
-      if (!this.$refs.orderNumber.$refs.ref.hasError) {
-        this.stockEntrance.clinic = this.currClinic
-        await StockEntrance.apiSave(this.stockEntrance).then(resp => {
-        SessionStorage.set('currStockEntrance', resp.response.data)
-        this.$router.push('/stock/entrance')
-      }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
+      if (this.stockEntrance.dateReceived > new Date()) {
+        this.displayAlert('error', 'A data de criação da guia não pode ser superior a data corrente.')
+      } else {
+        this.$refs.orderNumber.$refs.ref.validate()
+        if (!this.$refs.orderNumber.$refs.ref.hasError) {
+          this.stockEntrance.clinic = this.currClinic
+          await StockEntrance.apiSave(this.stockEntrance).then(resp => {
+          SessionStorage.set('currStockEntrance', resp.response.data)
+          this.$router.push('/stock/entrance')
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
             }
-          }
-          this.displayAlert('error', listErrors)
-        })
+            this.displayAlert('error', listErrors)
+          })
+        }
       }
     }
   },

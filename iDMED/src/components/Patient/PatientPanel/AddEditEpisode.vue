@@ -188,6 +188,20 @@ export default {
         }
     },
     methods: {
+      init () {
+        this.identifier = Object.assign({}, this.curIdentifier)
+        this.episode = Object.assign({}, this.episodeToEdit)
+        this.episode.patientServiceIdentifier = this.identifier
+        if (this.episode.id !== null) {
+          this.startDate = this.getDDMMYYYFromJSDate(this.episode.episodeDate)
+          this.episode.patientServiceIdentifier.episodes = []
+          this.episode.clinicSector.clinic = Clinic.query()
+                                                  .with('province')
+                                                  .where('id', this.episode.clinicSector.clinic_id)
+                                                  .first()
+        }
+        this.step = this.stepp
+      },
       submitForm () {
         if (this.isCreateStep || this.isEditStep) {
           this.$refs.startReason.validate()
@@ -230,9 +244,9 @@ export default {
             this.step = 'close'
              if (this.isCloseStep) {
               this.$refs.stopReason.validate()
-              this.$refs.endNotes.validate()
+              this.$refs.endNotes.$refs.ref.validate()
               if (!this.$refs.stopReason.hasError &&
-                  !this.$refs.endNotes.hasError) {
+                  !this.$refs.endNotes.$refs.ref.hasError) {
                     this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
                     this.closureEpisode.clinic = this.currClinic
                     this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.stopDate)
@@ -253,11 +267,23 @@ export default {
                       if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
                       } else {
+                        this.closureEpisode.clinicSector = this.episode.clinicSector
+                        console.log(this.closureEpisode)
                         Episode.apiSave(this.closureEpisode).then(resp => {
-                          // Episode.insert({ data: resp.response.data })
                           this.displayAlert('info', 'Episódio actualizado com sucesso.')
                         }).catch(error => {
-                          this.displayAlert('error', error)
+                          this.listErrors = []
+                        if (error.request.status !== 0) {
+                          const arrayErrors = JSON.parse(error.request.response)
+                          if (arrayErrors.total == null) {
+                            this.listErrors.push(arrayErrors.message)
+                          } else {
+                            arrayErrors._embedded.errors.forEach(element => {
+                              this.listErrors.push(element.message)
+                            })
+                          }
+                        }
+                          this.displayAlert('error', this.listErrors)
                         })
                       }
                     }
@@ -267,11 +293,24 @@ export default {
         }
 
         if (!this.isCloseStep) {
+          this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
+          console.log(this.episode)
           Episode.apiSave(this.episode).then(resp => {
             // Episode.insert({ data: resp.response.data })
             this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
           }).catch(error => {
-            this.displayAlert('error', error)
+            this.listErrors = []
+            if (error.request.status !== 0) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                this.listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  this.listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', this.listErrors)
           })
         }
       },
@@ -295,11 +334,7 @@ export default {
       }
     },
     created () {
-        this.identifier = Object.assign({}, this.curIdentifier)
-        this.episode = Object.assign({}, this.episodeToEdit)
-        this.episode.patientServiceIdentifier = this.identifier
-        if (this.episode.id !== null) this.startDate = this.episode.episodeDate
-        this.step = this.stepp
+        this.init()
     },
     mounted () {
     },

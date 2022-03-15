@@ -1,7 +1,7 @@
 <template>
   <q-card style="max-width: 100vw;">
         <form @submit.prevent="submitMobilizer" >
-            <q-card-section class="q-pa-none">
+            <q-card-section class="q-pa-none bg-green-2">
               <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>

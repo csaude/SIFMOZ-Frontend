@@ -82,7 +82,7 @@
                     <q-th style="width: 190px" >{{columns[3].label}}</q-th>
                     <q-th style="width: 190px" >{{columns[4].label}}</q-th>
                     <q-th style="width: 120px" >{{columns[5].label}}</q-th>
-                    <q-th style="width: 150px; text-align: center" >{{columns[5].label}}</q-th>
+                    <q-th style="width: 150px; text-align: center" >{{columns[6].label}}</q-th>
                   </q-tr>
 
                 </template>
@@ -314,17 +314,22 @@ export default {
     },
     validateStock (stock) {
       console.log(stock)
+      const bacthNumberExists = this.stockList.some((stockToCheck) => {
+        return stockToCheck.batchNumber === stock.batchNumber
+      })
       this.submitting = true
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.id === null) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o medicamento!')
-      } else if (stock.batchNumber === '') {
-        this.submitting = false
-        this.displayAlert('error', 'Por favor indicar o lote!')
       } else if (stock.manufacture === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o fabricante!')
+      } else if (stock.batchNumber === '') {
+        this.submitting = false
+        this.displayAlert('error', 'Por favor indicar o lote!')
+      } else if (bacthNumberExists) {
+        this.displayAlert('error', 'Ja existe uma entrada para o número do lote indicado!')
       } else if (!date.isValid(stock.expireDate)) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma data de validade válida!')
