@@ -221,6 +221,11 @@ export default {
     },
     mounted () {
       this.loadAppParameters()
+      PackagedDrug.apiGetAll()
+      PrescribedDrug.apiGetAll()
+      PrescriptionDetail.apiGetAll().then(resp => {
+        this.$q.loading.hide()
+      })
       this.getAllPatientsOfClinic()
     },
     created () {
@@ -231,9 +236,9 @@ export default {
       // delay: 400 // ms
     })
 
-    setTimeout(() => {
-      this.$q.loading.hide()
-    }, 600)
+    // setTimeout(() => {
+    //   this.$q.loading.hide()
+    // }, 600)
       this.saveCurrClinic()
     },
     computed: {
