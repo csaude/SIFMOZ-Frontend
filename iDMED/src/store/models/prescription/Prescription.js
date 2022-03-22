@@ -21,7 +21,6 @@ export default class Prescription extends Model {
         patientType: this.attr(''),
         patientStatus: this.attr(''),
         doctor_id: this.attr(''),
-        patientVisitDetails_id: this.attr(''),
         clinic_id: this.attr(''),
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),

@@ -78,12 +78,11 @@
 <script>
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
-import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 
 const columns = [
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
-  { name: 'description', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
+  { name: 'description', required: true, label: 'Descrição', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
   { name: 'pattern', required: true, label: 'Padrão', align: 'left', field: row => row.pattern, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]

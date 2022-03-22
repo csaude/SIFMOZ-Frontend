@@ -1,8 +1,8 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;">
         <form @submit.prevent="submitForm" >
-            <q-card-section >
-              <div class="row items-center text-subtitle1">
+            <q-card-section class="q-pa-none bg-green-2">
+              <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
@@ -10,7 +10,7 @@
               </div>
               <q-separator/>
             </q-card-section>
-            <div class="text-center text-h6">
+            <div class="text-center text-h6 q-mt-sm">
               <span v-if="isEditStep">Actualizar</span>
               <span v-if="isCreateStep">Adicionar</span>
               <span v-if="isCloseStep">Fechar</span>
@@ -88,6 +88,7 @@
                     <identifierInput
                       ref="identifier"
                       label="Nr. do Identificador *"
+                      :disable="identifier.service === null"
                       :mask="identifierTypeMask"
                       fill-mask
                       :rules="[ val => !!val || 'Por favor indicar o identificador']"
@@ -263,9 +264,11 @@ export default {
         this.identifier.patient = Patient.find(this.patient.id)
       },
       reloadIdentifierTypeMask () {
+        console.log(this.identifier.service.identifierType)
         if (this.identifier.service !== null) {
-          this.identifierTypeMask = this.identifier.service.identifierType.partten
+          this.identifierTypeMask = this.identifier.service.identifierType.pattern
         }
+        console.log(this.identifier.service.identifierType.pattern)
       },
       submitForm () {
         this.submitting = true

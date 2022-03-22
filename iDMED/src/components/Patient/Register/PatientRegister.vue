@@ -1,6 +1,12 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+  <q-card style="width: 900px; max-width: 90vw;">
         <form @submit.prevent="submitForm" >
+            <q-card-section class="q-pa-none bg-green-2">
+                  <div class="row items-center text-center text-subtitle1 q-pa-md">
+                    <div class="col text-bold text-grey-10 q-ml-sm">{{isEditStep ? 'Actualizar' : 'Registar'}} Paciente</div>
+                  </div>
+                  <q-separator/>
+            </q-card-section>
             <q-card-section class="q-px-md">
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
@@ -74,23 +80,67 @@
                       option-label="description"
                       ref="district"
                       :rules="[ val => !!val || 'Por favor indicar o Distrito']"
-                      :options="districts"
-                      label="Distrito/Cidade *" />
+                      :options="filterRedDistricts"
+                      label="Distrito/Cidade *"
+                      @filter="filterDistricts"
+                      use-input
+                      hide-selected
+                      fill-input
+                      input-debounce="0">
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey">
+                            Sem Resultados
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
                     <q-select
                       class="col q-ml-md"
                       dense outlined
+                      :options="filterRedPostos"
                        v-model="patient.postoAdministrativo"
                       option-value="id"
                       option-label="description"
-                      label="Posto Administivo" />
+                      label="Posto Administivo"
+                      @filter="filterPostos"
+                      use-input
+                      hide-selected
+                      fill-input
+                      input-debounce="0">
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey">
+                            Sem Resultados
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
                 </div>
                 <div class="row q-mt-md">
                     <q-select
                       class="col"
                       dense
                       outlined
+                      :options="filterRedBairros"
                       v-model="patient.bairro"
-                      label="Localidade/Bairro" />
+                      option-value="id"
+                      option-label="description"
+                      label="Localidade/Bairro"
+                      @filter="filterBairros"
+                      use-input
+                      hide-selected
+                      fill-input
+                      @new-value="createBairro"
+                      input-debounce="0">
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey">
+                            Sem Resultados
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
                     <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
                     <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
                 </div>
@@ -128,6 +178,8 @@ import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import District from '../../../store/models/district/District'
 import moment from 'moment'
+import PostoAdministrativo from '../../../store/models/PostoAdministrativo/PostoAdministrativo'
+import Localidade from '../../../store/models/Localidade/Localidade'
 export default {
     props: ['clinic', 'selectedPatient', 'newPatient'],
     emits: ['update:newPatient'],
@@ -142,10 +194,68 @@ export default {
             selectedProvince: {},
             genders: ['Masculino', 'Feminino'],
             age: '',
-            patient: new Patient()
+            patient: new Patient(),
+            filterRedDistricts: ref([]),
+            filterRedPostos: ref([]),
+            filterRedBairros: ref([])
         }
     },
     methods: {
+      createBairro (val, done) {
+        if (val.length > 0) {
+          const bairro = new Localidade({ code: val.toUpperCase(), description: val, postoAdministrativo: this.patient.postoAdministrativo })
+          if (!this.objectExistsOnArray(val, this.bairros)) {
+            this.filterRedBairros.push(bairro)
+          }
+          done(bairro, 'toggle')
+        }
+      },
+      objectExistsOnArray (description, array) {
+        const exists = array.some((o) => {
+          return o.description.toLowerCase() === description.toLowerCase()
+        })
+        return exists
+      },
+      filterPostos (val, update, abort) {
+        if (val === '') {
+            update(() => {
+              this.filterRedPostos = this.postos
+            })
+            return
+          }
+
+        update(() => {
+          this.filterRedPostos = this.postos.filter((f) => { return this.stringContains(f.description, val) })
+        })
+      },
+      filterDistricts (val, update, abort) {
+        if (val === '') {
+            update(() => {
+              this.filterRedDistricts = this.districts
+            })
+            return
+          }
+
+        update(() => {
+          this.filterRedDistricts = this.districts.filter((f) => { return this.stringContains(f.description, val) })
+        })
+      },
+      filterBairros (val, update, abort) {
+        if (val === '') {
+            update(() => {
+              this.filterRedBairros = this.bairros
+            })
+            return
+          }
+
+        update(() => {
+          this.filterRedBairros = this.bairros.filter((f) => { return this.stringContains(f.description, val) })
+        })
+      },
+      stringContains (stringToCheck, stringText) {
+          if (stringText === '') return false
+          return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
+      },
       submitForm () {
         this.$refs.firstNames.$refs.nome.$refs.ref.validate()
         this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
@@ -245,8 +355,9 @@ export default {
       },
       initParams () {
         const offset = 0
-        const max = 100
+        const max = 200
         Province.apiGetAll(offset, max)
+        PostoAdministrativo.apiGetAll(offset, max)
         Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
       },
       moment,
@@ -279,6 +390,24 @@ export default {
         get () {
           if (this.patient.province !== null && this.patient.province !== undefined) {
             return District.query().with('province').where('province_id', this.patient.province.id).has('code').get()
+          } else {
+            return null
+          }
+        }
+      },
+      postos: {
+        get () {
+          if (this.patient.district !== null && this.patient.district !== undefined) {
+            return PostoAdministrativo.query().with('district').where('district_id', this.patient.district.id).has('code').get()
+          } else {
+            return null
+          }
+        }
+      },
+      bairros: {
+        get () {
+          if (this.patient.postoAdministrativo !== null && this.patient.postoAdministrativo !== undefined) {
+            return Localidade.query().with('postoAdministrativo').where('postoAdministrativo_id', this.patient.postoAdministrativo.id).has('code').get()
           } else {
             return null
           }

@@ -260,7 +260,7 @@ export default {
     patientVisitDetais: {
       get () {
         if (this.prescription === null) return null
-        return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
+        return PatientVisitDetails.query().with('pack').with('prescription.*').where('id', this.prescription.patientVisitDetails[0].id).first()
       }
     },
 

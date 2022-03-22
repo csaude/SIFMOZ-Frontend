@@ -2,9 +2,10 @@
   <q-card style="width: 800px; max-width: 90vw;">
     <form @submit.prevent="submitForm" >
         <q-card-section class="q-pa-none">
-          <div class="q-mt-md q-mb-sm">
+          <div class="q-pt-md q-mb-sm bg-green-2">
             <div class="row items-center q-mb-sm q-pa-sm">
-                <span class="text-subtitle2">Adição de Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}</span>
+              <q-icon  name="medication" size="md" color="green-10"/>
+              <span class="text-subtitle2 q-ml-sm">Adição de Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}</span>
             </div>
             <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
           </div>

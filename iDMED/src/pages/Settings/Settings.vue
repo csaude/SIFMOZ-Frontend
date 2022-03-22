@@ -50,9 +50,9 @@
             <div class="text-h4 q-mb-md"></div>
              <therapeuticRegimen> </therapeuticRegimen>
           </q-tab-panel>
-          <q-tab-panel name="identifierType">
+          <q-tab-panel name="identifier_type">
             <div class="text-h4 q-mb-md"></div>
-             <identifier-type />
+             <identifierType />
           </q-tab-panel>
           <q-tab-panel name="interoperability">
             <div class="text-h4 q-mb-md"></div>

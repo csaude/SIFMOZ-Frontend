@@ -9,16 +9,16 @@
                 <nameInput
                     v-model="identifierType.description"
                     label="Descrição *"
-                    ref="nome"
-                     :disable="onlyView" />
+                    :disable="isDisplayStep"
+                    ref="nome" />
             </div>
               <div class="row q-mt-md">
                 <codeInput
                     ref="code"
                     v-model="identifierType.code"
+                    :disable="isDisplayStep"
                    :rules="[val => codeRules (val)]"
                     lazy-rules
-                     :disable="onlyView"
                     label="Código *" />
             </div>
              <div class="row q-mb-md">
@@ -26,6 +26,7 @@
                   v-model="identifierType.pattern"
                   label="Padrão do identificador"
                   ref="pattern"
+                  :disable="isDisplayStep"
                   :rules="[ val => !!val || 'Por favor indicar o padrão do identificador']"
                   dense
                   hint="Exemplo: ###/####/#"
@@ -48,7 +49,11 @@
 
 <script>
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
+import { ref } from 'vue'
+import Clinic from '../../../store/models/clinic/Clinic'
+import { SessionStorage } from 'quasar'
 export default {
+  props: ['selectedIdentifierType', 'step'],
   data () {
         return {
             databaseCodes: [],
@@ -58,46 +63,56 @@ export default {
               type: '',
               visible: false,
               msg: ''
-            }),
-            step: 'display'
+            })
         }
     },
     created () {
     },
       mounted () {
-        IdentifierType.apiGetAll()
+        IdentifierType.apiGetAll(0, 200)
+        this.init()
     },
     computed: {
          clinics () {
             return Clinic.query().has('code').get()
-        },
-          clinicSectors () {
-            return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
         },
         currClinic () {
         return Clinic.query()
                     .with('province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
+      },
+      isEditStep () {
+        return this.step === 'edit'
+      },
+      isCreateStep () {
+        return this.step === 'create'
+      },
+      isDisplayStep () {
+        return this.step === 'display'
       }
     },
     methods: {
+      init () {
+        if (this.isEditStep) {
+          this.identifierType = Object.assign({}, this.selectedIdentifierType)
+        }
+      },
       validateClinicSector () {
           this.$refs.nome.$refs.ref.validate()
             this.$refs.code.$refs.ref.validate()
-            this.$refs.clinic.validate()
+            this.$refs.pattern.$refs.ref.validate()
           if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
-            !this.$refs.clinic.hasError) {
-              this.submitClinicSector()
+            !this.$refs.pattern.$refs.ref.hasError) {
+              this.doSave()
           }
       },
-      submitClinicSector () {
-        this.clinicSector.active = true
+      doSave () {
           this.submitting = true
+          console.log(this.identifierType)
           IdentifierType.apiSave(this.identifierType).then(resp => {
             this.submitting = false
-              console.log(resp.response.data)
-              this.displayAlert('info', this.clinicSector.id === null ? 'Identificador adiconado com sucesso.' : 'Identificador actualizado com sucesso.')
+              this.displayAlert('info', this.identifierType.id === null ? 'Identificador adiconado com sucesso.' : 'Identificador actualizado com sucesso.')
           }).catch(error => {
             this.submitting = false
               this.displayAlert('error', error)
@@ -117,13 +132,13 @@ export default {
       codeRules (val) {
         if (this.identifierType.code === '') {
           return 'o Código é obrigatorio'
-        } else if (!this.identifierType.id && this.identifierType.id === this.identifierType.id) {
+        } else if (this.identifierType.id === null) {
           const existingIdentifiers = IdentifierType.all()
           if (existingIdentifiers !== null) {
             const codeExists = existingIdentifiers.some((idType) => {
               return idType.code === val
             })
-            return codeExists || 'o Código indicado já existe'
+            return !codeExists || 'o Código indicado já existe'
           }
         }
       }
