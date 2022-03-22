@@ -1,12 +1,13 @@
 <template>
-    <div>
-     <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-        Tabela Tipo de dispensa por Idade
-        </div>
+     <div  class="row" style="width: 1200px; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)">
+      <div class="col">
         <q-table
-          :rows="dispensesByTypeAge"
+         style="max-width: 100%; "
+          :rows="dispensesByTypeAgeAndGender"
           :columns="columns"
-          :filter="filter">
+           class="my-sticky-header-table"
+            title="Tabela Tipo de dispensa por Idade"
+           hide-bottom>
         <template v-slot:body="props">
             <q-tr :props="props">
             <q-td key="dispenseType" :props="props">
@@ -21,6 +22,31 @@
             </q-tr>
         </template>
     </q-table>
+      </div>
+      <div class="col q-pl-xl">
+      <q-table
+      class="my-sticky-header-table"
+         style="max-width: 100%; "
+          :rows="dispensesByTypeAgeAndGender"
+          :columns="columnsGender"
+            title="Tabela Tipo de dispensa por Genero"
+            bordered
+           hide-bottom>
+        <template v-slot:body="props">
+            <q-tr :props="props">
+            <q-td key="dispenseType" :props="props">
+                {{ props.row.dispenseType }}
+            </q-td>
+            <q-td key="male" :props="props">
+                {{ props.row.maleValue }}
+            </q-td>
+              <q-td key="female" :props="props">
+                {{ props.row.femaleValue }}
+            </q-td>
+            </q-tr>
+        </template>
+    </q-table>
+      </div>
     </div>
 </template>
 <script>
@@ -28,25 +54,36 @@ import { useQuasar } from 'quasar'
  import moment from 'moment'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 const columns = [
-  { name: 'dispenseType', required: true, label: 'Código', align: 'left', field: row => row.dispenseType, format: val => `${val}` },
+  { name: 'dispenseType', required: true, label: 'Tipo de Dispensa', align: 'left', field: row => row.dispenseType, format: val => `${val}` },
   { name: 'adult', required: true, label: 'Adultos', align: 'left', field: row => row.adultsValue, format: val => `${val}` },
    { name: 'child', required: true, label: 'Criancas', align: 'left', field: row => row.childsValue, format: val => `${val}` }
 ]
 
+const columnsGender = [
+  { name: 'dispenseType', required: true, label: 'Tipo de Dispensa', align: 'left', field: row => row.dispenseType, format: val => `${val}` },
+  { name: 'male', required: true, label: 'Masculino', align: 'left', field: row => row.maleValue, format: val => `${val}` },
+   { name: 'female', required: true, label: 'Feminino', align: 'left', field: row => row.femaleValue, format: val => `${val}` }
+]
 const monthlyDispense = {
-  dispenseType: 'DM',
+  dispenseType: 'Dispensa Mensal',
   adultsValue: '',
-  childsValue: ''
+  childsValue: '',
+  maleValue: '',
+  femaleValue: ''
 }
 const dispenseQuarterly = {
-  dispenseType: 'DT',
+  dispenseType: 'Dispensa Trimestral',
   adultsValue: '',
-  childsValue: ''
+  childsValue: '',
+    maleValue: '',
+  femaleValue: ''
 }
 const dispenseSemestraly = {
-  dispenseType: 'DT',
+  dispenseType: 'Dispensa Semestral',
   adultsValue: '',
-  childsValue: ''
+  childsValue: '',
+  maleValue: '',
+  femaleValue: ''
 }
 
 export default {
@@ -56,12 +93,13 @@ export default {
 
     return {
         columns,
+        columnsGender,
         $q,
         latestPrescriptions: [],
        monthlyDispense,
       dispenseQuarterly,
       dispenseSemestraly,
-       dispensesByTypeAge: []
+       dispensesByTypeAgeAndGender: []
     }
   },
     methods: {
@@ -113,23 +151,31 @@ export default {
             }
         },
          updateChart () {
-               this.dispensesByTypeAge = []
+               this.dispensesByTypeAgeAndGender = []
                this.monthlyDispense.adultsValue = this.monthlyAdultsDispensePrescriptions.length
                 this.monthlyDispense.childsValue = this.monthlyKidsDispensePrescriptions.length
                  this.dispenseQuarterly.adultsValue = this.quarterlyAdultsDispensePrescriptions.length
                 this.dispenseQuarterly.childsValue = this.quarterlyKidsDispensePrescriptions.length
                  this.dispenseSemestraly.adultsValue = this.semestralAdultsDispensePrescriptions.length
                 this.dispenseSemestraly.childsValue = this.semestralKidsDispensePrescriptions.length
+
+              this.monthlyDispense.maleValue = this.monthlyMaleDispensePrescriptions.length
+                this.monthlyDispense.femaleValue = this.monthlyFemaleDispensePrescriptions.length
+                 this.dispenseQuarterly.maleValue = this.quarterlyMaleDispensePrescriptions.length
+                this.dispenseQuarterly.femaleValue = this.quarterlyFemaleDispensePrescriptions.length
+                 this.dispenseSemestraly.maleValue = this.semestralMaleDispensePrescriptions.length
+                this.dispenseSemestraly.femaleValue = this.semestralFemaleDispensePrescriptions.length
+
        // this.arrDispenseMonthly.push(this.monthlyAdultsDispensePrescriptions.length)
        //  this.arrDispenseMonthly.push(this.monthlyKidsDispensePrescriptions.length)
         //     this.arrDispenseQuarterly.push(this.quarterlyAdultsDispensePrescriptions.length)
         // this.arrDispenseQuarterly.push(this.quarterlyKidsDispensePrescriptions.length)
        //    this.arrDispenseSemestraly.push(this.semestralAdultsDispensePrescriptions.length)
        //  this.arrDispenseSemestraly.push(this.semestralKidsDispensePrescriptions.length)
-            console.log(this.dispensesByTypeAge)
-             this.dispensesByTypeAge.push(monthlyDispense)
-              this.dispensesByTypeAge.push(dispenseQuarterly)
-               this.dispensesByTypeAge.push(dispenseSemestraly)
+            console.log(this.dispensesByTypeAgeAndGender)
+             this.dispensesByTypeAgeAndGender.push(monthlyDispense)
+              this.dispensesByTypeAgeAndGender.push(dispenseQuarterly)
+               this.dispensesByTypeAgeAndGender.push(dispenseSemestraly)
           }
   },
   computed: {
@@ -162,6 +208,36 @@ export default {
          return this.latestPrescriptions.filter((latestVisitDetails) => {
                   return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15
                 })
+      },
+       monthlyMaleDispensePrescriptions () {
+        return this.latestPrescriptions.filter((latestVisitDetails) => {
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && latestVisitDetails.patientVisit.patient.gender === 'Masculino'
+                })
+      },
+       quarterlyMaleDispensePrescriptions () {
+          return this.latestPrescriptions.filter((latestVisitDetails) => {
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && latestVisitDetails.patientVisit.patient.gender === 'Masculino'
+                })
+      },
+       semestralMaleDispensePrescriptions () {
+         return this.latestPrescriptions.filter((latestVisitDetails) => {
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && latestVisitDetails.patientVisit.patient.gender === 'Masculino'
+                })
+      },
+        monthlyFemaleDispensePrescriptions () {
+        return this.latestPrescriptions.filter((latestVisitDetails) => {
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && latestVisitDetails.patientVisit.patient.gender === 'Feminino'
+                })
+      },
+       quarterlyFemaleDispensePrescriptions () {
+          return this.latestPrescriptions.filter((latestVisitDetails) => {
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && latestVisitDetails.patientVisit.patient.gender === 'Feminino'
+                })
+      },
+       semestralFemaleDispensePrescriptions () {
+         return this.latestPrescriptions.filter((latestVisitDetails) => {
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && latestVisitDetails.patientVisit.patient.gender === 'Feminino'
+                })
       }
   },
     created () {
@@ -191,3 +267,23 @@ export default {
         }
 }
 </script>
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+
+  .q-table__top,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: #0ba58b
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+</style>
