@@ -283,7 +283,30 @@ export default {
         this.patient.identifiers = []
         console.log(this.patient)
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
-          await Patient.apiSave(this.patient).then(resp => {
+          if (this.patient.bairro !== null && this.patient.bairro.id === null) {
+            Localidade.apiSave(this.patient.bairro).then(resp => {
+              this.patient.bairro.id = resp.response.data.id
+              this.doSave()
+            }).catch(error => {
+                this.listErrors = []
+              if (error.request.status !== 0) {
+                const arrayErrors = JSON.parse(error.request.response)
+                if (arrayErrors.total == null) {
+                  this.listErrors.push(arrayErrors.message)
+                } else {
+                  arrayErrors._embedded.errors.forEach(element => {
+                    this.listErrors.push(element.message)
+                  })
+                }
+              }
+                this.displayAlert('error', this.listErrors)
+              })
+          } else {
+            this.doSave()
+          }
+      },
+      async doSave () {
+        await Patient.apiSave(this.patient).then(resp => {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id
             SessionStorage.set('selectedPatient', new Patient(this.patient))
@@ -398,7 +421,7 @@ export default {
       postos: {
         get () {
           if (this.patient.district !== null && this.patient.district !== undefined) {
-            return PostoAdministrativo.query().with('district').where('district_id', this.patient.district.id).has('code').get()
+            return PostoAdministrativo.query().with('district.province').where('district_id', this.patient.district.id).has('code').get()
           } else {
             return null
           }
