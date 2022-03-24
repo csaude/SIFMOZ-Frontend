@@ -3,13 +3,16 @@
 <div class="q-mt-lg">
 <div class="row">
 <div class="col q-ml-md" v-for="(item) in this.clinicalServiceReports" :key="item.id">
-  <q-btn :color=item.colour @click="setServiceCode(item.code)">
+  <q-btn :color=item.colour @click="setServiceCode(item.code)" :style=item.style>
       <q-icon left size="6em" :name=item.icon  />
-      <div >Servico  {{item.code}} <br> {{this.patientByServiceCode(item.code).length}} Pacientes Activos ao Tratamento </div>
+      <div >Serviço  {{item.code}} <br> {{this.patientByServiceCode(item.code).length}} Pacientes Activos ao Tratamento </div>
     </q-btn>
     </div>
 </div>
 </div>
+  <div class="q-mt-lg">
+  <p align="center"> <strong>Serviço {{serviceCode}} </strong></p>
+  </div>
          <div class="q-mt-lg">
           <BarByDispenseType :serviceCode=serviceCode :dataLoaded=dataLoaded > </BarByDispenseType>
              <div
@@ -29,9 +32,6 @@
     <div class="col-md-6 col-sm-12 col-xs-12">
               <PieGenderChart :serviceCode=serviceCode > </PieGenderChart>
     </div>
-      <div class="col-md-6 col-sm-12 col-xs-12">
-            <HeatMapDispenseTypeAge :serviceCode=serviceCode :dataLoaded=dataLoaded > </HeatMapDispenseTypeAge>
-      </div>
         <DispenseTypeByAgeTable :serviceCode=serviceCode :dataLoaded=dataLoaded > </DispenseTypeByAgeTable>
           </div>
              </div>
@@ -63,7 +63,7 @@ export default {
        //     BarTB: require('components/Dashboard/ApexCharts/BarReportTPTInitial.vue').default, PieGenderChart
           PieGenderChart: require('components/Dashboard/ApexCharts/PieGenderChart.vue').default,
              LineBySex: require('components/Dashboard/ApexCharts/LineChartSex.vue').default,
-               HeatMapDispenseTypeAge: require('components/Dashboard/ApexCharts/HeatMap.vue').default,
+         //      HeatMapDispenseTypeAge: require('components/Dashboard/ApexCharts/HeatMap.vue').default,
                  DispenseTypeByAgeTable: require('components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue').default
     },
     methods: {
@@ -105,14 +105,24 @@ export default {
               if (item.code === 'TARV') {
                   item.colour = 'green'
                   item.icon = 'medication'
-              }
-                if (item.code === 'TPT') {
+              } else if (item.code === 'TPT') {
                   item.colour = 'red'
                    item.icon = 'vaccines'
-              }
-               if (item.code === 'PREP') {
+              } else if (item.code === 'PREP') {
                   item.colour = 'teal'
                    item.icon = 'health_and_safety'
+              } else {
+                 item.icon = 'health_and_safety'
+                const exists = localStorage.getItem(item.code)
+                if (exists === null) {
+               const randomColor = require('randomcolor') // import the script
+                   const color = randomColor() // a hex code for an attractive color
+                   console.log(color)
+                   item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                    localStorage.setItem(item.code, 'background-color:' + color + ';' + 'color: ##ffffff')
+                } else {
+                   item.style = exists
+                }
               }
               this.clinicalServiceReports.push(item)
             }
