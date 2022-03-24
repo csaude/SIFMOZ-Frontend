@@ -15,7 +15,7 @@
                 style="width: 400px"
                 debounce="300"
                 v-model="filter"
-                placeholder="Pesquisar">
+                placeholder="Pesquisar por medicamento">
                 <template v-slot:append>
                   <q-icon name="search" />
                 </template>
@@ -79,7 +79,7 @@ import Drug from '../../store/models/drug/Drug'
 import { ref } from 'vue'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
-  { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
+  { name: 'drug', align: 'left', label: 'Medicamento', field: row => row.name, sortable: true },
   { name: 'consumeAVG', align: 'center', label: 'Média de Consumo Mensal', sortable: false },
   { name: 'currUnits', align: 'center', label: 'Saldo Actual', sortable: true },
   { name: 'state', align: 'center', label: 'Estado', sortable: true },
@@ -87,8 +87,9 @@ const columns = [
 ]
 export default {
   data () {
+    const filter = ref('')
     return {
-      filter: ref(''),
+      filter,
       columns
     }
   },

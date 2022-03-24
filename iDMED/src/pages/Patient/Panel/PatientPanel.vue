@@ -65,7 +65,7 @@ export default {
   setup () {
     return {
       contentStyle: {
-        backgroundColor: 'rgba(0,0,0,0.02)',
+        backgroundColor: '#ffffff',
         color: '#555'
       },
 

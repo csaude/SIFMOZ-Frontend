@@ -19,7 +19,7 @@
   </div>
 
   <q-dialog persistent v-model="showAddPrescription" full-width>
-      <AddEditPrescription  v-if="flagGo"
+      <AddEditPrescription
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
         :step="step"
@@ -50,12 +50,17 @@ export default {
     init () {
       this.identifiers.forEach(identifier => {
         Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-          resp.response.data.forEach(episode => {
-            PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
-              const i = 0
-              this.loadVisitDetailsInfo(resp.response.data, i)
+          console.log(resp.response.data)
+          if (resp.response.data.length > 0) {
+            resp.response.data.forEach(episode => {
+              PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
+                const i = 0
+                this.loadVisitDetailsInfo(resp.response.data, i)
+                })
               })
-            })
+            } else {
+              this.flagGo = true
+            }
           })
         })
     },
@@ -75,6 +80,19 @@ export default {
       } else {
         this.flagGo = true
       }
+    },
+    checkPrescription () {
+      const hasPresc = this.patient.identifiers.some((identifier) => {
+        if (identifier.episodes.length > 0) {
+          identifier.episodes.some((episode) => {
+            return episode.patientVisitDetails.length > 0
+          })
+        } else {
+          return false
+        }
+        return false
+      })
+      return hasPresc
     },
     expandLess (value) {
       this.infoVisible = value
@@ -98,6 +116,9 @@ export default {
   computed: {
     showAddButton () {
       return this.patientHasEpisodes
+    },
+    hasPrescription () {
+      return this.checkPrescription()
     },
     identifiers () {
       return this.patient.identifiers

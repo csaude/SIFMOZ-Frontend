@@ -1,6 +1,6 @@
 <template>
   <q-card>
-      <q-card-section class="q-pa-none" >
+      <q-card-section class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
           <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
@@ -248,7 +248,7 @@
 
 <script>
 import { ref } from 'vue'
-import { SessionStorage } from 'quasar'
+import { QSpinnerBall, SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
@@ -302,7 +302,7 @@ export default {
       }
     },
     initPatientVisit () {
-      if (!this.isNewPackStep || !this.isEditPackStep) {
+      if (this.isNewPackStep || !this.isEditPackStep) {
         this.patientVisit.visitDate = new Date()
       } else {
         this.patientVisit = PatientVisit.query()
@@ -320,11 +320,24 @@ export default {
       this.patientVisit.patient = this.simplePatient
     },
     setCurVisitDetails () {
+      this.$q.loading.show({
+        message: 'Carregando ...',
+        spinnerColor: 'grey-4',
+        spinner: QSpinnerBall
+      })
+
+      setTimeout(() => {
+        this.$q.loading.hide()
+      }, 400)
       this.showServiceDrugsManagement = false
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         if (visitDetails.episode.patientServiceIdentifier.service.id === this.selectedClinicalService.id) {
           this.curPatientVisitDetail = visitDetails
+          if (visitDetails.prescription.prescribedDrugs.length > 0) {
+            this.prescribedDrugs = visitDetails.prescription.prescribedDrugs
+            this.showServiceDrugsManagement = true
+          }
         }
       }.bind(this))
     },
@@ -332,8 +345,9 @@ export default {
       const pack = new Pack({
         clinic: this.currClinic
       })
+      if (this.selectedVisitDetails !== null) {
         this.curPatientVisitDetail.createPackLater = this.selectedVisitDetails.createPackLater
-        console.log(this.curPatientVisitDetail)
+      }
 
       if (!this.isNewPackStep && !this.isEditPackStep) {
         let prescription = new Prescription({
@@ -364,6 +378,7 @@ export default {
         this.curPatientVisitDetail.pack = pack
         this.curPatientVisitDetail.prescription = prescription
       } else {
+        console.log(this.selectedVisitDetails)
         this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
                                                                 .with('episode.patientServiceIdentifier.service')
                                                                 .with('patientVisit')
@@ -395,7 +410,7 @@ export default {
           this.curPatientVisitDetail.pack = this.lastPackFull
           packagedDrugs = this.curPatientVisitDetail.pack.packagedDrugs
         }
-
+console.log(this.isEditPackStep)
         if (this.isEditPackStep || this.isFirstPack) {
           this.prescribedDrugs = prescribedDrugs
         } else {
@@ -410,6 +425,7 @@ export default {
           }.bind(this))
 
             this.curPatientVisitDetail.pack = null
+            console.log(this.isFirstPack)
             if (this.isFirstPack) {
               pack.pickupDate = this.curPatientVisitDetail.prescription.prescriptionDate
             } else {
@@ -417,12 +433,26 @@ export default {
             }
 
             this.curPatientVisitDetail.pack = pack
+            this.curPatientVisitDetail.id = null
+            this.curPatientVisitDetail.$id = null
         }
-        if (this.isFirstPack) this.curPatientVisitDetail.pack = pack
+        if (this.isFirstPack) {
+          this.curPatientVisitDetail.pack = pack
+          this.curPatientVisitDetail.pack.patientVisitDetails = []
+          this.curPatientVisitDetail.pack.packagedDrugs = []
+          this.curPatientVisitDetail.pack.clinic = this.currClinic
+        }
+
+        if (this.isEditPackStep) {
+          this.curPatientVisitDetail.pack.patientVisitDetails = []
+          this.curPatientVisitDetail.pack.packagedDrugs = []
+          this.curPatientVisitDetail.pack.clinic = this.currClinic
+        }
 
         this.curPatientVisitDetails.push(this.curPatientVisitDetail)
         this.showServiceDrugsManagement = true
       }
+      console.log(this.curPatientVisitDetail)
 
       this.initPatientVisit()
     },
@@ -433,13 +463,14 @@ export default {
       if (!this.isNewPackStep && !this.isEditPackStep) {
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
+            console.log(this.patient.identifiers[key].lastEpisode())
             const episode = Episode.query()
                                     .withAll()
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
                                     .orderBy('creationDate', 'desc')
                                     .first()
-            this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
             if (!episode.closed()) {
+              this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
               this.initPatientVisitDetails(episode)
             }
           }
@@ -498,15 +529,17 @@ export default {
       return has
     },
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
-      this.curPrescription.prescribedDrugs = prescribedDrugs
+      console.log(nextPDate)
       if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.pack !== null) {
-        this.curPatientVisitDetail.pack.packDate = new Date(pickupDate)
-        this.curPatientVisitDetail.pack.pickupDate = new Date(pickupDate)
-        this.curPatientVisitDetail.pack.nextPickUpDate = new Date(nextPDate)
+        if (pickupDate !== undefined) this.curPatientVisitDetail.pack.packDate = this.getJSDateFromDDMMYYY(pickupDate)
+        if (pickupDate !== undefined) this.curPatientVisitDetail.pack.pickupDate = this.getJSDateFromDDMMYYY(pickupDate)
+        if (nextPDate !== undefined) this.curPatientVisitDetail.pack.nextPickUpDate = this.getJSDateFromDDMMYYY(nextPDate)
         if (duration !== undefined) this.curPatientVisitDetail.pack.weeksSupply = duration.weeks
       }
     },
     validateForm () {
+      console.log(this.hasTherapeuticalRegimen)
+      console.log(this.hasTherapeuticalLine)
       this.$refs.patientStatus.validate()
       this.$refs.clinicalService.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
@@ -518,12 +551,13 @@ export default {
 
       if (!this.$refs.patientStatus.hasError &&
           !this.$refs.clinicalService.hasError &&
-          (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
-          (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
+          // (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
+          // (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
           !this.$refs.duration.hasError &&
           !this.$refs.doctor.hasError &&
           // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
+      console.log(this.hasTherapeuticalLine)
             if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
             } else if (new Date(this.pickupDate) > new Date()) {
@@ -649,8 +683,9 @@ export default {
           }
           if (this.isFirstPack && this.curPatientVisitDetails[0].prescription.id !== null) {
             visitDetails.clinic = this.currClinic
-            visitDetails.prescription = null
+            // visitDetails.prescription = null
           }
+          this.patientVisit.visitDate = this.curPatientVisitDetails[0].pack.pickupDate
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
@@ -663,21 +698,35 @@ export default {
       if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
         const patientVDetails = patientVisit.patientVisitDetails[i]
         console.log(patientVDetails)
-        Prescription.apiSave(patientVDetails.prescription).then(resp => {
-          patientVDetails.prescription.id = resp.response.data.id
-          patientVDetails.prescription.$id = resp.response.data.id
-          patientVDetails.prescription.prescribedDrugs = []
-          patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
-          if (patientVDetails.pack !== null) {
-            Pack.apiSave(patientVDetails.pack).then(resp => {
-              patientVDetails.pack.id = resp.response.data.id
-              patientVDetails.pack.$id = resp.response.data.id
-              patientVDetails.pack.packagedDrugs = []
-            })
-          }
-          i = i + 1
-          setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
-        })
+        if (patientVDetails.prescription.id === null) {
+          Prescription.apiSave(patientVDetails.prescription).then(resp => {
+            patientVDetails.prescription.id = resp.response.data.id
+            patientVDetails.prescription.$id = resp.response.data.id
+            patientVDetails.prescription.prescribedDrugs = []
+            patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
+            if (patientVDetails.pack !== null) {
+              Pack.apiSave(patientVDetails.pack).then(resp => {
+                patientVDetails.pack.id = resp.response.data.id
+                patientVDetails.pack.$id = resp.response.data.id
+                patientVDetails.pack.packagedDrugs = []
+                i = i + 1
+                setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+              })
+            } else {
+              i = i + 1
+              setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+            }
+          })
+        } else {
+          console.log(patientVDetails.pack)
+          Pack.apiSave(patientVDetails.pack).then(resp => {
+            patientVDetails.pack.id = resp.response.data.id
+            patientVDetails.pack.$id = resp.response.data.id
+            patientVDetails.pack.packagedDrugs = []
+            i = i + 1
+            setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+          })
+        }
       } else {
         console.log(this.patientVisit)
         this.savePatientVisit(patientVisit)
@@ -747,6 +796,8 @@ export default {
             })
     },
     getJSDateFromDDMMYYY (dateString) {
+      console.log(dateString)
+      if (dateString === null || dateString === undefined) return null
       const dateParts = dateString.split('-')
       return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
     },
@@ -824,7 +875,7 @@ export default {
         return Pack.query()
                   .with('packagedDrugs.*')
                   .with('patientVisitDetails')
-                  .where('patientVisitDetails_id', this.selectedVisitDetails.id)
+                  .where('id', this.selectedVisitDetails.pack_id)
                   .orderBy('pickupDate', 'desc')
                   .first()
       }
@@ -833,7 +884,7 @@ export default {
       get () {
         return Pack.query()
                   .withAll()
-                  .where('patientVisitDetails_id', this.curPatientVisitDetail.id)
+                  .where('id', this.curPatientVisitDetail.pack_id)
                   .orderBy('pickupDate', 'desc').first()
       }
     },

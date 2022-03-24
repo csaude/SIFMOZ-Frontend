@@ -113,6 +113,7 @@ export default {
           this.submitting = true
           this.doctor.dateofbirth = new Date()
           this.doctor.active = true
+          console.log(this.doctor)
             Doctor.apiSave(this.doctor).then(resp => {
                this.submitting = false
                 console.log(resp.response.data)

@@ -12,7 +12,7 @@
             <div class="col-4 text-grey-9 text-weight-medium">Data de Admissão:</div>
             <div class="col text-grey-8">{{ formatDate(curIdentifier.startDate) }}</div>
           </div>
-          <div class="row ">
+          <div class="row " v-if="curIdentifier.value !== null">
             <div class="col-4 text-grey-9 text-weight-medium">Nr Identificador:</div>
             <div class="col text-grey-8">{{ curIdentifier.value }}</div>
           </div>
@@ -99,11 +99,8 @@ export default {
   },
   methods: {
     init () {
-      console.log(this.curIdentifier)
       PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
-      Episode.apiGetAllByIdentifierId(this.curIdentifier.id).then(resp => {
-        console.log(resp.response.data)
-      })
+      Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
     },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {
@@ -180,40 +177,18 @@ export default {
         return this.selectedPatient.identifiers
       }
     },
-    /*
-    curIdentifier: {
-      get () {
-        return PatientServiceIdentifier.query()
-                                      .with('identifierType')
-                                      .with('service')
-                                      .with('episodes.*', (query) => {
-                                              query.orderBy('creationDate', 'desc')
-                                            })
-                                      .where('id', this.identifier.id).first()
-    }
-      }, */
       curIdentifier: {
         get () {
           return PatientServiceIdentifier.query()
                                       .with('identifierType')
                                       .with('service')
+                                      .with('clinic.province')
                                       .with('episodes.*', (query) => {
                                               query.orderBy('creationDate', 'desc')
                                             })
                                       .where('id', this.identifier.id).first()
         }
       },
-      /*
-    curIdentifier () {
-      return PatientServiceIdentifier.query()
-                                      .with('identifierType')
-                                      .with('service')
-                                      .with('episodes.*', (query) => {
-                                              query.orderBy('creationDate', 'desc')
-                                            })
-                                      .where('id', this.identifier.id).first()
-    },
-    */
     clinicalServiceHeaderColor () {
       if (!this.showEndDetails) {
         return 'bg-grey-4'
@@ -237,28 +212,11 @@ export default {
         return episodes
       }
     },
-    /*
-    episodes () {
-      const episodes = Episode.query()
-                              .withAll()
-                              .where('patientServiceIdentifier_id', this.curIdentifier.id)
-                              .orderBy('creationDate', 'desc')
-                              .limit(2)
-                              .get()
-      if (episodes.length > 0) {
-        episodes[0].isLast = true
-      }
-      return episodes
-    }, */
     services: {
       get () {
         return ClinicalService.query().hasNot('code').get()
       }
     },
-    /*
-    services () {
-      return ClinicalService.query().hasNot('code').get()
-    }, */
     patient: {
       get () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
@@ -272,27 +230,11 @@ export default {
                             .with('clinic').where('id', selectedP.id).first()
       }
     },
-    /*
-    patient () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                            .with('province')
-                            .with('attributes')
-                            .with('appointments')
-                            .with('district')
-                            .with('postoAdministrativo')
-                            .with('bairro')
-                            .with('clinic').where('id', selectedP.id).first()
-    }, */
     episodeTypes: {
       get () {
         return EpisodeType.all()
       }
     },
-    /*
-    episodeTypes () {
-      return EpisodeType.all()
-    }, */
     lastEpisode: {
       get () {
         return Episode.query()
@@ -302,14 +244,6 @@ export default {
                     .first()
       }
     },
-    /*
-    lastEpisode () {
-      return Episode.query()
-                    .withAll()
-                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
-                    .orderBy('creationDate', 'desc')
-                    .first()
-    }, */
     showEndDetails () {
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
     },

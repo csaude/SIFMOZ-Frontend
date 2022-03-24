@@ -15,7 +15,7 @@
                 style="width: 400px"
                 debounce="300"
                 v-model="filter"
-                placeholder="Pesquisar">
+                placeholder="Pesquisar pela guia">
                 <template v-slot:append>
                   <q-icon name="search" />
                 </template>
@@ -69,7 +69,7 @@ import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import { ref } from 'vue'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
-  { name: 'orderNumber', align: 'left', label: 'Nr. de Guia', sortable: true },
+  { name: 'orderNumber', align: 'left', label: 'Nr. de Guia', field: row => row.orderNumber, sortable: true },
   { name: 'dateReceived', align: 'center', label: 'Data de Entrada', sortable: false },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]

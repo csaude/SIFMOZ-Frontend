@@ -456,6 +456,7 @@ export default {
                         .with('groupType')
                         .where('id', this.group.id)
                         .first()
+      group.members = group.members.filter((member) => { return member.isActive() })
       group.members.forEach((member) => {
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')

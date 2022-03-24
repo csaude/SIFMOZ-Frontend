@@ -9,10 +9,18 @@ export default class Localidade extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
-      postosAdministrativo_id: this.attr(''),
+      postoAdministrativo_id: this.attr(''),
 
       // Relationshiops
-      province: this.belongsTo(PostoAdministrativo, 'postosAdministrativo_id')
+      postoAdministrativo: this.belongsTo(PostoAdministrativo, 'postoAdministrativo_id')
     }
+  }
+
+  static async apiGetAll (offset, max) {
+    return await this.api().get('/localidade?offset=' + offset + '&max=' + max)
+  }
+
+  static async apiSave (localidade) {
+    return await this.api().post('/localidade', localidade)
   }
 }
