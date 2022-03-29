@@ -6,7 +6,7 @@ import StockCenter from '../stockcenter/StockCenter'
 import Drug from '../drug/Drug'
 import Clinic from '../clinic/Clinic'
 import { date } from 'quasar'
-import PackagedDrug from '../packagedDrug/PackagedDrug'
+import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
 
 export default class Stock extends Model {
     static entity = 'stocks'
@@ -35,7 +35,7 @@ export default class Stock extends Model {
             center: this.belongsTo(StockCenter, 'stock_center_id'),
             stockLevel: this.hasOne(StockLevel, 'stock_id'),
             drug: this.belongsTo(Drug, 'drug_id'),
-            packagedDrugs: this.hasMany(PackagedDrug, 'stock_id')
+            packagedDrugStocks: this.hasMany(PackagedDrugStock, 'stock_id')
         }
     }
 

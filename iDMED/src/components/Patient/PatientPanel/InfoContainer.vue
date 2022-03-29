@@ -58,7 +58,7 @@
           @close="showAddEditEpisode = false" />
     </q-dialog>
     <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
+      <Dialog :type="alert.type" @cancelOperation="cancelOperation" @closeDialog="closeDialog" @commitOperation="doOnConfirm">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{alert.msg}} </template>
       </Dialog>
@@ -129,15 +129,20 @@ export default {
       if (eps.hasVisits()) {
         this.displayAlert('error', 'Não pode remover este episódio pois o mesmo ja possui registos de visitas do paciente/utente associados.')
       } else {
-        Episode.apiRemove(episode).then(resp => {
-          Episode.delete(episode.id)
-          const i = this.curIdentifier.episodes.map(toRemove => toRemove.id).indexOf(episode.id) // find index of your object
-          this.curIdentifier.splice(i, 1)
+        this.selectedEpisode = episode
+        this.displayAlert('confirmation', 'Confirma a remoção deste episódio?')
+      }
+    },
+    doOnConfirm () {
+      this.closeDialog()
+        Episode.apiRemove(this.selectedEpisode).then(resp => {
+          Episode.delete(this.selectedEpisode.id)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
         }).catch(error => {
           const listErrors = []
-          if (error.request.response != null) {
+          if (error.request.response !== null) {
             const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
+            if (arrayErrors.total === null) {
               listErrors.push(arrayErrors.message)
             } else {
               arrayErrors._embedded.errors.forEach(element => {
@@ -147,7 +152,9 @@ export default {
           }
           this.displayAlert('error', listErrors)
         })
-      }
+    },
+    cancelOperation () {
+      this.alert.visible = false
     },
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')

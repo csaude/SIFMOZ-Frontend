@@ -32,7 +32,7 @@
                     :rules="[ val => !!val || 'Por favor indicar o serviço de saúde']"
                     :disable="isCloseStep || isReOpenStep"
                     v-model="identifier.service"
-                    :options="clinicalServices"
+                    :options="notAssociatedServices"
                     @blur="reloadIdentifierTypeMask"
                     option-value="id"
                     option-label="code"
@@ -90,7 +90,7 @@
                       label="Nr. do Identificador *"
                       :disable="identifier.service === null"
                       :mask="identifierTypeMask"
-                      fill-mask
+                      fill-mask="#"
                       :rules="[ val => !!val || 'Por favor indicar o identificador']"
                       v-model="identifier.value"/>
                     <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido?
@@ -262,13 +262,24 @@ export default {
     methods: {
       init () {
         this.identifier.patient = Patient.find(this.patient.id)
+        this.reloadIdentifierTypeMask()
       },
       reloadIdentifierTypeMask () {
-        console.log(this.identifier.service.identifierType)
         if (this.identifier.service !== null) {
           this.identifierTypeMask = this.identifier.service.identifierType.pattern
         }
-        console.log(this.identifier.service.identifierType.pattern)
+      },
+      isServiceAssociated (service) {
+        const serviceIsAssociated = this.patient.identifiers.some((id) => {
+          return id.service.id === service.id
+        })
+        return serviceIsAssociated
+      },
+      filterNotAssociatedServices () {
+        const filteredServices = this.clinicalServices.filter((serv) => {
+          return !this.isServiceAssociated(serv)
+        })
+        return filteredServices
       },
       submitForm () {
         this.submitting = true
@@ -334,8 +345,8 @@ export default {
                 this.displayAlert('error', 'A data de admissão indicada é maior que a data corrente.')
               } else if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
-              } else if (!this.usePreferedId && this.identifier.value === '') {
-                this.displayAlert('error', 'Por favor indicar o identificador.')
+              } else if (!this.usePreferedId && (this.identifier.value === '' || this.stringContains(this.identifier.value, '#'))) {
+                this.displayAlert('error', 'Por favor indicar um identificador dentro do padrão.')
               } else {
                 if (this.isEditStep) {
                   const episode = Episode.query()
@@ -361,6 +372,10 @@ export default {
             }
         }
         this.submitting = false
+      },
+      stringContains (stringToCheck, stringText) {
+          if (stringText === '') return false
+          return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       lastStartEpisodeWithPrescription () {
         let episode = null
@@ -516,8 +531,15 @@ export default {
       canEdit () {
         return this.canEditIdentifier()
       },
-      clinicalServices () {
-        return ClinicalService.query().with('identifierType').has('code').get()
+      clinicalServices: {
+        get () {
+          return ClinicalService.query().with('identifierType').has('code').get()
+        }
+      },
+      notAssociatedServices: {
+        get () {
+          return this.filterNotAssociatedServices()
+        }
       },
       clinicSerctors () {
         return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()

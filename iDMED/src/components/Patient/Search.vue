@@ -255,7 +255,8 @@ export default {
         return match
       },
       stringContains (stringToCheck, stringText) {
-        if (stringText === '') return false
+        if (stringToCheck === '' || stringToCheck === null || stringToCheck === undefined) return false
+        if (stringText === '' || stringText === null || stringText === undefined) return false
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       loadAppParameters () {

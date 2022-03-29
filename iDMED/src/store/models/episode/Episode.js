@@ -64,7 +64,7 @@ export default class Episode extends Model {
   }
 
   static async apiRemove (episode) {
-    return await this.api().delete('/episode', episode)
+    return await this.api().delete(`/episode/${episode.id}`)
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {

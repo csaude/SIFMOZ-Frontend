@@ -237,7 +237,7 @@
           @proccedToDispense="proccedToDispense"
           @close="showDispenseMode = false" />
       </q-dialog>
-      <q-dialog v-model="alert.visible">
+      <q-dialog persistent v-model="alert.visible">
         <Dialog :type="alert.type" @closeDialog="closeDialog">
           <template v-slot:title> Informação</template>
           <template v-slot:msg> {{alert.msg}} </template>

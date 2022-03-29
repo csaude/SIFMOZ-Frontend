@@ -21,7 +21,7 @@
             <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
                 <span>
-                  Sem resultados para visualizar
+                  Sem informação por visualizar
                 </span>
                 <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
@@ -36,7 +36,7 @@
                 <q-th style="width: 120px" >{{columns[5].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[6].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[7].label}}</q-th>
-                <q-th style="width: 120px" >{{columns[8].label}}</q-th>
+                <q-th style="width: 100px" >{{columns[8].label}}</q-th>
                 <q-th class="col" >{{columns[9].label}}</q-th>
               </q-tr>
 
@@ -188,6 +188,7 @@ import { ref } from 'vue'
 import { StockReferenceAdjustment } from '../../../store/models/stockadjustment/StockReferenceAdjustment'
 import ReferedStockMoviment from '../../../store/models/stockrefered/ReferedStockMoviment'
 import Inventory from '../../../store/models/stockinventory/Inventory'
+import PackagedDrugStock from '../../../store/models/packagedDrug/PackagedDrugStock'
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
   { name: 'moviment', align: 'center', label: 'Origem/Destino', sortable: true },
@@ -360,7 +361,6 @@ export default {
             balance: '',
             notes: '-'
           }
-          console.log(event)
       this.curEvent = event
       this.drugEventList.unshift(event)
       this.step = 'create'
@@ -386,6 +386,41 @@ export default {
         const d2 = new Date(b.eventDate)
         return d2 - d1
       })
+      this.loadOutcomes()
+    },
+    loadOutcomes () {
+      if (this.drugEventList.length > 0) {
+        Object.keys(this.drugEventList).forEach(function (k) {
+          const event = this.drugEventList[k]
+          const nextEvent = this.drugEventList[k + 1]
+          if (nextEvent !== null) {
+            const packStockList = PackagedDrugStock.query()
+                                                   .with('packagedDrug.pack')
+                                                   .where('stock_id', event.stock.id)
+                                                   .get()
+            if (packStockList.length > 0) {
+              packStockList.forEach((packStock) => {
+                if (new Date(packStock.PackagedDrug.pack.pickUpDate) >= new Date(event.eventDate) && new Date(packStock.PackagedDrug.pack.pickUpDate) < new Date(nextEvent.eventDate)) {
+          console.log(packStock)
+                  event.outcomes = Number(event.outcomes + packStock.quantitySupplied)
+                }
+              })
+            }
+          } else {
+            const packStockList = PackagedDrugStock.query()
+                                                   .with('packagedDrug.pack')
+                                                   .where('stock_id', event.stock.id)
+                                                   .get()
+            if (packStockList.length > 0) {
+              packStockList.forEach((packStock) => {
+                if (new Date(packStock.PackagedDrug.pack.pickUpDate) >= new Date(event.eventDate)) {
+                  event.outcomes = Number(event.outcomes + packStock.quantitySupplied)
+                }
+              })
+            }
+          }
+        }.bind(this))
+      }
     },
     loadRelatedAdjustments (adjustment, stock) {
       if (adjustment.finalised) {
@@ -400,7 +435,8 @@ export default {
               negativeAdjustment: '-',
               loses: '-',
               balance: adjustment.balance,
-              notes: '-'
+              notes: '-',
+              stock: stock
             }
         if (adjustment.type === 'STOCKDESTRUCTIONADJUSTMENT') {
           adjustment.destruction = DestroyedStock.find(adjustment.destruction_id)
@@ -447,7 +483,8 @@ export default {
             negativeAdjustment: '-',
             loses: '-',
             balance: stock.unitsReceived,
-            notes: '-'
+            notes: '-',
+            stock: stock
           }
       this.drugEventList.push(event)
     },
@@ -515,7 +552,6 @@ export default {
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-    // TitleBar: require('components/Shared/TitleBar.vue').default,
     ListHeader: require('components/Stock/StockFile/StockFileListHeader.vue').default,
     TextInput: require('components/Shared/Input/TextField.vue').default
   }

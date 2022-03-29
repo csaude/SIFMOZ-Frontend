@@ -244,7 +244,7 @@ export default {
             eventDate: entrance.dateReceived,
             moviment: 'Entrada de Stock',
             orderNumber: entrance.orderNumber,
-            incomes: '-',
+            incomes: 0,
             outcomes: '-',
             posetiveAdjustment: '-',
             negativeAdjustment: '-',
@@ -254,9 +254,10 @@ export default {
           }
       entrance.stocks.forEach((stock) => {
         if (stock.drug_id === this.drug.id) {
-          event.balance = Number(event.balance + stock.unitsReceived)
+          event.incomes = stock.unitsReceived
         }
       })
+     // const balanceStockList = this.drug.stocks.filter((stock) => {})
       this.drugEventList.push(event)
     },
     loadRelatedAdjustments (adjustment, stock) {
@@ -272,7 +273,8 @@ export default {
               negativeAdjustment: '-',
               loses: '-',
               balance: adjustment.balance,
-              notes: '-'
+              notes: '-',
+              stock: stock
             }
         if (adjustment.type === 'STOCKDESTRUCTIONADJUSTMENT') {
           adjustment.destruction = DestroyedStock.find(adjustment.destruction_id)
@@ -314,7 +316,7 @@ export default {
   computed: {
     drug () {
       return Drug.query()
-                 .with('stocks')
+                 .with('stocks.entrance')
                  .where('id', SessionStorage.getItem('selectedDrug').id)
                  .first()
     }
