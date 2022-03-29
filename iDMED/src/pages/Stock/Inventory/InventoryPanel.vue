@@ -52,12 +52,20 @@
         </div>
       </div>
       <div class="col q-pt-md q-mr-lg">
+        <q-scroll-area
+            :thumb-style="thumbStyle"
+            :content-style="contentStyle"
+            :content-active-style="contentActiveStyle"
+            style="height: 700px;"
+            class="q-pr-md"
+          >
           <span
             v-for="drug in drugs" :key="drug.id" >
             <AdjustmentTable
               :drug="drug"
               :inventory="currInventory" />
           </span>
+        </q-scroll-area>
       </div>
     </div>
     <q-dialog v-model="alert.visible" persistent>
@@ -91,7 +99,24 @@ export default {
       dialogTitle: 'Informação',
       adjustments: ref([]),
       step: 'display',
-      processedAdjustments: []
+      processedAdjustments: [],
+      contentStyle: {
+        backgroundColor: '#ffffff',
+        color: '#555'
+      },
+
+      contentActiveStyle: {
+        backgroundColor: '#eee',
+        color: 'black'
+      },
+
+      thumbStyle: {
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#0ba58b',
+        width: '5px',
+        opacity: 0.75
+      }
     }
   },
   methods: {

@@ -39,27 +39,52 @@
         <InventoryRegister
           @close="createInventory = false" />
     </q-dialog>
+    <q-dialog v-model="alert.visible" persistent>
+      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="closeInventory">
+        <template v-slot:title> Informação</template>
+        <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
+    </q-dialog>
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
 import StockEntrance from '../../store/models/stockentrance/StockEntrance'
+import Inventory from '../../store/models/stockinventory/Inventory'
 
 export default {
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       tab: ref('stock'),
       createEntrance: false,
       createInventory: false
     }
   },
   methods: {
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+    },
     add () {
       if (this.tab === 'entrance') {
         this.createEntrance = true
       } else {
-        this.createInventory = true
+        const inventory = Inventory.query().where('open', true).first()
+        if (inventory !== null) {
+          this.displayAlert('error', 'Existe registado um inventário ainda aberto, por favor termine o mesmo antes de iniciar um novo inventário.')
+        } else {
+          this.createInventory = true
+        }
       }
     },
     getAllStockOfClinic () {
@@ -80,6 +105,7 @@ export default {
     }
   },
   components: {
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     TitleBar: require('components/Shared/TitleBar.vue').default,
     StockTable: require('components/Stock/StockTable.vue').default,
     EntranceRegister: require('components/Stock/Entrance/EntranceRegister.vue').default,
