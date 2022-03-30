@@ -4,28 +4,27 @@
     <q-tabs
       v-model="tab"
       dense
-      class="text-grey"
+      class="text-grey q-pt-md q-pl-md"
       active-color="primary"
-      indicator-color="primary"
+      indicator-color="white"
       align="left"
-      narrow-indicator
     >
-      <q-tab name="list" label="Listas" />
-      <q-tab name="graph" label="Análise Gráfica" />
+      <q-tab name="list" label="Listas" :class='tab === "list" ? "tab-menu" : ""'/>
+      <q-tab name="graph" label="Análise Gráfica" :class='tab === "graph" ? "tab-menu" : ""' />
     </q-tabs>
-    <q-separator />
+    <q-separator style="margin-top: -1px"/>
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="list">
 
         <div class="row">
-          <div class="col-3   q-ml-sm q-mr-sm panel">
+          <div class="col-3   q-ml-sm q-mr-sm">
               <q-bar dark class="bg-primary text-white">
                   <div class="col text-center text-weight-bold">
                    Listagens
                   </div>
             </q-bar>
           </div>
-          <div class="col q-mr-lg panel">
+          <div class="col q-mr-sm">
                    <q-bar dark class="bg-primary text-white">
                   <div class="col text-center text-weight-bold">
                    Resultados
@@ -36,47 +35,13 @@
 
         <div class="row">
           <div class="col-3  q-ml-sm q-mr-sm panel">
-             <q-select square filled v-model="model" :options="options" label="Tipo de Serviço" class ="q-ma-sm" />
-            <q-separator  />
-
-        <div class="q-pa-md" style="max-width: 1000px">
-        <q-list bordered>
-          <q-expansion-item
-            group="somegroup"
-            label="Pacientes"
-            header-class="bg-green-1 text-black"
-            expand-icon-class="text-black"
-          >
-                      <q-card class="bg-white">
-                          <div class="q-pa-sm no-margin no-padding full-height" style="max-width: 1000px">
-                              <q-list bordered separator>
-                                <q-item clickable v-ripple :active="true" class="bg-orange-1 q-ma-sm text-black" @click="activeTab = 'ActivesInDrugStore'">
-                                  <q-item-section>Activos na Farmácia</q-item-section>
-                                </q-item>
-                                <q-item clickable v-ripple :active="false" class="bg-orange-1 q-ma-sm text-black" @click="activeTab = 'TransferedTo'">
-                                  <q-item-section>Lista de transferidos PARA</q-item-section>
-                                </q-item>
-                                <q-item clickable v-ripple :active="true" class="bg-orange-1  q-ma-sm text-black" @click="activeTab = 'TransferedFrom'">
-                                  <q-item-section>Lista de transferidos DE</q-item-section>
-                                </q-item>
-
-                                <q-item clickable v-ripple :active="true" class="bg-orange-1  q-ma-sm text-black" @click="activeTab = 'GuestList'">
-                                  <q-item-section>Lista de Visitantes</q-item-section>
-                                </q-item>
-
-                                <q-item clickable v-ripple :active="true" class="bg-orange-1  q-ma-sm text-black" @click="activeTab = 'ImportedPatientList'">
-                                  <q-item-section>Lista de pacientes importados de outros Sistemas</q-item-section>
-                                </q-item>
-                              </q-list>
-                            </div>
-                      </q-card>
-                    </q-expansion-item>
-                  </q-list>
-                </div>
+            <ListReportMenu
+              @changeTab="changeTab"
+            />
 
           </div>
-          <div class="col q-mr-lg panel">
-                <component :is="activeTab"/>
+          <div class="col q-mr-sm panel q-pa-sm">
+                <component :is="activeTab" :selectedService="selectedService"/>
           </div>
         </div>
       </q-tab-panel>
@@ -101,29 +66,27 @@ export default {
     return {
       tab: ref('list'),
       model: ref(null),
-      options: [
-        'Serviço TARV', 'Serviço TPT'
-      ]
+      activeTab: ref('ActivesInDrugStore'),
+      selectedService: null
     }
   },
   components: {
      TitleBar: require('components/Shared/TitleBar.vue').default,
-     ActivesInDrugStore: require('components/Report/patient/ActivesInDrugStore.vue').default,
-     GuestList: require('components/Report/patient/GuestList.vue').default,
-     ImportedPatientList: require('components/Report/patient/ImportedPatientList.vue').default,
-     TransferedFrom: require('components/Report/patient/TransferedFrom.vue').default,
-     TransferedTo: require('components/Report/patient/TransferedTo.vue').default
+     ActivesInDrugStore: require('components/Reports/Patient/ActivesInDrugStore.vue').default,
+     GuestList: require('components/Reports/Patient/GuestList.vue').default,
+     ImportedPatientList: require('components/Reports/Patient/ImportedPatientList.vue').default,
+     TransferedFrom: require('components/Reports/Patient/TransferedFrom.vue').default,
+     TransferedTo: require('components/Reports/Patient/TransferedTo.vue').default,
+     ListReportMenu: require('components/Reports/Menus/ListReportMenu.vue').default
 
     },
-    data () {
-      return {
-        activeTab: 'ActivesInDrugStore'
-      }
-      },
     methods: {
       addReport () {
+      },
+      changeTab (tabName, selectedService) {
+        this.selectedService = selectedService
+        this.activeTab = tabName
       }
-
     }
 }
 </script>
@@ -131,6 +94,12 @@ export default {
 <style lang="scss">
   .panel {
     border: 1px solid $grey-13;
-    border-radius: 3px
+    border-radius: 0px
+  }
+  .tab-menu {
+    border-top: 1px solid $grey-13;
+    border-left: 1px solid $grey-13;
+    border-right: 1px solid $grey-13;
+    border-radius: 0px
   }
 </style>
