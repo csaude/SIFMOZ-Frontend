@@ -3,13 +3,11 @@
   <ListHeader
     :addVisible="false"
     :mainContainer="true"
+    :closeVisible="true"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Activos na Farmácia
   </ListHeader>
-  <div class="row param-container">
+  <div class="param-container">
     <q-item>
-        <q-item-section avatar top>
-            <q-btn class="gt-xs" size="12px" flat dense round icon="close" />
-        </q-item-section>
         <q-item-section >
         Activos na farmacia
         </q-item-section>
@@ -28,7 +26,7 @@
 
 <script>
   export default {
-    props: ['selectedService'],
+    props: ['selectedService', 'menuSelected'],
     name: 'DrugStore',
     mounted () {
       console.log(this.selectedService)

@@ -41,7 +41,18 @@
 
           </div>
           <div class="col q-mr-sm panel q-pa-sm">
-                <component :is="activeTab" :selectedService="selectedService"/>
+              <!-- <div
+              v-if="selectedService!=null"
+              class="vertical-middle"
+              >
+                <q-banner rounded class="bg-orange-1 text-left text-orange-10">
+                  Nenhum relatório foi seleccionado.
+                </q-banner>
+              </div> -->
+              <component
+              :is="activeTab"
+              :selectedService="selectedService"
+              />
           </div>
         </div>
       </q-tab-panel>
@@ -81,8 +92,6 @@ export default {
 
     },
     methods: {
-      addReport () {
-      },
       changeTab (tabName, selectedService) {
         this.selectedService = selectedService
         this.activeTab = tabName
