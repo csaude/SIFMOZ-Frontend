@@ -1,9 +1,10 @@
 <template>
-<div>
+<div ref="filterGuestListSection">
   <ListHeader
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
+    @closeSection="closeSection"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Lista de Visitantes
   </ListHeader>
   <div class="param-container">
@@ -33,7 +34,13 @@
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default
-    }
+    },
+    methods: {
+      closeSection () {
+        this.$refs.filterGuestListSection.remove()
+      }
+  }
+
   }
 </script>
 
