@@ -61,7 +61,7 @@ export default {
     return {
       currTab: '',
       selectedService: null
-    }
+      }
   },
   methods: {
     changeTab (tabName) {
