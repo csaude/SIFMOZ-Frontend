@@ -9,7 +9,7 @@
           <q-btn v-if="doneVisible" flat dense round color="white" icon="done" @click="$emit('done')"/>
           <q-btn dense flat round color="white" :icon="expanded ? 'expand_less' : 'expand_more'" class="float-right" @click="expand"/>
           <q-btn dense v-if="addVisible" flat round color="white" icon="add" class="float-right" @click="$emit('showAdd')"/>
-          <q-btn dense v-if="closeVisible" flat round color="white" icon="close" class="float-right" @click="expand"/>
+          <q-btn dense v-if="closeVisible" flat round color="white" icon="close" class="float-right" @click="closeSection"/>
         </template>
     </q-banner>
 </template>
@@ -35,7 +35,10 @@ export default {
       expand () {
         this.expanded = !this.expanded
         this.$emit('expandLess', this.expanded)
-      }
+      },
+      closeSection () {
+      this.$emit('closeSection')
+    }
     },
     created () {
       this.determineHeaderClass()
