@@ -1,9 +1,10 @@
 <template>
-<div>
+<div ref="filterTransferedFrom">
   <ListHeader
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
+    @closeSection="closeSection"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Lista de Pacientes transferidos de
   </ListHeader>
   <div class="param-container">
@@ -33,6 +34,12 @@
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default
+    },
+    methods: {
+      closeSection () {
+        this.$refs.filterTransferedFrom.remove()
+      }
+
     }
   }
 </script>
