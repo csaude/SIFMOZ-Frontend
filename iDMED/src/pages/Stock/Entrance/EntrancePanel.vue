@@ -82,7 +82,7 @@
                     <q-th style="width: 190px" >{{columns[3].label}}</q-th>
                     <q-th style="width: 190px" >{{columns[4].label}}</q-th>
                     <q-th style="width: 120px" >{{columns[5].label}}</q-th>
-                    <q-th style="width: 150px; text-align: center" >{{columns[5].label}}</q-th>
+                    <q-th style="width: 150px; text-align: center" >{{columns[6].label}}</q-th>
                   </q-tr>
 
                 </template>
@@ -101,7 +101,20 @@
                         :options="drugs"
                         option-value="id"
                         option-label="name"
-                        label="Medicamento" />
+                        label="Medicamento"
+                        @filter="filterFn"
+                        use-input
+                        hide-selected
+                        fill-input
+                        input-debounce="0">
+                        <template v-slot:no-option>
+                          <q-item>
+                            <q-item-section class="text-grey">
+                              Sem Resultados
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
                     </q-td>
                      <q-td key="manufacture" :props="props">
                       <TextInput
@@ -221,12 +234,29 @@ export default {
       step: 'display',
       guiaStep: 'display',
       selectedStock: '',
+      drugs: ref([]),
       stockList: ref([])
     }
   },
   methods: {
     goBack () {
       this.$router.go(-1)
+    },
+    filterFn (val, update, abort) {
+      if (val === '') {
+          update(() => {
+             this.drugs = this.activeDrugs
+          })
+          return
+        }
+
+      update(() => {
+        this.drugs = this.activeDrugs.filter((drug) => { return this.stringContains(drug.name, val) })
+      })
+    },
+    stringContains (stringToCheck, stringText) {
+        if (stringText === '') return false
+        return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     },
     init () {
       this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
@@ -235,7 +265,35 @@ export default {
       this.guiaStep = 'display'
     },
     doSaveGuia () {
-
+      this.currStockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
+      const bdEntrance = StockEntrance.query().where((entrance) => {
+        return entrance.orderNumber === this.currStockEntrance.orderNumber && entrance.id !== this.currStockEntrance.id
+      }).first()
+      console.log(bdEntrance)
+      if (bdEntrance !== null) {
+        this.displayAlert('error', 'Já existe registada uma guia com o número indicado.')
+      } else {
+          console.log(this.currStockEntrance)
+          this.currStockEntrance.clinic = this.currClinic
+          StockEntrance.apiSave(this.currStockEntrance).then(resp => {
+          SessionStorage.set('currStockEntrance', resp.response.data)
+          this.guiaStep = 'display'
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', listErrors)
+          })
+      }
     },
     initGuiaEdition () {
       if (this.currStockEntrance.stocks.length > 0 || this.stockList.length > 0) {
@@ -314,17 +372,31 @@ export default {
     },
     validateStock (stock) {
       console.log(stock)
+      const stockToCheck = Stock.all()
+      let bacthNumberExists = false
+      if (this.isCreationStep) {
+        bacthNumberExists = stockToCheck.some((stockToCheck) => {
+          return (stockToCheck.batchNumber === stock.batchNumber) && stockToCheck.id !== null
+        })
+      } else if (this.isEditionStep) {
+        bacthNumberExists = stockToCheck.some((stockToCheck) => {
+          return (stockToCheck.batchNumber === stock.batchNumber) && stockToCheck.id !== stock.id
+        })
+      }
       this.submitting = true
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.id === null) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o medicamento!')
-      } else if (stock.batchNumber === '') {
-        this.submitting = false
-        this.displayAlert('error', 'Por favor indicar o lote!')
       } else if (stock.manufacture === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o fabricante!')
+      } else if (stock.batchNumber === '') {
+        this.submitting = false
+        this.displayAlert('error', 'Por favor indicar o lote!')
+      } else if (bacthNumberExists) {
+        this.displayAlert('error', 'Ja existe uma entrada para o número do lote indicado!')
+        this.submitting = false
       } else if (!date.isValid(stock.expireDate)) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma data de validade válida!')
@@ -443,6 +515,10 @@ export default {
       }
     }
   },
+  created () {
+      this.drugs = this.activeDrugs
+    console.log(this.drugs)
+  },
   mounted () {
     this.init()
     this.loadStockList()
@@ -451,7 +527,7 @@ export default {
     currStockEntrance () {
       return this.getCurrStockEntrance()
     },
-    drugs () {
+    activeDrugs () {
       return Drug.query().with('form').where('active', true).get()
     },
     isDisplayStep () {

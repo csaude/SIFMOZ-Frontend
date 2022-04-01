@@ -1,8 +1,8 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;">
         <form @submit.prevent="submitForm" >
-            <q-card-section >
-              <div class="row items-center text-subtitle1">
+            <q-card-section class="q-pa-none bg-green-2">
+              <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
@@ -10,7 +10,7 @@
               </div>
               <q-separator/>
             </q-card-section>
-            <div class="text-center text-h6">
+            <div class="text-center text-h6 q-mt-sm">
               <span v-if="isEditStep">Actualizar</span>
               <span v-if="isCreateStep">Adicionar</span>
               <span v-if="isCloseStep">Fechar</span>
@@ -32,7 +32,8 @@
                     :rules="[ val => !!val || 'Por favor indicar o serviço de saúde']"
                     :disable="isCloseStep || isReOpenStep"
                     v-model="identifier.service"
-                    :options="clinicalServices"
+                    :options="notAssociatedServices"
+                    @blur="reloadIdentifierTypeMask"
                     option-value="id"
                     option-label="code"
                     label="Serviço de Saúde *" />
@@ -76,21 +77,25 @@
                   </div>
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
                 </div>
-                <div class="row">
+
+                <div class="row q-mb-md">
+                    <div v-if="isCreateStep && patient.identifiers.length > 0 && identifier.id === null" class="col"  tabindex="0"> Assumir Identificador Anterior?
+                        <q-radio keep-color color="primary" v-model="usePreferedId" v-bind:val="true" label="Sim" />
+                        <q-radio keep-color color="primary" v-model="usePreferedId" v-bind:val="false" label="Nao"/>
+                    </div>
+                </div>
+                <div class="row" v-if="!usePreferedId">
                     <identifierInput
                       ref="identifier"
                       label="Nr. do Identificador *"
+                      :disable="identifier.service === null"
+                      :mask="identifierTypeMask"
+                      fill-mask="#"
                       :rules="[ val => !!val || 'Por favor indicar o identificador']"
                       v-model="identifier.value"/>
-                    <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido
+                    <div v-if="identifier" class="col q-ml-md"  tabindex="0"> Preferido?
                       <q-radio keep-color color="primary" v-model="identifier.prefered" v-bind:val="true" label="Sim" />
                       <q-radio keep-color color="primary" v-model="identifier.prefered" v-bind:val="false" label="Nao"/>
-                    </div>
-                </div>
-                <div class="row">
-                    <div v-if="isCreateStep && patient.identifiers.length > 0 && identifier.id === null" class="col q-ml-md"  tabindex="0"> Assumir Identificador Anterior
-                        <q-radio keep-color color="primary"  v-bind:val="true" label="Sim" />
-                        <q-radio keep-color color="primary"  v-bind:val="false" label="Nao"/>
                     </div>
                 </div>
               </span>
@@ -200,7 +205,15 @@
             </div>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary" />
+                <q-btn
+                  type="submit"
+                  :loading="submitting"
+                  label="Submeter"
+                  color="primary" >
+                  <template v-slot:loading>
+                    <q-spinner-facebook />
+                  </template>
+                </q-btn>
             </q-card-actions>
         </form>
         <q-dialog v-model="alert.visible">
@@ -228,7 +241,9 @@ import moment from 'moment'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'step'],
     data () {
+      const submitting = ref(false)
         return {
+          submitting,
             alert: ref({
                 type: '',
                 visible: false,
@@ -239,14 +254,35 @@ export default {
             closureEpisode: new Episode(),
             estados: ['Activo', 'Inactivo'],
             endDate: '',
-            reOpenDate: ''
+            reOpenDate: '',
+            usePreferedId: false,
+            identifierTypeMask: ''
         }
     },
     methods: {
       init () {
         this.identifier.patient = Patient.find(this.patient.id)
+        this.reloadIdentifierTypeMask()
+      },
+      reloadIdentifierTypeMask () {
+        if (this.identifier.service !== null) {
+          this.identifierTypeMask = this.identifier.service.identifierType.pattern
+        }
+      },
+      isServiceAssociated (service) {
+        const serviceIsAssociated = this.patient.identifiers.some((id) => {
+          return id.service.id === service.id
+        })
+        return serviceIsAssociated
+      },
+      filterNotAssociatedServices () {
+        const filteredServices = this.clinicalServices.filter((serv) => {
+          return !this.isServiceAssociated(serv)
+        })
+        return filteredServices
       },
       submitForm () {
+        this.submitting = true
         if (this.isCloseStep) {
           this.$refs.stopReason.validate()
           this.$refs.closingNotes.$refs.ref.validate()
@@ -296,15 +332,21 @@ export default {
         } else if (this.isCreateStep || this.isEditStep) {
           this.$refs.clinicalService.validate()
           this.$refs.state.validate()
-          this.$refs.identifier.$refs.identifier.validate()
+          if (!this.usePreferedId) {
+            console.log(this.usePreferedId)
+            this.$refs.identifier.$refs.identifier.validate()
+          } else {
+            this.identifier.prefered = false
+          }
           if (!this.$refs.clinicalService.hasError &&
-              !this.$refs.state.hasError &&
-              !this.$refs.identifier.$refs.identifier.hasError) {
-                console.log(this.identifierstartDate)
-                if (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date()) {
+              !this.$refs.state.hasError) {
+                console.log(this.usePreferedId)
+              if (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date()) {
                 this.displayAlert('error', 'A data de admissão indicada é maior que a data corrente.')
               } else if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
+              } else if (!this.usePreferedId && (this.identifier.value === '' || this.stringContains(this.identifier.value, '#'))) {
+                this.displayAlert('error', 'Por favor indicar um identificador dentro do padrão.')
               } else {
                 if (this.isEditStep) {
                   const episode = Episode.query()
@@ -329,6 +371,11 @@ export default {
               }
             }
         }
+        this.submitting = false
+      },
+      stringContains (stringToCheck, stringText) {
+          if (stringText === '') return false
+          return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       lastStartEpisodeWithPrescription () {
         let episode = null
@@ -389,6 +436,7 @@ export default {
         }
         console.log(this.identifier)
         await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
+          this.identifier.id = resp.response.data.id
           if (this.isReOpenStep || this.isCloseStep) {
             this.fetchUpdatedIdentifier(resp.response.data.id)
           }
@@ -477,27 +525,21 @@ export default {
             .where('id', SessionStorage.getItem('selectedPatient').id).first()
         }
       },
-      /*
-      patient () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
-      return Patient.query().with('identifiers.*')
-                            .with('province')
-                            .with('attributes')
-                            .with('appointments')
-                            .with('district')
-                            .with('postoAdministrativo')
-                            .with('bairro')
-                            .with('clinic')
-                            .where('id', selectedP.id).first()
-      }, */
       hasVisitsMade () {
         return this.lastStartEpisodeWithPrescription() !== null
       },
       canEdit () {
         return this.canEditIdentifier()
       },
-      clinicalServices () {
-        return ClinicalService.query().with('identifierType').has('code').get()
+      clinicalServices: {
+        get () {
+          return ClinicalService.query().with('identifierType').has('code').get()
+        }
+      },
+      notAssociatedServices: {
+        get () {
+          return this.filterNotAssociatedServices()
+        }
       },
       clinicSerctors () {
         return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
@@ -540,14 +582,6 @@ export default {
                       .first()
         }
       }
-      /*
-      lastEpisode () {
-        return Episode.query()
-                      .withAll()
-                      .where('patientServiceIdentifier_id', this.identifier.id)
-                      .orderBy('creationDate', 'desc')
-                      .first()
-      } */
     },
     components: {
       TextInput: require('components/Shared/Input/TextField.vue').default,

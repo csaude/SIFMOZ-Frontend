@@ -17,7 +17,7 @@
                 style="width: 400px"
                 debounce="300"
                 v-model="filter"
-                placeholder="Pesquisar">
+                placeholder="Pesquisar por medicamento">
                 <template v-slot:append>
                   <q-icon name="search" />
                 </template>
@@ -85,7 +85,7 @@ import moment from 'moment'
 import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
-  { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
+  { name: 'drug', align: 'left', label: 'Medicamento', field: row => row.name, sortable: true },
   { name: 'consumeAVG', align: 'center', label: 'Média de Consumo Mensal', sortable: false },
   { name: 'currUnits', align: 'center', label: 'Saldo Actual', sortable: true },
   { name: 'state', align: 'center', label: 'Estado', sortable: true },
@@ -96,11 +96,13 @@ const columns = [
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
   data () {
+    const filter = ref('')
     return {
-      filter: ref(''),
       columns,
       headerClass: '',
-      title: ''
+      title: '',
+      filter,
+      columns
     }
   },
   methods: {

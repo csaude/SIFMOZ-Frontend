@@ -4,8 +4,8 @@
             <q-card-section class="q-px-md">
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
-                        <q-icon name="person_outline" size="sm"/>
-                        <span class="q-pl-sm text-subtitle2">Dados Pessoais</span>
+                        <q-icon name="groups" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
                     </div>
                     <q-separator color="grey-13" size="1px"/>
                 </div>
@@ -72,24 +72,34 @@
                 </div>
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
-                        <q-icon name="house" size="sm"/>
+                        <q-icon name="person" size="sm"/>
                         <span class="q-pl-sm text-subtitle2">Membros</span>
                     </div>
                     <q-separator color="grey-13" size="1px"/>
                 </div>
                 <div class="row">
-                  <TextField
-                    label="Pesquisar por Identificador/Nome"
+                  <q-input
+                    bottom-slots
+                    outlined
                     v-model="searchParam"
-                    :disable="curGroup.service === null"
-                    class="q-my-md"
+                    label="Pesquisar por Identificador/Nome"
                     @update:model-value="search()"
                     style="width: 400px"
-                    dense
-                    :rules="[]"/>
+                    :disable="curGroup.service === null"
+                    class="q-mt-md"
+                    dense>
+                    <template v-slot:append>
+                      <q-icon v-if="searchParam !== ''" name="close" @click="searchParam = '', searchResults = []" class="cursor-pointer" />
+                      <q-icon name="search" />
+                    </template>
+                  </q-input>
                 </div>
-                <div class="row q-mt-md">
+                <q-separator color="grey-13" size="1px"/>
+                <div class="row q-mt-none">
                 <div class="col-6 q-pr-sm">
+                  <div class="col text-center q-mb-lg text-subtitle1">
+                    Por Adicionar
+                  </div>
                   <q-table
                     class="col"
                     dense
@@ -131,7 +141,11 @@
                     </template>
                 </q-table>
                 </div>
-                <div class="col-6 q-pl-sm">
+                <q-separator color="grey-13 q-ma-none" vertical inset />
+                <div class="col q-pl-sm">
+                  <div class="col text-center q-mb-lg text-subtitle1">
+                    Existentes
+                  </div>
                   <q-table
                     class="col"
                     dense
@@ -175,7 +189,7 @@
                 </div>
                 </div>
             </q-card-section>
-           <q-card-actions align="right" class="q-mb-md q-mr-sm">
+           <q-card-actions align="right" class="q-my-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
@@ -230,6 +244,9 @@ export default {
                             .with('clinic.province')
                             .where('id', SessionStorage.getItem('selectedGroup').id)
                             .first()
+        this.curGroup.members = this.curGroup.members.filter((member) => {
+          return member.endDate === null || member.endDate === ''
+        })
         this.curGroup.members.forEach((member) => {
           member.patient = Patient.query()
                                   .has('identifiers')
@@ -244,7 +261,22 @@ export default {
       }
     },
     addPatient (patient) {
-      this.curGroup.members.push(this.initNewMember(patient))
+      if (!patient.isActiveOnGroupOfService(this.curGroup.service)) {
+        if (this.curGroup.members.length > 0) {
+          const patientExists = this.curGroup.members.some((member) => {
+            return member.patient.id === patient.id
+          })
+          if (!patientExists) {
+            this.curGroup.members.push(this.initNewMember(patient))
+          } else {
+            this.displayAlert('error', 'O paciente selecionado ja se encontra associado ao grupo.')
+          }
+        } else {
+          this.curGroup.members.push(this.initNewMember(patient))
+        }
+      } else {
+        this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + '], do grupo [' + this.curGroup.code + ' - ' + this.curGroup.name + ']')
+      }
     },
     initNewMember (patient) {
       const member = new GroupMember({
@@ -254,16 +286,21 @@ export default {
       })
       return member
     },
-    removePatient (patient) {
-
+    removePatient (member) {
+      const members = this.curGroup.members.filter((mb) => {
+                        return mb.patient.id !== member.patient.id
+                      })
+      this.curGroup.members = members
     },
     search () {
       const patients = Patient.query()
                               .has('identifiers')
                               .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                               .with('province')
+                              .with('members.group.service')
                               .with('district.province')
                               .with('clinic.province')
+                              .where('clinic_id', this.clinic.id)
                               .get()
       this.searchResults = patients.filter((patient) => {
         return (this.hasIdentifierLike(patient, this.searchParam) || this.stringContains(patient.firstNames, this.searchParam)) && this.isAssociatedToSelectedService(patient)
@@ -286,7 +323,7 @@ export default {
       return match
     },
     stringContains (stringToCheck, stringText) {
-      if (stringText === '') return false
+      if (stringText === '' || stringToCheck === null) return false
       return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     },
     getJSDateFromDDMMYYY (dateString) {

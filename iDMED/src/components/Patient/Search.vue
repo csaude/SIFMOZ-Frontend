@@ -116,7 +116,7 @@
         <div class="q-mt-md"></div>
       </div>
       <q-page-sticky position="bottom-right" :offset="[18, 18]">
-          <q-btn class="q-mb-xl q-mr-xl" fab color="primary" icon="add" @click="showPatientRegister = true, newPatient = true"/>
+          <q-btn class="q-mb-xl q-mr-xl" fab color="primary" icon="add" @click="createPatient()"/>
       </q-page-sticky>
       <q-dialog persistent v-model="showPatientRegister">
           <patientRegister
@@ -203,6 +203,16 @@ export default {
     },
     methods: {
       init () {},
+      createPatient () {
+        this.currPatient = new Patient({
+          identifiers: [
+            new PatientServiceIdentifier({})
+          ]
+        })
+        SessionStorage.remove('selectedPatient')
+        this.showPatientRegister = true
+        this.newPatient = true
+      },
       search () {
         (this.selectedDataSources.id.length > 4) ? this.openMRSSerach(this.selectedDataSources) : this.localSearch()
       },
@@ -239,17 +249,14 @@ export default {
       hasIdentifierLike (patientToCheck, inputPatient) {
         if (patientToCheck.identifiers.length <= 0) return false
 
-        let check = false
-        Object.keys(patientToCheck.identifiers).forEach(function (k) {
-          const id = patientToCheck.identifiers[k]
-          if (this.stringContains(id.value, this.currPatient.identifiers[0].value)) {
-            check = true
-          }
-        }.bind(this))
-        return check
+        const match = patientToCheck.identifiers.some((identifier) => {
+          return this.stringContains(identifier.value, this.currPatient.identifiers[0].value)
+        })
+        return match
       },
       stringContains (stringToCheck, stringText) {
-        if (stringText === '') return false
+        if (stringToCheck === '' || stringToCheck === null || stringToCheck === undefined) return false
+        if (stringText === '' || stringText === null || stringText === undefined) return false
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       loadAppParameters () {
@@ -421,19 +428,20 @@ export default {
         }
       },
       localSearch () {
-        this.patients = Patient.query()
-                              .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                              .with('province')
-                              .with('attributes')
-                              .with('appointments')
-                              .with('district.*')
-                              .with('postoAdministrativo')
-                              .with('bairro')
-                              .with(['clinic.province', 'clinic.district.province'])
-                              .where((patient) => {
-                                          return this.filterPatient(patient)
-                                        })
-                              .get()
+        const patientList = Patient.query()
+                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                  .with('province')
+                                  .with('attributes')
+                                  .with('appointments')
+                                  .with('district.*')
+                                  .with('postoAdministrativo')
+                                  .with('bairro')
+                                  .with(['clinic.province', 'clinic.district.province'])
+                                  .where('clinic_id', this.clinic.id)
+                                  .get()
+        this.patients = patientList.filter((patient) => {
+          return this.filterPatient(patient)
+        })
       },
       openMRSSerach (his) {
         const openMRSInstance = axios.create({

@@ -1,14 +1,14 @@
 <template>
-  <q-card style="width: 800px; max-width: 90vw;" class="q-pt-lg">
+  <q-card style="width: 800px; max-width: 90vw;" class="">
+        <div class="q-pt-lg bg-green-2">
+            <div class="row items-center q-mb-md q-ml-md">
+                <q-icon name="subject" size="sm"/>
+                <span class="q-pl-sm text-subtitle1">Dados da Guia</span>
+            </div>
+            <q-separator color="grey-13" size="1px"/>
+        </div>
         <form @submit.prevent="submitForm" >
             <q-card-section class="q-px-md">
-                <div class="q-mt-lg">
-                    <div class="row items-center q-mb-md">
-                        <q-icon name="subject" size="sm"/>
-                        <span class="q-pl-sm text-subtitle2">Dados da Guia</span>
-                    </div>
-                    <q-separator color="grey-13" size="1px"/>
-                </div>
                 <div class="q-mt-md">
                     <div class="row">
                       <TextInput
@@ -43,6 +43,12 @@
                 <q-btn type="submit" label="Avançar" color="primary" />
             </q-card-actions>
         </form>
+        <q-dialog v-model="alert.visible" persistent>
+          <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemove">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
     </q-card>
 </template>
 
@@ -51,14 +57,21 @@ import { date, SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
+import { ref } from 'vue'
 export default {
   data () {
     return {
+      alert: ref({
+        type: '',
+        visible: false,
+        msg: ''
+      }),
       stockEntrance: new StockEntrance(),
       dateReceived: ''
     }
   },
   components: {
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     TextInput: require('components/Shared/Input/TextField.vue').default
   },
   methods: {
@@ -72,28 +85,43 @@ export default {
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
     },
+    displayAlert (type, msg) {
+      this.alert.type = type
+      this.alert.msg = msg
+      this.alert.visible = true
+    },
+    closeDialog () {
+      this.alert.visible = false
+    },
     async submitForm () {
       this.stockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
-      this.$refs.orderNumber.$refs.ref.validate()
-      if (!this.$refs.orderNumber.$refs.ref.hasError) {
-        this.stockEntrance.clinic = this.currClinic
-        await StockEntrance.apiSave(this.stockEntrance).then(resp => {
-        SessionStorage.set('currStockEntrance', resp.response.data)
-        this.$router.push('/stock/entrance')
-      }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
+      const dbEntrance = StockEntrance.query().where('orderNumber', this.stockEntrance.orderNumber).first()
+      if (this.stockEntrance.dateReceived > new Date()) {
+        this.displayAlert('error', 'A data de criação da guia não pode ser superior a data corrente.')
+      } else if (dbEntrance !== null) {
+        this.displayAlert('error', 'Já existe registada uma guia com o número indicado.')
+      } else {
+        this.$refs.orderNumber.$refs.ref.validate()
+        if (!this.$refs.orderNumber.$refs.ref.hasError) {
+          this.stockEntrance.clinic = this.currClinic
+          await StockEntrance.apiSave(this.stockEntrance).then(resp => {
+          SessionStorage.set('currStockEntrance', resp.response.data)
+          this.$router.push('/stock/entrance')
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
             }
-          }
-          this.displayAlert('error', listErrors)
-        })
+            this.displayAlert('error', listErrors)
+          })
+        }
       }
     }
   },

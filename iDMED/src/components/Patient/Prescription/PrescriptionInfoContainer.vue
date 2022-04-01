@@ -1,5 +1,5 @@
   <template>
-  <div v-if="lastStartEpisode !== null">
+  <div>
   <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
     <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
@@ -179,7 +179,6 @@ export default {
                                                                    .where('prescription_id', this.prescription.id)
                                                                    .get()
       }
-      console.log(this.prescription.remainigDuration())
       return this.prescription.remainigDuration()
     },
     loadAllPacksOfPrescription () {
@@ -211,6 +210,7 @@ export default {
       }
     },
     lastPackOnPrescription () {
+      if (this.loadAllPacksOfPrescription() === null) return null
       return Pack.query()
                  .with('packagedDrugs.*')
                  .with('patientVisitDetails')
@@ -260,7 +260,7 @@ export default {
     patientVisitDetais: {
       get () {
         if (this.prescription === null) return null
-        return PatientVisitDetails.query().with('packs').with('prescriptions.*').where('id', this.prescription.patientVisitDetails.id).first()
+        return PatientVisitDetails.query().with('pack').with('prescription.*').where('id', this.prescription.patientVisitDetails[0].id).first()
       }
     },
 

@@ -1,7 +1,7 @@
 <template>
   <q-card style="max-width: 100vw;">
         <form @submit.prevent="submitMobilizer" >
-            <q-card-section class="q-pa-none">
+            <q-card-section class="q-pa-none bg-green-2">
               <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
@@ -13,16 +13,19 @@
             <div class="text-center text-h6 q-mt-sm">
               Atenção Farmacêutica
             </div>
-             <div class="text-left text-subtitle1 bold q-ml-md">
-             Data de Registo
-            </div>
-            <div class="text-left text-h7 bold q-ml-sm q-pa-md">
+            <q-scroll-area
+              :thumb-style="thumbStyle"
+              :content-style="contentStyle"
+              :content-active-style="contentActiveStyle"
+              style="height: 500px; width: 1200px"
+              class="q-pr-md"
+            >
+            <div class="text-left text-h7 bold q-ml-sm q-pa-md q-my-lg">
               <q-input
                   dense
                   outlined
                   style="width: 350px"
                   v-model="visitDate"
-                  filled
                   ref="data"
                   :disable="this.editMode"
                   label="Data da Consulta">
@@ -43,7 +46,9 @@
               <q-stepper
                 v-model="step"
                 ref="stepper"
+                header-class="text-bold bg-grey-3"
                 color="primary"
+                active-color="orange-7"
                 animated
                 header-nav
               >
@@ -104,7 +109,8 @@
                 </q-step>
               </q-stepper>
             </div>
-             <q-card-actions align="right" class="q-mb-md">
+            </q-scroll-area>
+             <q-card-actions align="right" class="q-my-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
                  <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
@@ -138,20 +144,37 @@ export default {
     data () {
         return {
           alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
+                type: '',
+                visible: false,
+                msg: ''
           }),
-            patientVisit: new PatientVisit(),
-            vitalSigns: new VitalSignsScreening(),
-            TBScreening: new TBScreening(),
-            pregnancyScreening: new PregnancyScreening(),
-            adherenceScreening: new AdherenceScreening(),
-             rAMScreening: new RAMScreening(),
-            step: ref(1),
-             visitDate: '',
-             imcDescription: '',
-             hasVisitSameDay: false
+          patientVisit: new PatientVisit(),
+          vitalSigns: new VitalSignsScreening(),
+          TBScreening: new TBScreening(),
+          pregnancyScreening: new PregnancyScreening(),
+          adherenceScreening: new AdherenceScreening(),
+          rAMScreening: new RAMScreening(),
+          step: ref(1),
+          visitDate: '',
+          imcDescription: '',
+          hasVisitSameDay: false,
+          contentStyle: {
+        backgroundColor: '#ffffff',
+        color: '#555'
+      },
+
+      contentActiveStyle: {
+        backgroundColor: '#eee',
+        color: 'black'
+      },
+
+      thumbStyle: {
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#0ba58b',
+        width: '5px',
+        opacity: 0.75
+      }
         }
     },
     created () {

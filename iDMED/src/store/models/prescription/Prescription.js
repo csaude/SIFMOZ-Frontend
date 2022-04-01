@@ -21,7 +21,6 @@ export default class Prescription extends Model {
         patientType: this.attr(''),
         patientStatus: this.attr(''),
         doctor_id: this.attr(''),
-        patientVisitDetails_id: this.attr(''),
         clinic_id: this.attr(''),
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
@@ -37,7 +36,9 @@ export default class Prescription extends Model {
       const prescriptionDuration = Number(this.duration.weeks)
       let packagedWeeks = 0
       this.patientVisitDetails.forEach((pvd) => {
-        packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply)
+        if (pvd.pack !== null) {
+          packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply)
+        }
       })
       return Number((prescriptionDuration - packagedWeeks) / 4)
     }

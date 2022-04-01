@@ -1,9 +1,9 @@
 <template>
   <div>
     <ListHeader
-      :addVisible="true"
+      :addVisible="!group.isDesintegrated()"
       :mainContainer="true"
-      @showAdd="$emit('newPacking')"
+      @showAdd="$emit('newPacking', headers[0])"
       bgColor="bg-primary">Dispensas Efectuadas
     </ListHeader>
     <div class="q-mb-md box-border">
@@ -42,7 +42,7 @@
               <q-td key="options" :props="props">
                 <div class="col">
                   <q-btn flat round
-                  :disable="!props.row.isLast"
+                  :disable="!props.row.isLast || group.isDesintegrated()"
                   color="red-8"
                   icon="delete"
                   @click="removePack(props.row)">
@@ -62,6 +62,7 @@ import { ref } from 'vue'
 import moment from 'moment'
 import { date, SessionStorage } from 'quasar'
 import GroupPackHeader from '../../../store/models/group/GroupPackHeader'
+import Group from '../../../store/models/group/Group'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'lastDispenseDate', align: 'left', label: 'Data da Última Dispensa', sortable: false },
@@ -106,6 +107,11 @@ export default {
     headers: {
       get () {
         return this.loadHeaders()
+      }
+    },
+    group: {
+      get () {
+        return Group.find(SessionStorage.getItem('selectedGroup').id)
       }
     }
   },

@@ -57,6 +57,14 @@ export default class Patient extends Model {
     }
   }
 
+  isActiveOnGroupOfService (service) {
+    if (this.members.length <= 0) return false
+    const isActive = this.members.some((member) => {
+      return member.endDate === null && member.group.service.code === service.code
+    })
+    return isActive
+  }
+
   bairroName () {
     if (this.bairro === null) return ''
     return this.bairro.description

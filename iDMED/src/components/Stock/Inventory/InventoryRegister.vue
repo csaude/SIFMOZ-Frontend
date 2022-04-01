@@ -1,29 +1,26 @@
 <template>
-  <q-card style="width: 800px; max-width: 90vw;" class="q-pt-lg">
-        <form @submit.prevent="submitForm" >
-            <q-card-section class="q-px-md">
-                <div class="q-mt-lg text-center">
-                    <div class="row items-center q-mb-md text-center">
-                        <span class="text-subtitle2">Inventário</span>
-                    </div>
-                    <q-separator color="grey-13" size="1px"/>
-                </div>
+  <q-card style="width: 900px; max-width: 90vw;" class="q-pa-none q-ma-none">
+    <div class="row items-center q-py-md q-pl-lg text-center bg-green-2">
+      <q-icon  name="inventory" size="md" />
+        <div class="text-subtitle1 q-ml-sm">Inventário</div>
+    </div>
+    <q-separator color="grey-13" size="1px"/>
+        <form @submit.prevent="submitForm" class="q-pa-none q-ma-none" >
+            <q-card-section class="q-pb-md">
                 <div class="q-mt-md">
                     <div class="row">
                       <q-input
                         dense
                         outlined
-                        class="col q-ml-md"
+                        class="col q-ml-md q-mb-md"
                         v-model="startDate"
-                        mask="date"
                         ref="startDate"
-                        :rules="['date']"
                         lazy-rules
                         label="Data do Inventário *">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="startDate" >
+                                <q-date v-model="startDate" mask="DD-MM-YYYY">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -44,7 +41,7 @@
                   v-if="!currInventory.generic"
                   class="row q-mt-md">
                   <q-table
-                    class="col"
+                    class="col q-ml-md"
                     dense
                     title="Medicamentos"
                     :rows="drugs"
@@ -101,6 +98,7 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { InventoryStockAdjustment } from '../../../store/models/stockadjustment/InventoryStockAdjustment'
 import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
+import moment from 'moment'
 const columns = [
   { name: 'code', required: true, label: 'Código FNM', field: 'fnmCode', align: 'left', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', field: 'name', sortable: true }
@@ -136,6 +134,15 @@ export default {
     },
     submitForm () {
       if (date.isValid(this.currInventory.startDate)) {
+        const inventory = Inventory.query().orderBy('endDate', 'desc').first()
+        console.log(this.currInventory)
+        console.log(inventory)
+        if (new Date(this.currInventory.startDate) > new Date()) {
+          this.displayAlert('error', 'A data de inicio do inventário não pode ser superior a data corrente.')
+        } else
+        if (inventory !== null && (new Date(this.currInventory.startDate) < new Date(inventory.endDate))) {
+          this.displayAlert('error', 'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' + this.getDDMMYYYFromJSDate(inventory.endDate) + ']')
+        } else
         if (this.currInventory.generic) {
           this.initInventory()
         } else {
@@ -196,6 +203,13 @@ export default {
       })
       newAdjustment.adjustedStock.drug = drug
       this.currInventory.adjustments.push(newAdjustment)
+    },
+    getJSDateFromDDMMYYY (dateString) {
+      const dateParts = dateString.split('-')
+      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+    },
+    getDDMMYYYFromJSDate (jsDate) {
+      return moment(jsDate).format('DD-MM-YYYY')
     }
   },
   components: {
@@ -204,10 +218,11 @@ export default {
   computed: {
     startDate: {
       get () {
-        return this.formatDate(this.currInventory.startDate)
+        if (this.currInventory.startDate === null || this.currInventory.startDate === '') return null
+        return this.getDDMMYYYFromJSDate(this.currInventory.startDate)
       },
       set (value) {
-        this.currInventory.startDate = new Date(value)
+        this.currInventory.startDate = this.getJSDateFromDDMMYYY(value)
       }
     },
     drugs () {

@@ -7,8 +7,8 @@ export default class IdentifierType extends Model {
     return {
       id: this.attr(null),
       code: this.attr(''),
-      description: this.attr('')
-
+      description: this.attr(''),
+      pattern: this.attr('')
     }
   }
 
@@ -18,5 +18,9 @@ export default class IdentifierType extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/identifierType/${id}`)
+  }
+
+  static async apiSave (identifierType) {
+    return await this.api().post('/identifierType', identifierType)
   }
 }

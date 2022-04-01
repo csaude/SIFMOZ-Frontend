@@ -90,7 +90,7 @@
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
                 </div>
                 <span v-if="curGroup !== null" >
-                  <span v-for="member in curGroup.members" :key="member.id">
+                  <span v-for="member in selectedGroup.members" :key="member.id">
                   <ListHeader
                     :addVisible="true"
                     :mainContainer="true"
@@ -138,7 +138,7 @@
                               <q-btn flat round
                               color="red-8"
                               icon="delete"
-                              @click="removePatient(props.row)">
+                              @click="removePrescribedDrug(props.row)">
                               <q-tooltip class="bg-red-5">Remover</q-tooltip>
                             </q-btn>
                             </div>
@@ -193,6 +193,7 @@ import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientV
 import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import Prescription from '../../store/models/prescription/Prescription'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -203,7 +204,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['group'],
+  props: ['group', 'defaultPickUpDate'],
   data () {
     return {
       columns,
@@ -217,7 +218,7 @@ export default {
       drugsDuration: '',
       dispenseMode: '',
       curGroupPackHeader: new GroupPackHeader(),
-      selectedGroup: null,
+      selectedGroup: ref(null),
       showAddEditDrug: false,
       selectedVisitDetails: new PatientVisitDetails(),
       hasTherapeuticalRegimen: false
@@ -225,14 +226,41 @@ export default {
   },
   methods: {
     init () {
-      this.loadGroup()
+      // this.loadGroup()
+      console.log(this.defaultPickUpDate)
+      if (this.defaultPickUpDate !== null) {
+        this.pickupDate = this.getDDMMYYYFromJSDate(this.defaultPickUpDate)
+      }
     },
     doFormValidation () {
       this.generatepacks()
     },
     addPrescribedDrug (prescribedDrug, visitDetails) {
       console.log(prescribedDrug)
-      console.log(visitDetails)
+      prescribedDrug.prescription_id = visitDetails.prescription.id
+      this.selectedGroup.members.forEach((member) => {
+        const psdrugExists = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.some((pd) => {
+          return pd.drug.id === prescribedDrug.drug.id
+        })
+        if (psdrugExists) {
+          this.displayAlert('error', 'O medicamento seleccionado não pode ser adicionado, pois já existe na lista a dispensar para o membro [' + member.patient.fullName + ']')
+        } else {
+          if (member.patient.identifiers[0].episodes[0].lastVisit().prescription.id === visitDetails.prescription.id) {
+            member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.push(prescribedDrug)
+          }
+        }
+      })
+      this.showAddEditDrug = false
+    },
+    removePrescribedDrug (prescribedDrug) {
+      this.selectedGroup.members.forEach((member) => {
+        if (member.patient.identifiers[0].episodes[0].lastVisit().prescription.id === prescribedDrug.prescription_id) {
+          const newPrescribedDrugs = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.filter((prescDr) => {
+            return prescDr.drug.id !== prescribedDrug.drug.id
+          })
+          member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs = newPrescribedDrugs
+        }
+      })
     },
     openAddPrescribedDrugForm (patient) {
       patient.identifiers[0].service = ClinicalService.query()
@@ -242,34 +270,13 @@ export default {
                                                       .with('attributes.clinicalServiceAttributeType')
                                                       .where('id', patient.identifiers[0].service.id)
                                                       .first()
-      const pvd = new PatientVisitDetails({
-                          patientVisit: new PatientVisit({
-                                          visitDate: new Date(),
-                                          patient: Patient.query()
-                                                          .with('province')
-                                                          .with('district.province')
-                                                          .with('clinic.province')
-                                                          .where('id', patient.id)
-                                                          .first(),
-                                          clinic: this.clinic
-                                        }),
-                          clinic: this.clinic,
-                          prescription: Prescription.query()
-                                                    .with('prescriptionDetails.therapeuticRegimen')
-                                                    .with('duration')
-                                                    .with('prescribedDrugs')
-                                                    .with('patientVisitDetails.*')
-                                                    .where('id', patient.identifiers[0].episodes[0].lastVisit().prescription.id)
-                                                    .first(),
-                          episode: Episode.query()
-                                          .with('startStopReason')
-                                          .with('episodeType')
-                                          .with('clinicSector')
-                                          .with('patientServiceIdentifier')
-                                          .where('id', patient.identifiers[0].episodes[0].id)
-                                          .first()
-                        })
-      this.selectedVisitDetails = pvd
+      patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDetails[0] = PrescriptionDetail.query()
+                                                                                                          .withAll()
+                                                                                                          .where('prescription_id', patient.identifiers[0].episodes[0].lastVisit().prescription.id)
+                                                                                                          .first()
+      this.selectedVisitDetails = patient.identifiers[0].episodes[0].lastVisit()
+      this.selectedVisitDetails.episode = patient.identifiers[0].episodes[0]
+      this.selectedVisitDetails.episode.patientServiceIdentifier = patient.identifiers[0]
       this.selectedVisitDetails.episode.patientServiceIdentifier.service = patient.identifiers[0].service
       this.hasTherapeuticalRegimen = patient.identifiers[0].hasTherapeuticalRegimen()
       this.showAddEditDrug = true
@@ -307,23 +314,29 @@ export default {
     },
     savePatientVisitDetails (groupPacks, i) {
       if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
-        const patientVisit = groupPacks[i].pack.patientVisitDetails[0].patientVisit
+        console.log(groupPacks[i])
+        const patientVisit = Object.assign({}, groupPacks[i].pack.patientVisitDetails[0].patientVisit)
         patientVisit.patientVisitDetails.push(groupPacks[i].pack.patientVisitDetails[0])
         patientVisit.patientVisitDetails[0].patientVisit = null
         groupPacks[i].pack.patientVisitDetails = []
         Pack.apiSave(groupPacks[i].pack).then(resp => {
           groupPacks[i].pack.id = resp.response.data.id
+          groupPacks[i].pack.$id = resp.response.data.id
           patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack
           patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
 
           console.log(patientVisit)
           PatientVisit.apiSave(patientVisit).then(resp => {
-            groupPacks[i].pack.patientVisitDetails = []
+            // groupPacks[i].pack.patientVisitDetails = []
             i = i + 1
             setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
           })
         })
       } else {
+        this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
+          groupPack.pack.patientVisitDetails = []
+        })
+        console.log(this.curGroupPackHeader)
         GroupPackHeader.apiSave(this.curGroupPackHeader).then(resp => {
           this.curGroupPackHeader.id = resp.response.data.id
           Group.apiFetchById(this.curGroupPackHeader.group.id)
@@ -443,6 +456,7 @@ export default {
                         .with('groupType')
                         .where('id', this.group.id)
                         .first()
+      group.members = group.members.filter((member) => { return member.isActive() })
       group.members.forEach((member) => {
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')
@@ -505,7 +519,6 @@ export default {
       this.alert.visible = false
       if (this.alert.type === 'info') {
         this.$emit('close')
-        SessionStorage.set('selectedGroup', this.curGroup)
         this.$router.push('/group/panel')
       }
     },
@@ -518,14 +531,12 @@ export default {
     }
   },
   computed: {
-    curGroup: {
-      get () {
-        if (this.selectedGroup !== null) {
+    curGroup () {
+      if (this.selectedGroup !== null) {
           return this.selectedGroup
         } else {
           return this.loadGroup()
         }
-      }
     },
     durations: {
       get () {
@@ -540,6 +551,9 @@ export default {
     clinic () {
       return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
     }
+  },
+  mounted () {
+    this.init()
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,
