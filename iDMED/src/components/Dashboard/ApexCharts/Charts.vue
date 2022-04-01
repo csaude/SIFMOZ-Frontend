@@ -32,6 +32,9 @@
     <div class="col-md-6 col-sm-12 col-xs-12">
               <PieGenderChart :serviceCode=serviceCode > </PieGenderChart>
     </div>
+     <div class="col-md-6 col-sm-12 col-xs-12">
+            <StockReport :isCharts= true :dataLoaded=dataLoaded :serviceCode=serviceCode > </StockReport>
+      </div>
         <DispenseTypeByAgeTable :serviceCode=serviceCode :dataLoaded=dataLoaded > </DispenseTypeByAgeTable>
           </div>
              </div>
@@ -64,7 +67,8 @@ export default {
           PieGenderChart: require('components/Dashboard/ApexCharts/PieGenderChart.vue').default,
              LineBySex: require('components/Dashboard/ApexCharts/LineChartSex.vue').default,
          //      HeatMapDispenseTypeAge: require('components/Dashboard/ApexCharts/HeatMap.vue').default,
-                 DispenseTypeByAgeTable: require('components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue').default
+                 DispenseTypeByAgeTable: require('components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue').default,
+                   StockReport: require('components/Dashboard/ApexCharts/StockReport.vue').default
     },
     methods: {
  loadData () {
@@ -161,7 +165,7 @@ export default {
       }
     },
     mounted () {
-       this.loadData()
+     //  this.loadData()
        this.getClinicalServicesOptions()
     },
      created () {

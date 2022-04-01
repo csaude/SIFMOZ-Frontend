@@ -26,7 +26,7 @@ export default class Prescription extends Model {
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
         doctor: this.belongsTo(Doctor, 'doctor_id'),
-        patientVisitDetails: this.hasMany(PatientVisitDetails, 'patientVisitDetails_id'),
+        patientVisitDetails: this.hasMany(PatientVisitDetails, 'prescription_id'),
         prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id'),
         duration: this.belongsTo(Duration, 'duration_id'),
         prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id')
@@ -72,5 +72,9 @@ export default class Prescription extends Model {
 
     static async apiFetchByPatientVisitDetailsId (pvdsId, offset, max) {
       return await this.api().get('/prescription/visits/' + pvdsId + '?offset=' + offset + '&max=' + max)
+    }
+
+    static async apiGetByClinicId (clinicId) {
+      return await this.api().get('/prescription/clinic/' + clinicId)
     }
 }
