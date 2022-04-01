@@ -101,8 +101,7 @@ export default {
       columns,
       headerClass: '',
       title: '',
-      filter,
-      columns
+      filter
     }
   },
   methods: {
@@ -118,27 +117,6 @@ export default {
          this.headerClass = 'col'
        this.title = ''
       }
-    },
-    getDrugsByServiceCode () {
-        if (this.isCharts && this.dataLoaded && this.serviceCode != null) {
-        const drugsToShow = new Set()
-           const packagedDrugs = PackagedDrug.query()
-                  .with('drug.stocks')
-                 .with('pack.patientVisitDetails.episode.patientServiceIdentifier.service')
-                 .orderBy('name')
-                 .get()
-                  console.log(packagedDrugs)
-             const packagedDrugss = packagedDrugs.filter((packagedDrug) => {
-               console.log(moment(packagedDrug.pack.pickupDate).isAfter(date.subtractFromDate(new Date(), { months: 3 })))
-                    return moment(packagedDrug.pack.pickupDate).isAfter(date.subtractFromDate(new Date(), { months: 3 })) && packagedDrug.pack.patientVisitDetails[0].episode.patientServiceIdentifier.service.code === this.serviceCode
-             })
-               console.log(packagedDrugss)
-              packagedDrugs.forEach((packagedDrug) => {
-                     drugsToShow.add(packagedDrug.drug)
-              })
-              console.log(...drugsToShow.keys())
-           return [...drugsToShow.keys()]
-      }
     }
   },
   computed: {
@@ -150,7 +128,7 @@ export default {
       if (this.isCharts && this.dataLoaded && this.serviceCode != null) {
         const drugsToShow = new Set()
            const packagedDrugs = PackagedDrug.query()
-                  .with('drug.stocks')
+                    .with('drug.stocks')
                   .with('drug.packaged_drugs')
                  .with('pack.patientVisitDetails.episode.patientServiceIdentifier.service')
                  .orderBy('name')
@@ -164,6 +142,7 @@ export default {
               packagedDrugss.forEach((packagedDrug) => {
                      drugsToShow.add(packagedDrug.drug)
               })
+              console.log(...drugsToShow.keys())
            return [...drugsToShow.keys()]
       } else {
       return Drug.query()

@@ -14,7 +14,7 @@ import Patient from '../../store/models/patient/Patient'
 import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Clinic from '../../store/models/clinic/Clinic'
-// import Pack from 'src/store/models/packaging/Pack'
+ import Pack from 'src/store/models/packaging/Pack'
 export default {
    data () {
      return {
@@ -125,10 +125,12 @@ export default {
          PatientVisit.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
             console.log(resp)
              PatientServiceIdentifier.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
+              Pack.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
                console.log(resp)
                this.dataLoaded = true
-         //   this.$q.loading.hide()
+            this.$q.loading.hide()
            })
+             })
      })
      })
      })
