@@ -17,7 +17,7 @@
       <div class="q-mt-md">
         <q-tab-panels v-model="tab" animated>
             <q-tab-panel name="stock">
-              <StockTable />
+              <StockTable :isCharts= false />
             </q-tab-panel>
             <q-tab-panel name="entrance">
                 <EntranceTable />

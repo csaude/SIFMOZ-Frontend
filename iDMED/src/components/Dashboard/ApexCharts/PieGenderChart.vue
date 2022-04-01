@@ -34,7 +34,7 @@ export default {
           speed: 2000
         },
       title: {
-          text: 'Activos Percentual Por Genero',
+          text: 'Percentual de Pacientes Activos ao Tratamento Por Idade',
           align: 'center',
           style: {
             color: '#000000'

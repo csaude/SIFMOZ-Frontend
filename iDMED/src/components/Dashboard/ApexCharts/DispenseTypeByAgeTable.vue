@@ -1,5 +1,5 @@
 <template>
-     <div  class="row" style="width: 1200px; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)">
+     <div  class="row" style="width: 100%; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)">
       <div class="col">
         <q-table
          style="max-width: 100%; "

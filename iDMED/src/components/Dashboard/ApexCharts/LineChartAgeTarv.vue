@@ -34,8 +34,8 @@ export default {
         },
         colors: ['#13a6c1', '#F44336'],
          title: {
-          text: 'Adultos vs Criancas',
-          align: 'center',
+          text: 'Gráfico de Pacientes Activos ao Tratamento Por Idade',
+          align: 'left',
           style: {
             color: '#000000'
           }

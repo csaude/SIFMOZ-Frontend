@@ -17,7 +17,6 @@
 
 <script>
  import VueApexCharts from 'vue3-apexcharts'
-import { QSpinnerBall } from 'quasar'
  import moment from 'moment'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
  // import { QSpinnerBall } from 'quasar'
@@ -70,7 +69,7 @@ export default {
           speed: 1000
         },
          title: {
-          text: 'Tipo de Dispensa',
+          text: 'Gráfico Estatistico de Tipos de Dispensa por Mes',
           align: 'center',
           style: {
             color: '#000000'
@@ -396,7 +395,7 @@ export default {
         data: [...arrConfirmed]
       }
     ]
-    this.chartOptionsWeekly.title.text = 'Tipo de Dispensa Detalhado por Mes - ' + monthsX[month]
+    this.chartOptionsWeekly.title.text = 'Gráfico Estatistico de Tipos de Dispensa Detalhado Semanalmente do Mes de - ' + monthsX[month]
           },
   dataPointSelectionHandler (e, chartContext, config) {
     console.log(chartContext, config)
@@ -437,12 +436,6 @@ export default {
       }
   },
     created () {
-      this.$q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall,
-       delay: 600000 // ms
-    })
     // this.loadData()
     },
      mounted () {

@@ -5,7 +5,7 @@
 </template>
 
 <script>
- import { QSpinnerBall } from 'quasar'
+ import { SessionStorage, QSpinnerBall } from 'quasar'
   import { ref } from 'vue'
  import Episode from '../../store/models/episode/Episode'
 import Prescription from '../../store/models/prescription/Prescription'
@@ -13,6 +13,8 @@ import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientV
 import Patient from '../../store/models/patient/Patient'
 import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import Clinic from '../../store/models/clinic/Clinic'
+ import Pack from 'src/store/models/packaging/Pack'
 export default {
    data () {
      return {
@@ -31,16 +33,16 @@ export default {
     },
     methods: {
  loadData () {
-   //  const offset = 0
-    //  const max = 0
-     // const clinicId = 'ff8081817c668dcc017c66dc3d330002'
-   //  this.doPrescriptionGet(clinicId, offset, max)
-     // this.doEpisodeGet(clinicId, offset, max)
-   //    this.doPatientVisitDetailsGet(clinicId, offset, max)
-    //     this.doPatientGet(clinicId, offset, max) doIdentifiersGet
- //         this.doPatientVisitGet(clinicId, offset, max)
-     //      this.doIdentifiersGet(clinicId, offset, max)
-          //  doPatientVisitGet(clinicId, offset, max)
+     const offset = 0
+      const max = 0
+      const clinicId = 'ff8081817c668dcc017c66dc3d330002'
+    this.doPrescriptionGet(clinicId, offset, max)
+    //  this.doEpisodeGet(clinicId, offset, max)
+       this.doPatientVisitDetailsGet(clinicId, offset, max)
+         this.doPatientGet(clinicId, offset, max)
+          this.doPatientVisitGet(clinicId, offset, max)
+          this.doIdentifiersGet(clinicId, offset, max)
+           // doPatientVisitGet(clinicId, offset, max)
   },
     doPrescriptionGet (clinicId, offset, max) {
         Prescription.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -105,12 +107,14 @@ export default {
       }
     },
     computed: {
-      getCodeService () {
-        return this.serviceCode
+       clinic: {
+        get () {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
       }
     },
     mounted () {
-      Episode.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002').then(resp => {
+       Episode.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002').then(resp => {
        console.log(resp)
      //  console.log(this.patientMensTarv)
      Prescription.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
@@ -121,10 +125,12 @@ export default {
          PatientVisit.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
             console.log(resp)
              PatientServiceIdentifier.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
+              Pack.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002', 0, 100).then(resp => {
                console.log(resp)
                this.dataLoaded = true
-         //   this.$q.loading.hide()
+            this.$q.loading.hide()
            })
+             })
      })
      })
      })
