@@ -14,9 +14,10 @@
         </q-item-section>
 
         <q-item-section top side>
-            <div class="text-grey-8 q-gutter-xs">
-            <q-btn class="gt-xs" size="12px" flat dense round  >Excel</q-btn> |
-            <q-btn class="gt-xs" size="12px" flat dense round >Pdf</q-btn>
+            <div class="row text-grey-8 q-gutter-xs">
+            <q-btn class="gt-xs" flat dense rounded  >Excel</q-btn>
+            <q-separator vertical />
+            <q-btn class="gt-xs" flat dense rounded >Pdf</q-btn>
 
             </div>
         </q-item-section>

@@ -77,7 +77,7 @@ export default {
     return {
       tab: ref('list'),
       model: ref(null),
-      activeTab: ref('ActivesInDrugStore'),
+      activeTab: ref(''),
       selectedService: null
     }
   },

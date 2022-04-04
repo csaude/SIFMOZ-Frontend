@@ -469,7 +469,7 @@ console.log(this.isEditPackStep)
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
                                     .orderBy('creationDate', 'desc')
                                     .first()
-            if (!episode.closed()) {
+            if (episode !== null && !episode.closed()) {
               this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
               this.initPatientVisitDetails(episode)
             }
