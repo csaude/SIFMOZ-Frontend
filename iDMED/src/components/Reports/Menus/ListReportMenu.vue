@@ -4,7 +4,6 @@
       class="q-ma-sm"
       dense outlined filled
       ref="clinicalService"
-      :disable="isCloseStep || isReOpenStep"
       v-model="selectedService"
       :options="clinicalServices"
       option-value="id"

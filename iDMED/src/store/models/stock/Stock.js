@@ -56,7 +56,7 @@ export default class Stock extends Model {
     }
 
     isInUse () {
-      return this.packagedDrugs.length > 0 || this.adjustments.length > 0
+      return (this.packagedDrugs !== undefined && this.packagedDrugs.length > 0) || this.adjustments.length > 0
     }
 
     getFormatedExpireDate () {
