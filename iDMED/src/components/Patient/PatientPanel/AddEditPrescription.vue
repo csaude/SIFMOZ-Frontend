@@ -232,11 +232,6 @@
           </div>
         </div>
       </q-card-section>
-      <q-dialog persistent v-model="showDispenseMode">
-        <DispenseMode
-          @proccedToDispense="proccedToDispense"
-          @close="showDispenseMode = false" />
-      </q-dialog>
       <q-dialog persistent v-model="alert.visible">
         <Dialog :type="alert.type" @closeDialog="closeDialog">
           <template v-slot:title> Informação</template>
@@ -531,7 +526,7 @@ console.log(this.isEditPackStep)
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
       console.log(nextPDate)
       if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.pack !== null) {
-        if (pickupDate !== undefined) this.curPatientVisitDetail.pack.packDate = this.getJSDateFromDDMMYYY(pickupDate)
+        if (pickupDate !== null && pickupDate !== undefined) this.curPatientVisitDetail.pack.packDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (pickupDate !== undefined) this.curPatientVisitDetail.pack.pickupDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (nextPDate !== undefined) this.curPatientVisitDetail.pack.nextPickUpDate = this.getJSDateFromDDMMYYY(nextPDate)
         if (duration !== undefined) this.curPatientVisitDetail.pack.weeksSupply = duration.weeks
@@ -573,7 +568,8 @@ console.log(this.isEditPackStep)
       let error = ''
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
-        if (!visitDetails.createPackLater) {
+        if (!visitDetails.createPackLater && visitDetails.prescription.prescribedDrugs.length > 0) {
+          console.log(visitDetails)
           if (Number(visitDetails.pack.weeksSupply) <= 0) {
             hasError = true
             error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
@@ -681,11 +677,11 @@ console.log(this.isEditPackStep)
           } else {
             visitDetails.pack = null
           }
-          if (this.isFirstPack && this.curPatientVisitDetails[0].prescription.id !== null) {
+          if (this.isFirstPack && visitDetails.prescription.id !== null) {
             visitDetails.clinic = this.currClinic
             // visitDetails.prescription = null
           }
-          this.patientVisit.visitDate = this.curPatientVisitDetails[0].pack.pickupDate
+          this.patientVisit.visitDate = visitDetails.pack.pickupDate
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
       }.bind(this))
@@ -798,8 +794,13 @@ console.log(this.isEditPackStep)
     getJSDateFromDDMMYYY (dateString) {
       console.log(dateString)
       if (dateString === null || dateString === undefined) return null
+      console.log(dateString)
+      if (typeof dateString === 'string' || dateString instanceof String) {
       const dateParts = dateString.split('-')
       return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+      } else {
+        return dateString
+      }
     },
     getDDMMYYYFromJSDate (jsDate) {
       return moment(jsDate).format('DD-MM-YYYY')
@@ -991,8 +992,7 @@ console.log(this.isEditPackStep)
   components: {
     ServiceDrugsManagement: require('components/Patient/PatientPanel/ServiceDrugsManagement.vue').default,
     ListHeader: require('components/Shared/ListHeader.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-    DispenseMode: require('components/Patient/Prescription/DispenseMode.vue').default
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default
   }
 }
 </script>
