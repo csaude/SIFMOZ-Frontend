@@ -49,10 +49,14 @@
                   Nenhum relatório foi seleccionado.
                 </q-banner>
               </div> -->
-              <component
-              :is="activeTab"
-              :selectedService="selectedService"
+        <template v-for="comp in components"
+         :key="comp.id"
+         >
+          <component
+              :is="comp.name"
+              :selectedService="comp.typeService"
               />
+        </template>
           </div>
         </div>
       </q-tab-panel>
@@ -71,6 +75,7 @@
 
 <script>
 import { ref } from 'vue'
+import { uuid } from 'uuid'
 export default {
 
   setup () {
@@ -79,6 +84,11 @@ export default {
       model: ref(null),
       activeTab: ref(''),
       selectedService: null
+    }
+  },
+  data () {
+    return {
+      components: []
     }
   },
   components: {
@@ -93,9 +103,9 @@ export default {
     },
     methods: {
       changeTab (tabName, selectedService) {
-        this.selectedService = selectedService
-        this.activeTab = tabName
-      }
+        const comp = { id: uuid, name: tabName, typeService: selectedService }
+        this.components.push(comp)
+        }
     }
 }
 </script>
