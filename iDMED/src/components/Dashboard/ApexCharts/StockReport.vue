@@ -1,6 +1,6 @@
 <template>
   <div>
-      <div class="q-mt-md">
+      <div style="width: 1000px">
               <StockTable :isCharts="isCharts" :dataLoaded=dataLoaded :serviceCode=serviceCode />
       </div>
   </div>

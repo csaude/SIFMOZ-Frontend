@@ -285,6 +285,7 @@ export default {
       return DispenseType.find(id)
   },
        getLastPatientTarvPrescription () {
+         this.latestPrescriptions = []
           const patientVisitDetails = PatientVisitDetails.query()
                             .with('patientVisit')
                              .with('prescription')
@@ -402,7 +403,7 @@ export default {
       //   const quarterChartEl = document.querySelector('#chart-quarter')
         //          const yearChartEl = document.querySelector('#year-quarter')
        //  const initialDataPointIndex = -1
-        if (config.dataPointIndex > 0) {
+        if (config.dataPointIndex >= 0) {
           const dataPointIndex = config.dataPointIndex
                 if (initialDataPointIndex === config.dataPointIndex) {
                    this.isTARV = false
@@ -421,17 +422,17 @@ export default {
   computed: {
          monthlyDispensePrescriptions () {
         return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        quarterlyDispensePrescriptions () {
           return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        semestralDispensePrescriptions () {
          return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       }
   },
@@ -445,6 +446,9 @@ export default {
      watch: {
    serviceCode: function (newVal, oldVal) {
           console.log('Prop changed: ', newVal, ' | was: ', oldVal)
+      this.weeksMonthsMontly = []
+       this.weeksMonthsQuarterly = []
+        this.weeksMonthsSemestraly = []
             this.getLastPatientTarvPrescription()
       console.log(this.allDispensePrescriptions)
    //    console.log(this.quarterlyDispensePrescriptions)
