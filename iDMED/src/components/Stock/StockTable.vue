@@ -7,6 +7,7 @@
             :columns="columns"
             :filter="filter"
             row-key="id"
+            :style=getStyleIfCharts()
              :title=title
             >
             <template v-slot:top-right>
@@ -33,7 +34,7 @@
             </template>
             <template #header="props">
                   <q-tr class="text-left bg-grey-3"  :props="props">
-                    <q-th style="width: 70px"  >{{columns[0].label}}</q-th>
+                    <q-th style="width: 70px"  v-if=!isCharts>{{columns[0].label}}</q-th>
                     <q-th class="col" >{{columns[1].label}}</q-th>
                     <q-th class="text-center" style="width: 190px" >{{columns[2].label}}</q-th>
                     <q-th class="text-center" style="width: 190px" >{{columns[3].label}}</q-th>
@@ -43,7 +44,7 @@
             </template>
             <template #body="props">
               <q-tr :props="props">
-                <q-td key="order" :props="props">
+                <q-td key="order" :props="props" v-if=!isCharts>
                 </q-td>
                 <q-td key="drug" :props="props">
                   {{props.row.name}}
@@ -59,7 +60,7 @@
                     {{props.row.getConsuptionState()}}
                   </q-chip>
                 </q-td>
-                <q-td key="options" :props="props">
+                <q-td key="options" :props="props" v-if=!isCharts>
                   <div class="col">
                     <q-btn flat round
                     color="primary"
@@ -116,6 +117,13 @@ export default {
       } else {
          this.headerClass = 'col'
        this.title = ''
+      }
+    },
+    getStyleIfCharts () {
+         if (this.isCharts) {
+      return 'width: 1000px'
+      } else {
+         return ''
       }
     }
   },
