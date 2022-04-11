@@ -26,15 +26,15 @@ export default {
   data: function () {
     return {
        chartOptions: {
-        labels: ['Homem', 'Mulher'],
-        colors: ['#F44336', '#13c185', '#13a6c1'],
+        labels: ['Masculino', 'Feminino'],
+        colors: ['#0096FF', '#FF1493'],
           animations: {
           enabled: true,
           easing: 'easeinout',
           speed: 2000
         },
       title: {
-          text: 'Percentual de Pacientes Activos ao Tratamento Por Idade',
+          text: 'Percentual de Pacientes Activos ao Tratamento Por Genero',
           align: 'center',
           style: {
             color: '#000000'

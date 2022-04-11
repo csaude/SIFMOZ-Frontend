@@ -32,7 +32,7 @@
     <div class="col-md-6 col-sm-12 col-xs-12">
               <PieGenderChart :serviceCode=serviceCode > </PieGenderChart>
     </div>
-     <div class="col-md-6 col-sm-12 col-xs-12">
+     <div class="col-md-6 col-sm-12 col-xs-12" >
             <StockReport :isCharts= true :dataLoaded=dataLoaded :serviceCode=serviceCode > </StockReport>
       </div>
         <DispenseTypeByAgeTable :serviceCode=serviceCode :dataLoaded=dataLoaded > </DispenseTypeByAgeTable>
@@ -109,15 +109,19 @@ export default {
               if (item.code === 'TARV') {
                   item.colour = 'green'
                   item.icon = 'medication'
+                  this.clinicalServiceReports.splice(0, 0, item)
               } else if (item.code === 'TPT') {
                   item.colour = 'red'
                    item.icon = 'vaccines'
+                      this.clinicalServiceReports.splice(1, 0, item)
               } else if (item.code === 'PREP') {
                   item.colour = 'teal'
                    item.icon = 'health_and_safety'
+                     this.clinicalServiceReports.splice(2, 0, item)
               } else {
                  item.icon = 'health_and_safety'
                 const exists = localStorage.getItem(item.code)
+                 this.clinicalServiceReports.splice(3, 0, item)
                 if (exists === null) {
                const randomColor = require('randomcolor') // import the script
                    const color = randomColor() // a hex code for an attractive color
@@ -128,7 +132,7 @@ export default {
                    item.style = exists
                 }
               }
-              this.clinicalServiceReports.push(item)
+            //  this.clinicalServiceReports.push(item)
             }
         }
       },

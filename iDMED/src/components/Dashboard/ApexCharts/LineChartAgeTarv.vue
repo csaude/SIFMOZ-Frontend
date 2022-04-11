@@ -1,5 +1,5 @@
 <template>
-<div style="width: 1200px; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)">
+<div style="width: 1400px; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)">
   <apexchart
     style="max-width: 50%; "
       height="500"
@@ -32,9 +32,10 @@ export default {
         chart: {
           id: 'vue-chart-line'
         },
-        colors: ['#13a6c1', '#F44336'],
+        colors: ['#6a0dad', '#AAFF00'],
          title: {
-          text: 'Gráfico de Pacientes Activos ao Tratamento Por Idade',
+          text: 'Gráfico de Pacientes que iniciaram o Tratamento Por Mes e Idade',
+          size: 10,
           align: 'left',
           style: {
             color: '#000000'

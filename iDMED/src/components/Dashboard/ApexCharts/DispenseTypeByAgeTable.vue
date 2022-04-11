@@ -181,62 +181,86 @@ export default {
   computed: {
        monthlyAdultsDispensePrescriptions () {
         return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) > 15
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' &&
+                   this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) > 15 &&
+                   latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        quarterlyAdultsDispensePrescriptions () {
           return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) > 15
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' &&
+                    this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) > 15 &&
+                      latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        semestralAdultsDispensePrescriptions () {
          return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) > 15
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' &&
+                   this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) > 15 &&
+                   latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
       monthlyKidsDispensePrescriptions () {
         return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' &&
+                   this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15 &&
+                     latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        quarterlyKidsDispensePrescriptions () {
           return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' &&
+                   this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15 &&
+                     latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        semestralKidsDispensePrescriptions () {
          return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' &&
+                   this.idadeCalculator(latestVisitDetails.patientVisit.patient.dateOfBirth) < 15 &&
+                    latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        monthlyMaleDispensePrescriptions () {
         return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && latestVisitDetails.patientVisit.patient.gender === 'Masculino'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' &&
+                    latestVisitDetails.patientVisit.patient.gender === 'Masculino' &&
+                     latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        quarterlyMaleDispensePrescriptions () {
           return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && latestVisitDetails.patientVisit.patient.gender === 'Masculino'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' &&
+                    latestVisitDetails.patientVisit.patient.gender === 'Masculino' &&
+                     latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        semestralMaleDispensePrescriptions () {
          return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && latestVisitDetails.patientVisit.patient.gender === 'Masculino'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' &&
+                    latestVisitDetails.patientVisit.patient.gender === 'Masculino' &&
+                     latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
         monthlyFemaleDispensePrescriptions () {
         return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' && latestVisitDetails.patientVisit.patient.gender === 'Feminino'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM' &&
+                    latestVisitDetails.patientVisit.patient.gender === 'Feminino' &&
+                    latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        quarterlyFemaleDispensePrescriptions () {
           return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' && latestVisitDetails.patientVisit.patient.gender === 'Feminino'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT' &&
+                    latestVisitDetails.patientVisit.patient.gender === 'Feminino' &&
+                    latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       },
        semestralFemaleDispensePrescriptions () {
          return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' && latestVisitDetails.patientVisit.patient.gender === 'Feminino'
+                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS' &&
+                    latestVisitDetails.patientVisit.patient.gender === 'Feminino' &&
+                    latestVisitDetails.episode.patientServiceIdentifier.service.code === this.serviceCode
                 })
       }
   },
