@@ -26,8 +26,8 @@
             <div class="q-pa-sm no-margin no-padding full-height" style="max-width: 1000px">
                 <q-list bordered separator>
                   <q-item
-                   v-for="item in menu.menuItem"
-                   :key="item.id"
+                   v-for="(item, index) in menu.menuItem"
+                   :key="index"
                    clickable v-ripple :active="true"
                    class="bg-orange-1 q-ma-sm text-black"
                    @click="changeTab(item.tabName)" >
@@ -59,55 +59,55 @@ export default {
                 description: 'Pacientes',
                 id: 1,
                 menuItem: [
-                           { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore', id: '1' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo', id: '2' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom', id: '3' },
+                           { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore' },
+                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
+                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList', id: '4' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList', id: '5' }
+                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
                 {
                 description: 'Gestão de Farmácia',
                 id: 2,
                 menuItem: [
-                           { description: 'Submenu 12', tabName: 'ActivesInDrugStore', id: '6' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo', id: '7' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom', id: '8' },
+                           { description: 'Submenu 12', tabName: 'ActivesInDrugStore' },
+                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
+                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList', id: '9' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList', id: '10' }
+                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
                 {
                 description: 'Referências',
                 id: 3,
                 menuItem: [
-                           { description: ' Exemplo 1', tabName: 'ActivesInDrugStore', id: '11' },
-                           { description: 'Exemplo 2', tabName: 'TransferedTo', id: '12' },
-                           { description: 'Exemplo 3', tabName: 'TransferedFrom', id: '13' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList', id: '14' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList', id: '15' }
+                           { description: ' Exemplo 1', tabName: 'ActivesInDrugStore' },
+                           { description: 'Exemplo 2', tabName: 'TransferedTo' },
+                           { description: 'Exemplo 3', tabName: 'TransferedFrom' },
+                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
+                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
                {
                 description: 'Stock',
                 id: 4,
                 menuItem: [
-                           { description: 'Submenu 1', tabName: 'ActivesInDrugStore', id: '16' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo', id: '17' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom', id: '18' },
+                           { description: 'Submenu 1', tabName: 'ActivesInDrugStore' },
+                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
+                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList', id: '19' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList', id: '20' }
+                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
                 {
                 description: 'Monitoria e Avaliação',
                 id: 5,
                 menuItem: [
-                           { description: 'Submenu 2', tabName: 'ActivesInDrugStore', id: '21' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo', id: '22' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom', id: '23' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList', id: '24' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList', id: '25' }
+                           { description: 'Submenu 2', tabName: 'ActivesInDrugStore' },
+                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
+                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
+                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
+                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 }
 
