@@ -62,7 +62,7 @@ export default {
                            { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore' },
                            { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList', id: '4' },
+                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
                            { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
@@ -73,7 +73,7 @@ export default {
                            { description: 'Submenu 12', tabName: 'ActivesInDrugStore' },
                            { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList', id: '9' },
+                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
                            { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
@@ -95,7 +95,7 @@ export default {
                            { description: 'Submenu 1', tabName: 'ActivesInDrugStore' },
                            { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList', id: '19' },
+                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
                            { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
