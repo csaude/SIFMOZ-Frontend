@@ -6,7 +6,7 @@
           :rows="dispensesByTypeAgeAndGender"
           :columns="columns"
            class="my-sticky-header-table"
-            title="Tabela Tipo de dispensa por Idade"
+            title="Total de dispensa por Idade no Serviço"
            hide-bottom>
         <template v-slot:body="props">
             <q-tr :props="props">
@@ -29,7 +29,7 @@
          style="max-width: 100%; "
           :rows="dispensesByTypeAgeAndGender"
           :columns="columnsGender"
-            title="Tabela Tipo de dispensa por Genero"
+            title="Total de dispensa por Gênero no Serviço"
             bordered
            hide-bottom>
         <template v-slot:body="props">

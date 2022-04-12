@@ -31,10 +31,11 @@ const latestPrescriptions = []
  let initialDataPointIndex = -1
 export default {
       props: ['serviceCode', 'dataLoaded'],
+      emits: ['update:serviceCode'],
       mapDispenseMonthly: new Map(),
       mapDispenseQuarterly: new Map(),
       mapDispenseSemestraly: new Map(),
-       arrDispenseMonthlyWeekly: new Map(),
+      arrDispenseMonthlyWeekly: new Map(),
       arrDispenseQuarterlyWeekly: new Map(),
       arrDispenseSemestralyWeekly: new Map(),
        monthsX,
@@ -69,7 +70,7 @@ export default {
           speed: 1000
         },
          title: {
-          text: 'Gráfico Estatistico de Tipos de Dispensa por Mes',
+          text: 'Total de pacientes registados no Serviço ' + this.serviceCode,
           align: 'center',
           style: {
             color: '#000000'

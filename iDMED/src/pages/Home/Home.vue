@@ -133,6 +133,13 @@ import StockOperationType from '../../store/models/stockoperation/StockOperation
 import ReferedStockMoviment from '../../store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
 export default {
+  data () {
+    return {
+      clinic: {
+        id: 'ff8081817c668dcc017c66dc3d330002'
+      }
+    }
+  },
     components: {
     },
     methods: {
@@ -252,11 +259,11 @@ export default {
           return new Clinic(SessionStorage.getItem('currClinic'))
         }
       } */
-      clinic: {
-        get () {
-          return new Clinic(SessionStorage.getItem('currClinic'))
-        }
-      }
+      // clinic: {
+      //   get () {
+      //     return new Clinic(SessionStorage.getItem('currClinic'))
+      //   }
+      // }
       /*
       clinic () {
         return new Clinic(SessionStorage.getItem('currClinic'))
