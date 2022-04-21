@@ -9,16 +9,40 @@
   </ListHeader>
   <div class="param-container">
     <q-item>
-        <q-item-section >
-        Activos na farmacia
+        <q-item-section  class="col-10" >
+            <FiltersInput
+              :id="id"
+              :typeService="selectedService"
+              class="q-mg-xs"
+            />
         </q-item-section>
 
-        <q-item-section top side>
-            <div class="row text-grey-8 q-gutter-xs">
-            <q-btn class="gt-xs" flat dense rounded  >Excel</q-btn>
-            <q-separator vertical />
-            <q-btn class="gt-xs" flat dense rounded  @click.stop="getReport()">Pdf</q-btn>
+        <q-item-section top  class="col-2">
+            <div class="row text-grey-8 ">
 
+                  <div  class="col-8 " >
+                         <q-linear-progress size="15px" :value="progress1" color="red">
+                                <div class="absolute-full flex flex-center">
+                                    <q-badge color="white" text-color="accent" :label="progressLabel1" />
+                                </div>
+                            </q-linear-progress>
+
+                  </div>
+
+                  <div class="col-4">
+                             <div class="row ">
+                              <q-btn class="gt-xs" flat dense  size="sm" icon="article" style="height:20px" >
+                                <q-tooltip class="bg-primary">Baixar Excel</q-tooltip>
+                                .Xls
+                                </q-btn>
+                          </div>
+                          <div class="row  ">
+                            <q-btn class="gt-xs" flat dense  size="sm"  @click.stop="getReport(id)" icon="article" title=".pdf" style="height:20px">
+                              <q-tooltip class="bg-primary">Baixar Pdf</q-tooltip>
+                              .Pdf
+                              </q-btn>
+                          </div>
+                  </div>
             </div>
         </q-item-section>
     </q-item>
@@ -29,20 +53,31 @@
 <script>
 
 import Pack from 'src/store/models/packaging/Pack'
+import { ref, computed } from 'vue'
   export default {
-    props: ['selectedService', 'menuSelected'],
+    setup () {
+        const progress1 = ref(0.25)
+        return {
+        progress1,
+        progressLabel1: computed(() => (progress1.value * 100).toFixed(2) + '%')
+        }
+    },
+    props: ['selectedService', 'menuSelected', 'id'],
     name: 'DrugStore',
     mounted () {
       console.log(this.selectedService)
     },
     components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default
+      ListHeader: require('components/Shared/ListHeader.vue').default,
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
     },
     methods: {
       closeSection () {
         this.$refs.filterDrugStoreSection.remove()
       },
-    getReport () {
+    getReport (id) {
+      // UID da tab corrente
+      console.log('UUID da tab seleccionada:', id)
           Pack.api().get('/report/',
           { responseType: 'blob' }).then(resp => {
             console.log(resp)
