@@ -55,6 +55,8 @@
           <component
               :is="comp.name"
               :selectedService="comp.typeService"
+              :id="comp.id"
+              class="q-mb-sm"
               />
         </template>
           </div>
@@ -75,7 +77,8 @@
 
 <script>
 import { ref } from 'vue'
-import { uuid } from 'uuid'
+// import { uuid } from 'uuid'
+import { uid } from 'quasar'
 export default {
 
   setup () {
@@ -103,7 +106,8 @@ export default {
     },
     methods: {
       changeTab (tabName, selectedService) {
-        const comp = { id: uuid, name: tabName, typeService: selectedService }
+        const uidValue = uid()
+        const comp = { id: uidValue, name: tabName, typeService: selectedService }
         this.components.push(comp)
         }
     }
