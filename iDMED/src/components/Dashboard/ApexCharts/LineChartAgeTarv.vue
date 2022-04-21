@@ -20,6 +20,7 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 export default {
    props: ['serviceCode'],
+     emits: ['update:serviceCode'],
       Nmap: new Map(),
       NmapChild: new Map(),
       month,
@@ -34,9 +35,9 @@ export default {
         },
         colors: ['#6a0dad', '#AAFF00'],
          title: {
-          text: 'Gráfico de Pacientes que iniciaram o Tratamento Por Mes e Idade',
+          text: 'Total de Pacientes no Serviço ' + this.serviceCode + ' que iniciaram o levantamento',
           size: 10,
-          align: 'left',
+          align: 'center',
           style: {
             color: '#000000'
           }

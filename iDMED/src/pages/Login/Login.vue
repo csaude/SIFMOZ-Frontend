@@ -31,25 +31,6 @@
             </q-card-section>
             <q-card-section align="center">
               <q-form class="q-gutter-md" @submit.prevent="processForm">
-            <!--div class="row q-pt-md">
-             <div class="row q-pt-md">
-                <q-input v-model="username" label="Utilizador" lazy-rules>
-                  <template v-slot:prepend>
-                    <q-icon name="person"/>
-                  </template>
-                </q-input>
-            </div>
-            <div class="row q-pt-md">
-                <q-input v-model="password" label="Senha" lazy-rules type="password">
-                  <template v-slot:prepend>
-                    <q-icon name="lock"/>
-                  </template>
-                </q-input>
-            </div>
-                <div>
-                  <q-btn :loading="submitting" color="teal" label="Entrar" type="submit"/>
-                </div>
-            </div-->
             <div class="q-pa-sm text-center justify-center" style="max-width: 50%">
             <div class="row q-mb-sm">
                 <q-input
@@ -117,12 +98,14 @@
 </template>
 
 <script>
-import { QSpinnerBall } from 'quasar'
+import { QSpinnerBall, useQuasar } from 'quasar'
 
 export default ({
   data () {
+     const $q = useQuasar()
     return {
       context: 'login context',
+      $q,
       username: '',
       password: '',
       isPwd: true,
@@ -131,7 +114,69 @@ export default ({
         rememberMe: false,
         fetchUser: true
       },
-      error: null
+      error: null,
+      users: [
+        {
+          utilizador: 'IDMED.FHI',
+          senha: 'Fhi761'
+        },
+        {
+          utilizador: 'IDMED.EPIC',
+          senha: 'Epic007'
+        },
+        {
+          utilizador: 'IDMED.I-TECH',
+          senha: 'I-tech881'
+        },
+        {
+          utilizador: 'IDMED.ICAP',
+          senha: 'Icap123'
+        },
+        {
+          utilizador: 'IDMED.CCS',
+          senha: 'Ccs452'
+        },
+        {
+          utilizador: 'IDMED.ARIEL',
+          senha: 'Ariel872'
+        },
+        {
+          utilizador: 'IDMED.ECHO',
+          senha: 'Echo827'
+        },
+        {
+          utilizador: 'IDMED.EGPAF',
+          senha: 'Egpaf897'
+        },
+        {
+          utilizador: 'IDMED.JHPIEGO',
+          senha: 'Jhpiego562'
+        },
+        {
+          utilizador: 'IDMED.FGH',
+          senha: 'Fgh542'
+        },
+        {
+          utilizador: 'IDMED.USAID',
+          senha: 'Usaid098'
+        },
+        {
+          utilizador: 'IDMED.CDC',
+          senha: 'Cdc622'
+        },
+        {
+          utilizador: 'IDMED.CMAM',
+          senha: 'Cmam252'
+        },
+        {
+          utilizador: 'IDMED.PHIV',
+          senha: 'Phiv545'
+        },
+        {
+          utilizador: 'iDMED',
+          senha: 'iDMED123'
+        }
+      ]
     }
   },
   created () {
@@ -160,7 +205,23 @@ export default ({
       localStorage.setItem('user', 'admin')
       localStorage.setItem('hisUser', this.username)
       localStorage.setItem('hisPass', this.password)
-       this.$router.push({ path: '/' })
+
+      if (this.users.filter(user => user.utilizador === this.username && user.senha === this.password).length > 0) {
+        this.$router.push({ path: '/' })
+      } else {
+         this.$q.notify({
+            icon: 'announcement',
+            message: 'Utilizador ou Senha inválida',
+            type: 'negative',
+            progress: true,
+            timeout: 3000,
+            position: 'top',
+            color: 'negative',
+            textColor: 'white',
+            classes: 'glossy'
+         })
+      }
+
       // UsersService.login({
       //   'username': this.username,
       //   'password': this.password

@@ -5,7 +5,7 @@
 <div class="col q-ml-md" v-for="(item) in this.clinicalServiceReports" :key="item.id">
   <q-btn :color=item.colour @click="setServiceCode(item.code)" :style=item.style>
       <q-icon left size="6em" :name=item.icon  />
-      <div >Serviço  {{item.code}} <br> {{this.patientByServiceCode(item.code).length}} Pacientes Activos ao Tratamento </div>
+      <div >Serviço  {{item.code}} <br> {{this.patientByServiceCode(item.code).length}} Pacientes Activos ao Levantamento </div>
     </q-btn>
     </div>
 </div>
@@ -14,7 +14,7 @@
   <p align="center"> <strong>Serviço {{serviceCode}} </strong></p>
   </div>
          <div class="q-mt-lg">
-          <BarByDispenseType :serviceCode=serviceCode :dataLoaded=dataLoaded > </BarByDispenseType>
+          <BarByDispenseType v-bind:serviceCode=serviceCode :dataLoaded=dataLoaded > </BarByDispenseType>
              <div
       class="row q-col-gutter-md q-px-md q-py-md"
       key="allCharts"
@@ -51,7 +51,7 @@ export default {
      props: ['dataLoaded'],
     data () {
         return {
-         serviceCode: 'TARV',
+         serviceCode: '',
          isTARV: ref(false),
          isTB: ref(false),
          isPrep: ref(false),

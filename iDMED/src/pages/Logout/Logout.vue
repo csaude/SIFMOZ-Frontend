@@ -11,7 +11,7 @@ export default {
   //  UsersService.logout()
   //  localStorage.setItem('id_token', null)
    localStorage.setItem('user', null)
-    this.$router.push({ path: '/Login' })
+  this.$router.push({ path: '/Login' })
   }
 }
 </script>

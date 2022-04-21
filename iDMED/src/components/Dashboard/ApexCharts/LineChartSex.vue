@@ -19,7 +19,8 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 // import { QSpinnerBall } from 'quasar'
 const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 export default {
-   props: ['serviceCode'],
+    props: ['serviceCode'],
+     emits: ['update:serviceCode'],
       Nmap: new Map(),
       NmapChild: new Map(),
       month,
@@ -34,8 +35,8 @@ export default {
         },
         colors: ['#0096FF', '#FF1493'],
          title: {
-          text: 'Gráfico de Pacientes que iniciaram ao Tratamento Por Mes e Gênero',
-          align: 'left',
+          text: 'Total de Pacientes no Serviço ' + this.serviceCode + ' que iniciaram o levantamento',
+          align: 'center',
           style: {
             color: '#000000'
           }

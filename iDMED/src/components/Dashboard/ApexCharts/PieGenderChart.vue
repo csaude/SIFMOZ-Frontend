@@ -18,6 +18,7 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 
 export default {
   props: ['serviceCode'],
+  emits: ['update:serviceCode'],
       Nmap: new Map(),
       Nmap1: new Map(),
      components: {
@@ -34,7 +35,7 @@ export default {
           speed: 2000
         },
       title: {
-          text: 'Percentual de Pacientes Activos ao Tratamento Por Genero',
+          text: 'Percentual de Pacientes activos no Serviço ' + this.serviceCode,
           align: 'center',
           style: {
             color: '#000000'
