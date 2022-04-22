@@ -1,7 +1,7 @@
 <template>
 <q-card style="width: 1010px; max-width: 90vw;" class="q-pt-lg">
      <q-card-section>
-            <div class="text-h6"> Serviço Clínico!</div>
+            <div class="text-h6"> Serviço Clínico</div>
         </q-card-section>
         <form  >
         <q-stepper

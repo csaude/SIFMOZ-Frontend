@@ -9,41 +9,15 @@
   </ListHeader>
   <div class="param-container">
     <q-item>
-        <q-item-section  class="col-10" >
+        <q-item-section  class="col" >
             <FiltersInput
               :id="id"
               :typeService="selectedService"
-              class="q-mg-xs"
+              :totalRecords="totalRecords"
+              :qtyProcessed="qtyProcessed"
+              @generateReport="generateReport"
+              @initReportProcessing="initReportProcessing"
             />
-        </q-item-section>
-
-        <q-item-section top  class="col-2">
-            <div class="row text-grey-8 ">
-
-                  <div  class="col-8 " >
-                         <q-linear-progress size="15px" :value="progress1" color="red">
-                                <div class="absolute-full flex flex-center">
-                                    <q-badge color="white" text-color="accent" :label="progressLabel1" />
-                                </div>
-                            </q-linear-progress>
-
-                  </div>
-
-                  <div class="col-4">
-                             <div class="row ">
-                              <q-btn class="gt-xs" flat dense  size="sm" icon="article" style="height:20px" >
-                                <q-tooltip class="bg-primary">Baixar Excel</q-tooltip>
-                                .Xls
-                                </q-btn>
-                          </div>
-                          <div class="row  ">
-                            <q-btn class="gt-xs" flat dense  size="sm"  @click.stop="getReport(id)" icon="article" title=".pdf" style="height:20px">
-                              <q-tooltip class="bg-primary">Baixar Pdf</q-tooltip>
-                              .Pdf
-                              </q-btn>
-                          </div>
-                  </div>
-            </div>
         </q-item-section>
     </q-item>
   </div>
@@ -53,19 +27,17 @@
 <script>
 
 import Pack from 'src/store/models/packaging/Pack'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
   export default {
-    setup () {
-        const progress1 = ref(0.25)
-        return {
-        progress1,
-        progressLabel1: computed(() => (progress1.value * 100).toFixed(2) + '%')
-        }
-    },
-    props: ['selectedService', 'menuSelected', 'id'],
     name: 'DrugStore',
+    props: ['selectedService', 'menuSelected', 'id'],
+    setup () {
+      return {
+        totalRecords: ref(0),
+        qtyProcessed: ref(0)
+      }
+    },
     mounted () {
-      console.log(this.selectedService)
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
@@ -75,21 +47,24 @@ import { ref, computed } from 'vue'
       closeSection () {
         this.$refs.filterDrugStoreSection.remove()
       },
-    getReport (id) {
-      // UID da tab corrente
-      console.log('UUID da tab seleccionada:', id)
-          Pack.api().get('/report/',
-          { responseType: 'blob' }).then(resp => {
-            console.log(resp)
-             console.log(resp.response.data)
-              const file = new Blob([resp.response.data], { type: 'application/pdf' })
-      const fileURL = URL.createObjectURL(file)
-        const link = document.createElement('a')
-        link.href = fileURL
-         link.setAttribute('download', 'file.pdf')
-        document.body.appendChild(link)
-        link.click()
-          })
+      initReportProcessing (id) {
+
+      },
+      generateReport (id, fileType) {
+        // UID da tab corrente
+        console.log('UUID da tab seleccionada:', id)
+            Pack.api().get('/report/',
+            { responseType: 'blob' }).then(resp => {
+              console.log(resp)
+              console.log(resp.response.data)
+                const file = new Blob([resp.response.data], { type: 'application/pdf' })
+        const fileURL = URL.createObjectURL(file)
+          const link = document.createElement('a')
+          link.href = fileURL
+          link.setAttribute('download', 'file.pdf')
+          document.body.appendChild(link)
+          link.click()
+            })
       }
               //  const bytes = btoa(new Uint8Array(resp.data).reduce((data, byte) => data + String.fromCharCode(byte), ''))
              //  const url = 'data:application/pdf;base64, ' + bytes
