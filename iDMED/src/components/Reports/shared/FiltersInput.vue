@@ -1,5 +1,8 @@
 <template>
              <div class="row">
+             <pre>{{startDate}}</pre>
+             <pre>{{thruDate}}</pre>
+             <pre>{{name}}</pre>
               <div class="col row q-pt-md">
                 <q-select
                     dense outlined
@@ -50,8 +53,8 @@
                     lazy-rules
                     label="Período *" />
 
-                    <SpecificPeriod v-model="thruDate" v-if="periodo.id ===1"/>
-                    <MonthlyPeriod v-model="month" v-else-if="periodo.id ===2" />
+                    <SpecificPeriod :startDate='startDate' :thruDate='thruDate' v-model="name" v-if="periodo.id ===1"/>
+                    <MonthlyPeriod v-model="year" v-else-if="periodo.id ===2" @setSetectedMonth="setSetectedMonth" @setSetectedYear="setSetectedMonth"/>
                     <QuarterlyPeriod v-else-if="periodo.id ===3" />
                     <SemesterPeriod v-else-if="periodo.id ===4" />
                     <AnnualPeriod v-else-if="periodo.id ===5" />
@@ -107,6 +110,7 @@ export default {
           thruDate: ref(''),
           startDate: ref(''),
           name: ref(''),
+          year: ref(''),
           periodo: '',
           periodos: [
               { id: 1, description: 'Especifico' },
@@ -138,6 +142,9 @@ export default {
       }
     },
     methods: {
+      setSetectedMonth (month) {
+        console.log(month)
+      },
       processReport (id, typeService) {
           console.log('Processando o report UUID', id)
           console.log('Tipo de Servico', typeService.code)

@@ -1,6 +1,7 @@
 <template>
 
      <div class="row q-mb-md">
+
                     <q-input
                         dense
                         outlined
@@ -8,11 +9,12 @@
                         :disable="false"
                         class="col q-mr-md"
                         v-model="startDate"
+                        @input="$emit('update:startDate', $event.target.value)"
                         label="Data Início">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="startDate"  mask="DD-MM-YYYY">
+                                <q-date v-model="startDate"  mask="DD-MM-YYYY" @input="updateDate($event)">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -32,7 +34,7 @@
                             <template v-slot:append>
                                 <q-icon name="event" class="cursor-pointer">
                                 <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                    <q-date v-model="thruDate" mask="DD-MM-YYYY">
+                                    <q-date v-model="thruDate" mask="DD-MM-YYYY" @input="$emit('update:thruDate', $event.target.value)">
                                     <div class="row items-center justify-end">
                                         <q-btn v-close-popup label="Close" color="primary" flat />
                                     </div>
@@ -41,6 +43,13 @@
                                 </q-icon>
                             </template>
                         </q-input>
+                        <input
+                          type="number"
+                          dense
+                          outlined
+                          v-model="name"
+                          @input="$emit('update:modelValue', $event.target.value)"
+                        />
        </div>
   </template>
 
@@ -52,10 +61,11 @@
     export default {
       props: ['value', 'label'],
       data () {
-        const thruDate = ref('')
+        const name = ref('')
         return {
+          name,
           startDate: '',
-          thruDate,
+          thruDate: '',
           model: ref(new Date().getFullYear()),
           semestres: [
             { id: 1, description: 'Semestre 1' },
@@ -64,11 +74,6 @@
         }
       },
       methods: {
-        updateDate (date) {
-          console.log(date)
-          this.startDate = date
-          this.$emit('input', this.startDate)
-        },
           getJSDateFromDDMMYYY (dateString) {
               const dateParts = dateString.split('-')
               return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
