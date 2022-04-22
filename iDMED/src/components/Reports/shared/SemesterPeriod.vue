@@ -14,16 +14,17 @@
             :rules="[ val => ( val != null) || ' Por favor indique o Semestre']"
             lazy-rules
             label="Semestre"
+             @blur="setSelectedSemester()"
             />
 
              <q-input
               class="col q-mr-md"
                 dense
                 outlined
-                v-model.number="model"
                 type="number"
                 style="max-width: 120px"
-                :rules="[ val => ( val != null) || ' Por favor indique o ano']"
+                v-model="yearSemesterPeriod"
+                @blur="setSelectedSemesterYear()"
             />
        </div>
   </template>
@@ -31,19 +32,24 @@
 <script>
     import { ref } from 'vue'
     export default {
-        setup () {
-            return {
-            model: ref(new Date().getFullYear())
-            }
-        },
         data () {
                 return {
-                    semester: null,
+                    semester: '',
+                    yearSemesterPeriod: '',
+                    model: ref(new Date().getFullYear()),
                     semesters: [
                         { id: 1, description: 'Semestre 1' },
                         { id: 2, description: 'Semestre 2' }
                         ]
                         }
+            },
+        methods: {
+                setSelectedSemester () {
+                this.$emit('setSelectedSemester', this.semester)
+        },
+                setSelectedSemesterYear () {
+                this.$emit('setSelectedSemesterYear', this.yearSemesterPeriod)
+        }
             }
             }
 </script>
