@@ -5,13 +5,14 @@
             class="col q-mr-md"
             dense outlined
             :options="months"
-            :v-model="month"
+            v-model="month"
 
             ref="periodMonth"
             option-value="id"
             option-label="description"
             :rules="[ val => ( val != null) || ' Por favor indique o Mês']"
             lazy-rules
+            @blur="setSetectedMonth()"
             label="Mês"
             />
 
@@ -19,7 +20,8 @@
               class="col q-mr-md"
                 dense
                 outlined
-                v-model.number="model"
+                v-model="year"
+                @input="$emit('update:modelValue', $event.target.value)"
                 type="number"
                 style="max-width: 120px"
             />
@@ -29,14 +31,12 @@
 <script>
     import { ref } from 'vue'
     export default {
-        props: ['month', 'year'],
-        setup () {
-            return {
-            model: ref(new Date().getFullYear())
-            }
-        },
         data () {
-                return {
+          const year = ref('')
+            return {
+              year,
+              month: '',
+            model: ref(new Date().getFullYear()),
                     months: [
                         { id: 1, description: 'Janeiro' },
                         { id: 2, description: 'Fevereiro' },
@@ -52,6 +52,11 @@
                         { id: 12, description: 'Dezembro' }
                         ]
                         }
+            },
+            methods: {
+              setSetectedMonth () {
+                this.$emit('setSetectedMonth', this.month)
+              }
             }
             }
 </script>
