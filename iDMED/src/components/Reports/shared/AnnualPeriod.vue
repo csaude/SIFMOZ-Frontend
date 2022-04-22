@@ -5,32 +5,31 @@
               class="col q-mr-md"
                 dense
                 outlined
-                v-model.number="model"
-                :value="year"
+                v-model="yearAnnualPeriod"
                 type="number"
                 style="max-width: 200px"
-                :rules="[ val => ( val != null) || ' Por favor indique o ano']"
                 label="Ano"
+                @blur="setSelectedYearAnnual()"
             />
        </div>
   </template>
 
 <script>
-    import { ref } from 'vue'
+
     export default {
-        props: ['year'],
-        setup () {
-            return {
-            model: ref(new Date().getFullYear())
-            }
-        },
         data () {
                 return {
+                    yearAnnualPeriod: '',
                     semestres: [
                         { id: 1, description: 'Semestre 1' },
                         { id: 2, description: 'Semestre 2' }
                         ]
                         }
+            },
+        methods: {
+            setSelectedYearAnnual () {
+            this.$emit('setSelectedYearAnnual', this.yearAnnualPeriod)
             }
-            }
+        }
+           }
 </script>
