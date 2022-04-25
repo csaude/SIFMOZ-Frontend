@@ -6,7 +6,6 @@
             dense outlined
             :options="months"
             v-model="month"
-
             ref="periodMonth"
             option-value="id"
             option-label="description"
@@ -23,7 +22,6 @@
                 v-model="yearMonthlyPeriod"
                 @blur="setSelectedYearMonth()"
                 type="number"
-                style="max-width: 120px"
             />
        </div>
   </template>
@@ -33,7 +31,7 @@
     export default {
         data () {
             return {
-              yearMonthlyPeriod: '',
+              yearMonthlyPeriod: new Date().getFullYear(),
               month: '',
             model: ref(new Date().getFullYear()),
                     months: [

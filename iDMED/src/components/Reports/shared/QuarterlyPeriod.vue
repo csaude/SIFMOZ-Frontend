@@ -4,7 +4,7 @@
         <q-select
             class="col q-mr-md"
             dense outlined
-                transition-show="flip-up"
+            transition-show="flip-up"
             transition-hide="flip-down"
             :options="quarters"
              v-model="quarter"
@@ -22,7 +22,6 @@
                 dense
                 outlined
                 type="number"
-                style="max-width: 120px"
                 :rules="[ val => ( val != null) || ' Por favor indique o ano']"
                 v-model="yearQuarterlyPeriod"
                 @blur="setSelectedYearQuarter()"
@@ -36,7 +35,7 @@
         data () {
                 return {
                     quarter: '',
-                    yearQuarterlyPeriod: '',
+                    yearQuarterlyPeriod: new Date().getFullYear(),
                     model: ref(new Date().getFullYear()),
                     quarters: [
                         { id: 1, description: 'Trimestre 1' },

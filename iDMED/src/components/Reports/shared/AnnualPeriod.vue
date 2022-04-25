@@ -7,7 +7,6 @@
                 outlined
                 v-model="yearAnnualPeriod"
                 type="number"
-                style="max-width: 200px"
                 label="Ano"
                 @blur="setSelectedYearAnnual()"
             />
@@ -19,7 +18,7 @@
     export default {
         data () {
                 return {
-                    yearAnnualPeriod: '',
+                    yearAnnualPeriod: new Date().getFullYear(),
                     semestres: [
                         { id: 1, description: 'Semestre 1' },
                         { id: 2, description: 'Semestre 2' }

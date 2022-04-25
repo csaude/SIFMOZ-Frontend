@@ -22,7 +22,6 @@
                 dense
                 outlined
                 type="number"
-                style="max-width: 120px"
                 v-model="yearSemesterPeriod"
                 @blur="setSelectedSemesterYear()"
             />
@@ -35,7 +34,7 @@
         data () {
                 return {
                     semester: '',
-                    yearSemesterPeriod: '',
+                    yearSemesterPeriod: new Date().getFullYear(),
                     model: ref(new Date().getFullYear()),
                     semesters: [
                         { id: 1, description: 'Semestre 1' },

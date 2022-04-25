@@ -5,7 +5,6 @@
                     <q-input
                         dense
                         outlined
-                        style="max-width: 140px"
                         :disable="false"
                         class="col q-mr-md"
                         v-model="startDate"
@@ -26,7 +25,6 @@
                     <q-input
                             dense
                             outlined
-                            style="max-width: 140px"
                             :disable="false"
                             class="col q-mr-md"
                             v-model="thruDate"
@@ -43,13 +41,6 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                        <input
-                          type="number"
-                          dense
-                          outlined
-                          v-model="name"
-                          @input="$emit('update:modelValue', $event.target.value)"
-                        />
        </div>
   </template>
 
@@ -61,9 +52,7 @@
     export default {
       props: ['value', 'label'],
       data () {
-        const name = ref('')
         return {
-          name,
           startDate: '',
           thruDate: '',
           model: ref(new Date().getFullYear()),
