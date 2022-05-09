@@ -81,11 +81,10 @@ export default {
                 description: 'Referências',
                 id: 3,
                 menuItem: [
-                           { description: ' Exemplo 1', tabName: 'ActivesInDrugStore' },
-                           { description: 'Exemplo 2', tabName: 'TransferedTo' },
-                           { description: 'Exemplo 3', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
+                           { description: 'Lista de Pacientes Referidos Para outras Farmacias', tabName: 'ReferredPatients' },
+                           { description: 'Lista de Pacientes que voltaram da Referencia', tabName: 'ReferredBackPatients' },
+                           { description: 'Lista de Pacientes referidos faltosos em outras Farmacias', tabName: 'AbsentReferredPatients' },
+                           { description: 'Historico de Levantamentos de Pacientes Referidos', tabName: 'ReferredPatientDispenseHistory' }
                           ]
                 },
                {

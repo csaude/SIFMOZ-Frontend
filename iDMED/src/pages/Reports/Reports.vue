@@ -54,7 +54,7 @@
          >
           <component
               :is="comp.name"
-              :selectedService="comp.typeService"
+              :selectedService="comp.clinicalService"
               :id="comp.id"
               class="q-mb-sm"
               />
@@ -101,13 +101,16 @@ export default {
      ImportedPatientList: require('components/Reports/Patient/ImportedPatientList.vue').default,
      TransferedFrom: require('components/Reports/Patient/TransferedFrom.vue').default,
      TransferedTo: require('components/Reports/Patient/TransferedTo.vue').default,
-     ListReportMenu: require('components/Reports/Menus/ListReportMenu.vue').default
-
+     ListReportMenu: require('components/Reports/Menus/ListReportMenu.vue').default,
+     ReferredPatients: require('components/Reports/ReferralManagement/ReferredPatients.vue').default,
+     ReferredBackPatients: require('components/Reports/ReferralManagement/ReferredBackPatients.vue').default,
+     ReferredPatientDispenseHistory: require('components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue').default,
+      AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default
     },
     methods: {
       changeTab (tabName, selectedService) {
         const uidValue = uid()
-        const comp = { id: uidValue, name: tabName, typeService: selectedService }
+        const comp = { id: uidValue, name: tabName, clinicalService: selectedService }
         this.components.push(comp)
         }
     }

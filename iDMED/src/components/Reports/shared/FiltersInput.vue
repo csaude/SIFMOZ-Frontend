@@ -7,7 +7,7 @@
                       disable
                       class="col q-mr-md"
                       :options="provinces"
-                      v-model="reportParams.province"
+                      v-model="reportParams.provinceId"
                       ref="province"
                       option-value="id"
                       option-label="description"
@@ -18,7 +18,7 @@
                       v-if="isProvincialLevel"
                       dense outlined
                       :options="districts"
-                      v-model="reportParams.district"
+                      v-model="reportParams.districtId"
                       ref="district"
                       option-value="id"
                       option-label="description"
@@ -29,7 +29,7 @@
                       dense outlined
                       :disable="isClinicLevel"
                       :options="clinics"
-                      v-model="reportParams.clinic"
+                      v-model="reportParams.clinicId"
                       ref="clinic"
                       option-value="id"
                       option-label="clinicName"
@@ -41,7 +41,7 @@
                       :options="peiodTypeList"
                       v-model="reportParams.peiodType"
                       ref="period"
-                      option-value="id"
+                      option-value="code"
                       option-label="description"
                       @update:model-value="val => onPeriodoChange(val)"
                       :rules="[ val => ( val != null) || ' Por favor indique o período']"
@@ -54,12 +54,12 @@
                           outlined
                           :disable="false"
                           class="col q-mr-md"
-                          v-model="reportParams.startDate"
+                          v-model="reportParams.startDateParam"
                           label="Data Início">
                           <template v-slot:append>
                               <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                  <q-date v-model="reportParams.startDate"  mask="DD-MM-YYYY">
+                                  <q-date v-model="reportParams.startDateParam"  mask="DD-MM-YYYY">
                                   <div class="row items-center justify-end">
                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                   </div>
@@ -73,12 +73,12 @@
                           outlined
                           :disable="false"
                           class="col q-mr-md"
-                          v-model="reportParams.thruDate"
+                          v-model="reportParams.endDateParam"
                           label="Data Fim">
                           <template v-slot:append>
                               <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                  <q-date v-model="reportParams.thruDate" mask="DD-MM-YYYY">
+                                  <q-date v-model="reportParams.endDateParam" mask="DD-MM-YYYY">
                                   <div class="row items-center justify-end">
                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                   </div>
@@ -149,30 +149,32 @@ import Province from '../../../store/models/province/Province'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref, computed } from 'vue'
 import { SessionStorage } from 'quasar'
-
+// import moment from 'moment'
 export default {
-    props: ['typeService', 'menuSelected', 'id', 'totalRecords', 'qtyProcessed'],
+    props: ['clinicalService', 'menuSelected', 'id', 'totalRecords', 'qtyProcessed', 'reportType'],
     data () {
-      const progress1 = ref(0.25)
+      const progress1 = ref(0)
       return {
         reportParams: {
           id: null,
-          province: null,
-          district: null,
-          clinic: null,
-          thruDate: null,
-          startDate: null,
-          typeService: null,
+          provinceId: null,
+          districtId: null,
+          clinicId: null,
+          endDateParam: null,
+          startDateParam: null,
+          clinicalService: null,
           year: null,
-          selectedPeriod: null,
-          peiodType: null
+          period: null,
+          peiodType: null,
+          periodType: null,
+          reportType: null
         },
         peiodTypeList: [
-          { id: 1, description: 'Especifico' },
-          { id: 2, description: 'Mensal' },
-          { id: 3, description: 'Trimestral' },
-          { id: 4, description: 'Semestral' },
-          { id: 5, description: 'Anual' }
+          { id: 1, description: 'Especifico', code: 'SPECIFIC' },
+          { id: 2, description: 'Mensal', code: 'MONTH' },
+          { id: 3, description: 'Trimestral', code: 'QUARTER' },
+          { id: 4, description: 'Semestral', code: 'SEMESTER' },
+          { id: 5, description: 'Anual', code: 'ANNUAL' }
         ],
         progress1,
         progressLabel1: computed(() => (progress1.value * 100).toFixed(2) + '%')
@@ -196,7 +198,7 @@ export default {
       clinics: {
         get () {
           if (this.reportParams.district !== null) {
-            return Clinic.query().with('districts').where('district_id', this.reportParams.district.id).get()
+            return Clinic.query().with('districts').where('district_id', this.reportParams.districtId).get()
           } else {
               return null
           }
@@ -221,41 +223,47 @@ export default {
     methods: {
       onPeriodoChange (val) {
         console.log(val)
-        this.reportParams.province = null
-        this.reportParams.district = null
-        this.reportParams.clinic = null
-        this.reportParams.thruDate = null
-        this.reportParams.startDate = null
+        this.reportParams.provinceId = null
+        this.reportParams.districtId = null
+       // this.reportParams.pharmacyId = null
+        this.reportParams.endDateParam = null
+        this.reportParams.startDateParam = null
         this.reportParams.year = null
-        this.reportParams.selectedPeriod = null
-        this.reportParams.typeService = null
+        this.reportParams.period = null
+      //  this.reportParams.clinicalService = null
         this.reportParams.peiodType = val
-        console.log(this.typeService)
+        console.log(this.clinicalService)
       },
       initParams () {
         if (this.isClinicLevel) {
-          this.reportParams.clinic = this.currClinic
+          this.reportParams.clinicId = this.currClinic.id
         } else {
-          this.reportParams.province = this.currProvince
+          this.reportParams.provinceId = this.currProvince.id
         }
       },
       setSelectedYear (year) {
         this.reportParams.year = year
       },
        setSelectedPeriod (selectedPeriod) {
-        this.reportParams.selectedPeriod = selectedPeriod
+        this.reportParams.period = selectedPeriod.id
       },
       processReport () {
           this.reportParams.id = this.id
-          this.reportParams.typeService = this.typeService
+          this.reportParams.clinicalService = this.clinicalService.id
+            if (this.reportParams.peiodType !== null) {
+          this.reportParams.periodType = this.reportParams.peiodType.code
+            }
+          if (this.reportType !== null) {
+            this.reportParams.reportType = this.reportType
+          }
           console.log('parametros', this.reportParams)
           this.$emit('initReportProcessing', this.reportParams)
       },
       generateReport (fileType) {
-        this.$emit('getReport', this.id, fileType)
+        this.$emit('generateReport', this.id, fileType)
       },
       initReportProcessing () {
-        this.$emit('initReportProcessing', this.id)
+        this.$emit('initReportProcessing', this.reportParams)
       }
     },
     components: {
