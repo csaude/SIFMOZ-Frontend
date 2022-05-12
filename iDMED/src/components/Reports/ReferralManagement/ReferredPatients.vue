@@ -18,6 +18,8 @@
               :reportType="report"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
+              @updateProgressBar="updateProgressBar"
+              :progressValue="progressValue"
             />
         </q-item-section>
     </q-item>
@@ -27,7 +29,7 @@
 
 <script>
 
-import Pack from 'src/store/models/packaging/Pack'
+import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
   export default {
     name: 'ReferredPatients',
@@ -36,7 +38,9 @@ import { ref } from 'vue'
       return {
         totalRecords: ref(0),
         qtyProcessed: ref(0),
-        report: 'REFERIDO_PARA'
+        report: 'REFERIDO_PARA',
+        progressValue: ref(0),
+        intervalID: ref(0)
       }
     },
     mounted () {
@@ -51,13 +55,29 @@ import { ref } from 'vue'
       },
       initReportProcessing (params) {
         console.log(params)
-      Pack.api().post('/referredPatientsReport/initReportProcess', params)
+      Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
+        // reset your component inputs like textInput to null
+        // or your custom route redirect with vue-router
+        this.updateProgressBar()
+      })
       },
+      updateProgressBar () {
+       // this.progressValue = 1.00
+        this.intervalID = setInterval(() => {
+      this.progressValue = this.progressValue + 0.1
+      if (this.progressValue === 1) {
+        this.clearInterval(this.intervalID)
+      }
+      }, 1000)
+      },
+      stop () {
+        clearInterval(this.intervalID)
+    },
       generateReport (id, pdf) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
-            Pack.api().get('/referredPatientsReport/printReport/' + id,
+            Report.api().get('/referredPatientsReport/printReport/' + id,
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)

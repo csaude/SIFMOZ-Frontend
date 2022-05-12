@@ -36,7 +36,7 @@ import { ref } from 'vue'
       return {
         totalRecords: ref(0),
         qtyProcessed: ref(0),
-        report: 'Historico_levantamento_pacientes_referidos'
+        report: 'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS'
       }
     },
     mounted () {
@@ -49,7 +49,8 @@ import { ref } from 'vue'
       closeSection () {
         this.$refs.filterDrugStoreSection.remove()
       },
-      initReportProcessing (id) {
+      initReportProcessing (params) {
+          Pack.api().post('/referredPatientsReport/initReportProcess', params)
       },
       generateReport (id, fileType) {
         // UID da tab corrente
