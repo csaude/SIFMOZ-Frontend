@@ -49,7 +49,8 @@ import { ref } from 'vue'
       closeSection () {
         this.$refs.filterDrugStoreSection.remove()
       },
-      initReportProcessing (id) {
+      initReportProcessing (params) {
+         Pack.api().post('/referredPatientsReport/initReportProcess', params)
       },
       generateReport (id, fileType) {
         // UID da tab corrente
