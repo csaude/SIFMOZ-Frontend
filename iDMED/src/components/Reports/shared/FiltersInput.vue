@@ -29,7 +29,7 @@
                       dense outlined
                       :disable="isClinicLevel"
                       :options="clinics"
-                      v-model="reportParams.clinicId"
+                      v-model="reportParams.clinic"
                       ref="clinic"
                       option-value="id"
                       option-label="clinicName"
@@ -38,8 +38,8 @@
                     <q-select
                       class="col q-mr-md"
                       dense outlined
-                      :options="peiodTypeList"
-                      v-model="reportParams.peiodType"
+                      :options="periodTypeList"
+                      v-model="reportParams.periodType"
                       ref="period"
                       option-value="code"
                       option-label="description"
@@ -48,7 +48,7 @@
                       lazy-rules
                       label="Período *" />
 
-                     <div  class="row q-mb-md" v-if="reportParams.peiodType !== null && reportParams.peiodType.id ===1">
+                     <div  class="row q-mb-md" v-if="reportParams.periodType !== null && reportParams.periodType.id ===1">
                         <q-input
                           dense
                           outlined
@@ -90,27 +90,28 @@
                     </div>
 
                     <MonthlyPeriod
-                      v-else-if="reportParams.peiodType !== null && reportParams.peiodType.id ===2"
+                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===2"
                       @setSelectedMonth="setSelectedPeriod"
                       @setSelectedYearMonth="setSelectedYear"/>
 
                     <QuarterlyPeriod
-                      v-else-if="reportParams.peiodType !== null && reportParams.peiodType.id ===3"
+                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===3"
                       @setSelectedQuarter="setSelectedPeriod"
                       @setSelectedYearQuarter="setSelectedYear" />
 
                     <SemesterPeriod
-                      v-else-if="reportParams.peiodType !== null && reportParams.peiodType.id ===4"
+                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===4"
                       @setSelectedSemester="setSelectedPeriod"
                       @setSelectedSemesterYear="setSelectedYear"  />
 
                     <AnnualPeriod
-                      v-else-if="reportParams.peiodType !== null && reportParams.peiodType.id ===5"
+                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===5"
                       @setSelectedYearAnnual="setSelectedYear" />
 
                     <div class="">
                       <q-btn class="gt-xs"
-                        color="grey"
+                        :color="!processingTerminated ? 'green-6' : 'grey-6'"
+                        :disable="processingTerminated"
                         dense
                         rounded
                         icon="chevron_right"
@@ -130,11 +131,11 @@
 
               <div class="row q-ml-md">
                 <div class="col">
-                  <q-btn color="grey-6" class="row gt-xs" flat dense icon="article" @click.stop="generateReport('XLS')">
+                  <q-btn :color="processingTerminated ? 'green-6' : 'grey-6'" class="row gt-xs" flat dense icon="article" :disable="!processingTerminated" @click.stop="generateReport('XLS')">
                     <q-tooltip class="bg-primary">Imprimir Excel</q-tooltip>
                     .Xls
                 </q-btn>
-                <q-btn color="grey-6" class="gt-xs" flat dense  @click.stop="generateReport('PDF')" icon="article" title=".pdf">
+                <q-btn :color="processingTerminated ? 'green-6' : 'grey-6'" class="gt-xs" flat dense  @click.stop="generateReport('PDF')" :disable="!processingTerminated" icon="article" title=".pdf">
                   <q-tooltip class="bg-primary">Imprimmir Pdf</q-tooltip>
                   .Pdf
                   </q-btn>
@@ -146,11 +147,11 @@
 <script>
 import Province from '../../../store/models/province/Province'
 import Clinic from '../../../store/models/clinic/Clinic'
-import { ref, computed } from 'vue'
-import { SessionStorage } from 'quasar'
+import { ref } from 'vue'
+import { LocalStorage, SessionStorage } from 'quasar'
 // import moment from 'moment'
 export default {
-    props: ['clinicalService', 'menuSelected', 'id', 'totalRecords', 'qtyProcessed', 'reportType', 'progressValue'],
+    props: ['clinicalService', 'menuSelected', 'id', 'progress', 'reportType', 'progressValue', 'applicablePeriods'],
     data () {
       const progress1 = ref(0)
       return {
@@ -159,27 +160,38 @@ export default {
           provinceId: null,
           districtId: null,
           clinicId: null,
+          clinic: null,
           endDateParam: null,
           startDateParam: null,
           clinicalService: null,
           year: new Date().getFullYear(),
           period: null,
-          peiodType: null,
           periodType: null,
-          reportType: null
+          reportType: null,
+          progress: 0
         },
-        peiodTypeList: [
+        periodTypeList: ref([
           { id: 1, description: 'Especifico', code: 'SPECIFIC' },
           { id: 2, description: 'Mensal', code: 'MONTH' },
           { id: 3, description: 'Trimestral', code: 'QUARTER' },
           { id: 4, description: 'Semestral', code: 'SEMESTER' },
           { id: 5, description: 'Anual', code: 'ANNUAL' }
-        ],
-        progress1,
-        progressLabel1: computed(() => (this.progressValue * 100).toFixed(2) + '%')
+        ]),
+        progress1
       }
     },
+    created () {
+      this.init()
+      this.initParams()
+    },
     computed: {
+      processingTerminated () {
+        return this.progress >= 100
+      },
+      progressLabel1 () {
+        console.log(this.progress)
+        return this.progress + '%'
+      },
       provinces: {
         get () {
           return Province.query().with('districts').has('code').get()
@@ -216,10 +228,14 @@ export default {
         return Province.query().with('districts').where('id', SessionStorage.getItem('currProvince').id).first()
       }
     },
-    mounted () {
-      this.initParams()
-    },
     methods: {
+      init () {
+        console.log(this.applicablePeriods)
+        if (this.applicablePeriods !== null) {
+          // this.periodTypeList = ref(this.applicablePeriods)
+        }
+        console.log(this.periodTypeList)
+      },
       onPeriodoChange (val) {
         this.reportParams.provinceId = null
         this.reportParams.districtId = null
@@ -227,14 +243,17 @@ export default {
         this.reportParams.startDateParam = null
         this.reportParams.year = new Date().getFullYear()
         this.reportParams.period = null
-        this.reportParams.peiodType = val
+        this.reportParams.periodType = val
+        this.reportParams.progress = 0
       },
       initParams () {
         if (this.isClinicLevel) {
           this.reportParams.clinicId = this.currClinic.id
+          this.reportParams.clinic = this.currClinic
         } else {
           this.reportParams.provinceId = this.currProvince.id
         }
+        console.log(this.reportParams.clinic)
       },
       setSelectedYear (year) {
         this.reportParams.year = year
@@ -245,16 +264,19 @@ export default {
       processReport () {
           this.reportParams.id = this.id
           this.reportParams.clinicalService = this.clinicalService.id
-            if (this.reportParams.peiodType !== null) {
-          this.reportParams.periodType = this.reportParams.peiodType.code
-            }
+          if (this.reportParams.periodType !== null) {
+            this.reportParams.periodType = this.reportParams.periodType.code
+          }
           if (this.reportType !== null) {
             this.reportParams.reportType = this.reportType
           }
-          console.log('parametros', this.reportParams)
-           this.$emit('initReportProcessing', this.reportParams)
-            this.$emit('updateProgressBar', this.progress1)
+          this.saveParams()
+          this.$emit('initReportProcessing', this.reportParams)
+          this.$emit('updateProgressBar', this.progress1)
          // this.updateProgressBar()
+      },
+      saveParams () {
+        LocalStorage.set(this.reportParams.id, this.reportParams)
       },
       generateReport (fileType) {
         this.$emit('generateReport', this.id, fileType)
@@ -262,8 +284,8 @@ export default {
       initReportProcessing () {
         this.$emit('initReportProcessing', this.reportParams)
       },
-       updateProgressBar () {
-         console.log(this.progressValue)
+      updateProgressBar () {
+        console.log(this.progressValue)
         this.progress1 = this.progressValue
       }
     },
