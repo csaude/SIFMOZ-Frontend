@@ -102,6 +102,7 @@ export default {
      TransferedFrom: require('components/Reports/Patient/TransferedFrom.vue').default,
      TransferedTo: require('components/Reports/Patient/TransferedTo.vue').default,
      ListReportMenu: require('components/Reports/Menus/ListReportMenu.vue').default,
+     Mmia: require('components/Reports/ClinicManagement/Mmia.vue').default,
      ReferredPatients: require('components/Reports/ReferralManagement/ReferredPatients.vue').default,
      ReferredBackPatients: require('components/Reports/ReferralManagement/ReferredBackPatients.vue').default,
      ReferredPatientDispenseHistory: require('components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue').default,

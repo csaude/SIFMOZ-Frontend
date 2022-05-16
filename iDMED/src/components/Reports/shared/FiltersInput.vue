@@ -163,7 +163,7 @@ export default {
           endDateParam: null,
           startDateParam: null,
           clinicalService: null,
-          year: null,
+          year: new Date().getFullYear(),
           period: null,
           peiodType: null,
           periodType: null,
@@ -222,17 +222,13 @@ export default {
     },
     methods: {
       onPeriodoChange (val) {
-        console.log(val)
         this.reportParams.provinceId = null
         this.reportParams.districtId = null
-       // this.reportParams.pharmacyId = null
         this.reportParams.endDateParam = null
         this.reportParams.startDateParam = null
-        this.reportParams.year = null
+        this.reportParams.year = new Date().getFullYear()
         this.reportParams.period = null
-      //  this.reportParams.clinicalService = null
         this.reportParams.peiodType = val
-        console.log(this.clinicalService)
       },
       initParams () {
         if (this.isClinicLevel) {
@@ -261,9 +257,6 @@ export default {
       },
       generateReport (fileType) {
         this.$emit('generateReport', this.id, fileType)
-      },
-      initReportProcessing () {
-        this.$emit('initReportProcessing', this.reportParams)
       }
     },
     components: {

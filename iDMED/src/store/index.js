@@ -66,6 +66,7 @@ import DispenseMode from './models/dispenseMode/DispenseMode'
 import PackagedDrugStock from './models/packagedDrug/PackagedDrugStock'
 import GroupPackHeader from './models/group/GroupPackHeader'
 import GroupPack from './models/group/GroupPack'
+import Report from './models/report/ReportModel'
 
 // Vue.use(Vuex)
 
@@ -145,6 +146,7 @@ database.register(ClinicalServiceSector)
 database.register(PackagedDrugStock)
 database.register(GroupPackHeader)
 database.register(GroupPack)
+database.register(Report)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
