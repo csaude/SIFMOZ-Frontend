@@ -56,7 +56,7 @@ import { ref } from 'vue'
       initReportProcessing (params) {
         console.log(params)
       Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
-        // reset your component inputs like textInput to null
+        // reset your component inputs like textInput to nul    // or your custom route redirect with vue-router
         // or your custom route redirect with vue-router
         this.updateProgressBar()
       })
@@ -65,19 +65,19 @@ import { ref } from 'vue'
        // this.progressValue = 1.00
         this.intervalID = setInterval(() => {
       this.progressValue = this.progressValue + 0.1
-      if (this.progressValue === 1) {
-        this.clearInterval(this.intervalID)
+      if (Math.trunc(this.progressValue) === 1) {
+        this.stop()
       }
       }, 1000)
       },
       stop () {
-        clearInterval(this.intervalID)
+       clearInterval(this.intervalID)
     },
       generateReport (id, pdf) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
-            Report.api().get('/referredPatientsReport/printReport/' + id,
+            Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/pdf`,
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)

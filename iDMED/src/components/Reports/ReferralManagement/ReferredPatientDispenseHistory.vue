@@ -27,7 +27,7 @@
 
 <script>
 
-import Pack from 'src/store/models/packaging/Pack'
+import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
   export default {
     name: 'ReferredPatientDispenseHistory',
@@ -50,12 +50,13 @@ import { ref } from 'vue'
         this.$refs.filterDrugStoreSection.remove()
       },
       initReportProcessing (params) {
-          Pack.api().post('/referredPatientsReport/initReportProcess', params)
+          Report.api().post('/referredPatientsReport/initReportProcess', params)
       },
-      generateReport (id, fileType) {
+        generateReport (id, pdf) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
-            Pack.api().get('/report/',
+       // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
+            Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/pdf`,
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)
