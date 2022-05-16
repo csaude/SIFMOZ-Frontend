@@ -49,7 +49,11 @@ import { ref } from 'vue'
       closeSection () {
         this.$refs.filterDrugStoreSection.remove()
       },
-      initReportProcessing (id) {
+      initReportProcessing (params) {
+         Pack.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
+        // reset your component inputs like textInput to null
+        // or your custom route redirect with vue-router
+      })
       },
       generateReport (id, fileType) {
         // UID da tab corrente

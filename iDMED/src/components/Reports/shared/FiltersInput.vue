@@ -119,9 +119,8 @@
                         <q-tooltip class="bg-primary">Processar o Relatório</q-tooltip>
                       </q-btn>
                     </div>
-
                     <div class="q-mr-md q-pt-xs items-center" style="width: 250px;">
-                      <q-linear-progress class="col q-mx-md" size="25px" stripe rounded :value="progress1" color="red">
+                      <q-linear-progress class="col q-mx-md" size="25px" stripe rounded :value="this.progressValue" color="red">
                         <div class="absolute-full flex flex-center">
                             <q-badge color="white" text-color="accent" :label="progressLabel1" />
                         </div>
@@ -151,7 +150,7 @@ import { ref, computed } from 'vue'
 import { SessionStorage } from 'quasar'
 // import moment from 'moment'
 export default {
-    props: ['clinicalService', 'menuSelected', 'id', 'totalRecords', 'qtyProcessed', 'reportType'],
+    props: ['clinicalService', 'menuSelected', 'id', 'totalRecords', 'qtyProcessed', 'reportType', 'progressValue'],
     data () {
       const progress1 = ref(0)
       return {
@@ -177,7 +176,7 @@ export default {
           { id: 5, description: 'Anual', code: 'ANNUAL' }
         ],
         progress1,
-        progressLabel1: computed(() => (progress1.value * 100).toFixed(2) + '%')
+        progressLabel1: computed(() => (this.progressValue * 100).toFixed(2) + '%')
       }
     },
     computed: {
@@ -253,10 +252,19 @@ export default {
             this.reportParams.reportType = this.reportType
           }
           console.log('parametros', this.reportParams)
-          this.$emit('initReportProcessing', this.reportParams)
+           this.$emit('initReportProcessing', this.reportParams)
+            this.$emit('updateProgressBar', this.progress1)
+         // this.updateProgressBar()
       },
       generateReport (fileType) {
         this.$emit('generateReport', this.id, fileType)
+      },
+      initReportProcessing () {
+        this.$emit('initReportProcessing', this.reportParams)
+      },
+       updateProgressBar () {
+         console.log(this.progressValue)
+        this.progress1 = this.progressValue
       }
     },
     components: {
