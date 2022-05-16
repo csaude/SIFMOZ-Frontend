@@ -194,7 +194,7 @@
                 <q-btn type="submit" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
-        <q-dialog v-model="alert.visible">
+        <q-dialog persistent v-model="alert.visible">
           <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>

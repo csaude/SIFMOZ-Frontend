@@ -71,7 +71,7 @@ export default {
                 id: 2,
                 menuItem: [
                            { description: 'Submenu 12', tabName: 'ActivesInDrugStore' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
+                           { description: 'Mapa Mensal de Informação de ARV (MMIA)', tabName: 'Mmia' },
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList' },
                            { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
