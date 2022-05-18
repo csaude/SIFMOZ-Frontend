@@ -50,17 +50,17 @@ import { ref } from 'vue'
     },
     methods: {
       closeSection () {
-         Report.api().delete(`/referredPatientsReport/delete/${this.id}`)
+         Report.api().delete(`/absentPatientsReport/delete/${this.id}`)
         this.$refs.filterDrugStoreSection.remove()
         LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
-         Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
+         Report.api().post('/absentPatientsReport/initReportProcess', params).then((response) => {
          setTimeout(this.getProcessingStatus(params), 2)
       })
       },
       getProcessingStatus (params) {
-        Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
+        Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
           console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
           console.log(this.progress)
@@ -76,7 +76,7 @@ import { ref } from 'vue'
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
-            Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/${fileType}`,
+            Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`,
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)
@@ -84,7 +84,7 @@ import { ref } from 'vue'
         const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-          link.setAttribute('download', 'PacientesReferidosFaltosos.' + fileType)
+          link.setAttribute('download', 'PacientesFaltosos.' + fileType)
           document.body.appendChild(link)
           link.click()
             })
