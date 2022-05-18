@@ -78,7 +78,7 @@
 <script>
 import { ref } from 'vue'
 // import { uuid } from 'uuid'
-import { uid } from 'quasar'
+import { uid, LocalStorage } from 'quasar'
 export default {
 
   setup () {
@@ -106,7 +106,17 @@ export default {
      ReferredPatients: require('components/Reports/ReferralManagement/ReferredPatients.vue').default,
      ReferredBackPatients: require('components/Reports/ReferralManagement/ReferredBackPatients.vue').default,
      ReferredPatientDispenseHistory: require('components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue').default,
-      AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default
+      AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default,
+      AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default
+    },
+     mounted () {
+     const array = LocalStorage.getAll()
+   //  for (let index = 0; index < array.length; index++) {
+   //   console.log(array[index])
+   //    console.log(LocalStorage.getItem(index))
+ //  let obj =
+       console.log(array)
+// }
     },
     methods: {
       changeTab (tabName, selectedService) {

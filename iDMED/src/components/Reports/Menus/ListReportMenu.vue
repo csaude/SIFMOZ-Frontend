@@ -70,7 +70,7 @@ export default {
                 description: 'Gestão de Farmácia',
                 id: 2,
                 menuItem: [
-                           { description: 'Submenu 12', tabName: 'ActivesInDrugStore' },
+                           { description: 'Lista de Pacientes Faltosos ao Levantamento', tabName: 'AbsentPatients' },
                            { description: 'Mapa Mensal de Informação de ARV (MMIA)', tabName: 'Mmia' },
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList' },

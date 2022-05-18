@@ -5,7 +5,7 @@
     :mainContainer="true"
     :closeVisible="true"
     @closeSection="closeSection"
-    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Historico de Levantamento de Pacientes Referidos
+    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Pacientes Faltosos ao levantamento
   </ListHeader>
   <div class="param-container">
     <q-item>
@@ -32,13 +32,13 @@ import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
-    name: 'ReferredPatientDispenseHistory',
+    name: 'AbsentPatients',
     props: ['selectedService', 'menuSelected', 'id'],
     setup () {
       return {
         totalRecords: ref(0),
         qtyProcessed: ref(0),
-        report: 'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS',
+        report: 'FALTOSOS_AO_LEVANTAMENTO',
         progress: ref(0)
       }
     },
@@ -55,13 +55,11 @@ import { ref } from 'vue'
         LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
-          Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
-        // reset your component inputs like textInput to null
-        // or your custom route redirect with vue-router
+         Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
          setTimeout(this.getProcessingStatus(params), 2)
       })
       },
-       getProcessingStatus (params) {
+      getProcessingStatus (params) {
         Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
           console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
@@ -74,7 +72,7 @@ import { ref } from 'vue'
           }
         })
       },
-        generateReport (id, fileType) {
+      generateReport (id, fileType) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
@@ -86,7 +84,7 @@ import { ref } from 'vue'
         const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-           link.setAttribute('download', 'HistoricoDeDispensasPacientesReferidos.' + fileType)
+          link.setAttribute('download', 'PacientesReferidosFaltosos.' + fileType)
           document.body.appendChild(link)
           link.click()
             })

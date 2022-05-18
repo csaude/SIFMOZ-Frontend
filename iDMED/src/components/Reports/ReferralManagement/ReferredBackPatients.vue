@@ -16,6 +16,7 @@
               :totalRecords="totalRecords"
               :qtyProcessed="qtyProcessed"
                 :reportType="report"
+                :progress="progress"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
@@ -28,6 +29,7 @@
 <script>
 
 import Report from 'src/store/models/report/Report'
+import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
     name: 'ReferredBackPatients',
@@ -36,7 +38,8 @@ import { ref } from 'vue'
       return {
         totalRecords: ref(0),
         qtyProcessed: ref(0),
-        report: 'VOLTOU_REFERENCIA'
+        report: 'VOLTOU_REFERENCIA',
+        progress: ref(0)
       }
     },
     mounted () {
@@ -47,27 +50,43 @@ import { ref } from 'vue'
     },
     methods: {
       closeSection () {
+        Report.api().delete(`/referredPatientsReport/delete/${this.id}`)
         this.$refs.filterDrugStoreSection.remove()
+        LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
          Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
         // reset your component inputs like textInput to null
         // or your custom route redirect with vue-router
+         setTimeout(this.getProcessingStatus(params), 2)
       })
       },
-        generateReport (id, pdf) {
+       getProcessingStatus (params) {
+        Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
+          console.log(resp.response.data.progress)
+          this.progress = resp.response.data.progress
+          console.log(this.progress)
+          if (this.progress < 100) {
+            setTimeout(this.getProcessingStatus(params), 2)
+          } else {
+            params.progress = 100
+            LocalStorage.set(params.id, params)
+          }
+        })
+      },
+        generateReport (id, fileType) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
-            Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/pdf`,
+            Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/${fileType}`,
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)
-                const file = new Blob([resp.response.data], { type: 'application/pdf' })
+                const file = new Blob([resp.response.data], { type: 'application/' + fileType })
         const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-          link.setAttribute('download', 'file.pdf')
+         link.setAttribute('download', 'PacientesReferidosDeVolta.' + fileType)
           document.body.appendChild(link)
           link.click()
             })
