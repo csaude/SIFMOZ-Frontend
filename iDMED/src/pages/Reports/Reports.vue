@@ -107,7 +107,10 @@ export default {
      ReferredBackPatients: require('components/Reports/ReferralManagement/ReferredBackPatients.vue').default,
      ReferredPatientDispenseHistory: require('components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue').default,
       AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default,
-      AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default
+     ReceivedStock: require('components/Reports/stock/ReceivedStock.vue').default,
+     UsedStock: require('components/Reports/stock/UsedStock.vue').default,
+     ArvDailyRegister: require('components/Reports/monitoring/ArvDailyRegister.vue').default,
+     AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default
     },
      mounted () {
      const array = LocalStorage.getAll()
@@ -117,7 +120,7 @@ export default {
  //  let obj =
        console.log(array)
 // }
-    },
+  },
     methods: {
       changeTab (tabName, selectedService) {
         const uidValue = uid()
