@@ -7,7 +7,7 @@
                       disable
                       class="col q-mr-md"
                       :options="provinces"
-                      v-model="reportParams.provinceId"
+                      v-model="reportParams.province"
                       ref="province"
                       option-value="id"
                       option-label="description"
@@ -18,7 +18,7 @@
                       v-if="isProvincialLevel"
                       dense outlined
                       :options="districts"
-                      v-model="reportParams.districtId"
+                      v-model="reportParams.district"
                       ref="district"
                       option-value="id"
                       option-label="description"
@@ -39,7 +39,7 @@
                       class="col q-mr-md"
                       dense outlined
                       :options="periodTypeList"
-                      v-model="reportParams.periodType"
+                      v-model="reportParams.periodTypeView"
                       ref="period"
                       option-value="code"
                       option-label="description"
@@ -48,7 +48,7 @@
                       lazy-rules
                       label="Período *" />
 
-                     <div  class="row q-mb-md" v-if="reportParams.periodType !== null && reportParams.periodType.id ===1">
+                     <div  class="row q-mb-md" v-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===1">
                         <q-input
                           dense
                           outlined
@@ -78,7 +78,9 @@
                           <template v-slot:append>
                               <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                  <q-date v-model="reportParams.endDateParam" mask="DD-MM-YYYY">
+                                  <q-date v-model="reportParams.endDateParam"
+                                  mask="DD-MM-YYYY"
+                                   :options="blockDataFutura">
                                   <div class="row items-center justify-end">
                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                   </div>
@@ -90,22 +92,22 @@
                     </div>
 
                     <MonthlyPeriod
-                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===2"
+                      v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===2"
                       @setSelectedMonth="setSelectedPeriod"
                       @setSelectedYearMonth="setSelectedYear"/>
 
                     <QuarterlyPeriod
-                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===3"
+                      v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===3"
                       @setSelectedQuarter="setSelectedPeriod"
                       @setSelectedYearQuarter="setSelectedYear" />
 
                     <SemesterPeriod
-                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===4"
+                      v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===4"
                       @setSelectedSemester="setSelectedPeriod"
                       @setSelectedSemesterYear="setSelectedYear"  />
 
                     <AnnualPeriod
-                      v-else-if="reportParams.periodType !== null && reportParams.periodType.id ===5"
+                      v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===5"
                       @setSelectedYearAnnual="setSelectedYear" />
 
                     <div class="">
@@ -121,7 +123,7 @@
                       </q-btn>
                     </div>
                     <div class="q-mr-md q-pt-xs items-center" style="width: 250px;">
-                      <q-linear-progress class="col q-mx-md" size="25px" stripe rounded :value="this.progressValue" color="red">
+                      <q-linear-progress class="col q-mx-md" size="25px" stripe rounded :value="this.progress" color="red">
                         <div class="absolute-full flex flex-center">
                             <q-badge color="white" text-color="accent" :label="progressLabel1" />
                         </div>
@@ -148,7 +150,8 @@
 import Province from '../../../store/models/province/Province'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
-import { LocalStorage, SessionStorage } from 'quasar'
+import { LocalStorage, SessionStorage, date } from 'quasar'
+import moment from 'moment'
 // import moment from 'moment'
 export default {
     props: ['clinicalService', 'menuSelected', 'id', 'progress', 'reportType', 'progressValue', 'applicablePeriods'],
@@ -161,12 +164,14 @@ export default {
           districtId: null,
           clinicId: null,
           clinic: null,
+          province: null,
+          district: null,
           endDateParam: null,
           startDateParam: null,
           clinicalService: null,
           year: new Date().getFullYear(),
           period: null,
-          periodType: null,
+          periodTypeView: null,
           reportType: null,
           progress: 0
         },
@@ -229,6 +234,10 @@ export default {
       }
     },
     methods: {
+       date: ref(moment(date).format('YYYY/MM/DD')),
+        blockDataFutura (date) {
+            return date <= moment(new Date()).format('YYYY/MM/DD')
+        },
       init () {
         console.log(this.applicablePeriods)
         if (this.applicablePeriods !== null) {
@@ -243,7 +252,7 @@ export default {
         this.reportParams.startDateParam = null
         this.reportParams.year = new Date().getFullYear()
         this.reportParams.period = null
-        this.reportParams.periodType = val
+        this.reportParams.periodTypeView = val
         this.reportParams.progress = 0
       },
       initParams () {
@@ -264,12 +273,15 @@ export default {
       processReport () {
           this.reportParams.id = this.id
           this.reportParams.clinicalService = this.clinicalService.id
-          if (this.reportParams.periodType !== null) {
-            this.reportParams.periodType = this.reportParams.periodType.code
+          if (this.reportParams.periodTypeView !== null) {
+            this.reportParams.periodType = this.reportParams.periodTypeView.code
           }
           if (this.reportType !== null) {
             this.reportParams.reportType = this.reportType
           }
+          if (this.reportParams.district !== null) {
+             this.reportParams.districtId = this.reportParams.district.id
+           }
           this.saveParams()
           this.$emit('initReportProcessing', this.reportParams)
           this.$emit('updateProgressBar', this.progress1)
