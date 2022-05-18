@@ -12,22 +12,28 @@
         <q-item-section  class="col" >
             <FiltersInput
               :id="id"
+              :typeService="selectedService"
+              :progress="progress"
               :clinicalService="selectedService"
-              :totalRecords="totalRecords"
-              :qtyProcessed="qtyProcessed"
-                :reportType="report"
+              :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
     </q-item>
+    <q-dialog persistent v-model="alert.visible">
+    <Dialog :type="alert.type" @closeDialog="closeDialog">
+      <template v-slot:title> Informação</template>
+      <template v-slot:msg> {{alert.msg}} </template>
+    </Dialog>
+  </q-dialog>
   </div>
   </div>
 </template>
 
 <script>
-
-import Pack from 'src/store/models/packaging/Pack'
+import Report from 'src/store/models/report/Report'
+import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
     name: 'ReceivedStock',
@@ -35,37 +41,67 @@ import { ref } from 'vue'
     setup () {
       return {
         totalRecords: ref(0),
-        qtyProcessed: ref(0)
+        qtyProcessed: ref(0),
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
+        progress: ref(0)
       }
     },
     mounted () {
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     methods: {
       closeSection () {
         this.$refs.filterReceivedStockSection.remove()
       },
       initReportProcessing (params) {
-          Pack.api().post('/receivedStockReport/initReportProcess', params)
+          Report.apiInitReceivedStockProcessing(params).then(resp => {
+            console.log(resp.response.data.progress)
+            this.progress = resp.response.data.progress
+            console.log(this.progress)
+            setTimeout(this.getProcessingStatus(params), 2)
+          })
+         // Pack.api().post('/receivedStockReport/initReportProcess', params)
+      },
+      getProcessingStatus (params) {
+        Report.getProcessingStatus('receivedStockReport', params).then(resp => {
+          console.log(resp.response.data.progress)
+          this.progress = resp.response.data.progress
+          console.log(this.progress)
+          if (this.progress < 100) {
+            setTimeout(this.getProcessingStatus(params), 2)
+          } else {
+            params.progress = 100
+            LocalStorage.set(params.id, params)
+          }
+        })
       },
       generateReport (id, fileType) {
         // UID da tab corrente
-        console.log('UUID da tab seleccionada:', id)
-            Pack.api().get(`/receivedStockReport/printReport/${id}/pdf`,
-            { responseType: 'blob' }).then(resp => {
-              console.log(resp)
-              console.log(resp.response.data)
-                const file = new Blob([resp.response.data], { type: 'application/pdf' })
-        const fileURL = URL.createObjectURL(file)
+         Report.api().get(`/receivedStockReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
+          const file = new Blob([resp.response.data], { type: 'application/pdf' })
+          const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-          link.setAttribute('download', 'file.pdf')
+          link.setAttribute('download', 'receivedStockReport.' + fileType)
           document.body.appendChild(link)
           link.click()
-            })
+        })
+      },
+      displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
       }
     }
   }
