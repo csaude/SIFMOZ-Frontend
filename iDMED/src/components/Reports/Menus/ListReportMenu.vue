@@ -91,22 +91,15 @@ export default {
                 description: 'Stock',
                 id: 4,
                 menuItem: [
-                           { description: 'Submenu 1', tabName: 'ActivesInDrugStore' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
+                           { description: 'Lista de Stock Recebido', tabName: 'ReceivedStock' },
+                           { description: 'Lista de Stock Usado', tabName: 'UsedStock' }
                           ]
                 },
                 {
                 description: 'Monitoria e Avaliação',
                 id: 5,
                 menuItem: [
-                           { description: 'Submenu 2', tabName: 'ActivesInDrugStore' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
+                           { description: 'Lista de Registro Diário de ARV', tabName: 'ArvDailyRegister' }
                           ]
                 }
 
