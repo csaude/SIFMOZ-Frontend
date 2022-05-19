@@ -1,11 +1,11 @@
 <template>
-<div ref="filterDrugStoreSection">
+<div ref="filterDPatientHistorySection">
   <ListHeader
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
     @closeSection="closeSection"
-    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Activos na Farmácia
+    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Histórico de Pacientes
   </ListHeader>
   <div class="param-container">
     <q-item>
@@ -37,7 +37,7 @@ import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
-    name: 'DrugStore',
+    name: 'PatientHistory',
     props: ['selectedService', 'menuSelected', 'id'],
     setup () {
      return {
@@ -59,19 +59,19 @@ import { ref } from 'vue'
     },
     methods: {
       closeSection () {
-        this.$refs.filterDrugStoreSection.remove()
+        this.$refs.filterDPatientHistorySection.remove()
       },
       initReportProcessing (params) {
-          Report.apiInitActiveInDrugStoreProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
+          console.log(params)
+          Report.apiInitPatientsHistryProcessing(params).then(resp => {
+            // console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
             console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
-         // Pack.api().post('/receivedStockReport/initReportProcess', params)
       },
       getProcessingStatus (params) {
-        Report.getProcessingStatus('activePatientReport', params).then(resp => {
+        Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
           console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
           console.log(this.progress)
@@ -85,12 +85,12 @@ import { ref } from 'vue'
       },
       generateReport (id, fileType) {
         // UID da tab corrente
-         Report.api().get(`/activePatientReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
+         Report.api().get(`/historicoLevantamentoReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
           const file = new Blob([resp.response.data], { type: 'application/pdf' })
           const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-          link.setAttribute('download', 'ActivePatientReport.' + fileType)
+          link.setAttribute('download', 'HistoricoLevantamentoReport.' + fileType)
           document.body.appendChild(link)
           link.click()
         })

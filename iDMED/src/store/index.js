@@ -74,7 +74,7 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://localhost:8884'
+  baseURL: 'http://localhost:8000'
 })
 
 // VuexORM.use(datePlugin)
