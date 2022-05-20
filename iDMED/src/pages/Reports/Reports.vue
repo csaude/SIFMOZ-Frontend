@@ -52,10 +52,11 @@
         <template v-for="comp in components"
          :key="comp.id"
          >
-          <component
+            <component
               :is="comp.name"
               :selectedService="comp.clinicalService"
               :id="comp.id"
+               :params="comp.params"
               class="q-mb-sm"
               />
         </template>
@@ -79,6 +80,7 @@
 import { ref } from 'vue'
 // import { uuid } from 'uuid'
 import { uid, LocalStorage } from 'quasar'
+import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 export default {
 
   setup () {
@@ -87,6 +89,7 @@ export default {
       model: ref(null),
       activeTab: ref(''),
       selectedService: null
+      // params: null
     }
   },
   data () {
@@ -113,18 +116,26 @@ export default {
      AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default
     },
      mounted () {
-     const array = LocalStorage.getAll()
-   //  for (let index = 0; index < array.length; index++) {
-   //   console.log(array[index])
-   //    console.log(LocalStorage.getItem(index))
- //  let obj =
-       console.log(array)
-// }
+     const array = LocalStorage.getAllKeys()
+     for (let index = 0; index < array.length; index++) {
+            // Regular expression to check if string is a valid UUID
+      const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
+     // check if is uuid
+        if (regexExp.test(array[index])) {
+      console.log(LocalStorage.getItem(index))
+       const item = LocalStorage.getItem(array[index])
+        this.selectedService = ClinicalService.query()
+                                        .where('id', item.clinicalService)
+                                        .first()
+      this.changeTab(item.tabName, this.selectedService, item)
+        }
+ }
   },
     methods: {
-      changeTab (tabName, selectedService) {
+   changeTab (tabName, selectedService, params) {
         const uidValue = uid()
-        const comp = { id: uidValue, name: tabName, clinicalService: selectedService }
+        console.log(uidValue)
+        const comp = { id: params === undefined ? uidValue : params.id, name: tabName, clinicalService: selectedService, params: params }
         this.components.push(comp)
         }
     }

@@ -15,8 +15,10 @@
               :clinicalService="selectedService"
               :totalRecords="totalRecords"
               :qtyProcessed="qtyProcessed"
-               :progress="progress"
+              :progress="progress"
               :reportType="report"
+              :tabName=name
+              :params="params"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
@@ -33,7 +35,7 @@ import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
     name: 'ReferredPatients',
-    props: ['selectedService', 'menuSelected', 'id'],
+    props: ['selectedService', 'menuSelected', 'id', 'params'],
     setup () {
       return {
         totalRecords: ref(0),
@@ -44,11 +46,9 @@ import { ref } from 'vue'
       }
     },
     mounted () {
-     const array = LocalStorage.getAll
-     for (let index = 0; index < array.length; index++) {
-      console.log(array[index])
-       console.log(LocalStorage.getItem(index))
-}
+       if (this.params) {
+          (this.getProcessingStatus(this.params))
+        }
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
