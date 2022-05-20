@@ -291,6 +291,7 @@ export default {
              this.reportParams.districtId = this.reportParams.district.id
            }
           this.saveParams()
+          console.log(this.reportParams)
           this.$emit('initReportProcessing', this.reportParams)
           this.$emit('updateProgressBar', this.progress1)
          // this.updateProgressBar()
