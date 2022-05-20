@@ -154,7 +154,7 @@ import { LocalStorage, SessionStorage, date } from 'quasar'
 import moment from 'moment'
 // import moment from 'moment'
 export default {
-    props: ['clinicalService', 'menuSelected', 'id', 'progress', 'reportType', 'progressValue', 'applicablePeriods'],
+    props: ['clinicalService', 'menuSelected', 'id', 'progress', 'reportType', 'progressValue', 'applicablePeriods', 'tabName', 'params'],
     data () {
       const progress1 = ref(0)
       return {
@@ -188,6 +188,14 @@ export default {
     created () {
       this.init()
       this.initParams()
+    },
+      mounted () {
+        if (this.params) {
+          this.reportParams = this.params
+       //   this.progress = this.params.progress
+        //  this.periodTypeView = this.params.periodTypeView
+        //  this.reportParams.startDateParam = this.params.startDateParam
+        }
     },
     computed: {
       processingTerminated () {
@@ -288,6 +296,7 @@ export default {
          // this.updateProgressBar()
       },
       saveParams () {
+        this.reportParams.tabName = this.tabName
         LocalStorage.set(this.reportParams.id, this.reportParams)
       },
       generateReport (fileType) {
