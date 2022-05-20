@@ -1,11 +1,11 @@
 <template>
-<div ref="filterReceivedStockSection">
+<div ref="filterDPatientHistorySection">
   <ListHeader
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
     @closeSection="closeSection"
-    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Lista de Stock Recebido
+    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Histórico de Pacientes
   </ListHeader>
   <div class="param-container">
     <q-item>
@@ -32,14 +32,15 @@
 </template>
 
 <script>
+
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
-    name: 'ReceivedStock',
+    name: 'PatientHistory',
     props: ['selectedService', 'menuSelected', 'id'],
     setup () {
-      return {
+     return {
         totalRecords: ref(0),
         qtyProcessed: ref(0),
         alert: ref({
@@ -54,24 +55,23 @@ import { ref } from 'vue'
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
     },
     methods: {
       closeSection () {
-        this.$refs.filterReceivedStockSection.remove()
+        this.$refs.filterDPatientHistorySection.remove()
       },
       initReportProcessing (params) {
-          Report.apiInitReceivedStockProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
+          console.log(params)
+          Report.apiInitPatientsHistryProcessing(params).then(resp => {
+            // console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
             console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
-         // Pack.api().post('/receivedStockReport/initReportProcess', params)
       },
       getProcessingStatus (params) {
-        Report.getProcessingStatus('receivedStockReport', params).then(resp => {
+        Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
           console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
           console.log(this.progress)
@@ -85,12 +85,12 @@ import { ref } from 'vue'
       },
       generateReport (id, fileType) {
         // UID da tab corrente
-         Report.api().get(`/receivedStockReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
+         Report.api().get(`/historicoLevantamentoReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
           const file = new Blob([resp.response.data], { type: 'application/pdf' })
           const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-          link.setAttribute('download', 'receivedStockReport.' + fileType)
+          link.setAttribute('download', 'HistoricoLevantamentoReport.' + fileType)
           document.body.appendChild(link)
           link.click()
         })
@@ -104,7 +104,8 @@ import { ref } from 'vue'
         this.alert.visible = false
       }
     }
-  }
+    }
+
 </script>
 
 <style lang="scss" scoped>
