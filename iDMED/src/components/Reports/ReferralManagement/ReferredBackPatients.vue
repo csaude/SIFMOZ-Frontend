@@ -17,7 +17,7 @@
               :qtyProcessed="qtyProcessed"
               :reportType="report"
               :progress="progress"
-              :tabName="name"
+             :tabName="params.tabName"
               :params="params"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
