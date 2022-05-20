@@ -13,28 +13,42 @@
             <FiltersInput
               :id="id"
               :typeService="selectedService"
-              :totalRecords="totalRecords"
-              :qtyProcessed="qtyProcessed"
+              :progress="progress"
+              :clinicalService="selectedService"
+              :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
     </q-item>
+    <q-dialog persistent v-model="alert.visible">
+    <Dialog :type="alert.type" @closeDialog="closeDialog">
+      <template v-slot:title> Informação</template>
+      <template v-slot:msg> {{alert.msg}} </template>
+    </Dialog>
+  </q-dialog>
   </div>
   </div>
 </template>
 
 <script>
 
-import Pack from 'src/store/models/packaging/Pack'
+import Report from 'src/store/models/report/Report'
+import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
     setup () {
-      return {
+     return {
         totalRecords: ref(0),
-        qtyProcessed: ref(0)
+        qtyProcessed: ref(0),
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
+        progress: ref(0)
       }
     },
     mounted () {
@@ -47,51 +61,51 @@ import { ref } from 'vue'
       closeSection () {
         this.$refs.filterDrugStoreSection.remove()
       },
-      initReportProcessing (id) {
-
+      initReportProcessing (params) {
+          Report.apiInitActiveInDrugStoreProcessing(params).then(resp => {
+            console.log(resp.response.data.progress)
+            this.progress = resp.response.data.progress
+            console.log(this.progress)
+            setTimeout(this.getProcessingStatus(params), 2)
+          })
+         // Pack.api().post('/receivedStockReport/initReportProcess', params)
+      },
+      getProcessingStatus (params) {
+        Report.getProcessingStatus('activePatientReport', params).then(resp => {
+          console.log(resp.response.data.progress)
+          this.progress = resp.response.data.progress
+          console.log(this.progress)
+          if (this.progress < 100) {
+            setTimeout(this.getProcessingStatus(params), 2)
+          } else {
+            params.progress = 100
+            LocalStorage.set(params.id, params)
+          }
+        })
       },
       generateReport (id, fileType) {
         // UID da tab corrente
-        console.log('UUID da tab seleccionada:', id)
-            Pack.api().get('/report/',
-            { responseType: 'blob' }).then(resp => {
-              console.log(resp)
-              console.log(resp.response.data)
-                const file = new Blob([resp.response.data], { type: 'application/pdf' })
-        const fileURL = URL.createObjectURL(file)
+         Report.api().get(`/activePatientReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
+          const file = new Blob([resp.response.data], { type: 'application/pdf' })
+          const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
-          link.setAttribute('download', 'file.pdf')
+          link.setAttribute('download', 'ActivePatientReport.' + fileType)
           document.body.appendChild(link)
           link.click()
-            })
+        })
+      },
+      displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
       }
-              //  const bytes = btoa(new Uint8Array(resp.data).reduce((data, byte) => data + String.fromCharCode(byte), ''))
-             //  const url = 'data:application/pdf;base64, ' + bytes
-        /*    const link = document.createElement('a')
-             const downloadUrl = window.URL.createObjectURL(new Blob([resp.response.data]))
-            link.href = downloadUrl
-            link.setAttribute('download', 'file.pdf')
-           document.body.appendChild(link)
-            link.click()
-            link.remove() */
-        /*   axios({
-              url: 'http://localhost:8884/report/',
-            method: 'GET',
-          responseType: 'blob' // important
-             }).then((resp) => {
-                const file = new Blob([resp.data], { type: 'application/pdf' })
-      const fileURL = URL.createObjectURL(file)
-        const link = document.createElement('a')
-        link.href = fileURL
-         link.setAttribute('download', 'file.pdf')
-        document.body.appendChild(link)
-        link.click()
-             }) */
-    //  }
-
     }
-  }
+    }
+
 </script>
 
 <style lang="scss" scoped>
