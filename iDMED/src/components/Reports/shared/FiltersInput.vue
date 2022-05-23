@@ -298,6 +298,7 @@ export default {
       },
       saveParams () {
         this.reportParams.tabName = this.tabName
+        this.reportParams.id = 'report' + this.reportParams.id
         LocalStorage.set(this.reportParams.id, this.reportParams)
       },
       generateReport (fileType) {

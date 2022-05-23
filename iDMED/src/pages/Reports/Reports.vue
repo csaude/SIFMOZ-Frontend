@@ -119,10 +119,8 @@ export default {
      mounted () {
      const array = LocalStorage.getAllKeys()
      for (let index = 0; index < array.length; index++) {
-            // Regular expression to check if string is a valid UUID
-      const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
      // check if is uuid
-        if (regexExp.test(array[index])) {
+        if (array[index].substring(0, 6) === 'report') {
       console.log(LocalStorage.getItem(index))
        const item = LocalStorage.getItem(array[index])
         this.selectedService = ClinicalService.query()

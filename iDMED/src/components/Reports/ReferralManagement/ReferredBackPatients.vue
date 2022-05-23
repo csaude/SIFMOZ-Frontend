@@ -17,7 +17,7 @@
               :qtyProcessed="qtyProcessed"
               :reportType="report"
               :progress="progress"
-             :tabName="params.tabName"
+             :tabName="name"
               :params="params"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
@@ -41,7 +41,8 @@ import { ref } from 'vue'
         totalRecords: ref(0),
         qtyProcessed: ref(0),
         report: 'VOLTOU_REFERENCIA',
-        progress: ref(0)
+        progress: ref(0),
+        name: 'ReferredBackPatients'
       }
     },
     mounted () {
