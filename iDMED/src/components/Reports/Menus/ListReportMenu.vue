@@ -74,7 +74,8 @@ export default {
                            { description: 'Mapa Mensal de Informação de ARV (MMIA)', tabName: 'Mmia' },
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
+                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
+                           { description: 'Histórico de Pacientes', tabName: 'PatientHistory' }
                           ]
                 },
                 {

@@ -41,4 +41,20 @@ export default class Report extends Model {
     static async apiArvDailyRegisterReport (reportId, fileType) {
       return await this.api().get(`/arvDailyRegisterReport/printReport/${reportId}/${fileType}`)
     }
+
+    static async apiInitActiveInDrugStoreProcessing (params) {
+      return await this.api().post('/activePatientReport/initReportProcess', params)
+    }
+
+    static async apiActivePatientReport (reportId, fileType) {
+      return await this.api().get(`/activePatientReport/printReport/${reportId}/${fileType}`)
+    }
+
+    static async apiInitPatientsHistryProcessing (params) {
+      return await this.api().post('/historicoLevantamentoReport/initReportProcess', params)
+    }
+
+    static async apiPatientsHistryReport (reportId, fileType) {
+      return await this.api().get(`/historicoLevantamentoReport/printReport/${reportId}/${fileType}`)
+    }
 }
