@@ -5,7 +5,7 @@
     :mainContainer="true"
     :closeVisible="true"
     @closeSection="closeSection"
-    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Histórico de Pacientes
+    bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Histórico de Levantamento
   </ListHeader>
   <div class="param-container">
     <q-item>
