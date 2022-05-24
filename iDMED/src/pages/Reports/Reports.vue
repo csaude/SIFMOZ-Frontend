@@ -110,7 +110,8 @@ export default {
      ReceivedStock: require('components/Reports/stock/ReceivedStock.vue').default,
      UsedStock: require('components/Reports/stock/UsedStock.vue').default,
      ArvDailyRegister: require('components/Reports/monitoring/ArvDailyRegister.vue').default,
-     AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default
+     AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default,
+     PatientHistory: require('components/Reports/ClinicManagement/PatientHistory.vue').default
     },
      mounted () {
      const array = LocalStorage.getAll()
