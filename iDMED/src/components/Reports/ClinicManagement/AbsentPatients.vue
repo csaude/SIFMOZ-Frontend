@@ -63,7 +63,8 @@ import { ref } from 'vue'
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     methods: {
       closeSection () {

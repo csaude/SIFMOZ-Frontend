@@ -132,7 +132,7 @@ export default {
   },
     methods: {
    changeTab (tabName, selectedService, params) {
-        const uidValue = uid()
+        const uidValue = 'report' + uid()
         console.log(uidValue)
         const comp = { id: params === undefined ? uidValue : params.id, name: tabName, clinicalService: selectedService, params: params }
         this.components.push(comp)
