@@ -52,10 +52,11 @@
         <template v-for="comp in components"
          :key="comp.id"
          >
-          <component
+           <component
               :is="comp.name"
               :selectedService="comp.clinicalService"
               :id="comp.id"
+               :params="comp.params"
               class="q-mb-sm"
               />
         </template>
@@ -79,6 +80,7 @@
 import { ref } from 'vue'
 // import { uuid } from 'uuid'
 import { uid, LocalStorage } from 'quasar'
+import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 export default {
 
   setup () {
@@ -113,19 +115,25 @@ export default {
      AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default,
      PatientHistory: require('components/Reports/ClinicManagement/PatientHistory.vue').default
     },
-     mounted () {
-     const array = LocalStorage.getAll()
-   //  for (let index = 0; index < array.length; index++) {
-   //   console.log(array[index])
-   //    console.log(LocalStorage.getItem(index))
- //  let obj =
-       console.log(array)
-// }
+      mounted () {
+     const array = LocalStorage.getAllKeys()
+     for (let index = 0; index < array.length; index++) {
+     // check if is uuid
+        if (array[index].substring(0, 6) === 'report') {
+      console.log(LocalStorage.getItem(index))
+       const item = LocalStorage.getItem(array[index])
+        this.selectedService = ClinicalService.query()
+                                        .where('id', item.clinicalService)
+                                        .first()
+      this.changeTab(item.tabName, this.selectedService, item)
+        }
+ }
   },
     methods: {
-      changeTab (tabName, selectedService) {
-        const uidValue = uid()
-        const comp = { id: uidValue, name: tabName, clinicalService: selectedService }
+     changeTab (tabName, selectedService, params) {
+        const uidValue = 'report' + uid()
+        console.log(uidValue)
+        const comp = { id: params === undefined ? uidValue : params.id, name: tabName, clinicalService: selectedService, params: params }
         this.components.push(comp)
         }
     }

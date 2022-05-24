@@ -15,14 +15,22 @@
               :clinicalService="selectedService"
               :totalRecords="totalRecords"
               :qtyProcessed="qtyProcessed"
-                :reportType="report"
-                :progress="progress"
+              :reportType="report"
+              :progress="progress"
+              :tabName="name"
+              :params="params"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
     </q-item>
   </div>
+   <q-dialog persistent v-model="alert.visible">
+    <Dialog :type="alert.type" @closeDialog="closeDialog">
+      <template v-slot:title> Informação</template>
+      <template v-slot:msg> {{alert.msg}} </template>
+    </Dialog>
+  </q-dialog>
   </div>
 </template>
 
@@ -33,20 +41,30 @@ import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
     name: 'AbsentPatients',
-    props: ['selectedService', 'menuSelected', 'id'],
+    props: ['selectedService', 'menuSelected', 'id', 'params'],
     setup () {
       return {
         totalRecords: ref(0),
         qtyProcessed: ref(0),
         report: 'FALTOSOS_AO_LEVANTAMENTO',
-        progress: ref(0)
+        progress: ref(0),
+        name: 'AbsentPatients',
+         alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        })
       }
     },
     mounted () {
+         if (this.params) {
+          (this.getProcessingStatus(this.params))
+        }
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     methods: {
       closeSection () {
@@ -80,14 +98,26 @@ import { ref } from 'vue'
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)
-                const file = new Blob([resp.response.data], { type: 'application/' + fileType })
+                if (resp.response.status === 204) {
+             this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+              } else {
+             const file = new Blob([resp.response.data], { type: 'application/' + fileType })
         const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
           link.href = fileURL
           link.setAttribute('download', 'PacientesFaltosos.' + fileType)
           document.body.appendChild(link)
           link.click()
+              }
             })
+      },
+        displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
       }
     }
   }
