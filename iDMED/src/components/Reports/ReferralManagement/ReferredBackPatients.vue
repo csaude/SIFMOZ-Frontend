@@ -25,6 +25,12 @@
         </q-item-section>
     </q-item>
   </div>
+    <q-dialog persistent v-model="alert.visible">
+    <Dialog :type="alert.type" @closeDialog="closeDialog">
+      <template v-slot:title> Informação</template>
+      <template v-slot:msg> {{alert.msg}} </template>
+    </Dialog>
+  </q-dialog>
   </div>
 </template>
 
@@ -42,7 +48,12 @@ import { ref } from 'vue'
         qtyProcessed: ref(0),
         report: 'VOLTOU_REFERENCIA',
         progress: ref(0),
-        name: 'ReferredBackPatients'
+        name: 'ReferredBackPatients',
+         alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        })
       }
     },
     mounted () {
@@ -88,6 +99,9 @@ import { ref } from 'vue'
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
               console.log(resp.response.data)
+               if (resp.response.status === 204) {
+             this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+              } else {
                 const file = new Blob([resp.response.data], { type: 'application/' + fileType })
         const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
@@ -95,7 +109,16 @@ import { ref } from 'vue'
          link.setAttribute('download', 'PacientesReferidosDeVolta.' + fileType)
           document.body.appendChild(link)
           link.click()
+          }
             })
+      },
+       displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
       }
     }
   }
