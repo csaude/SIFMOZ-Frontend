@@ -17,7 +17,7 @@
       <q-tab-panel name="list">
 
         <div class="row">
-          <div class="col-3   q-ml-sm q-mr-sm">
+          <div class="col-3   q-ml-sm q-mr-sm" style="max-width: 500px">
               <q-bar dark class="bg-primary text-white">
                   <div class="col text-center text-weight-bold">
                    Listagens
@@ -34,32 +34,32 @@
         </div>
 
         <div class="row">
-          <div class="col-3  q-ml-sm q-mr-sm panel">
+          <div class="col-3  q-ml-sm q-mr-sm panel" style="max-width: 500px">
             <ListReportMenu
               @changeTab="changeTab"
             />
 
           </div>
           <div class="col q-mr-sm panel q-pa-sm">
-              <!-- <div
-              v-if="selectedService!=null"
-              class="vertical-middle"
+            <q-scroll-area
+              :thumb-style="thumbStyle"
+              :content-style="contentStyle"
+              :content-active-style="contentActiveStyle"
+              style="height: 700px;"
+              class="q-pr-md"
+            >
+              <template v-for="comp in components"
+              :key="comp.id"
               >
-                <q-banner rounded class="bg-orange-1 text-left text-orange-10">
-                  Nenhum relatório foi seleccionado.
-                </q-banner>
-              </div> -->
-        <template v-for="comp in components"
-         :key="comp.id"
-         >
-           <component
-              :is="comp.name"
-              :selectedService="comp.clinicalService"
-              :id="comp.id"
-               :params="comp.params"
-              class="q-mb-sm"
-              />
-        </template>
+                <component
+                    :is="comp.name"
+                    :selectedService="comp.clinicalService"
+                    :id="comp.id"
+                    :params="comp.params"
+                    class="q-mb-sm"
+                    />
+              </template>
+            </q-scroll-area>
           </div>
         </div>
       </q-tab-panel>
@@ -88,7 +88,24 @@ export default {
       tab: ref('list'),
       model: ref(null),
       activeTab: ref(''),
-      selectedService: null
+      selectedService: null,
+      contentStyle: {
+        backgroundColor: '#ffffff',
+        color: '#555'
+      },
+
+      contentActiveStyle: {
+        backgroundColor: '#eee',
+        color: 'black'
+      },
+
+      thumbStyle: {
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#0ba58b',
+        width: '5px',
+        opacity: 0.75
+      }
     }
   },
   data () {

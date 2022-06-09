@@ -11,7 +11,7 @@
       label="Serviço de Saúde" />
     <q-separator  />
 
-    <div class="q-pa-md" style="max-width: 1000px">
+    <div class="q-pa-md" style="max-width: 500px">
       <q-list bordered v-if="selectedService !== null">
         <q-expansion-item
           v-for="menu in menu"

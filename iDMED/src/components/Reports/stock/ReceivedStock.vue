@@ -65,16 +65,13 @@ import { ref } from 'vue'
           Report.apiInitReceivedStockProcessing(params).then(resp => {
             console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
          // Pack.api().post('/receivedStockReport/initReportProcess', params)
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('receivedStockReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -84,7 +81,7 @@ import { ref } from 'vue'
         })
       },
       generateReport (id, fileType) {
-        // UID da tab corrente
+        // UID da tab corrent
          Report.api().get(`/receivedStockReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
           const file = new Blob([resp.response.data], { type: 'application/pdf' })
           const fileURL = URL.createObjectURL(file)
