@@ -95,16 +95,16 @@ import { ref } from 'vue'
             this.downloadPDF(
               null,
               patientAux.province,
-              moment(patientAux.startDate, 'DD-MM-YYYY').format('DD/MM/YYYY'),
-              moment(patientAux.endDate, 'DD-MM-YYYY').format('DD/MM/YYYY'),
+              moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+              moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
               resp.response.data
             )
           } else {
             this.downloadExcel(
               null,
               patientAux.province,
-              moment(patientAux.startDate, 'DD-MM-YYYY').format('DD/MM/YYYY'),
-              moment(patientAux.endDate, 'DD-MM-YYYY').format('DD/MM/YYYY'),
+              moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+              moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
               resp.response.data
             )
           }
@@ -133,12 +133,84 @@ import { ref } from 'vue'
           putOnlyUsedFonts: true,
           floatPrecision: 'smart' // or "smart", default is 16
         })
-        // const image = new Image()
-        // image.src = '/src/assets/MoHLogo.png';
-        const width = doc.internal.pageSize.getWidth()
+        const firstObject = result[0]
+        const totalPagesExp = '{total_pages_count_string}'
         /*
           Fill Table
         */
+
+       const desiredDefinition = [
+      [
+        {
+          content: '                                                                                                        Lista de Pacientes Activos na Farmácia',
+          colSpan: 3,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14'
+        }
+      ],
+      [
+        {
+          content: 'US: ' + firstObject.clinic,
+          colSpan: 2,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14'
+        },
+        {
+          content: 'Periodo: ' + startDate + ' à ' + endDate,
+          colSpan: 1,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14'
+        }
+      ],
+      [
+        {
+          content: 'Distrito: ' + firstObject.district,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14'
+         },
+        {
+          content: 'Provincia: ' + province,
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14'
+         },
+        {
+          content: 'Ano: ' + firstObject.year,
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14'
+         }
+      ]
+    ]
+    autoTable(
+      doc,
+
+      {
+        margin: { top: 20 },
+        bodyStyles: {
+          halign: 'left',
+          valign: 'middle'
+        },
+        headStyles: {
+          halign: 'center',
+          valign: 'middle'
+        },
+
+        theme: 'grid',
+        body: desiredDefinition
+      }
+    )
+
         const cols = [
           'ORD',
           'NID',
@@ -151,6 +223,7 @@ import { ref } from 'vue'
           'Data Levant.',
           'Data Prox. Levant.'
         ]
+
         const rows = result
         const data = []
         let ord = 1
@@ -165,21 +238,15 @@ import { ref } from 'vue'
           createRow.push(rows[row].patientType)
           createRow.push(rows[row].therapeuticLine)
           createRow.push(rows[row].therapeuticRegimen)
-          createRow.push(moment(rows[row].pickupDate, 'DD-MM-YYYY').format('DD/MM/YYYY'))
-          createRow.push(rows[row].nextPickUpDate)
+          createRow.push(moment(new Date(rows[row].pickupDate)).format('DD-MM-YYYY'))
+          createRow.push(moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY'))
 
           data.push(createRow)
           ord += 1
         }
         ord = 0
         autoTable(doc, {
-          margin: { top: 60 },
-          columnStyles: {
-            0: { cellWidth: 48 },
-            1: { cellWidth: 55 },
-            2: { cellWidth: 20 },
-            3: { cellWidth: 26 }
-          },
+          margin: { top: 20 },
           bodyStyles: {
             halign: 'center'
           },
@@ -188,17 +255,20 @@ import { ref } from 'vue'
             valign: 'middle'
           },
           didDrawPage: function (data) {
-            // Header
-            doc.setFontSize(16)
-            doc.text('Lista de Pacientes Activos na Farmácia', width / 2, 40, {
-              align: 'center'
-            })
+            // Footer
+            let str = 'Pagina ' + doc.internal.getNumberOfPages()
+            // Total page number plugin only available in jspdf v1.0+
+            if (typeof doc.putTotalPages === 'function') {
+              str = str + ' de ' + totalPagesExp
+            }
             doc.setFontSize(10)
-            doc.text('Província: ' + province, width / 15, 57)
-            doc.text('Data Início: ' + startDate, width / 2 + 98, 49)
-            doc.text('Data Fim: ' + endDate, width / 2 + 98, 57)
-            // doc.line(0, 35, 400, 50);
+
+          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+          const pageSize = doc.internal.pageSize
+          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
+          doc.text(str, data.settings.margin.left, pageHeight - 10)
           },
+          startY: doc.lastAutoTable.finalY,
           theme: 'grid',
           head: [cols],
           body: data
