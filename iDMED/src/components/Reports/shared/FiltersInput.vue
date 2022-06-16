@@ -137,7 +137,7 @@
                     <q-tooltip class="bg-primary">Imprimir Excel</q-tooltip>
                     .Xls
                 </q-btn>
-                <q-btn :color="processingTerminated ? 'green-6' : 'grey-6'" class="gt-xs" flat dense  @click.stop="generateReport('PDF')" :disable="!processingTerminated" icon="article" title=".pdf">
+                <q-btn :color="processingTerminated ? 'green-6' : 'grey-6'" class="gt-xs" flat dense  @click.stop="generateReport('PDF')"  icon="article" title=".pdf">
                   <q-tooltip class="bg-primary">Imprimmir Pdf</q-tooltip>
                   .Pdf
                   </q-btn>

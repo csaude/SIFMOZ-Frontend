@@ -36,6 +36,7 @@
 import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
 import { LocalStorage } from 'quasar'
+import mmiaReport from 'src/services/reportServices/mmiaReportService/mmiaReport'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -91,15 +92,7 @@ import { LocalStorage } from 'quasar'
         })
       },
       generateReport (id, fileType) {
-        Report.api().get(`/mmiaReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
-          const file = new Blob([resp.response.data], { type: 'application/pdf' })
-          const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'MMIA.' + fileType)
-          document.body.appendChild(link)
-          link.click()
-        })
+        mmiaReport.downloadPDF('reportf5f09b8b-c6b3-4811-a9e5-dac7127a4670')
       },
       displayAlert (type, msg) {
         this.alert.type = type
