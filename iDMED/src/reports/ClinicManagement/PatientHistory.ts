@@ -4,10 +4,10 @@ import moment from 'moment'
 import saveAs from 'file-saver'
 import * as ExcelJS from 'exceljs'
 
-const reportName = 'PacientesActivosNaFarmacia'
+const reportName = 'HistoricoDeLevantamento'
 // const logoTitle =
 // 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
-const title = 'Lista de Pacientes Activos na Farmácia'
+const title = 'HISTÓRICO DE LEVANTAMENTO'
 const fileName = reportName.concat(
 '_' + moment(new Date()).format('DD-MM-YYYY')
 )
@@ -30,7 +30,7 @@ export default {
   const desiredDefinition = [
   [
     {
-      content: '                                                                                                        Lista de Pacientes Activos na Farmácia',
+      content: '                                                                                                        HISTÓRICO DE LEVANTAMENTO',
       colSpan: 3,
       halign: 'center',
       valign: 'middle',
@@ -87,11 +87,12 @@ export default {
       'Nome',
       'Idade',
       'Contacto',
-      'Tipo Paciente',
-      'Linha Terapêutica',
-      'Regime Terapêutico',
-      'Data Levant.',
-      'Data Prox. Levant.'
+      'Tipo TARV',
+      'Regime Terapêutica',
+      'Tipo de Dispensa',
+      'Modo de Dispensa',
+      'DATA LEVANT.',
+      'DATA PRÓX. LEVANT.'
     ]
 
     const rows = result
@@ -105,11 +106,12 @@ export default {
       createRow.push(rows[row].firstNames + ' ' + rows[row].middleNames + ' ' + rows[row].lastNames)
       createRow.push(rows[row].age)
       createRow.push(rows[row].cellphone)
-      createRow.push(rows[row].patientType)
-      createRow.push(rows[row].therapeuticLine)
-      createRow.push(rows[row].therapeuticRegimen)
-      createRow.push(moment(new Date(rows[row].pickupDate)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].tipoTarv)
+      createRow.push(rows[row].therapeuticalRegimen)
+      createRow.push(rows[row].dispenseType)
+      createRow.push(rows[row].dispenseMode)
+      createRow.push(moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY'))
+      createRow.push(moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY'))
 
       data.push(createRow)
       ord += 1
@@ -144,7 +146,7 @@ export default {
         )
 
         // Footer
-        let str = 'Pagina ' + doc.internal.getNumberOfPages()
+        const str = 'Pagina ' + doc.internal.getNumberOfPages()
         // Total page number plugin only available in jspdf v1.0+
         // if (typeof doc.putTotalPages === 'function') {
         //   str = str + ' de ' + totalPagesExp
@@ -162,7 +164,7 @@ export default {
       body: data
     })
     // params.value.loading.loading.hide()
-    return doc.save('PacientesActivos.pdf')
+    return doc.save('HistoricoDeLevantamento.pdf')
   },
   async downloadExcel (province, startDate, endDate, result) {
     const rows = result
@@ -186,14 +188,14 @@ export default {
     const cellTitle = worksheet.getCell('A9')
     const cellPharm = worksheet.getCell('A11')
     const cellDistrict = worksheet.getCell('A12')
-    const cellProvince = worksheet.getCell('D12')
-    const cellStartDate = worksheet.getCell('I11')
-    const cellEndDate = worksheet.getCell('I12')
+    const cellProvince = worksheet.getCell('E12')
+    const cellStartDate = worksheet.getCell('J11')
+    const cellEndDate = worksheet.getCell('J12')
     const cellPharmParamValue = worksheet.getCell('B11')
     const cellDistrictParamValue = worksheet.getCell('B12')
-    const cellProvinceParamValue = worksheet.getCell('E12')
-    const cellStartDateParamValue = worksheet.getCell('J11')
-    const cellEndDateParamValue = worksheet.getCell('J12')
+    const cellProvinceParamValue = worksheet.getCell('F12')
+    const cellStartDateParamValue = worksheet.getCell('K11')
+    const cellEndDateParamValue = worksheet.getCell('K12')
 
     // Get Rows
     const headerRow = worksheet.getRow(15)
@@ -208,6 +210,8 @@ export default {
     const colG = worksheet.getColumn('G')
     const colH = worksheet.getColumn('H')
     const colI = worksheet.getColumn('I')
+    const colJ = worksheet.getColumn('J')
+    const colK = worksheet.getColumn('K')
 
     // Format Table Cells
     // Alignment Format
@@ -267,10 +271,10 @@ export default {
 
     // merge a range of cells
     // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:J10')
-    worksheet.mergeCells('B11:H11')
-    worksheet.mergeCells('B12:C12')
-    worksheet.mergeCells('E12:H12')
+    worksheet.mergeCells('A9:K10')
+    worksheet.mergeCells('B11:I11')
+    worksheet.mergeCells('B12:D12')
+    worksheet.mergeCells('F12:I12')
     worksheet.mergeCells('A13:I13')
 
     // add width size to Columns
@@ -288,6 +292,8 @@ export default {
     colG.width = 15
     colH.width = 15
     colI.width = 15
+    colJ.width = 15
+    colK.width = 15
 
     // Add Style
     // cellTitle.font =
@@ -330,27 +336,32 @@ export default {
           filterButton: false
         },
         {
-          name: 'Tipo Paciente',
+          name: 'Tipo TARV',
           totalsRowFunction: 'none',
           filterButton: false
         },
         {
-          name: 'Linha Terapêutica',
+          name: 'Regime Terapêutica',
           totalsRowFunction: 'none',
           filterButton: false
         },
         {
-          name: 'Regime Terapêutico',
+          name: 'Tipo de Dispensa',
           totalsRowFunction: 'none',
           filterButton: false
         },
         {
-          name: 'Data Levant.',
+          name: 'Modo de Dispensa',
           totalsRowFunction: 'none',
           filterButton: false
         },
         {
-          name: 'Data Prox. Levant.',
+          name: 'DATA LEVANT.',
+          totalsRowFunction: 'none',
+          filterButton: false
+        },
+        {
+          name: 'DATA PRÓX. LEVANT.',
           totalsRowFunction: 'none',
           filterButton: false
         }
@@ -419,11 +430,12 @@ export default {
       createRow.push(rows[row].firstNames + ' ' + rows[row].middleNames + ' ' + rows[row].lastNames)
       createRow.push(rows[row].age)
       createRow.push(rows[row].cellphone)
-      createRow.push(rows[row].patientType)
-      createRow.push(rows[row].therapeuticLine)
-      createRow.push(rows[row].therapeuticRegimen)
-      createRow.push(moment(new Date(rows[row].pickupDate)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].tipoTarv)
+      createRow.push(rows[row].therapeuticalRegimen)
+      createRow.push(rows[row].dispenseType)
+      createRow.push(rows[row].dispenseMode)
+      createRow.push(moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY'))
+      createRow.push(moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY'))
 
       data.push(createRow)
       ord += 1
