@@ -283,17 +283,17 @@ export default {
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 30
-    colB.width = 30
-    colC.width = 10
-    colD.width = 15
-    colE.width = 20
-    colF.width = 15
-    colG.width = 15
-    colH.width = 15
-    colI.width = 15
-    colJ.width = 15
-    colK.width = 15
+    colA.width = 20
+    colB.width = 20
+    colC.width = 30
+    colD.width = 10
+    colE.width = 15
+    colF.width = 20
+    colG.width = 20
+    colH.width = 20
+    colI.width = 20
+    colJ.width = 20
+    colK.width = 20
 
     // Add Style
     // cellTitle.font =

@@ -279,9 +279,9 @@ export default {
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 30
-    colB.width = 30
-    colC.width = 10
+    colA.width = 20
+    colB.width = 20
+    colC.width = 30
     colD.width = 15
     colE.width = 20
     colF.width = 15
