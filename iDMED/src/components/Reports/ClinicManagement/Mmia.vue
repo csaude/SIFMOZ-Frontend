@@ -36,7 +36,7 @@
 import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
 import { LocalStorage } from 'quasar'
-import mmiaReport from 'src/services/reportServices/mmiaReportService/mmiaReportxls.ts'
+import mmiaReport from '../../../reports/ClinicManagement/Mmia.ts'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -92,7 +92,11 @@ import mmiaReport from 'src/services/reportServices/mmiaReportService/mmiaReport
         })
       },
       generateReport (id, fileType) {
-        mmiaReport.downloadExcel('reportf5f09b8b-c6b3-4811-a9e5-dac7127a4670')
+        if (fileType === 'PDF') {
+          mmiaReport.downloadPDF(id)
+        } else {
+          mmiaReport.downloadExcel(id)
+        }
       },
       displayAlert (type, msg) {
         this.alert.type = type
