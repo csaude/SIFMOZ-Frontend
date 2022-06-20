@@ -1,13 +1,14 @@
 import JsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import moment from 'moment'
-// import { saveAs } from 'file-saver'
-// import * as ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
+import * as ExcelJS from 'exceljs'
 import reportService from 'src/store/models/report/Report'
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 
-/* const logoTitle =
+const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n CENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS'
-const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV' */
+const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV'
 const reportName = 'MMIA'
 const fileName = reportName
 
@@ -60,7 +61,7 @@ export default {
       row1.push(image)
       row1.push({
         content: 'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS',
-        styles: { halign: 'left', valign: 'middle', fontStyle: 'bold' }
+        styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', textColor: 0 }
       })
       row1.push({
         content: 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV',
@@ -114,7 +115,8 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 7,
+          textColor: 0
         },
         columnStyles: {
           0: { cellWidth: 14 }
@@ -552,12 +554,12 @@ export default {
       const createRow = []
       createRow.push(rows[row].fnmCode)
       createRow.push(rows[row].drugName)
-      createRow.push(rows[row].unit)
-      createRow.push(rows[row].balance)
-      createRow.push(rows[row].initialEntrance)
-      createRow.push(rows[row].outcomes)
-      createRow.push(rows[row].lossesAdjustments)
-      createRow.push(rows[row].inventory)
+      createRow.push(rows[row].unit + ' comp')
+      createRow.push(rows[row].balance * rows[row].unit)
+      createRow.push(rows[row].initialEntrance * rows[row].unit)
+      createRow.push(rows[row].outcomes * rows[row].unit)
+      createRow.push(rows[row].lossesAdjustments * rows[row].unit)
+      createRow.push(rows[row].inventory * rows[row].unit)
       createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'))
 
       data.push(createRow)
@@ -850,5 +852,247 @@ export default {
     data.push(createRow1)
 
     return data
+  },
+ async downloadExcel (
+    reportId
+  ) {
+    await reportService.apiGetMmiaReport(reportId).then(resp => {
+      // const mmiaData = resp.response.data
+      // const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
+
+      const workbook = new ExcelJS.Workbook()
+      workbook.creator = 'FGH'
+      workbook.lastModifiedBy = 'FGH'
+      workbook.created = new Date()
+      workbook.modified = new Date()
+      workbook.lastPrinted = new Date()
+
+      // Force workbook calculation on load
+      // workbook.calcProperties.fullCalcOnLoad = true;
+      const worksheet = workbook.addWorksheet(reportName)
+      const imageId = workbook.addImage({
+        base64: 'data:image/png;base64,' + MOHIMAGELOG,
+        extension: 'png'
+      })
+      // Get Cells
+      const cellRepublica = worksheet.getCell('A8')
+      const cellTitle = worksheet.getCell('B8')
+      const cellReportTitle = worksheet.getCell('E8')
+      const cellPeriod = worksheet.getCell('I8')
+      const cellUS = worksheet.getCell('A9')
+      const cellAno = worksheet.getCell('I9')
+      const cellDistrict = worksheet.getCell('A10')
+      const cellProvince = worksheet.getCell('D10')
+
+      // Get Rows
+      const headerRow = worksheet.getRow(14)
+
+      // Get Columns
+      const colA = worksheet.getColumn('A')
+      const colB = worksheet.getColumn('B')
+      const colC = worksheet.getColumn('C')
+      const colD = worksheet.getColumn('D')
+      const colE = worksheet.getColumn('E')
+      const colF = worksheet.getColumn('F')
+      const colG = worksheet.getColumn('G')
+      const colH = worksheet.getColumn('H')
+      const colI = worksheet.getColumn('I')
+
+      // Format Table Cells
+      // Alignment Format
+      cellRepublica.alignment =
+      cellReportTitle.alignment =
+      cellPeriod.alignment =
+      cellAno.alignment =
+          {
+            vertical: 'middle',
+            horizontal: 'center',
+            wrapText: true
+          }
+
+          cellUS.alignment =
+        cellDistrict.alignment =
+        cellProvince.alignment =
+          {
+            vertical: 'middle',
+            horizontal: 'left',
+            wrapText: false
+          }
+
+      // Border Format
+      cellRepublica.border =
+        cellTitle.border =
+        cellReportTitle.border =
+        cellPeriod.border =
+        cellDistrict.border =
+        cellAno.border =
+        cellProvince.border =
+        cellUS.border =
+          {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          }
+
+      // Assign Value to Cell
+      cellRepublica.value = logoTitle
+      cellTitle.value = logoTitle
+      cellReportTitle.value = title
+      cellUS.value = 'Unidade Sanitária:'
+      cellDistrict.value = 'Distrito'
+      cellProvince.value = 'Província'
+      cellPeriod.value = 'Mês:'
+      cellAno.value = 'Ano:'
+
+      // merge a range of cells
+      worksheet.mergeCells('A1:A8')
+      worksheet.mergeCells('B1:B8')
+      worksheet.mergeCells('C1:C8')
+      worksheet.mergeCells('D1:D8')
+      worksheet.mergeCells('E1:E8')
+      worksheet.mergeCells('F1:F8')
+      worksheet.mergeCells('G1:G8')
+      worksheet.mergeCells('H1:H8')
+      worksheet.mergeCells('I1:I8')
+      worksheet.mergeCells('A9:H9')
+      worksheet.mergeCells('A10:D10')
+      worksheet.mergeCells('E10:H10')
+      worksheet.mergeCells('I9:I10')
+
+      // add width size to Columns
+      // add height size to Rows
+      headerRow.height = 30
+
+      // add height size to Columns
+      // add width size to Columns
+      colA.width = 30
+      colB.width = 30
+      colC.width = 10
+      colD.width = 15
+      colE.width = 20
+      colF.width = 15
+      colG.width = 15
+      colH.width = 30
+      colI.width = 30
+
+      // Add Style
+      cellTitle.font =
+        cellDistrict.font =
+        cellProvince.font =
+        cellPeriod.font =
+        cellAno.font =
+        cellUS.font =
+          {
+            name: 'Arial',
+            family: 2,
+            size: 11,
+            italic: false,
+            bold: true
+          }
+
+      // Add Image
+      worksheet.addImage(imageId, {
+        tl: { col: 0, row: 1 },
+        ext: { width: 144, height: 98 }
+      })
+/*
+      // Cereate Table
+      worksheet.addTable({
+        name: reportName,
+        ref: 'A11',
+        headerRow: true,
+        totalsRow: false,
+        style: {
+          showRowStripes: false
+        },
+        columns: [
+          { name: 'FNM', totalsRowLabel: 'Totals:', filterButton: false },
+          { name: 'Medicamento', totalsRowFunction: 'none', filterButton: false },
+          { name: 'Unidade', totalsRowFunction: 'none', filterButton: false },
+          {
+            name: 'Saldo Inicial',
+            totalsRowFunction: 'none',
+            filterButton: false
+          },
+          {
+            name: 'Entradas',
+            totalsRowFunction: 'none',
+            filterButton: false
+          },
+          {
+            name: 'Saídas',
+            totalsRowFunction: 'none',
+            filterButton: false
+          },
+          {
+            name: 'Perdas e Ajustes',
+            totalsRowFunction: 'none',
+            filterButton: false
+          },
+          {
+            name: 'Inventário',
+            totalsRowFunction: 'none',
+            filterButton: false
+          },
+          {
+            name: 'Validade',
+            totalsRowFunction: 'none',
+            filterButton: false
+          }
+        ],
+        rows: stockdata
+      }) */
+
+      // Format all data cells
+      const lastRowNum =
+        worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0
+      const lastTableRowNum = lastRowNum
+
+      // Loop through all table's row
+      for (let i = 11; i <= lastTableRowNum; i++) {
+        const row = worksheet.getRow(i)
+
+        // Now loop through every row's cell and finally set alignment
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          }
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: 'center',
+            wrapText: true
+          }
+          if (i === 11) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: '1fa37b' },
+              bgColor: { argb: '1fa37b' }
+            }
+            cell.font = {
+              name: 'Arial',
+              color: { argb: 'FFFFFFFF' },
+              family: 2,
+              size: 11,
+              italic: false,
+              bold: true
+            }
+          }
+        })
+      }
+
+      const buffer = workbook.xlsx.writeBuffer()
+      const fileType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      const fileExtension = '.xlsx'
+
+      const blob = new Blob([buffer], { type: fileType })
+
+      saveAs(blob, fileName + fileExtension)
+    })
   }
 }
