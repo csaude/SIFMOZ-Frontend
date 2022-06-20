@@ -3,17 +3,18 @@ import autoTable from 'jspdf-autotable'
 import moment from 'moment'
 import saveAs from 'file-saver'
 import * as ExcelJS from 'exceljs'
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 
-const reportName = 'PacientesActivosNaFarmacia'
-// const logoTitle =
-// 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
-const title = 'Lista de Pacientes Activos na Farmácia'
+const reportName = 'PacientesFaltosos'
+const logoTitle =
+'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
+const title = 'Relatório de Pacientes Faltosos ao \n Levantamento de ARV\'s'
 const fileName = reportName.concat(
 '_' + moment(new Date()).format('DD-MM-YYYY')
 )
 
 export default {
-  async downloadPDF (province, startDate, endDate, result) {
+  async downloadPDF (clinic, startDate, endDate, result) {
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -21,102 +22,38 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart' // or "smart", default is 16
     })
-    const firstObject = result[0]
-    // const totalPagesExp = '{total_pages_count_string}'
+    const image = new Image()
+    // image.src = '/src/assets/MoHLogo.png'
+    image.src = require('src/assets/MoHLogo.png')
+    const width = doc.internal.pageSize.getWidth()
     /*
       Fill Table
     */
-
-  const desiredDefinition = [
-  [
-    {
-      content: '                                                                                                        Lista de Pacientes Activos na Farmácia',
-      colSpan: 3,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ],
-  [
-    {
-      content: 'Unidade Sanitária: ' + firstObject.clinic,
-      colSpan: 2,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Período: ' + startDate + ' à ' + endDate,
-      colSpan: 1,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ],
-  [
-    {
-      content: 'Distrito: ' + firstObject.district,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Província: ' + province,
-      halign: 'center',
-      valign: 'left',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Ano: ' + firstObject.year,
-      halign: 'center',
-      valign: 'left',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ]
-  ]
-
     const cols = [
-      'ORD',
       'NID',
-      'Nome',
-      'Idade',
-      'Contacto',
-      'Tipo Paciente',
-      'Linha Terapêutica',
-      'Regime Terapêutico',
-      'Data Levant.',
-      'Data Prox. Levant.'
+      'NOME',
+      'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
+      'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
+      'Data em que Regressou à Unidade Sanitária',
+      'Contacto'
     ]
 
     const rows = result
     const data = []
-    let ord = 1
 
     for (const row in rows) {
       const createRow = []
-      createRow.push(ord)
       createRow.push(rows[row].nid)
-      createRow.push(rows[row].firstNames + ' ' + rows[row].middleNames + ' ' + rows[row].lastNames)
-      createRow.push(rows[row].age)
-      createRow.push(rows[row].cellphone)
-      createRow.push(rows[row].patientType)
-      createRow.push(rows[row].therapeuticLine)
-      createRow.push(rows[row].therapeuticRegimen)
-      createRow.push(moment(new Date(rows[row].pickupDate)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].name)
+      createRow.push(moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY'))
+      createRow.push(moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY'))
+      createRow.push(moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].contact)
 
       data.push(createRow)
-      ord += 1
     }
-    ord = 0
     autoTable(doc, {
-      margin: { top: 42 },
+      margin: { top: 60 },
       bodyStyles: {
         halign: 'center'
       },
@@ -125,26 +62,38 @@ export default {
         valign: 'middle'
       },
       didDrawPage: function (data) {
-      // First Hearder
-      autoTable(
-        doc,
+      // Header
+      doc.setFontSize(10)
+      doc.setTextColor(40)
+      doc.addImage(image, 'PNG', data.settings.margin.left + 15, 5, 25, 25)
+      doc.text('REPÚBLICA DE MOÇAMBIQUE', data.settings.margin.left + 2, 35)
+      doc.text('MINISTÉRIO DA SAÚDE', data.settings.margin.left + 7, 40)
+      doc.text('SERVIÇO NACIONAL DE SAÚDE', data.settings.margin.left, 45)
+      doc.setFontSize(16)
+      doc.text(
+        'Relatório de Pacientes Faltosos ao',
+        width / 2,
+        35,
         {
-          margin: { top: 20 },
-          bodyStyles: {
-            halign: 'left',
-            valign: 'middle'
-          },
-          headStyles: {
-            halign: 'center',
-            valign: 'middle'
-          },
-          theme: 'grid',
-          body: desiredDefinition
+          align: 'center'
         }
-        )
+      )
+      doc.text(
+        'Levantamento de ARV\'s',
+        width / 2,
+        43,
+        {
+          align: 'center'
+        }
+      )
+      doc.setFontSize(10)
+      doc.text('US: ' + clinic, width / 20, 57)
+      // doc.text('US: ' + clinic, width / 2 + 80, 49)
+      doc.text('Data Início:  ' + startDate, width / 2 + 97, 49)
+      doc.text('Data Fim:    ' + endDate, width / 2 + 97, 57)
 
         // Footer
-        let str = 'Pagina ' + doc.internal.getNumberOfPages()
+        const str = 'Pagina ' + doc.internal.getNumberOfPages()
         // Total page number plugin only available in jspdf v1.0+
         // if (typeof doc.putTotalPages === 'function') {
         //   str = str + ' de ' + totalPagesExp
@@ -156,15 +105,15 @@ export default {
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
       doc.text(str, data.settings.margin.left, pageHeight - 10)
       },
-      startY: doc.lastAutoTable.finalY,
+      // startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data
     })
     // params.value.loading.loading.hide()
-    return doc.save('PacientesActivos.pdf')
+    return doc.save('PacientesFaltosos.pdf')
   },
-  async downloadExcel (province, startDate, endDate, result) {
+  async downloadExcel (clinic, startDate, endDate, result) {
     const rows = result
     const data = this.createArrayOfArrayRow(rows)
 
@@ -176,26 +125,23 @@ export default {
     workbook.lastPrinted = new Date()
 
     const worksheet = workbook.addWorksheet(reportName)
-    // const imageId = workbook.addImage({
-    //   base64: 'data:image/png;base64,' + MOHIMAGELOG,
-    //   extension: 'png',
-    // })
+    const imageId = workbook.addImage({
+      base64: 'data:image/png;base64,' + MOHIMAGELOG,
+      extension: 'png'
+    })
 
-    // Get Cells
-    // const cellRepublica = worksheet.getCell('A8')
+    // // Get Cells
+    const cellRepublica = worksheet.getCell('A8')
     const cellTitle = worksheet.getCell('A9')
     const cellPharm = worksheet.getCell('A11')
-    const cellDistrict = worksheet.getCell('A12')
-    const cellProvince = worksheet.getCell('D12')
-    const cellStartDate = worksheet.getCell('I11')
-    const cellEndDate = worksheet.getCell('I12')
     const cellPharmParamValue = worksheet.getCell('B11')
-    const cellDistrictParamValue = worksheet.getCell('B12')
-    const cellProvinceParamValue = worksheet.getCell('E12')
-    const cellStartDateParamValue = worksheet.getCell('J11')
-    const cellEndDateParamValue = worksheet.getCell('J12')
 
-    // Get Rows
+    const cellStartDate = worksheet.getCell('E11')
+    const cellEndDate = worksheet.getCell('E12')
+    const cellStartDateParamValue = worksheet.getCell('F11')
+    const cellEndDateParamValue = worksheet.getCell('F12')
+
+  // // Get Rows
     const headerRow = worksheet.getRow(15)
 
     // Get Columns
@@ -205,14 +151,10 @@ export default {
     const colD = worksheet.getColumn('D')
     const colE = worksheet.getColumn('E')
     const colF = worksheet.getColumn('F')
-    const colG = worksheet.getColumn('G')
-    const colH = worksheet.getColumn('H')
-    const colI = worksheet.getColumn('I')
-    const colJ = worksheet.getColumn('J')
 
     // Format Table Cells
     // Alignment Format
-    // cellRepublica.alignment =
+    cellRepublica.alignment =
       cellTitle.alignment =
       headerRow.alignment =
         {
@@ -222,8 +164,6 @@ export default {
         }
 
     cellPharm.alignment =
-      cellDistrict.alignment =
-      cellProvince.alignment =
       cellStartDate.alignment =
       cellEndDate.alignment =
         {
@@ -236,11 +176,7 @@ export default {
     // cellRepublica.border =
       cellTitle.border =
       cellPharm.border =
-      cellDistrictParamValue.border =
-      cellDistrict.border =
       cellPharmParamValue.border =
-      cellProvince.border =
-      cellProvinceParamValue.border =
       cellStartDate.border =
       cellStartDateParamValue.border =
       cellEndDate.border =
@@ -253,48 +189,33 @@ export default {
         }
 
     // Assign Value to Cell
-    // cellRepublica.value = logoTitle
+    cellRepublica.value = logoTitle
     cellTitle.value = title
-    cellPharmParamValue.value = result[0].clinic
-    cellProvinceParamValue.value = province
-    cellDistrictParamValue.value = result[0].district
+    cellPharmParamValue.value = clinic
     cellStartDateParamValue.value = startDate
     cellEndDateParamValue.value = endDate
     cellPharm.value = 'Unidade Sanitária'
-    cellDistrict.value = 'Distrito'
-    cellProvince.value = 'Província'
     cellStartDate.value = 'Data Início'
     cellEndDate.value = 'Data Fim'
 
     // merge a range of cells
-    // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:J10')
-    worksheet.mergeCells('B11:H11')
-    worksheet.mergeCells('B12:C12')
-    worksheet.mergeCells('E12:H12')
-    worksheet.mergeCells('A13:I13')
-
-    // add width size to Columns
-    // add height size to Rows
+    worksheet.mergeCells('A1:A7')
+    worksheet.mergeCells('A9:F10')
+    worksheet.mergeCells('B11:D11')
+    worksheet.mergeCells('A12:D12')
     headerRow.height = 30
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 20
-    colB.width = 20
-    colC.width = 30
-    colD.width = 15
-    colE.width = 20
-    colF.width = 15
-    colG.width = 15
-    colH.width = 15
-    colI.width = 15
-    colJ.width = 20
+    colA.width = 25
+    colB.width = 30
+    colC.width = 25
+    colD.width = 25
+    colE.width = 25
+    colF.width = 20
 
     // Add Style
-    // cellTitle.font =
-      cellDistrict.font =
-      cellProvince.font =
+    cellTitle.font =
       cellStartDate.font =
       cellEndDate.font =
       cellPharm.font =
@@ -307,10 +228,10 @@ export default {
         }
 
     // Add Image
-    // worksheet.addImage(imageId, {
-    //   tl: { col: 0, row: 1 },
-    //   ext: { width: 144, height: 98 },
-    // });
+    worksheet.addImage(imageId, {
+      tl: { col: 0, row: 1 },
+      ext: { width: 144, height: 98 }
+    })
 
     // Cereate Table
     worksheet.addTable({
@@ -322,37 +243,26 @@ export default {
         showRowStripes: false
       },
       columns: [
-        { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
+        // { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
         { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
-        { name: 'Idade', totalsRowFunction: 'none', filterButton: false },
+        {
+          name: 'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
+          totalsRowFunction: 'none',
+          filterButton: false
+        },
+        {
+          name: 'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
+          totalsRowFunction: 'none',
+          filterButton: false
+        },
+        {
+          name: 'Data em que Regressou à Unidade Sanitária',
+          totalsRowFunction: 'none',
+          filterButton: false
+        },
         {
           name: 'Contacto',
-          totalsRowFunction: 'none',
-          filterButton: false
-        },
-        {
-          name: 'Tipo Paciente',
-          totalsRowFunction: 'none',
-          filterButton: false
-        },
-        {
-          name: 'Linha Terapêutica',
-          totalsRowFunction: 'none',
-          filterButton: false
-        },
-        {
-          name: 'Regime Terapêutico',
-          totalsRowFunction: 'none',
-          filterButton: false
-        },
-        {
-          name: 'Data Levant.',
-          totalsRowFunction: 'none',
-          filterButton: false
-        },
-        {
-          name: 'Data Prox. Levant.',
           totalsRowFunction: 'none',
           filterButton: false
         }
@@ -412,26 +322,18 @@ export default {
   },
   createArrayOfArrayRow (rows) {
     const data = []
-    let ord = 1
 
     for (const row in rows) {
       const createRow = []
-      createRow.push(ord)
       createRow.push(rows[row].nid)
-      createRow.push(rows[row].firstNames + ' ' + rows[row].middleNames + ' ' + rows[row].lastNames)
-      createRow.push(rows[row].age)
-      createRow.push(rows[row].cellphone)
-      createRow.push(rows[row].patientType)
-      createRow.push(rows[row].therapeuticLine)
-      createRow.push(rows[row].therapeuticRegimen)
-      createRow.push(moment(new Date(rows[row].pickupDate)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].name)
+      createRow.push(moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY'))
+      createRow.push(moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY'))
+      createRow.push(moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].contact)
 
       data.push(createRow)
-      ord += 1
     }
-    ord = 0
-    rows = []
 
     return data
   }

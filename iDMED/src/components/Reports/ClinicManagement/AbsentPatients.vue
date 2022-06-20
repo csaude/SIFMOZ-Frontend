@@ -35,10 +35,12 @@
 </template>
 
 <script>
-
+import moment from 'moment'
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
+import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.ts'
+
   export default {
     name: 'AbsentPatients',
     props: ['selectedService', 'menuSelected', 'id', 'params'],
@@ -92,23 +94,40 @@ import { ref } from 'vue'
       },
       generateReport (id, fileType) {
         // UID da tab corrente
-        console.log('UUID da tab seleccionada:', id)
+        // console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
-            Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`,
-            { responseType: 'blob' }).then(resp => {
-              console.log(resp)
-              console.log(resp.response.data)
-                if (resp.response.status === 204) {
-             this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
+              const patientAux = resp.response.data[0]
+              if (fileType === 'PDF') {
+                console.log(patientAux)
+                absentPatientsTs.downloadPDF(
+                  patientAux.clinic,
+                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
               } else {
-             const file = new Blob([resp.response.data], { type: 'application/' + fileType })
-        const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'PacientesFaltosos.' + fileType)
-          document.body.appendChild(link)
-          link.click()
+                console.log(patientAux)
+                absentPatientsTs.downloadExcel(
+                  patientAux.clinic,
+                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
               }
+              //       console.log(resp)
+              //       console.log(resp.response.data)
+              //         if (resp.response.status === 204) {
+              //      this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+              //       } else {
+              //      const file = new Blob([resp.response.data], { type: 'application/' + fileType })
+              // const fileURL = URL.createObjectURL(file)
+              //   const link = document.createElement('a')
+              //   link.href = fileURL
+              //   link.setAttribute('download', 'PacientesFaltosos.' + fileType)
+              //   document.body.appendChild(link)
+              //   link.click()
+                    // }
             })
       },
         displayAlert (type, msg) {
