@@ -39,6 +39,7 @@
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
+import referredPatientDispenseHistory from '../../../reports/ReferralManagement/ReferredPatientDispenseHistory.ts'
   export default {
     name: 'ReferredPatientDispenseHistory',
     props: ['selectedService', 'menuSelected', 'id', 'params'],
@@ -92,9 +93,10 @@ import { ref } from 'vue'
           }
         })
       },
-        generateReport (id, fileType) {
+        generateReport (id, fileType, params) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
+        /*
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
             Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/${fileType}`,
             { responseType: 'blob' }).then(resp => {
@@ -112,6 +114,12 @@ import { ref } from 'vue'
           link.click()
               }
             })
+            */
+           if (fileType === 'PDF') {
+               referredPatientDispenseHistory.downloadPDF(params)
+            } else {
+               referredPatientDispenseHistory.downloadExcel(params)
+            }
       },
        displayAlert (type, msg) {
         this.alert.type = type

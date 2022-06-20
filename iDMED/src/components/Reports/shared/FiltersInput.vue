@@ -302,7 +302,7 @@ export default {
         LocalStorage.set(this.reportParams.id, this.reportParams)
       },
       generateReport (fileType) {
-        this.$emit('generateReport', this.id, fileType)
+        this.$emit('generateReport', this.id, fileType, this.reportParams)
       },
       initReportProcessing () {
         this.$emit('initReportProcessing', this.reportParams)
