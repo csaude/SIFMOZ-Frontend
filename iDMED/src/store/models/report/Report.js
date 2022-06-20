@@ -11,6 +11,10 @@ export default class Report extends Model {
       return await this.api().get(`/mmiaReport/printReport/${reportId}/${fileType}`)
     }
 
+    static async apiGetMmiaReport (reportId) {
+      return await this.api().get(`/mmiaReport/${reportId}`)
+    }
+
     static async getProcessingStatus (controller, params) {
       return await this.api().get(`/${controller}/getProcessingStatus/${params.id}`)
     }
