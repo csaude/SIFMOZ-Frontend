@@ -149,7 +149,8 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 8
+          fontSize: 8,
+          fillColor: [75, 76, 77]
         },
         head: [cols],
         body: stockdata,
@@ -171,7 +172,8 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 7,
+          fillColor: [75, 76, 77]
         },
         styles: {
           maxCellHeight: 4
@@ -212,6 +214,7 @@ export default {
           fontSize: 7
         },
         columnStyles: {
+          0: { fillColor: [240, 241, 242] },
           2: { cellWidth: 15 },
           3: { cellWidth: 18 }
         },
@@ -220,7 +223,7 @@ export default {
             {
               content: 'Linhas Terapêuticas',
               colSpan: 4,
-              styles: { halign: 'center', fillColor: [22, 160, 133] }
+              styles: { halign: 'center', fillColor: [75, 76, 77] }
             }
           ]
         ],
@@ -268,7 +271,7 @@ export default {
           fontSize: 7
         },
         columnStyles: {
-          0: { halign: 'left' },
+          0: { halign: 'left', fillColor: [240, 241, 242] },
           1: { cellWidth: 30 }
         },
         head: [
@@ -276,7 +279,7 @@ export default {
             {
               content: 'Tipo de doentes em TARV',
               colSpan: 2,
-              styles: { halign: 'center', fillColor: [22, 160, 133] }
+              styles: { halign: 'center', fillColor: [75, 76, 77] }
             }
           ]
         ],
@@ -300,7 +303,7 @@ export default {
           fontSize: 7
         },
         columnStyles: {
-          0: { halign: 'left' },
+          0: { halign: 'left', fillColor: [240, 241, 242] },
           1: { cellWidth: 30 }
         },
         head: [
@@ -308,7 +311,7 @@ export default {
             {
               content: 'Faixa Etária dos Pacientes TARV',
               colSpan: 2,
-              styles: { halign: 'center', fillColor: [22, 160, 133] }
+              styles: { halign: 'center', fillColor: [75, 76, 77] }
             }
           ]
         ],
@@ -331,7 +334,7 @@ export default {
           fontSize: 7
         },
         columnStyles: {
-          0: { halign: 'left' },
+          0: { halign: 'left', fillColor: [240, 241, 242] },
           1: { cellWidth: 30 }
         },
         head: [
@@ -339,7 +342,7 @@ export default {
             {
               content: 'Profilaxia',
               colSpan: 2,
-              styles: { halign: 'center', fillColor: [22, 160, 133] }
+              styles: { halign: 'center', fillColor: [75, 76, 77] }
             }
           ]
         ],
@@ -366,7 +369,7 @@ export default {
           [
             {
               content: 'Tipo de Dispensa',
-              styles: { halign: 'center', fillColor: [22, 160, 133] }
+              styles: { halign: 'center', fillColor: [75, 76, 77] }
             }
           ]
         ],
@@ -403,10 +406,11 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 7,
+          fillColor: [75, 76, 77]
         },
         columnStyles: {
-          0: { cellWidth: 20, halign: 'right', fillColor: [22, 160, 133] },
+          0: { cellWidth: 20, halign: 'right', fillColor: [240, 241, 242] },
           1: { cellWidth: 15 }
         },
         styles: {
@@ -433,7 +437,8 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 7,
+          fillColor: [75, 76, 77]
         },
         columnStyles: {
           0: { cellWidth: 15 }
@@ -465,7 +470,8 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 7,
+          fillColor: [75, 76, 77]
         },
         columnStyles: {
           0: { cellWidth: 13 }
@@ -487,7 +493,7 @@ export default {
           fontSize: 7
         },
         columnStyles: {
-          0: { cellWidth: 13, halign: 'right', fillColor: [22, 160, 133] }
+          0: { cellWidth: 13, halign: 'right', fillColor: [240, 241, 242] }
         },
         styles: {
           maxCellHeight: 2
@@ -762,6 +768,8 @@ export default {
       });
       worksheet.mergeCells('A' + (Number(worksheet.lastRow.number) + 1) + ':B' + (Number(worksheet.lastRow.number) + 1));
 
+      const cellRegimensTotal = worksheet.getCell('B' + (Number(worksheet.lastRow.number)));
+
       worksheet.addTable({
         name: reportName,
         ref: 'B' + (Number(worksheet.lastRow.number)),
@@ -803,6 +811,7 @@ export default {
         rows: miaLinesSumaryData,
       });
       worksheet.mergeCells('A' + (Number(worksheet.lastRow.number) + 1) + ':B' + (Number(worksheet.lastRow.number) + 1));
+      const cellLinesTotal = worksheet.getCell('B' + (Number(worksheet.lastRow.number)));
       worksheet.addTable({
         name: reportName,
         ref: 'B' + (Number(worksheet.lastRow.number)),
@@ -962,6 +971,7 @@ export default {
         ],
         rows: mmiaAjusteData,
       });
+      const cellAjuste = worksheet.getCell('H' + (refDispenseType + 2));
 
       worksheet.mergeCells('E' + (refDispenseType + 9) + ':I' + (refDispenseType + 9));
       worksheet.mergeCells('E' + (refDispenseType + 10) + ':I' + (refDispenseType + 10));
@@ -1008,6 +1018,29 @@ export default {
         horizontal: 'center',
         wrapText: true,
       }
+      cellRegimensTotal.alignment =
+      cellLinesTotal.alignment = {
+        horizontal: 'right',
+        wrapText: true,
+      }
+      const cellDS = worksheet.getCell('F' + Number(refDispenseType + 1));
+      const cellDt = worksheet.getCell('G' + Number(refDispenseType + 4));
+      const cellDM = worksheet.getCell('H' + Number(refDispenseType + 6));
+      const cellDTotal = worksheet.getCell('I' + Number(refDispenseType + 6));
+
+      cellRegimensTotal.fill =
+      cellLinesTotal.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'dedfe0' },
+        bgColor: { argb: 'dedfe0' },
+      }
+
+      cellDTotal.fill =
+      cellDM.fill =
+      cellDS.fill =
+      cellDt.fill =
+      cellAjuste.fill =
       cellDispenseTypeHeader.fill =
       cellLinesHeader.fill =
       cellProfilaxiaHeader.fill =
@@ -1015,13 +1048,19 @@ export default {
       cellTipoDoenteHeader.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: '1fa37b' },
-        bgColor: { argb: '1fa37b' },
+        fgColor: { argb: '4b4c4d' },
+        bgColor: { argb: '4b4c4d' },
       }
+
       cellDispenseTypeHeader.font =
       cellLinesHeader.font =
       cellProfilaxiaHeader.font =
       cellFaixaEtariaHeader.font =
+      cellDTotal.font =
+      cellDM.font =
+      cellDS.font =
+      cellDt.font =
+      cellAjuste.font =
       cellTipoDoenteHeader.font = {
         name: 'Arial',
         color: { argb: 'FFFFFFFF' },
@@ -1056,8 +1095,8 @@ export default {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: '1fa37b' },
-              bgColor: { argb: '1fa37b' },
+              fgColor: { argb: '4b4c4d' },
+              bgColor: { argb: '4b4c4d' },
             };
             cell.font = {
               name: 'Arial',
