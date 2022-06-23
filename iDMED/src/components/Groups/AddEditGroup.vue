@@ -267,7 +267,16 @@ export default {
             return member.patient.id === patient.id
           })
           if (!patientExists) {
-            this.curGroup.members.push(this.initNewMember(patient))
+            const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
+            if (identifier.lastEpisode === null) {
+                this.displayAlert('error', 'O paciente selecionado não possui episódios.')
+            } else {
+               if (!identifier.lastEpisode.isStartEpisode) {
+                  this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
+                   } else {
+                  this.curGroup.members.push(this.initNewMember(patient))
+                }
+            }
           } else {
             this.displayAlert('error', 'O paciente selecionado ja se encontra associado ao grupo.')
           }
