@@ -21,7 +21,9 @@ export default {
         putOnlyUsedFonts: true,
         floatPrecision: 'smart' 
       })
-      const width = doc.internal.pageSize.getWidth()
+      const image = new Image()
+      image.src = 'data:image/png;base64,' + MOHIMAGELOG
+        const width = doc.internal.pageSize.getWidth()
       /*
         Fill Table
       */
@@ -37,6 +39,7 @@ export default {
           'Farmacia'
         ]
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
+      if(rows.response.status === 204) return rows.response.status
       console.log(rows.response.data)
       const data = this.createArrayOfArrayRow(rows.response.data)
   
@@ -63,8 +66,9 @@ export default {
           )
           doc.setFontSize(10)
           doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, width / 15, 57)
-          doc.text('Data Início: ' + moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 49)
-          doc.text('Data Fim: ' + moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 57)
+        //  doc.text('Data Início: ' + moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 49)
+        //  doc.text('Data Fim: ' + moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 57)
+          doc.text('Periodo: ' + params.startDateParam +' à '+ params.endDateParam, width / 2 + 90, 57)
           // doc.line(0, 35, 400, 50);
         },
         theme: 'grid',
@@ -77,6 +81,7 @@ export default {
     async downloadExcel(params) {
 
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
+      if(rows.response.status === 204) return rows.response.status
       const data =  this.createArrayOfArrayRow(rows.response.data)
   
       const workbook = new ExcelJS.Workbook();
