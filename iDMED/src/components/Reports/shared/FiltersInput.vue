@@ -247,11 +247,9 @@ export default {
             return date <= moment(new Date()).format('YYYY/MM/DD')
         },
       init () {
-        console.log(this.applicablePeriods)
         if (this.applicablePeriods !== null) {
           // this.periodTypeList = ref(this.applicablePeriods)
         }
-        console.log(this.periodTypeList)
       },
       onPeriodoChange (val) {
         this.reportParams.provinceId = null
@@ -308,7 +306,6 @@ export default {
         this.$emit('initReportProcessing', this.reportParams)
       },
       updateProgressBar () {
-        console.log(this.progressValue)
         this.progress1 = this.progressValue
       }
     },

@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import Clinic from '../clinic/Clinic'
 import ClinicSector from '../clinicSector/ClinicSector'
 import EpisodeType from '../episodeType/EpisodeType'
 import PatientProgramIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
@@ -19,7 +20,9 @@ export default class Episode extends Model {
       patientServiceIdentifier_id: this.attr(''),
       startStopReason_id: this.attr(''),
       isLast: this.boolean(false),
+      referralClinic_id: this.attr(''),
       // Relationships
+      referralClinic: this.belongsTo(Clinic, 'referralClinic_id'),
       startStopReason: this.belongsTo(StartStopReason, 'startStopReason_id'),
       episodeType: this.belongsTo(EpisodeType, 'episodeType_id'),
       clinicSector: this.belongsTo(ClinicSector, 'clinicSector_id'),

@@ -333,14 +333,12 @@ export default {
           this.$refs.clinicalService.validate()
           this.$refs.state.validate()
           if (!this.usePreferedId) {
-            console.log(this.usePreferedId)
             this.$refs.identifier.$refs.identifier.validate()
           } else {
             this.identifier.prefered = false
           }
           if (!this.$refs.clinicalService.hasError &&
               !this.$refs.state.hasError) {
-                console.log(this.usePreferedId)
               if (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date()) {
                 this.displayAlert('error', 'A data de admissão indicada é maior que a data corrente.')
               } else if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
@@ -434,7 +432,9 @@ export default {
           this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
           this.identifier.identifierType = this.identifier.service.identifierType
         }
-        console.log(this.identifier)
+        if (this.isEditStep) {
+          this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
+        }
         await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
           this.identifier.id = resp.response.data.id
           if (this.isReOpenStep || this.isCloseStep) {
@@ -469,7 +469,6 @@ export default {
       },
       async fetchUpdatedIdentifier (id) {
         await PatientServiceIdentifier.apiFetchById(id).then(resp => {
-          console.log(resp.response.data)
         })
       },
       displayAlert (type, msg) {
@@ -480,7 +479,6 @@ export default {
       closeDialog () {
         this.alert.visible = false
         if (this.alert.type === 'info') {
-          console.log('closing dialog')
           this.$emit('close')
         }
       },
@@ -507,7 +505,6 @@ export default {
         }
     },
     mounted () {
-      console.log(this.patient)
       this.init()
     },
     computed: {
