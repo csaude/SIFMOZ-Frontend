@@ -35,7 +35,7 @@
                   </div>
                 </div>
               </template>
-              <user-info>
+              <!--<user-info>-->
                 <q-list  style="width: 190px">
                   <q-item>
                     <q-item-section avatar>
@@ -69,7 +69,7 @@
                     </q-item-section>
                   </q-item>
                 </q-list>
-              </user-info>
+              <!--</user-info>-->
             </q-btn-dropdown>
 
                     <!--div class="absolute-right items-center q-mt-sm">
@@ -93,9 +93,11 @@
             </q-header>
         </div>
     <q-page-container>
-     <keep-alive>
-      <router-view />
+     <router-view v-slot="{ Component }">
+      <keep-alive>
+        <component :is="Component" />
       </keep-alive>
+    </router-view>
     </q-page-container>
   </q-layout>
 </template>
@@ -111,7 +113,7 @@ export default defineComponent({
       onMainClick: '',
       onItemClick: '',
       username: localStorage.getItem('hisUser'),
-      tab: ref('patients')
+      tab: ref('home')
     }
   },
   components: { }

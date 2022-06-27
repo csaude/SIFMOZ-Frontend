@@ -32,9 +32,10 @@
 </template>
 
 <script>
-
+import moment from 'moment'
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
+import activePatients from '../../../reports/Patients/ActivePatients.ts'
 import { ref } from 'vue'
   export default {
     name: 'DrugStore',
@@ -84,15 +85,24 @@ import { ref } from 'vue'
         })
       },
       generateReport (id, fileType) {
-        // UID da tab corrente
-         Report.api().get(`/activePatientReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
-          const file = new Blob([resp.response.data], { type: 'application/pdf' })
-          const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'ActivePatientReport.' + fileType)
-          document.body.appendChild(link)
-          link.click()
+          Report.api().get(`/activePatientReport/printReport/${id}`, { responseType: 'json' }).then(resp => {
+            const patientAux = resp.response.data[0]
+
+          if (fileType === 'PDF') {
+            activePatients.downloadPDF(
+              patientAux.province,
+              moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+              moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+              resp.response.data
+            )
+          } else {
+            activePatients.downloadExcel(
+              patientAux.province,
+              moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+              moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+              resp.response.data
+            )
+          }
         })
       },
       displayAlert (type, msg) {

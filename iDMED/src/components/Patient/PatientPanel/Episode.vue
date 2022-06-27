@@ -54,7 +54,7 @@ export default {
                     .where('id', this.episode.id)
                     .first()
       }
-      },
+    },
     canEdit () {
       return this.canBeEdited()
     }

@@ -351,7 +351,6 @@ export default {
         })
 
         if (this.service !== null && this.service !== undefined) {
-          console.log(this.service)
           prescription = this.selectedVisitDetails.prescription
           this.prescriptionDate = this.getDDMMYYYFromJSDate(new Date())
           this.prescribedDrugs = prescription.prescribedDrugs
@@ -373,7 +372,6 @@ export default {
         this.curPatientVisitDetail.pack = pack
         this.curPatientVisitDetail.prescription = prescription
       } else {
-        console.log(this.selectedVisitDetails)
         this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
                                                                 .with('episode.patientServiceIdentifier.service')
                                                                 .with('patientVisit')
@@ -405,7 +403,6 @@ export default {
           this.curPatientVisitDetail.pack = this.lastPackFull
           packagedDrugs = this.curPatientVisitDetail.pack.packagedDrugs
         }
-console.log(this.isEditPackStep)
         if (this.isEditPackStep || this.isFirstPack) {
           this.prescribedDrugs = prescribedDrugs
         } else {
@@ -420,7 +417,6 @@ console.log(this.isEditPackStep)
           }.bind(this))
 
             this.curPatientVisitDetail.pack = null
-            console.log(this.isFirstPack)
             if (this.isFirstPack) {
               pack.pickupDate = this.curPatientVisitDetail.prescription.prescriptionDate
             } else {
@@ -447,8 +443,6 @@ console.log(this.isEditPackStep)
         this.curPatientVisitDetails.push(this.curPatientVisitDetail)
         this.showServiceDrugsManagement = true
       }
-      console.log(this.curPatientVisitDetail)
-
       this.initPatientVisit()
     },
     init () {
@@ -458,7 +452,6 @@ console.log(this.isEditPackStep)
       if (!this.isNewPackStep && !this.isEditPackStep) {
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
-            console.log(this.patient.identifiers[key].lastEpisode())
             const episode = Episode.query()
                                     .withAll()
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
@@ -477,7 +470,6 @@ console.log(this.isEditPackStep)
         clinic: this.currClinic,
         syncStatus: this.patient.his_id.length > 10 ? 'R' : 'N'
       })
-      console.log('initPatientVisitDetails')
       let prescription = null
       if (this.service === null || this.service === undefined) {
         prescription = new Prescription({
@@ -488,7 +480,6 @@ console.log(this.isEditPackStep)
         const prescriptionDetail = new PrescriptionDetail()
         prescription.prescriptionDetails.push(prescriptionDetail)
       } else {
-        console.log(this.service)
           prescription = this.selectedVisitDetails.prescription
           prescription.id = null
           prescription.$id = null
@@ -513,10 +504,8 @@ console.log(this.isEditPackStep)
 
       episode.patientVisitDetails.push(curPatientVisitDetail)
       this.curPatientVisitDetails.push(curPatientVisitDetail)
-      console.log(this.curPatientVisitDetails)
     },
     checkClinicalServiceAttr (attr) {
-      console.log(this.selectedClinicalService)
       if (this.selectedClinicalService === '' || this.selectedClinicalService === null || this.selectedClinicalService === undefined) return false
       const has = this.selectedClinicalService.attributes.some((attribute) => {
         return attribute.clinicalServiceAttributeType.code === attr
@@ -524,7 +513,6 @@ console.log(this.isEditPackStep)
       return has
     },
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
-      console.log(nextPDate)
       if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.pack !== null) {
         if (pickupDate !== null && pickupDate !== undefined) this.curPatientVisitDetail.pack.packDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (pickupDate !== undefined) this.curPatientVisitDetail.pack.pickupDate = this.getJSDateFromDDMMYYY(pickupDate)
@@ -533,8 +521,6 @@ console.log(this.isEditPackStep)
       }
     },
     validateForm () {
-      console.log(this.hasTherapeuticalRegimen)
-      console.log(this.hasTherapeuticalLine)
       this.$refs.patientStatus.validate()
       this.$refs.clinicalService.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
@@ -552,7 +538,6 @@ console.log(this.isEditPackStep)
           !this.$refs.doctor.hasError &&
           // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
-      console.log(this.hasTherapeuticalLine)
             if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
             } else if (new Date(this.pickupDate) > new Date()) {
@@ -569,7 +554,6 @@ console.log(this.isEditPackStep)
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         if (!visitDetails.createPackLater && visitDetails.prescription.prescribedDrugs.length > 0) {
-          console.log(visitDetails)
           if (Number(visitDetails.pack.weeksSupply) <= 0) {
             hasError = true
             error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
@@ -639,7 +623,6 @@ console.log(this.isEditPackStep)
             packagedDrugStock.stock = validStock[i]
             packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
             packagedDrugStock.creationDate = new Date()
-            console.log(packagedDrugStock)
             packagedDrugStocks.push(packagedDrugStock)
           } else {
             const availableBalance = validStock[i].stockMoviment
@@ -667,7 +650,6 @@ console.log(this.isEditPackStep)
         this.curPatientVisitDetails[0].prescription.patientVisitDetails = null
         this.curPatientVisitDetails[0].prescription.prescriptionDetails[0].prescription = null
       }
-      console.log(this.curPatientVisitDetails)
       this.patientVisit.patientVisitDetails = []
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = Object.assign({}, this.curPatientVisitDetails[k])
@@ -686,14 +668,12 @@ console.log(this.isEditPackStep)
         }
       }.bind(this))
 
-      console.log(this.patientVisit)
       const i = 0
       this.saveVisitPrescriptionAndPack(this.patientVisit, i)
     },
     saveVisitPrescriptionAndPack (patientVisit, i) {
       if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
         const patientVDetails = patientVisit.patientVisitDetails[i]
-        console.log(patientVDetails)
         if (patientVDetails.prescription.id === null) {
           Prescription.apiSave(patientVDetails.prescription).then(resp => {
             patientVDetails.prescription.id = resp.response.data.id
@@ -714,7 +694,6 @@ console.log(this.isEditPackStep)
             }
           })
         } else {
-          console.log(patientVDetails.pack)
           Pack.apiSave(patientVDetails.pack).then(resp => {
             patientVDetails.pack.id = resp.response.data.id
             patientVDetails.pack.$id = resp.response.data.id
@@ -724,7 +703,6 @@ console.log(this.isEditPackStep)
           })
         }
       } else {
-        console.log(this.patientVisit)
         this.savePatientVisit(patientVisit)
       }
     },
@@ -762,7 +740,6 @@ console.log(this.isEditPackStep)
     },
     fecthVisit (id) {
       PatientVisit.apiFetchById(id).then(resp => {
-        console.log(resp)
         this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
         this.fecthPrescription(resp.response.data.patientVisitDetails[0].prescription.id)
         if (resp.response.data.patientVisitDetails[0].pack !== null) this.fecthPack(resp.response.data.patientVisitDetails[0].pack.id)
@@ -787,14 +764,10 @@ console.log(this.isEditPackStep)
             if (resp.response.data.length > 0) {
               setTimeout(this.doDispenseModeGetAll(offset), 2)
             }
-            }).catch(error => {
-                console.log(error)
             })
     },
     getJSDateFromDDMMYYY (dateString) {
-      console.log(dateString)
       if (dateString === null || dateString === undefined) return null
-      console.log(dateString)
       if (typeof dateString === 'string' || dateString instanceof String) {
       const dateParts = dateString.split('-')
       return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])

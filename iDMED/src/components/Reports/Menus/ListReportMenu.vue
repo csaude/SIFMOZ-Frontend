@@ -11,7 +11,7 @@
       label="Serviço de Saúde" />
     <q-separator  />
 
-    <div class="q-pa-md" style="max-width: 1000px">
+    <div class="q-pa-md" style="max-width: 500px">
       <q-list bordered v-if="selectedService !== null">
         <q-expansion-item
           v-for="menu in menu"
@@ -75,7 +75,7 @@ export default {
                            { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                            { description: 'Lista de Visitantes', tabName: 'GuestList' },
                            { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
-                           { description: 'Histórico de Pacientes', tabName: 'PatientHistory' }
+                           { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' }
                           ]
                 },
                 {

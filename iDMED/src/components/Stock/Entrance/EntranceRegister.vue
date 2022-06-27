@@ -40,7 +40,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Avançar" color="primary" />
+                <q-btn type="submit" label="Avançar" color="primary"  />
             </q-card-actions>
         </form>
         <q-dialog v-model="alert.visible" persistent>
@@ -94,6 +94,7 @@ export default {
       this.alert.visible = false
     },
     async submitForm () {
+      this.submitting = true
       this.stockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
       const dbEntrance = StockEntrance.query().where('orderNumber', this.stockEntrance.orderNumber).first()
       if (this.stockEntrance.dateReceived > new Date()) {
@@ -107,6 +108,7 @@ export default {
           await StockEntrance.apiSave(this.stockEntrance).then(resp => {
           SessionStorage.set('currStockEntrance', resp.response.data)
           this.$router.push('/stock/entrance')
+          this.$emit('close')
         }).catch(error => {
             const listErrors = []
             if (error.request.response != null) {

@@ -33,6 +33,8 @@
 
 <script>
 import Report from 'src/store/models/report/Report'
+import ReceivedStockReport from 'src/reports/stock/ReceivedStockReport.ts'
+
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
@@ -65,16 +67,13 @@ import { ref } from 'vue'
           Report.apiInitReceivedStockProcessing(params).then(resp => {
             console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
          // Pack.api().post('/receivedStockReport/initReportProcess', params)
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('receivedStockReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -83,17 +82,13 @@ import { ref } from 'vue'
           }
         })
       },
-      generateReport (id, fileType) {
-        // UID da tab corrente
-         Report.api().get(`/receivedStockReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
-          const file = new Blob([resp.response.data], { type: 'application/pdf' })
-          const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'receivedStockReport.' + fileType)
-          document.body.appendChild(link)
-          link.click()
-        })
+      generateReport (id, fileType, params) {
+        // UID da tab corrent
+       if (fileType === 'PDF') {
+           ReceivedStockReport.downloadPDF(id, fileType, params)
+        } else if (fileType === 'XLS') {
+           ReceivedStockReport.downloadExcel(id, fileType, params)
+        }
       },
       displayAlert (type, msg) {
         this.alert.type = type

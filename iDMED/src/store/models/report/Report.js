@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import moment from 'moment'
 
 export default class Report extends Model {
     static entity = 'reports'
@@ -9,6 +10,10 @@ export default class Report extends Model {
 
     static async apiPrintMmiaReport (reportId, fileType) {
       return await this.api().get(`/mmiaReport/printReport/${reportId}/${fileType}`)
+    }
+
+    static async apiGetMmiaReport (reportId) {
+      return await this.api().get(`/mmiaReport/${reportId}`)
     }
 
     static async getProcessingStatus (controller, params) {
@@ -57,4 +62,12 @@ export default class Report extends Model {
     static async apiPatientsHistryReport (reportId, fileType) {
       return await this.api().get(`/historicoLevantamentoReport/printReport/${reportId}/${fileType}`)
     }
+
+  static getFormatDDMMYYYY (date) {
+    return moment(date).format('DD-MM-YYYY')
+  }
+
+  static getFormatYYYYMMDD (date) {
+    return moment(date).format('YYYY-MM-DD')
+  }
 }

@@ -36,6 +36,7 @@
 import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
 import { LocalStorage } from 'quasar'
+import mmiaReport from '../../../reports/ClinicManagement/Mmia.ts'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -68,20 +69,16 @@ import { LocalStorage } from 'quasar'
         console.log(params)
         if (params.periodType === 'MONTH') {
           Report.apiInitMmiaProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
         } else {
-          this.displayAlert('error', 'O período seleccionado é inválido, por favor seleccionar o período [Mensal]')
+          this.displayAlert('error', 'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
         }
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('mmiaReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -91,15 +88,11 @@ import { LocalStorage } from 'quasar'
         })
       },
       generateReport (id, fileType) {
-        Report.api().get(`/mmiaReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
-          const file = new Blob([resp.response.data], { type: 'application/pdf' })
-          const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'MMIA.' + fileType)
-          document.body.appendChild(link)
-          link.click()
-        })
+        if (fileType === 'PDF') {
+          mmiaReport.downloadPDF(id)
+        } else {
+          mmiaReport.downloadExcel(id)
+        }
       },
       displayAlert (type, msg) {
         this.alert.type = type

@@ -34,6 +34,8 @@
 <script>
 
 import Report from 'src/store/models/report/Report'
+import ArvDailyRegisterReport from 'src/reports/monitoring/ArvDailyRegisterReport.ts'
+
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
   export default {
@@ -63,17 +65,13 @@ import { ref } from 'vue'
       },
       initReportProcessing (params) {
           Report.apiInitArvDailyRegisterProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('arvDailyRegisterReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -82,9 +80,15 @@ import { ref } from 'vue'
           }
         })
       },
-      generateReport (id, fileType) {
-        // UID da tab corrente
-         Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
+      generateReport (id, fileType, params) {
+        // UID da tab corrent
+          if (fileType === 'PDF') {
+           ArvDailyRegisterReport.downloadPDF(id, fileType, params)
+        } else if (fileType === 'XLS') {
+           ArvDailyRegisterReport.downloadExcel(id, fileType, params)
+        }
+
+       /*  Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
           const file = new Blob([resp.response.data], { type: 'application/pdf' })
           const fileURL = URL.createObjectURL(file)
           const link = document.createElement('a')
@@ -92,7 +96,7 @@ import { ref } from 'vue'
           link.setAttribute('download', 'arvDailyRegisterReport.' + fileType)
           document.body.appendChild(link)
           link.click()
-        })
+        }) */
       },
       displayAlert (type, msg) {
         this.alert.type = type

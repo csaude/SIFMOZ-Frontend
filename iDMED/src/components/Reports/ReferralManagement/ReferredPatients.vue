@@ -39,6 +39,7 @@
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
+import referredPatients from '../../../reports/ReferralManagement/ReferredPatients.ts'
   export default {
     name: 'ReferredPatients',
     props: ['selectedService', 'menuSelected', 'id', 'params'],
@@ -94,10 +95,11 @@ import { ref } from 'vue'
           }
         })
       },
-      generateReport (id, fileType) {
+      generateReport (id, fileType, params) {
         // UID da tab corrente
         console.log('UUID da tab seleccionada:', id)
        // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
+       /*
             Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/${fileType}`,
             { responseType: 'blob' }).then(resp => {
               console.log(resp)
@@ -114,6 +116,16 @@ import { ref } from 'vue'
           link.click()
               }
             })
+            */
+            if (fileType === 'PDF') {
+               referredPatients.downloadPDF(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
+            } else {
+               referredPatients.downloadExcel(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
+            }
       },
        displayAlert (type, msg) {
         this.alert.type = type

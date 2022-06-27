@@ -2,7 +2,7 @@
   <div>
     <TitleBar>Detalhe do Utente/Paciente</TitleBar>
     <div class="row q-mt-md"  v-if="patient !== null">
-      <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
+      <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel" style="max-width: 500px">
         <PatientInfo :selectedPatient="patient"/>
       </div>
       <div class="col q-mr-lg">

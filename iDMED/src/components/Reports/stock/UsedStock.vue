@@ -36,6 +36,8 @@
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
+import UsedStockReport from 'src/reports/stock/UsedStockReport.ts'
+
   export default {
     name: 'UsedStock',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -63,9 +65,7 @@ import { ref } from 'vue'
       },
        initReportProcessing (params) {
           Report.apiInitUsedStockProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
       },
@@ -82,17 +82,13 @@ import { ref } from 'vue'
           }
         })
       },
-      generateReport (id, fileType) {
-        // UID da tab corrente
-         Report.api().get(`/usedStockReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
-          const file = new Blob([resp.response.data], { type: 'application/pdf' })
-          const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'usedStockReport.' + fileType)
-          document.body.appendChild(link)
-          link.click()
-        })
+      generateReport (id, fileType, params) {
+        if (fileType === 'PDF') {
+           UsedStockReport.downloadPDF(id, fileType, params)
+        } else if (fileType === 'XLS') {
+           UsedStockReport.downloadExcel(id, fileType, params)
+        }
+        // UID da tab corrent
       },
       displayAlert (type, msg) {
         this.alert.type = type

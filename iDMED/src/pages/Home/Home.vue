@@ -174,6 +174,7 @@ export default {
         StockOperationType.apiGetAll(offset, max)
         ReferedStockMoviment.apiGetAll(offset, max)
         DestroyedStock.apiGetAll(offset, max)
+        FacilityType.apiGetAll(offset, max)
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {

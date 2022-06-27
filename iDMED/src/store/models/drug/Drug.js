@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import ClinicalService from '../ClinicalService/ClinicalService'
 import Form from '../form/Form'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
@@ -21,9 +22,10 @@ export default class Drug extends Model {
       defaultPeriodTreatment: this.attr(''),
       active: this.boolean(true),
       form_id: this.attr(''),
+      clinicalService_id: this.attr(''),
       // Relationships
       form: this.belongsTo(Form, 'form_id'),
-     // therapeutic_regimens: this.hasMany(TherapeuticRegimen, 'drug_id'),
+      clinicalService: this.belongsTo(ClinicalService, 'clinicalService_id'),
       packaged_drugs: this.hasMany(PackagedDrug, 'drug_id'),
       packagedDrugStocks: this.hasMany(PackagedDrugStock, 'drug_id'),
       stocks: this.hasMany(Stock, 'drug_id')
