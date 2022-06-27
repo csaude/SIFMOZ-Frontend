@@ -190,8 +190,7 @@ export default {
           })
           member.patient.identifiers[0].episodes = []
           member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-          PatientVisitDetails.apiGetAllByEpisodeId(member.patient.identifiers[0].episodes[0].id, 0, 200)
-          this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+         this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
       })
       if (!group.isDesintegrated()) {
         this.members = group.members.filter((member) => { return member.isActive() })

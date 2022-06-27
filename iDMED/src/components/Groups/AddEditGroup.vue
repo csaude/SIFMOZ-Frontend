@@ -262,18 +262,23 @@ export default {
     },
     addPatient (patient) {
       if (!patient.isActiveOnGroupOfService(this.curGroup.service)) {
-        if (this.curGroup.members.length > 0) {
           const patientExists = this.curGroup.members.some((member) => {
             return member.patient.id === patient.id
           })
           if (!patientExists) {
-            this.curGroup.members.push(this.initNewMember(patient))
+            const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
+            if (identifier.lastEpisode === null) {
+                this.displayAlert('error', 'O paciente selecionado não possui episódios.')
+            } else {
+               if (!identifier.lastEpisode.isStartEpisode) {
+                  this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
+                   } else {
+                  this.curGroup.members.push(this.initNewMember(patient))
+                }
+            }
           } else {
             this.displayAlert('error', 'O paciente selecionado ja se encontra associado ao grupo.')
           }
-        } else {
-          this.curGroup.members.push(this.initNewMember(patient))
-        }
       } else {
         this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + '], do grupo [' + this.curGroup.code + ' - ' + this.curGroup.name + ']')
       }
