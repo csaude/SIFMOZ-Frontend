@@ -114,9 +114,13 @@ import absentReferredPatients from '../../../reports/ReferralManagement/AbsentRe
             })
             */
                 if (fileType === 'PDF') {
-               absentReferredPatients.downloadPDF(params)
+               absentReferredPatients.downloadPDF(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
             } else {
-               absentReferredPatients.downloadExcel(params)
+               absentReferredPatients.downloadExcel(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
             }
       },
        displayAlert (type, msg) {

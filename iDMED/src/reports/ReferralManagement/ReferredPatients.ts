@@ -21,8 +21,8 @@ export default {
         putOnlyUsedFonts: true,
         floatPrecision: 'smart' 
       })
-      const image = new Image()
-      image.src = '/src/assets/MoHLogo.png'
+    const image = new Image()
+    image.src = 'data:image/png;base64,' + MOHIMAGELOG
       const width = doc.internal.pageSize.getWidth()
       /*
         Fill Table
@@ -39,6 +39,7 @@ export default {
         'Farmacia da Referência'
       ]
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
+      if(rows.response.status === 204) return rows.response.status
       console.log(rows.response.data)
       const data = this.createArrayOfArrayRow(rows.response.data)
   
@@ -55,7 +56,7 @@ export default {
           // Header
           doc.setFontSize(10)
           doc.setTextColor(40)
-          // doc.addImage(image, 'PNG', data.settings.margin.left + 15, 5, 25, 25)
+          doc.addImage(image, 'PNG', data.settings.margin.left + 15, 5, 25, 25)
           doc.text('REPÚBLICA DE MOÇAMBIQUE', data.settings.margin.left + 2, 35)
           doc.text('MINISTÉRIO DA SAÚDE', data.settings.margin.left + 7, 40)
           doc.text('SERVIÇO NACIONAL DE SAÚDE', data.settings.margin.left, 45)
@@ -69,9 +70,10 @@ export default {
           )
           doc.setFontSize(10)
           doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, width / 15, 57)
-          doc.text('Data Início: ' + moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 49)
-          doc.text('Data Fim: ' + moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 57)
-          // doc.line(0, 35, 400, 50);
+         // doc.text('Data Início: ' + params.startDateParam, width / 2 + 98, 49)
+         // doc.text('Data Fim: ' + params.endDateParam, width / 2 + 98, 57)
+         doc.text('Periodo: ' + params.startDateParam +' à '+ params.endDateParam, width / 2 + 90, 57)
+        // doc.line(0, 35, 400, 50);
         },
         theme: 'grid',
         head: [cols],
@@ -83,6 +85,7 @@ export default {
     async downloadExcel(params) {
 
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
+      if(rows.response.status === 204) return rows.response.status
       const data =  this.createArrayOfArrayRow(rows.response.data)
   
       const workbook = new ExcelJS.Workbook();
@@ -175,8 +178,8 @@ export default {
       cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName : '';
       cellProvinceParamValue.value = params.province !== null ? params.province.description : ''
       cellDistrictParamValue.value = params.district !== null ? params.district.description : '';
-      cellStartDateParamValue.value = moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY');
-      cellEndDateParamValue.value = moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY');
+      cellStartDateParamValue.value = moment(params.startDateParam, 'DD-MM-YYYY').format('DD-MM-YYYY');
+      cellEndDateParamValue.value = moment(params.endDateParam, 'DD-MM-YYYY').format('DD-MM-YYYY');
       cellPharm.value = 'Farmácia';
       cellDistrict.value = 'Distrito';
       cellProvince.value = 'Província';
