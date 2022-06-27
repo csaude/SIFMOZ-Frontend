@@ -281,7 +281,6 @@ export default {
       },
       async savePatient () {
         this.patient.identifiers = []
-        console.log(this.patient)
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           if (this.patient.bairro !== null && this.patient.bairro.id === null) {
             Localidade.apiSave(this.patient.bairro).then(resp => {
@@ -343,7 +342,6 @@ export default {
         }
       },
       initPatient () {
-        console.log(this.newPatient)
        if (!this.newPatient) {
           if (this.isEditStep) {
               this.patient = Patient.query().with('province')
@@ -351,7 +349,7 @@ export default {
                                         .with('identifiers.*')
                                         .with('postoAdministrativo')
                                         .with('bairro')
-                                        .with('clinic.*')
+                                        .with(['clinic.province', 'clinic.district.province'])
                                         .where('id', this.selectedPatient.id).first()
               this.dateOfBirth = moment(this.patient.dateOfBirth).format('DD-MM-YYYY')
           }
@@ -386,7 +384,6 @@ export default {
       moment,
         idadeCalculator () {
             if (this.dateOfBirth && moment(this.dateOfBirth).isValid()) {
-              console.log('calculating age')
                 const utentBirthDate = moment(this.dateOfBirth)
                 const todayDate = moment(new Date())
                 const idade = todayDate.diff(utentBirthDate, 'years')
@@ -430,7 +427,7 @@ export default {
       bairros: {
         get () {
           if (this.patient.postoAdministrativo !== null && this.patient.postoAdministrativo !== undefined) {
-            return Localidade.query().with('postoAdministrativo').where('postoAdministrativo_id', this.patient.postoAdministrativo.id).has('code').get()
+            return Localidade.query().with('postoAdministrativo.district').where('postoAdministrativo_id', this.patient.postoAdministrativo.id).has('code').get()
           } else {
             return null
           }
@@ -440,6 +437,7 @@ export default {
         get () {
           return Clinic.query()
                     .with('province')
+                    .with('district.province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
         }

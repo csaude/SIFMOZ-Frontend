@@ -69,20 +69,16 @@ import mmiaReport from '../../../reports/ClinicManagement/Mmia.ts'
         console.log(params)
         if (params.periodType === 'MONTH') {
           Report.apiInitMmiaProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
         } else {
-          this.displayAlert('error', 'O período seleccionado é inválido, por favor seleccionar o período [Mensal]')
+          this.displayAlert('error', 'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
         }
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('mmiaReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {

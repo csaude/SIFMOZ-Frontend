@@ -113,7 +113,7 @@ export default defineComponent({
       onMainClick: '',
       onItemClick: '',
       username: localStorage.getItem('hisUser'),
-      tab: ref('patients')
+      tab: ref('home')
     }
   },
   components: { }
