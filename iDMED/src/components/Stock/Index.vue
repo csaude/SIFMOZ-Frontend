@@ -33,6 +33,7 @@
     </q-page-sticky>
     <q-dialog persistent v-model="createEntrance">
         <EntranceRegister
+          :createEntrance="createEntrance"
           @close="createEntrance = false" />
     </q-dialog>
     <q-dialog persistent v-model="createInventory">
