@@ -132,6 +132,7 @@ import Inventory from '../../store/models/stockinventory/Inventory'
 import StockOperationType from '../../store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from '../../store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
+import PatientTransReferenceType from '../../store/models/tansreference/PatientTransReferenceType'
 export default {
   data () {
     return {
@@ -175,6 +176,7 @@ export default {
         ReferedStockMoviment.apiGetAll(offset, max)
         DestroyedStock.apiGetAll(offset, max)
         FacilityType.apiGetAll(offset, max)
+        PatientTransReferenceType.apiGetAll(offset, max)
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
