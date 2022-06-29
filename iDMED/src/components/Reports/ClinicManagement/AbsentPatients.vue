@@ -81,9 +81,7 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -93,13 +91,12 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
         })
       },
       generateReport (id, fileType) {
-        // UID da tab corrente
-        // console.log('UUID da tab seleccionada:', id)
-       // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
             Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
+              if (!resp.response.data[0]) {
+              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            } else {
               const patientAux = resp.response.data[0]
               if (fileType === 'PDF') {
-                console.log(patientAux)
                 absentPatientsTs.downloadPDF(
                   patientAux.clinic,
                   moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
@@ -107,7 +104,6 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
                   resp.response.data
                 )
               } else {
-                console.log(patientAux)
                 absentPatientsTs.downloadExcel(
                   patientAux.clinic,
                   moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
@@ -115,19 +111,7 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
                   resp.response.data
                 )
               }
-              //       console.log(resp)
-              //       console.log(resp.response.data)
-              //         if (resp.response.status === 204) {
-              //      this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
-              //       } else {
-              //      const file = new Blob([resp.response.data], { type: 'application/' + fileType })
-              // const fileURL = URL.createObjectURL(file)
-              //   const link = document.createElement('a')
-              //   link.href = fileURL
-              //   link.setAttribute('download', 'PacientesFaltosos.' + fileType)
-              //   document.body.appendChild(link)
-              //   link.click()
-                    // }
+            }
             })
       },
         displayAlert (type, msg) {
