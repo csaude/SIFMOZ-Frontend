@@ -20,10 +20,10 @@
       key="allCharts"
     >
     <div class="col-md-6 col-sm-12 col-xs-12">
-              <LineByAge :serviceCode=serviceCode > </LineByAge>
+              <LineByAge :serviceCode=serviceCode :dataLoaded=dataLoaded > </LineByAge>
     </div>
       <div class="col-md-6 col-sm-12 col-xs-12">
-           <LineBySex :serviceCode=serviceCode > </LineBySex>
+           <LineBySex :serviceCode=serviceCode :dataLoaded=dataLoaded> </LineBySex>
       </div>
           <div
       class="row q-col-gutter-md q-px-md q-py-md"
@@ -173,10 +173,17 @@ export default {
        this.getClinicalServicesOptions()
     },
      created () {
-  }
+  },
+   watch: {
+         dataLoaded: function (newVal, oldVal) {
+          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
+          this.getClinicalServicesOptions()
+          this.serviceCode = 'TARV'
+          this.setServiceCode('TARV')
+        }
+     }
 }
 </script>
 
 <style>
-
 </style>
