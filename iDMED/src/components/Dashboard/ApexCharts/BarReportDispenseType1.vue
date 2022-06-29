@@ -69,13 +69,6 @@ export default {
           easing: 'easeinout',
           speed: 1000
         },
-         title: {
-          text: 'Total de pacientes registados no Serviço ' + this.serviceCode,
-          align: 'center',
-          style: {
-            color: '#000000'
-          }
-          },
            plotOptions: {
               bar: {
                 borderRadius: 10
@@ -346,6 +339,21 @@ export default {
          arrConfirmed.push(item.data)
          }
    }
+  // this.chartOptions.title.text = 'Total de pacientes registados no Serviço ' + this.serviceCode
+  // console.log(this.chartOptions.title.text)
+          this.chartOptions = {
+            ...this.chartOptions,
+            ...{
+         title: {
+          text: 'Total de pacientes registados no Serviço ' + this.serviceCode,
+          align: 'center',
+          style: {
+            color: '#000000'
+          }
+          }
+ }
+ }
+          console.log(this.chartOptions.title.text)
     this.series = [
        {
         name: 'Dispensa Mensal',
