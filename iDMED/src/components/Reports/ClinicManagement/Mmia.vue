@@ -89,9 +89,13 @@ import mmiaReport from '../../../reports/ClinicManagement/Mmia.ts'
       },
       generateReport (id, fileType) {
         if (fileType === 'PDF') {
-          mmiaReport.downloadPDF(id)
+          mmiaReport.downloadPDF(id).then(resp => {
+            if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+          })
         } else {
-          mmiaReport.downloadExcel(id)
+          mmiaReport.downloadExcel(id).then(resp => {
+            if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+          })
         }
       },
       displayAlert (type, msg) {

@@ -43,6 +43,8 @@ export default {
     ]
 
       const mmiaReport = await Report.api().get(`/mmiaReport/${id}`)
+      if(mmiaReport.response.status === 204) return mmiaReport.response.status
+
       const mmiaData = mmiaReport.response.data
       const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
       const regimendata = this.createRegimenArrayOfArrayRow(mmiaData.mmiaRegimenSubReportList)
@@ -553,6 +555,9 @@ export default {
   },
     async downloadExcel(id) {
       const mmiaReport = await Report.api().get(`/mmiaReport/${id}`)
+
+      if(mmiaReport.response.status === 204) return mmiaReport.response.status
+      
       const mmiaData = mmiaReport.response.data
       const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
       const regimendata = this.createRegimenArrayOfArrayRow(mmiaData.mmiaRegimenSubReportList)

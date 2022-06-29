@@ -20,7 +20,7 @@
       <div class="row">
           <identifierInput
             @blur="search()"
-            v-model="currPatient.identifiers[0].firstNames"
+            v-model="patientId"
             :rules="[]"/>
           <nameInput
             @update:model-value="search()"
@@ -540,6 +540,15 @@ export default {
       }
     },
     computed: {
+      patientId: {
+        get () {
+          if (this.currPatient.identifiers[0] === null || this.currPatient.identifiers[0] === undefined) return null
+          return this.currPatient.identifiers[0].value
+        },
+        set (value) {
+          this.currPatient.identifiers[0].value = value
+        }
+      },
       clinic () {
         return new Clinic(SessionStorage.getItem('currClinic'))
       },

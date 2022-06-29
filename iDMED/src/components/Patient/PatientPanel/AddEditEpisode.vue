@@ -11,7 +11,7 @@
               <q-separator/>
             </q-card-section>
             <div class="text-center text-h6 q-mt-sm">
-              <span v-if="episodeToEdit.id !== null">Actualizar</span>
+              <span v-if="episodeToEdit.id !== null && isEditStep">Actualizar</span>
               <span v-else>Adicionar</span>
               Episódio
             </div>
@@ -56,6 +56,7 @@
                   <q-select class="col q-ml-md"
                     dense outlined
                     v-model="episode.startStopReason"
+                    :disable="episode.id !== null && isCreateStep"
                     :options="startReasons"
                     ref="startReason"
                     :rules="[ val => !!val || 'Por favor indicar a nota de início']"
@@ -67,6 +68,7 @@
                   <q-select
                     class="col"
                     dense outlined
+                    :disable="episode.id !== null && isCreateStep"
                     ref="clinicSerctor"
                     :rules="[ val => !!val || 'Por favor indicar o sector onde vai ocorrer o atendimento']"
                     v-model="episode.clinicSector"
@@ -77,6 +79,7 @@
                   <q-input
                       dense
                       outlined
+                      :disable="episode.id !== null && isCreateStep"
                       class="col q-ml-md"
                       v-model="startDate"
                       ref="startDate"
@@ -108,6 +111,7 @@
                         outlined
                         class="col"
                         v-model="stopDate"
+                        :disable="episode.id !== null && isEditStep"
                         ref="stopDate"
                         label="Data *">
                         <template v-slot:append>
@@ -124,6 +128,7 @@
                     </q-input>
                   <q-select
                       class="col q-ml-md"
+                      :disable="episode.id !== null && isEditStep"
                       dense outlined
                       ref="stopReason"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
@@ -139,6 +144,7 @@
                       class="col" dense outlined
                       v-model="selectedProvince"
                       use-input
+                      :disable="episode.id !== null && isEditStep"
                       ref="province"
                       input-debounce="0"
                       :options="provinces"
@@ -149,6 +155,7 @@
                       class="col q-ml-md" dense outlined
                       v-model="selectedDistrict"
                       use-input
+                      :disable="episode.id !== null && isEditStep"
                       ref="district"
                       input-debounce="0"
                       :options="districts"
@@ -158,6 +165,7 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
+                      :disable="episode.id !== null && isEditStep"
                       ref="referralClinic"
                       :rules="[ val => !!val || 'Por favor indicar o destino do paciente.']"
                       v-model="closureEpisode.referralClinic"
@@ -170,6 +178,7 @@
                     <TextInput
                       v-model="closureEpisode.notes"
                       label="Outras notas do episódio"
+                      :disable="episode.id !== null && isEditStep"
                       ref="endNotes"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
                       dense
