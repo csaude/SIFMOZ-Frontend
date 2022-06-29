@@ -33,6 +33,10 @@ export default {
       'Stock Actual'
     ]
     const rowsAux = await Report.api().get(`/usedStockReport/printReport/${id}/${fileType}`)
+    if (rowsAux.response.status === 204) return rowsAux.response.status
+    const firstReg = rowsAux.response.data[0]
+    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
+    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
 
     const data = this.createArrayOfArrayRow(rowsAux.response.data)
     autoTable(doc, {
@@ -85,6 +89,11 @@ export default {
 
   async downloadExcel (id, fileType2, params) {
     const rows = await Report.api().get(`/usedStockReport/printReport/${id}/${fileType2}`)
+    if (rows.response.status === 204) return rows.response.status
+    const firstReg = rows.response.data[0]
+    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
+    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
+
       const data = this.createArrayOfArrayRow(rows.response.data)
       const workbook = new ExcelJS.Workbook()
       workbook.creator = 'FGH'

@@ -85,9 +85,13 @@ import { ref } from 'vue'
       generateReport (id, fileType, params) {
         // UID da tab corrent
        if (fileType === 'PDF') {
-           ReceivedStockReport.downloadPDF(id, fileType, params)
+           ReceivedStockReport.downloadPDF(id, fileType, params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
         } else if (fileType === 'XLS') {
-           ReceivedStockReport.downloadExcel(id, fileType, params)
+           ReceivedStockReport.downloadExcel(id, fileType, params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
         }
       },
       displayAlert (type, msg) {
