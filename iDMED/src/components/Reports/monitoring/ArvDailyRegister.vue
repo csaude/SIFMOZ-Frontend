@@ -83,9 +83,13 @@ import { ref } from 'vue'
       generateReport (id, fileType, params) {
         // UID da tab corrent
           if (fileType === 'PDF') {
-           ArvDailyRegisterReport.downloadPDF(id, fileType, params)
+           ArvDailyRegisterReport.downloadPDF(id, fileType, params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
         } else if (fileType === 'XLS') {
-           ArvDailyRegisterReport.downloadExcel(id, fileType, params)
+           ArvDailyRegisterReport.downloadExcel(id, fileType, params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
         }
 
        /*  Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType}`, { responseType: 'blob' }).then(resp => {
