@@ -105,6 +105,7 @@ export default {
     ]
 
    const rowsAux = await Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType}`)
+   if(rowsAux.response.status === 204) return rowsAux.response.status
    const data = this.createArrayOfArrayRow(rowsAux.response.data)
 
     autoTable(
@@ -207,6 +208,7 @@ export default {
 
   async downloadExcel (id, fileType2, params) {
     const rows = await Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType2}`)
+    if(rows.response.status === 204) return rows.response.status
     const data = this.createArrayOfArrayRow(rows.response.data)
     console.log('DADOS: ', data)
     const workbook = new ExcelJS.Workbook()

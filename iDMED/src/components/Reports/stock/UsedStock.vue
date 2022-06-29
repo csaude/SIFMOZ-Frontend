@@ -84,9 +84,13 @@ import UsedStockReport from 'src/reports/stock/UsedStockReport.ts'
       },
       generateReport (id, fileType, params) {
         if (fileType === 'PDF') {
-           UsedStockReport.downloadPDF(id, fileType, params)
+           UsedStockReport.downloadPDF(id, fileType, params).then(resp => {
+            if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+          })
         } else if (fileType === 'XLS') {
-           UsedStockReport.downloadExcel(id, fileType, params)
+           UsedStockReport.downloadExcel(id, fileType, params).then(resp => {
+            if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+          })
         }
         // UID da tab corrent
       },
