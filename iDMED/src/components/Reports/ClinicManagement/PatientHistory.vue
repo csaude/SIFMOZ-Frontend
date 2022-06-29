@@ -56,26 +56,22 @@ import patientHistoryTS from '../../../reports/ClinicManagement/PatientHistory.t
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     methods: {
       closeSection () {
         this.$refs.filterDPatientHistorySection.remove()
       },
       initReportProcessing (params) {
-          console.log(params)
           Report.apiInitPatientsHistryProcessing(params).then(resp => {
-            // console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -87,32 +83,27 @@ import patientHistoryTS from '../../../reports/ClinicManagement/PatientHistory.t
       generateReport (id, fileType) {
         // UID da tab corrente
          Report.api().get(`/historicoLevantamentoReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
-           const firstReg = resp.response.data[0]
-           console.log(firstReg)
+           if (!resp.response.data[0]) {
+              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            } else {
+              const firstReg = resp.response.data[0]
 
-          if (fileType === 'PDF') {
-            patientHistoryTS.downloadPDF(
-              firstReg.province,
-              moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-              moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-              resp.response.data
-            )
-          } else {
-            patientHistoryTS.downloadExcel(
-              firstReg.province,
-              moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-              moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-              resp.response.data
-            )
+              if (fileType === 'PDF') {
+                patientHistoryTS.downloadPDF(
+                  firstReg.province,
+                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
+              } else {
+                patientHistoryTS.downloadExcel(
+                  firstReg.province,
+                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
+              }
           }
-
-          // const file = new Blob([resp.response.data], { type: 'application/pdf' })
-          // const fileURL = URL.createObjectURL(file)
-          // const link = document.createElement('a')
-          // link.href = fileURL
-          // link.setAttribute('download', 'HistoricoLevantamentoReport.' + fileType)
-          // document.body.appendChild(link)
-          // link.click()
         })
       },
       displayAlert (type, msg) {

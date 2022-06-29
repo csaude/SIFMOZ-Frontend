@@ -19,11 +19,11 @@ export default {
         unit: 'mm',
         format: 'a4',
         putOnlyUsedFonts: true,
-        floatPrecision: 'smart' 
+        floatPrecision: 'smart'
       })
       const image = new Image()
-      image.src = '/src/assets/MoHLogo.png'
-      const width = doc.internal.pageSize.getWidth()
+      image.src = 'data:image/png;base64,' + MOHIMAGELOG
+        const width = doc.internal.pageSize.getWidth()
       /*
         Fill Table
       */
@@ -37,9 +37,10 @@ export default {
           'Contacto'
         ]
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
-      console.log(rows.response.data)
+      if(rows.response.status === 204) return rows.response.status
+      
       const data = this.createArrayOfArrayRow(rows.response.data)
-  
+
       autoTable(doc, {
         margin: { top: 60 },
         bodyStyles: {
@@ -67,8 +68,9 @@ export default {
           )
           doc.setFontSize(10)
           doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, width / 15, 57)
-          doc.text('Data Início: ' + moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 49)
-          doc.text('Data Fim: ' + moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 57)
+        //  doc.text('Data Início: ' + moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 49)
+        //  doc.text('Data Fim: ' + moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 57)
+          doc.text('Periodo: ' + params.startDateParam +' à '+ params.endDateParam, width / 2 + 90, 57)
           // doc.line(0, 35, 400, 50);
         },
         theme: 'grid',
@@ -81,15 +83,16 @@ export default {
     async downloadExcel(params) {
 
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
+      if(rows.response.status === 204) return rows.response.status
       const data =  this.createArrayOfArrayRow(rows.response.data)
-  
+
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'FGH';
       workbook.lastModifiedBy = 'FGH';
       workbook.created = new Date();
       workbook.modified = new Date();
       workbook.lastPrinted = new Date();
-  
+
       // Force workbook calculation on load
       //workbook.calcProperties.fullCalcOnLoad = true;
       const worksheet = workbook.addWorksheet(reportName);
@@ -110,10 +113,10 @@ export default {
       const cellProvinceParamValue = worksheet.getCell('E12');
       const cellStartDateParamValue = worksheet.getCell('H11');
       const cellEndDateParamValue = worksheet.getCell('H12');
-  
+
       // Get Rows
       const headerRow = worksheet.getRow(14);
-  
+
       //Get Columns
       const colA = worksheet.getColumn('A');
       const colB = worksheet.getColumn('B');
@@ -122,7 +125,7 @@ export default {
       const colE = worksheet.getColumn('E');
       const colF = worksheet.getColumn('F');
       const colG = worksheet.getColumn('G');
-  
+
       // Format Table Cells
       // Alignment Format
       cellRepublica.alignment =
@@ -133,7 +136,7 @@ export default {
             horizontal: 'center',
             wrapText: true,
           };
-  
+
       cellPharm.alignment =
         cellDistrict.alignment =
         cellProvince.alignment =
@@ -144,7 +147,7 @@ export default {
             horizontal: 'left',
             wrapText: false,
           };
-  
+
       // Border Format
       cellRepublica.border =
         cellTitle.border =
@@ -164,21 +167,21 @@ export default {
             bottom: { style: 'thin' },
             right: { style: 'thin' },
           };
-  
+
       // Assign Value to Cell
       cellRepublica.value = logoTitle;
       cellTitle.value = title;
       cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName : '';
       cellProvinceParamValue.value = params.province !== null ? params.province.description : ''
       cellDistrictParamValue.value = params.district !== null ? params.district.description : '';
-      cellStartDateParamValue.value = moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY');
-      cellEndDateParamValue.value = moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY');
+      cellStartDateParamValue.value = params.startDateParam;
+      cellEndDateParamValue.value = params.endDateParam;
       cellPharm.value = 'Farmácia';
       cellDistrict.value = 'Distrito';
       cellProvince.value = 'Província';
       cellStartDate.value = 'Data Início';
       cellEndDate.value = 'Data Fim';
-  
+
       // merge a range of cells
       worksheet.mergeCells('A1:A7');
       worksheet.mergeCells('A9:H10');
@@ -186,11 +189,11 @@ export default {
       worksheet.mergeCells('B12:C12');
       worksheet.mergeCells('E12:F12');
       worksheet.mergeCells('A13:H13');
-  
+
       // add width size to Columns
       // add height size to Rows
       headerRow.height = 40;
-  
+
       // add height size to Columns
       // add width size to Columns
       colA.width = 30;
@@ -200,8 +203,8 @@ export default {
       colE.width = 20;
       colF.width = 20;
       colG.width = 20;
-  
-  
+
+
       // Add Style
       cellTitle.font =
         cellDistrict.font =
@@ -216,13 +219,13 @@ export default {
             italic: false,
             bold: true,
           };
-  
+
       // Add Image
       worksheet.addImage(imageId, {
         tl: { col: 0, row: 1 },
         ext: { width: 144, height: 98 },
       });
-  
+
       // Cereate Table
       worksheet.addTable({
         name: reportName,
@@ -263,16 +266,16 @@ export default {
         ],
         rows: data,
       });
-  
+
       // Format all data cells
       const lastRowNum =
         worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0;
       const lastTableRowNum = lastRowNum;
-  
+
       //Loop through all table's row
       for (let i = 14; i <= lastTableRowNum; i++) {
         const row = worksheet.getRow(i);
-  
+
         //Now loop through every row's cell and finally set alignment
         row.eachCell({ includeEmpty: true }, (cell) => {
           cell.border = {
@@ -304,20 +307,20 @@ export default {
           }
         });
       }
-  
+
       const buffer = await workbook.xlsx.writeBuffer();
       const fileType =
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const fileExtension = '.xlsx';
-  
+
       const blob = new Blob([buffer], { type: fileType });
-      
+
       saveAs(blob, fileName + fileExtension);
     },
-    
+
     createArrayOfArrayRow(rows) {
       const data = []
-  
+
       for (const row in rows) {
         const createRow = []
         createRow.push(rows[row].nid)
@@ -327,10 +330,10 @@ export default {
         createRow.push(rows[row].returnedPickUp !== null ? this.getFormatDDMMYYYY(rows[row].returnedPickUp) : '')
         createRow.push(rows[row].referralPharmacy)
         createRow.push(rows[row].contact)
-  
+
         data.push(createRow)
       }
-  
+
       return data
     },
     getFormatDDMMYYYY(date) {

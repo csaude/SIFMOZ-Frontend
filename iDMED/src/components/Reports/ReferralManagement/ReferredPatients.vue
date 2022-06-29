@@ -118,9 +118,13 @@ import referredPatients from '../../../reports/ReferralManagement/ReferredPatien
             })
             */
             if (fileType === 'PDF') {
-               referredPatients.downloadPDF(params)
+               referredPatients.downloadPDF(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
             } else {
-               referredPatients.downloadExcel(params)
+               referredPatients.downloadExcel(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
             }
       },
        displayAlert (type, msg) {

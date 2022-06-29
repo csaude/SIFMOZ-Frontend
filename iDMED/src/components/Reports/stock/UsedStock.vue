@@ -83,7 +83,7 @@ import UsedStockReport from 'src/reports/stock/UsedStockReport.ts'
         })
       },
       generateReport (id, fileType, params) {
-        if (fileType === 'PDF') {
+       if (fileType === 'PDF') {
            UsedStockReport.downloadPDF(id, fileType, params).then(resp => {
                   if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
                })

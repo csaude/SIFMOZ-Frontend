@@ -20,8 +20,8 @@
       <div class="row">
           <identifierInput
             @blur="search()"
-            :rules="[]"
-            v-model="currPatient.identifiers[0].value"/>
+            v-model="patientId"
+            :rules="[]"/>
           <nameInput
             @update:model-value="search()"
             class="q-ml-md"
@@ -239,7 +239,6 @@ export default {
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
        proccedToPatientPanel (patient) {
-         console.log('goToPanel')
          SessionStorage.set('selectedPatient', patient)
         this.$router.push('/patientpanel')
       },
@@ -325,8 +324,6 @@ export default {
               //   offset = offset + max
               //   setTimeout(this.doPackGet(clinicId, offset, max), 2)
               // }
-          }).catch(error => {
-              console.log(error)
           })
       },
       doPrescriptionkGet (clinicId, offset, max) {
@@ -335,8 +332,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doPrescriptionkGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
           })
       },
       doEpisodeGet (clinicId, offset, max) {
@@ -345,8 +340,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doEpisodeGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
           })
       },
       doPatientVisitDetailsGet (clinicId, offset, max) {
@@ -355,8 +348,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doPatientVisitDetailsGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
           })
       },
       doPatientGet (clinicId, offset, max) {
@@ -365,8 +356,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
           })
       },
       doPatientVisitGet (clinicId, offset, max) {
@@ -375,8 +364,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
           })
       },
       doIdentifiersGet (clinicId, offset, max) {
@@ -385,8 +372,6 @@ export default {
                 offset = offset + max
                 setTimeout(this.doIdentifiersGet(clinicId, offset, max), 2)
               }
-          }).catch(error => {
-              console.log(error)
           })
       },
       getAllDataSources (offset) {
@@ -396,9 +381,7 @@ export default {
           if (resp.response.data.length > 0) {
             setTimeout(this.getAllDataSources(offset), 2)
             }
-          }).catch(error => {
-            console.log(error)
-        })
+          })
        }
       },
       saveDefaultHIS () {
@@ -447,7 +430,6 @@ export default {
         const openMRSInstance = axios.create({
           baseURL: 'http://172.104.236.126:5110'
         })
-        console.log(his)
         const nid = this.currPatient.identifiers[0].value.replaceAll('/', '-')
 
         if (nid.length <= 0) {
@@ -481,13 +463,11 @@ export default {
         }
       },
       checkOpenMRS (his) {
-        console.log('HIS')
         const openMRSInstance = axios.create({
            baseURL: 'http://172.104.236.126:5110'
         })
         openMRSInstance.get('/patient/openmrsSession/' + his.id + '/' + this.username + '/' + this.password)
                        .then((response) => {
-                         console.log(response)
                          if (response.data.authenticated === false || response.data.authenticated === undefined || response.data.authenticated === null) {
                             this.$q.notify({
                             color: 'negative',
@@ -560,6 +540,15 @@ export default {
       }
     },
     computed: {
+      patientId: {
+        get () {
+          if (this.currPatient.identifiers[0] === null || this.currPatient.identifiers[0] === undefined) return null
+          return this.currPatient.identifiers[0].value
+        },
+        set (value) {
+          this.currPatient.identifiers[0].value = value
+        }
+      },
       clinic () {
         return new Clinic(SessionStorage.getItem('currClinic'))
       },

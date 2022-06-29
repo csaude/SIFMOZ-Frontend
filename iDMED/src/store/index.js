@@ -67,6 +67,8 @@ import PackagedDrugStock from './models/packagedDrug/PackagedDrugStock'
 import GroupPackHeader from './models/group/GroupPackHeader'
 import GroupPack from './models/group/GroupPack'
 import Report from './models/report/Report'
+import PatientTransReferenceType from './models/tansreference/PatientTransReferenceType'
+import PatientTransReference from './models/tansreference/PatientTransReference'
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -146,6 +148,8 @@ database.register(PackagedDrugStock)
 database.register(GroupPackHeader)
 database.register(GroupPack)
 database.register(Report)
+database.register(PatientTransReferenceType)
+database.register(PatientTransReference)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

@@ -116,9 +116,13 @@ import referredPatientDispenseHistory from '../../../reports/ReferralManagement/
             })
             */
            if (fileType === 'PDF') {
-               referredPatientDispenseHistory.downloadPDF(params)
+               referredPatientDispenseHistory.downloadPDF(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
             } else {
-               referredPatientDispenseHistory.downloadExcel(params)
+               referredPatientDispenseHistory.downloadExcel(params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
             }
       },
        displayAlert (type, msg) {

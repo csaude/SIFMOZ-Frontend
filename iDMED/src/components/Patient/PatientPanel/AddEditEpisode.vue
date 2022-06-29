@@ -11,14 +11,14 @@
               <q-separator/>
             </q-card-section>
             <div class="text-center text-h6 q-mt-sm">
-              <span v-if="episodeToEdit.id !== null">Actualizar</span>
+              <span v-if="episodeToEdit.id !== null && isEditStep">Actualizar</span>
               <span v-else>Adicionar</span>
               Episódio
             </div>
             <div class="q-mx-lg">
               <div class="q-mt-lg">
                   <div class="row items-center q-mb-sm">
-                      <span class="text-subtitle2">Dados de início no serviço de Saúde</span>
+                      <span class="text-subtitle2">Dados de início do Episódio</span>
                   </div>
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
               </div>
@@ -28,7 +28,6 @@
                     disable
                     dense outlined
                     v-model="identifier.service"
-                    :options="options"
                     option-value="id"
                     option-label="description"
                     label="Serviço de Saúde" />
@@ -57,6 +56,7 @@
                   <q-select class="col q-ml-md"
                     dense outlined
                     v-model="episode.startStopReason"
+                    :disable="episode.id !== null && isCreateStep"
                     :options="startReasons"
                     ref="startReason"
                     :rules="[ val => !!val || 'Por favor indicar a nota de início']"
@@ -68,6 +68,7 @@
                   <q-select
                     class="col"
                     dense outlined
+                    :disable="episode.id !== null && isCreateStep"
                     ref="clinicSerctor"
                     :rules="[ val => !!val || 'Por favor indicar o sector onde vai ocorrer o atendimento']"
                     v-model="episode.clinicSector"
@@ -78,6 +79,7 @@
                   <q-input
                       dense
                       outlined
+                      :disable="episode.id !== null && isCreateStep"
                       class="col q-ml-md"
                       v-model="startDate"
                       ref="startDate"
@@ -99,7 +101,7 @@
               <span v-if="episode.id !== null">
                 <div class="q-mt-md">
                   <div class="row items-center q-mb-sm">
-                      <span class="text-subtitle2">Dados de Fim do Episódio</span>
+                      <span class="text-subtitle2">Dados do Novo Episódio</span>
                   </div>
                   <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
                 </div>
@@ -109,8 +111,9 @@
                         outlined
                         class="col"
                         v-model="stopDate"
+                        :disable="episode.id !== null && isEditStep"
                         ref="stopDate"
-                        label="Data de Fim *">
+                        label="Data *">
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -125,6 +128,7 @@
                     </q-input>
                   <q-select
                       class="col q-ml-md"
+                      :disable="episode.id !== null && isEditStep"
                       dense outlined
                       ref="stopReason"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
@@ -132,15 +136,53 @@
                       :options="stopReasons"
                       option-value="id"
                       option-label="reason"
-                      label="Notas de Fim" />
+                      label="Notas do Episódio *" />
+                </div>
 
-                      <TextInput
-                        v-model="closureEpisode.notes"
-                        label="Outras notas de fim"
-                        ref="endNotes"
-                        :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
-                        dense
-                        class="col q-ml-md" />
+                <div class="row" v-if="isReferenceEpisode || isTransferenceEpisode">
+                  <q-select
+                      class="col" dense outlined
+                      v-model="selectedProvince"
+                      use-input
+                      :disable="episode.id !== null && isEditStep"
+                      ref="province"
+                      input-debounce="0"
+                      :options="provinces"
+                      option-value="id"
+                      option-label="description"
+                      label="Província"/>
+                  <q-select
+                      class="col q-ml-md" dense outlined
+                      v-model="selectedDistrict"
+                      use-input
+                      :disable="episode.id !== null && isEditStep"
+                      ref="district"
+                      input-debounce="0"
+                      :options="districts"
+                      option-value="id"
+                      option-label="description"
+                      label="Distrito"/>
+                  <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      :disable="episode.id !== null && isEditStep"
+                      ref="referralClinic"
+                      :rules="[ val => !!val || 'Por favor indicar o destino do paciente.']"
+                      v-model="closureEpisode.referralClinic"
+                      :options="referralClinics"
+                      option-value="id"
+                      option-label="clinicName"
+                      :label="patientDestinationfieldLabel" />
+                </div>
+                <div class="row">
+                    <TextInput
+                      v-model="closureEpisode.notes"
+                      label="Outras notas do episódio"
+                      :disable="episode.id !== null && isEditStep"
+                      ref="endNotes"
+                      :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
+                      dense
+                      class="col" />
                 </div>
               </span>
             </div>
@@ -169,6 +211,11 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
 import moment from 'moment'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import Province from '../../../store/models/province/Province'
+import District from '../../../store/models/district/District'
+import PatientTransReference from '../../../store/models/tansreference/PatientTransReference'
+import PatientTransReferenceType from '../../../store/models/tansreference/PatientTransReferenceType'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     data () {
@@ -184,13 +231,19 @@ export default {
             estados: ['Activo', 'Curado'],
             startDate: '',
             stopDate: '',
-            step: ''
+            step: '',
+            selectedProvince: null,
+            selectedDistrict: null
         }
     },
     methods: {
       init () {
-        this.identifier = Object.assign({}, this.curIdentifier)
+        this.identifier = new PatientServiceIdentifier(this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
+        if (this.identifier.lastEpisode() !== null && this.identifier.lastEpisode().isStartEpisode() && (this.episode !== null || this.episode !== undefined)) {
+          this.episode = new Episode(this.identifier.lastEpisode())
+          this.step = 'close'
+        }
         this.episode.patientServiceIdentifier = this.identifier
         if (this.episode.id !== null) {
           this.startDate = this.getDDMMYYYFromJSDate(this.episode.episodeDate)
@@ -258,33 +311,47 @@ export default {
                     } else if (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(this.episode.episodeDate)) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data de inicio ao tratamento.')
                     } else {
+                      console.log(this.episodeToEdit)
                       const episode = Episode.query()
                                               .with('startStopReason')
                                               .with('patientServiceIdentifier')
                                               .with('patientVisitDetails.*')
-                                              .where('id', this.episodeToEdit.id)
+                                              .where('id', this.episode.id)
                                               .first()
+                      if (this.isReferenceEpisode) {
+                          episode.lastVisit().prescription.patientVisitDetails = PatientVisitDetails.query()
+                                                                                                    .with('pack')
+                                                                                                    .where('prescription_id', episode.lastVisit().prescription.id)
+                                                                                                    .get()
+                      }
+                      console.log(episode)
                       if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
+                      } else if (this.isReferenceEpisode && episode.lastVisit().prescription.remainigDuration <= 0) {
+                        this.displayAlert('error', 'O paciente deve ter uma prescrição válida para ser referido.')
+                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
+                        this.displayAlert('error', 'Por favor indicar o destino do paciente.')
                       } else {
                         this.closureEpisode.clinicSector = this.episode.clinicSector
                         console.log(this.closureEpisode)
                         Episode.apiSave(this.closureEpisode).then(resp => {
-                          this.displayAlert('info', 'Episódio actualizado com sucesso.')
-                        }).catch(error => {
-                          this.listErrors = []
-                        if (error.request.status !== 0) {
-                          const arrayErrors = JSON.parse(error.request.response)
-                          if (arrayErrors.total == null) {
-                            this.listErrors.push(arrayErrors.message)
-                          } else {
-                            arrayErrors._embedded.errors.forEach(element => {
-                              this.listErrors.push(element.message)
+                          if (this.isTransferenceEpisode || this.isReferenceEpisode) {
+                            const transReference = new PatientTransReference({
+                              syncStatus: 'P',
+                              operationDate: this.closureEpisode.episodeDate,
+                              creationDate: new Date(),
+                              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA').first(),
+                              origin: this.currClinic,
+                              destination: this.closureEpisode.referralClinic,
+                              identifier: this.closureEpisode.patientServiceIdentifier,
+                              patient: this.patient
                             })
+                            setTimeout(this.doTransReference(transReference), 2)
                           }
-                        }
-                          this.displayAlert('error', this.listErrors)
-                        })
+                          this.displayAlert('info', 'Operação efectuada com sucesso.')
+                        }).catch(error => {
+                          console.log(error)
+                          })
                       }
                     }
               }
@@ -294,7 +361,6 @@ export default {
 
         if (!this.isCloseStep) {
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
-          console.log(this.episode)
           Episode.apiSave(this.episode).then(resp => {
             // Episode.insert({ data: resp.response.data })
             this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
@@ -314,6 +380,11 @@ export default {
           })
         }
       },
+      doTransReference (transReference) {
+        PatientTransReference.apiSave(transReference).then(resp => {
+            console.log(resp.response.data)
+        })
+      },
       displayAlert (type, msg) {
         this.alert.type = type
         this.alert.msg = msg
@@ -331,6 +402,9 @@ export default {
       },
       getDDMMYYYFromJSDate (jsDate) {
         return moment(jsDate).format('DD-MM-YYYY')
+      },
+      loadProvince () {
+        this.selectedProvince = Province.query().with('districts.*').where('id', this.currClinic.province.id).first()
       }
     },
     created () {
@@ -343,6 +417,44 @@ export default {
       TextInput: require('components/Shared/Input/TextField.vue').default
     },
     computed: {
+      patientDestinationfieldLabel () {
+        if (this.isTransferenceEpisode) {
+          return 'US de Transferência'
+        } else if (this.isReferenceEpisode) {
+          return 'Farmácia de Referência'
+        } else {
+          return 'Sem Titulo'
+        }
+      },
+      provinces: {
+        get () {
+           if (this.isReferenceEpisode) {
+            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).first()
+          } else {
+            return Province.query().with('districts.*').has('code').get()
+          }
+        }
+      },
+      districts: {
+        get () {
+          if (this.selectedProvince !== null && this.selectedProvince !== undefined) {
+            if (this.isReferenceEpisode) this.loadProvince()
+            return District.query().with('province').where('province_id', this.selectedProvince.id).has('code').get()
+          } else {
+            return null
+          }
+        }
+      },
+      isReferenceEpisode () {
+        if (this.closureEpisode === null || this.closureEpisode === undefined) return false
+        if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
+        return this.closureEpisode.startStopReason.code === 'REFERIDO_PARA'
+      },
+      isTransferenceEpisode () {
+        if (this.closureEpisode === null || this.closureEpisode === undefined) return false
+        if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
+        return this.closureEpisode.startStopReason.code === 'TRANSFERIDO_PARA'
+      },
       identifierstartDate: {
         get () {
           return this.getDDMMYYYFromJSDate(this.identifier.startDate)
@@ -352,12 +464,47 @@ export default {
       clinicSerctors () {
         return ClinicSector.query()
                           .with('clinic')
-                          .where('clinic_id', this.currClinic.id)
-                          .get()
+                          .where((sector) => {
+                            return sector.clinic_id === this.currClinic.id && sector.active === true
+                          }).get()
+      },
+      referralClinics () {
+        let clinicList = []
+        if (this.selectedDistrict !== null) {
+         if (this.isReferenceEpisode) {
+            clinicList = Clinic.query()
+                            .with('province')
+                            .with('district.province')
+                            .with('facilityType')
+                            .where((clinic) => {
+                              return clinic.mainClinic === false && clinic.active === true
+                            }).get()
+            const filteredList = clinicList.filter((clinic) => {
+              return clinic.facilityType.code !== 'US' && clinic.province.id === this.selectedProvince.id && clinic.district.id === this.selectedDistrict.id
+            })
+
+            return filteredList
+          } else {
+              clinicList = Clinic.query()
+                            .with('province')
+                            .with('district.province')
+                            .with('facilityType')
+                            .where((clinic) => {
+                              return clinic.mainClinic === false && clinic.active === true
+                            }).get()
+            const filteredList = clinicList.filter((clinic) => {
+              return clinic.facilityType.code === 'US' && clinic.province.id === this.selectedProvince.id && clinic.district.id === this.selectedDistrict.id
+            })
+
+            return filteredList
+          }
+        }
+        return []
       },
       currClinic () {
         return Clinic.query()
                     .with('province')
+                    .with('district.province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       },

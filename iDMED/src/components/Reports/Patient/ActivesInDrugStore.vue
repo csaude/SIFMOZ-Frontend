@@ -56,7 +56,8 @@ import { ref } from 'vue'
     },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
+      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
+      Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     methods: {
       closeSection () {
@@ -64,18 +65,14 @@ import { ref } from 'vue'
       },
       initReportProcessing (params) {
           Report.apiInitActiveInDrugStoreProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
-            console.log(this.progress)
             setTimeout(this.getProcessingStatus(params), 2)
           })
          // Pack.api().post('/receivedStockReport/initReportProcess', params)
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('activePatientReport', params).then(resp => {
-          console.log(resp.response.data.progress)
           this.progress = resp.response.data.progress
-          console.log(this.progress)
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)
           } else {
@@ -86,26 +83,30 @@ import { ref } from 'vue'
       },
       generateReport (id, fileType) {
           Report.api().get(`/activePatientReport/printReport/${id}`, { responseType: 'json' }).then(resp => {
-            const patientAux = resp.response.data[0]
+            if (!resp.response.data[0]) {
+              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            } else {
+              const patientAux = resp.response.data[0]
 
-          if (fileType === 'PDF') {
-            activePatients.downloadPDF(
-              patientAux.province,
-              moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-              moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-              resp.response.data
-            )
-          } else {
-            activePatients.downloadExcel(
-              patientAux.province,
-              moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-              moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-              resp.response.data
-            )
-          }
+              if (fileType === 'PDF') {
+                activePatients.downloadPDF(
+                  patientAux.province,
+                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
+              } else {
+                activePatients.downloadExcel(
+                  patientAux.province,
+                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
+              }
+            }
         })
       },
-      displayAlert (type, msg) {
+       displayAlert (type, msg) {
         this.alert.type = type
         this.alert.msg = msg
         this.alert.visible = true

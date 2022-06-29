@@ -110,7 +110,7 @@ export default {
           { content: 'Cr. Exp.' }
        ]
     ]
-
+ 
     autoTable(
       doc,
       {
@@ -210,12 +210,12 @@ export default {
   },
 
   async downloadExcel (id, fileType2, params) {
-    const rows = await Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType2}`)
+    const rows = await Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType2}`) 
     if (rows.response.status === 204) return rows.response.status
     const firstReg = rows.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-
+ 
     const data = this.createArrayOfArrayRow(rows.response.data)
     console.log('DADOS: ', data)
     const workbook = new ExcelJS.Workbook()

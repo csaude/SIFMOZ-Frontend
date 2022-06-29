@@ -50,7 +50,6 @@ export default {
     init () {
       this.identifiers.forEach(identifier => {
         Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-          console.log(resp.response.data)
           if (resp.response.data.length > 0) {
             resp.response.data.forEach(episode => {
               PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
