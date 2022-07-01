@@ -181,7 +181,7 @@
           </div>
           <div v-else class="vertical-middle">
             <q-banner rounded class="bg-orange-1 text-left text-orange-10">
-              Nenhum Serviço de Saúde foi Seleccionado!.
+              Nenhum Medicamneto foi Adicionado!
             </q-banner>
           </div>
               <div class="row" v-if="showServiceDrugsManagement && hasVisitsToPackNow">
@@ -551,9 +551,11 @@ export default {
     generatePacksAndDispense () {
       let hasError = false
       let error = ''
+      let hasSomePrescribed = false
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         if (!visitDetails.createPackLater && visitDetails.prescription.prescribedDrugs.length > 0) {
+          hasSomePrescribed = true
           if (Number(visitDetails.pack.weeksSupply) <= 0) {
             hasError = true
             error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
@@ -579,10 +581,14 @@ export default {
           }
         }
       }.bind(this))
-      if (!hasError) {
-        this.proccedToDispense()
+      if (hasSomePrescribed) {
+        if (!hasError) {
+          this.proccedToDispense()
+        } else {
+          this.displayAlert('error', 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de [' + error + ' ]')
+        }
       } else {
-        this.displayAlert('error', 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de [' + error + ' ]')
+        this.displayAlert('error', 'Por favor indicar os medicamentos a dispensar.')
       }
     },
     initPackageStock (stock, drug, quantitySupplied) {
