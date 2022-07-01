@@ -334,6 +334,10 @@ export default {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data de inicio ao tratamento.')
               } else if (episode !== null && episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.endDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
+              } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && !episode.hasVisits()) {
+                this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
+              } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
+                this.displayAlert('error', 'Por favor indicar o destino do paciente.')
               } else {
                 this.doSave()
               }
@@ -659,6 +663,7 @@ export default {
         return Clinic.query()
                     .with('province')
                     .with('district.province')
+                    .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       },

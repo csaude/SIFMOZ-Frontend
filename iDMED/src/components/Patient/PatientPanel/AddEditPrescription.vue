@@ -601,9 +601,9 @@ export default {
         let qtyPrescribed = prescribedDrug.qtyPrescribed
         const packDrug = new PackagedDrug()
         const stocks = Stock.query()
-                            .with('clinic.province')
-                            .with('entrance.clinic.province')
-                            .with('center.clinic.province')
+                            .with(['clinic.*'])
+                            .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                            .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                             .with('drug.form')
                             .where('drug_id', prescribedDrug.drug.id)
                             .orderBy('expireDate', 'asc')
@@ -674,6 +674,11 @@ export default {
     saveVisitPrescriptionAndPack (patientVisit, i) {
       if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
         const patientVDetails = patientVisit.patientVisitDetails[i]
+        patientVDetails.episode = Episode.query()
+                                    .withAll()
+                                    .where('id', patientVDetails.episode.id)
+                                    .first()
+        patientVDetails.episode.patientVisitDetails = []
         if (patientVDetails.prescription.id === null) {
           Prescription.apiSave(patientVDetails.prescription).then(resp => {
             patientVDetails.prescription.id = resp.response.data.id
@@ -681,19 +686,21 @@ export default {
             patientVDetails.prescription.prescribedDrugs = []
             patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
             if (patientVDetails.pack !== null) {
-              Pack.apiSave(patientVDetails.pack).then(resp => {
-                patientVDetails.pack.id = resp.response.data.id
-                patientVDetails.pack.$id = resp.response.data.id
-                patientVDetails.pack.packagedDrugs = []
-                i = i + 1
-                setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
-              })
+                patientVDetails.pack.syncStatus = 'N'
+                Pack.apiSave(patientVDetails.pack).then(resp => {
+                  patientVDetails.pack.id = resp.response.data.id
+                  patientVDetails.pack.$id = resp.response.data.id
+                  patientVDetails.pack.packagedDrugs = []
+                  i = i + 1
+                  setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+                })
             } else {
               i = i + 1
               setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
             }
           })
         } else {
+          patientVDetails.pack.syncStatus = 'N'
           Pack.apiSave(patientVDetails.pack).then(resp => {
             patientVDetails.pack.id = resp.response.data.id
             patientVDetails.pack.$id = resp.response.data.id
@@ -703,11 +710,16 @@ export default {
           })
         }
       } else {
-        this.savePatientVisit(patientVisit)
+        const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
+        patientVisitCopy.patientVisitDetails.forEach((pvd) => {
+          pvd.prescription.prescriptionDetails = []
+          pvd.prescription.prescribedDrugs = []
+        })
+        this.savePatientVisit(patientVisitCopy)
       }
     },
     savePatientVisit (patientVisit) {
-      PatientVisit.apiSave(this.patientVisit).then(resp => {
+      PatientVisit.apiSave(patientVisit).then(resp => {
         this.patientVisit.id = resp.response.data.id
         this.patientVisit.$id = resp.response.data.id
         this.fecthVisit(resp.response.data.id)
@@ -908,7 +920,7 @@ export default {
                               .with('district')
                               .with('postoAdministrativo')
                               .with('bairro')
-                              .with('clinic')
+                              .with('clinic.*')
                               .where('id', selectedP.id)
                               .first()
       }
@@ -951,7 +963,12 @@ export default {
     },
     currClinic: {
       get () {
-        return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+        return Clinic.query()
+                      .with('province')
+                      .with('district.province')
+                      .with('facilityType')
+                      .where('id', SessionStorage.getItem('currClinic').id)
+                      .first()
       }
     }
   },

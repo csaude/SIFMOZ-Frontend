@@ -436,10 +436,11 @@ export default {
       currClinic: {
         get () {
           return Clinic.query()
-                    .with('province')
-                    .with('district.province')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
+                      .with('province')
+                      .with('district.province')
+                      .with('facilityType')
+                      .where('id', SessionStorage.getItem('currClinic').id)
+                      .first()
         }
       },
       isEditStep () {

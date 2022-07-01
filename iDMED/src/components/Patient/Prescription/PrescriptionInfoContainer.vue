@@ -48,6 +48,7 @@
           <span v-if="lastPackOnPrescription !== null && lastPackOnPrescription.packagedDrugs.length > 0 && lastPackOnPrescription.packagedDrugs[0].drug !== null">
             <PackInfo
               @editPack="editPack"
+              @removePack="removePack"
               :isClosed="isClosed"
               :pack="lastPackOnPrescription"/>
           </span>
@@ -120,6 +121,11 @@ export default {
     },
     editPack () {
       this.$emit('editPack', this.patientVisitDetais)
+    },
+    removePack () {
+      PatientVisitDetails.apiDelete(this.patientVisitDetais).then(resp => {
+        console.log(resp)
+      })
     },
     removePrescription () {
       if (this.lastPack !== null) {
