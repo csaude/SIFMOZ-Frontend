@@ -144,7 +144,7 @@
                       class="col" dense outlined
                       v-model="selectedProvince"
                       use-input
-                      :disable="episode.id !== null && isEditStep"
+                      :disable="(episode.id !== null && isEditStep) || isReferenceEpisode"
                       ref="province"
                       input-debounce="0"
                       :options="provinces"
@@ -250,6 +250,8 @@ export default {
           this.episode.patientServiceIdentifier.episodes = []
           this.episode.clinicSector.clinic = Clinic.query()
                                                   .with('province')
+                                                  .with('district.province')
+                                                  .with('facilityType')
                                                   .where('id', this.episode.clinicSector.clinic_id)
                                                   .first()
         }
@@ -324,16 +326,14 @@ export default {
                                                                                                     .where('prescription_id', episode.lastVisit().prescription.id)
                                                                                                     .get()
                       }
-                      console.log(episode)
                       if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
-                      } else if (this.isReferenceEpisode && episode.lastVisit().prescription.remainigDuration <= 0) {
-                        this.displayAlert('error', 'O paciente deve ter uma prescrição válida para ser referido.')
+                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && !episode.hasVisits()) {
+                        this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                         this.displayAlert('error', 'Por favor indicar o destino do paciente.')
                       } else {
                         this.closureEpisode.clinicSector = this.episode.clinicSector
-                        console.log(this.closureEpisode)
                         Episode.apiSave(this.closureEpisode).then(resp => {
                           if (this.isTransferenceEpisode || this.isReferenceEpisode) {
                             const transReference = new PatientTransReference({
@@ -429,7 +429,8 @@ export default {
       provinces: {
         get () {
            if (this.isReferenceEpisode) {
-            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).first()
+             this.loadProvince()
+            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).get()
           } else {
             return Province.query().with('districts.*').has('code').get()
           }
@@ -505,6 +506,7 @@ export default {
         return Clinic.query()
                     .with('province')
                     .with('district.province')
+                    .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       },

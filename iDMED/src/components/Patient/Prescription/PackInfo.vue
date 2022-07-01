@@ -67,7 +67,7 @@ export default {
       this.$emit('editPack')
     },
     removePack () {
-      // this.$emit('removePack', this.currPack)
+      this.$emit('removePack')
     },
     reloadDrugs () {
       const offset = 0

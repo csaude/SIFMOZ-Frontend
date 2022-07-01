@@ -38,6 +38,10 @@ export default class PatientVisitDetails extends Model {
     return await this.api().post('/patientVisitDetails', patientVisitDetail)
   }
 
+  static async apiDelete (patientVisitDetail) {
+    return await this.api().delete(`/patientVisitDetails/${patientVisitDetail.id}`)
+  }
+
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patientVisitDetails/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }

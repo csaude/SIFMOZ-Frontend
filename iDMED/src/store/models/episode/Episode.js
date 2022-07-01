@@ -46,6 +46,11 @@ export default class Episode extends Model {
     return this.episodeType.code === 'FIM'
   }
 
+  isTranferenceEpisode () {
+    if (this.startStopReason === null) return false
+    return this.startStopReason.code === 'TRANSFERIDO_PARA'
+  }
+
   hasVisits () {
     return this.patientVisitDetails.length > 0
   }

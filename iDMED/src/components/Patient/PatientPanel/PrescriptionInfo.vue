@@ -7,7 +7,7 @@
     @expandLess="expandLess"
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="selectedPatient.identifiers.length <= 0" >Nenhuma Prescrição Adicionada</EmptyList>
+  <EmptyList v-if="!patientHasEpisodes && !flagGo" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-if="flagGo" >
     <span
       v-for="identifier in patient.identifiers" :key="identifier.id" >
@@ -43,7 +43,7 @@ export default {
       infoVisible: true,
       selectedVisitDetails: '',
       step: '',
-      flagGo: false
+      flagGoReady: false
     }
   },
   methods: {
@@ -58,7 +58,7 @@ export default {
                 })
               })
             } else {
-              this.flagGo = true
+              this.flagGoReady = true
             }
           })
         })
@@ -77,7 +77,7 @@ export default {
           }
         })
       } else {
-        this.flagGo = true
+        this.flagGoReady = true
       }
     },
     checkPrescription () {
@@ -113,6 +113,14 @@ export default {
   mounted () {
   },
   computed: {
+    flagGo: {
+      get () {
+        return this.flagGoReady
+      },
+      set (value) {
+        this.flagGoReady = value
+      }
+    },
     showAddButton () {
       return this.patientHasEpisodes
     },
@@ -121,6 +129,9 @@ export default {
     },
     identifiers () {
       return this.patient.identifiers
+    },
+    patientHasEpisodes () {
+      return this.patient.hasEpisodes()
     },
     patient: {
       get () {
@@ -135,18 +146,6 @@ export default {
                             .with('clinic')
                             .where('id', selectedP.id).first()
       }
-    },
-    patientHasEpisodes () {
-      if (!this.patient.hasIdentifiers()) return false
-
-      let hasEpisode = false
-      Object.keys(this.patient.identifiers).forEach(function (k) {
-        const id = this.patient.identifiers[k]
-        if (!hasEpisode && id.hasEpisodes()) {
-          hasEpisode = true
-        }
-      }.bind(this))
-      return hasEpisode
     }
   },
   components: {

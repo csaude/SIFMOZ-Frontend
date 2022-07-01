@@ -97,6 +97,14 @@ export default class Patient extends Model {
     return preferedId
   }
 
+  hasEpisodes () {
+    if (this.identifiers.length <= 0) return false
+    const hasEpisodes = this.identifiers.some((identifier) => {
+      return identifier.episodes.length > 0
+    })
+    return hasEpisodes
+  }
+
   preferedIdentifier () {
     if (this.identifiers.length <= 0) return null
     let preferedId = null

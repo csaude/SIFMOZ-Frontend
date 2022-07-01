@@ -17,6 +17,10 @@ export default class StartStopReason extends Model {
     return await this.api().get('/startStopReason?offset=' + offset + '&max=' + max)
   }
 
+  static isTranferReason () {
+    return this.code === 'TRANSFERIDO_PARA'
+  }
+
   static async apiFetchById (id) {
     return await this.api().get(`/startStopReason/${id}`)
   }
