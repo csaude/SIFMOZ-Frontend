@@ -19,7 +19,7 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 // import { QSpinnerBall } from 'quasar'
 const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 export default {
-   props: ['serviceCode'],
+   props: ['serviceCode', 'dataLoaded'],
      emits: ['update:serviceCode'],
       Nmap: new Map(),
       NmapChild: new Map(),
@@ -145,6 +145,18 @@ tooltip: {
   return result
   },
     updateChart () {
+        this.chartOptions = {
+            ...this.chartOptions,
+            ...{
+         title: {
+          text: 'Total de Pacientes no Serviço ' + this.serviceCode + ' que iniciaram o levantamento',
+          align: 'center',
+          style: {
+            color: '#000000'
+          }
+          }
+ }
+ }
      const mapIter = this.Nmap.values()
          const arrDone = []
        for (const item of mapIter) {
@@ -169,6 +181,12 @@ tooltip: {
   },
    watch: {
    serviceCode: function (newVal, oldVal) {
+          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
+          this.Nmap = this.getAdultPatientsByMonth()
+        this.NmapChild = this.getChildPatientsByMonth()
+        this.updateChart()
+        },
+    dataLoaded: function (newVal, oldVal) {
           console.log('Prop changed: ', newVal, ' | was: ', oldVal)
           this.Nmap = this.getAdultPatientsByMonth()
         this.NmapChild = this.getChildPatientsByMonth()
@@ -233,9 +251,6 @@ tooltip: {
        console.log(this.patientMensTarv)
           this.$q.loading.hide()
       }) */
-        this.Nmap = this.getAdultPatientsByMonth()
-        this.NmapChild = this.getChildPatientsByMonth()
-          this.updateChart()
     }
 }
 

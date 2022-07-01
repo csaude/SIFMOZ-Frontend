@@ -108,7 +108,6 @@ export default {
                               })
                                .whereHas('episodes', (query) => {
                               query.where((episodes) => {
-                                  console.log(episodes)
                                    return episodes.notes === 'Inicio ao tratamento'
                               })
                               }).get()
@@ -132,7 +131,6 @@ export default {
                               })
                                .whereHas('episodes', (query) => {
                               query.where((episodes) => {
-                                  console.log(episodes)
                                    return episodes.notes === 'Inicio ao tratamento'
                               })
                               }).get()
@@ -144,7 +142,24 @@ export default {
     }
   },
     created () {
-    }
+    },
+      watch: {
+   serviceCode: function (newVal, oldVal) {
+          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
+     this.chartOptions = {
+            ...this.chartOptions,
+            ...{
+         title: {
+          text: 'Percentual de Pacientes activos no Serviço ' + this.serviceCode,
+          align: 'center',
+          style: {
+            color: '#000000'
+          }
+          }
+ }
+ }
+        }
+     }
 }
 
 </script>
