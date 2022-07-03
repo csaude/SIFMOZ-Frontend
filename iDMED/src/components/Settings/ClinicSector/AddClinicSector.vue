@@ -21,6 +21,21 @@
                      :disable="onlyView"
                     label="Código *" />
             </div>
+               <div class="row q-mb-md">
+                <q-select
+                    dense outlined
+                    class="col"
+                    v-model="clinicSector.clinicSectorType"
+                    :options="clinicSectorTypes"
+                    transition-show="flip-up"
+                    transition-hide="flip-down"
+                    ref="clinic"
+                    option-value="id"
+                    option-label="description"
+                    :rules="[ val => ( val != null ) || ' Por favor indique o tipo de Sector']"
+                    lazy-rules
+                    label="Tipo de Sector Clinico" />
+            </div>
              <div class="row q-mb-md">
                 <q-select
                     dense outlined
@@ -57,6 +72,7 @@
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 import { SessionStorage } from 'quasar'
 export default {
       props: ['selectedClinicSector', 'onlyView'],
@@ -96,7 +112,10 @@ export default {
                     .with('province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
-      }
+      },
+        clinicSectorTypes () {
+            return ClinicSectorType.all()
+        }
     },
     methods: {
     validateClinicSector () {
@@ -111,6 +130,7 @@ export default {
         submitClinicSector () {
           this.clinicSector.active = true
           this.submitting = true
+          console.log(this.clinicSector)
            ClinicSector.apiSave(this.clinicSector).then(resp => {
              this.submitting = false
                 console.log(resp.response.data)
