@@ -133,6 +133,7 @@ import StockOperationType from '../../store/models/stockoperation/StockOperation
 import ReferedStockMoviment from '../../store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
 import PatientTransReferenceType from '../../store/models/tansreference/PatientTransReferenceType'
+import ClinicSectorType from '../../store/models/clinicSectorType/ClinicSectorType'
 export default {
   data () {
     return {
@@ -176,6 +177,7 @@ export default {
         ReferedStockMoviment.apiGetAll(offset, max)
         DestroyedStock.apiGetAll(offset, max)
         FacilityType.apiGetAll(offset, max)
+        ClinicSectorType.apiGetAll(offset, max)
         PatientTransReferenceType.apiGetAll(offset, max)
       },
       saveCurrClinic () {

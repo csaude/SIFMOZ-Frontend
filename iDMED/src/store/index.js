@@ -69,6 +69,8 @@ import GroupPack from './models/group/GroupPack'
 import Report from './models/report/Report'
 import PatientTransReferenceType from './models/tansreference/PatientTransReferenceType'
 import PatientTransReference from './models/tansreference/PatientTransReference'
+import ClinicSectorType from './models/clinicSectorType/ClinicSectorType'
+
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -150,6 +152,7 @@ database.register(GroupPack)
 database.register(Report)
 database.register(PatientTransReferenceType)
 database.register(PatientTransReference)
+database.register(ClinicSectorType)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

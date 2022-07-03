@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
+import ClinicSectorType from '../clinicSectorType/ClinicSectorType'
 
 export default class ClinicSector extends Model {
   static entity = 'clinicSectors'
@@ -11,8 +12,10 @@ export default class ClinicSector extends Model {
       description: this.attr(''),
       active: this.attr(''),
       clinic_id: this.attr(''),
+      clinic_sector_type_id: this.attr(''),
       // Relationships
-      clinic: this.belongsTo(Clinic, 'clinic_id')
+      clinic: this.belongsTo(Clinic, 'clinic_id'),
+      clinicSectorType: this.belongsTo(ClinicSectorType, 'clinic_sector_type_id')
 
     }
   }
