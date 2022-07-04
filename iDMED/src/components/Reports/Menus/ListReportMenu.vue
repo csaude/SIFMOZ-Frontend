@@ -10,9 +10,9 @@
       option-label="code"
       label="Serviço de Saúde" />
     <q-separator  />
-
     <div class="q-pa-md" style="max-width: 500px">
       <q-list bordered v-if="selectedService !== null">
+      <div  v-if="selectedService.code === 'TARV'">
         <q-expansion-item
           v-for="menu in menu"
           :key="menu.id"
@@ -37,6 +37,12 @@
               </div>
           </q-card>
         </q-expansion-item>
+        </div>
+        <div v-else class="vertical-middle">
+            <q-banner rounded class="bg-orange-1 text-left text-orange-10">
+              Nenhum Relatório assossiado ao Serviço de Saúde Seleccionado!.
+            </q-banner>
+          </div>
       </q-list>
       <div v-else class="vertical-middle">
             <q-banner rounded class="bg-orange-1 text-left text-orange-10">
@@ -45,6 +51,7 @@
           </div>
     </div>
   </div>
+
 </template>
 
 <script>
@@ -59,11 +66,11 @@ export default {
                 description: 'Pacientes',
                 id: 1,
                 menuItem: [
-                           { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore' },
-                           { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
+                           { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore' }
+                          //  { description: 'Lista de transferidos PARA', tabName: 'TransferedTo' },
+                          //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
+                          //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
+                          //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
                           ]
                 },
                 {
@@ -72,9 +79,9 @@ export default {
                 menuItem: [
                            { description: 'Lista de Pacientes Faltosos ao Levantamento', tabName: 'AbsentPatients' },
                            { description: 'Mapa Mensal de Informação de ARV (MMIA)', tabName: 'Mmia' },
-                           { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-                           { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                           { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
+                          //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
+                          //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
+                          //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
                            { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' }
                           ]
                 },
@@ -116,7 +123,9 @@ export default {
   computed: {
     clinicalServices: {
       get () {
-        return ClinicalService.all()
+        return ClinicalService.query()
+                              .orderBy('code', 'desc')
+                              .get()
       }
     }
   }

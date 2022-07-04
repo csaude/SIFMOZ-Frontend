@@ -113,7 +113,7 @@ export default {
                             .with('episode.patientServiceIdentifier.service')
                               .get()
                      const patientVisitDetailsTarv = patientVisitDetails.filter((patientVisitDetail) => {
-                  return patientVisitDetail.episode.patientServiceIdentifier.service.code === this.serviceCode
+                  return patientVisitDetail.episode.patientServiceIdentifier.service !== null ? patientVisitDetail.episode.patientServiceIdentifier.service.code === this.serviceCode : false
                 })
               patientVisitDetailsTarv.forEach(patientVisitDetail => {
              //  let patient = patientVisitDetail.patientVisit.patient

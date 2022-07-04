@@ -15,6 +15,25 @@ import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Clinic from '../../store/models/clinic/Clinic'
  import Pack from 'src/store/models/packaging/Pack'
+import Duration from 'src/store/models/Duration/Duration'
+import Province from 'src/store/models/province/Province'
+import District from 'src/store/models/district/District'
+import ClinicalServiceAttributeType from 'src/store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
+import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
+import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
+import IdentifierType from 'src/store/models/identifierType/IdentifierType'
+import EpisodeType from 'src/store/models/episodeType/EpisodeType'
+import FacilityType from 'src/store/models/facilityType/FacilityType'
+import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
+import ClinicalServiceAttribute from 'src/store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+import Drug from 'src/store/models/drug/Drug'
+import TherapeuticRegimen from 'src/store/models/therapeuticRegimen/TherapeuticRegimen'
+import TherapeuticLine from 'src/store/models/therapeuticLine/TherapeuticLine'
+import Form from 'src/store/models/form/Form'
+import DispenseType from 'src/store/models/dispenseType/DispenseType'
+import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
+import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
+import PatientTransReferenceType from 'src/store/models/tansreference/PatientTransReferenceType'
 export default {
    data () {
      return {
@@ -32,6 +51,31 @@ export default {
         Charts: require('components/Dashboard/ApexCharts/Charts.vue').default
     },
     methods: {
+       loadAppParameters () {
+        const offset = 0
+        const max = 100
+        Duration.apiGetAll(offset, max)
+        Province.apiGetAll(offset, max)
+        District.apiGetAll(offset, max)
+        ClinicalServiceAttributeType.apiGetAll(offset, max)
+        ClinicalService.apiGetAll(offset, max)
+        ClinicSector.apiGetAll(offset, max)
+        IdentifierType.apiGetAll(offset, max)
+        EpisodeType.apiGetAll(offset, max)
+        FacilityType.apiGetAll(offset, max)
+        StartStopReason.apiGetAll(offset, max)
+        ClinicalServiceAttribute.apiGetAll(offset, max)
+        Drug.apiGetAll(offset, max)
+        TherapeuticRegimen.apiGetAll(offset, max)
+        TherapeuticLine.apiGetAll(offset, max)
+        Form.apiGetAll(offset, max)
+        DispenseType.apiGetAll(offset, max)
+        Clinic.apiGetAll(offset, max)
+        StockOperationType.apiGetAll(offset, max)
+        FacilityType.apiGetAll(offset, max)
+        ClinicSectorType.apiGetAll(offset, max)
+        PatientTransReferenceType.apiGetAll(offset, max)
+      },
  loadData () {
      const offset = 0
       const max = 0
@@ -114,6 +158,7 @@ export default {
       }
     },
     mounted () {
+       this.loadAppParameters()
        Episode.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002').then(resp => {
        console.log(resp)
      //  console.log(this.patientMensTarv)
