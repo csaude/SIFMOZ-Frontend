@@ -15,14 +15,13 @@ export default class PatientTransReference extends Model {
       creationDate: this.attr(''),
       patientTransReferenceTypeId: this.attr(''),
       originId: this.attr(''),
-      destinationId: this.attr(''),
+      destination: this.attr(''),
       identifierId: this.attr(''),
       patientId: this.attr(''),
 
       // Relationshiops
       operationType: this.belongsTo(PatientTransReferenceType, 'patientTransReferenceTypeId'),
       origin: this.belongsTo(Clinic, 'originId'),
-      destination: this.belongsTo(Clinic, 'destinationId'),
       identifier: this.belongsTo(PatientServiceIdentifier, 'identifierId'),
       patient: this.belongsTo(Patient, 'patientId')
     }
