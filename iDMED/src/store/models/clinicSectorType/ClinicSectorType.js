@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import ClinicSector from '../clinicSector/ClinicSector'
 
 export default class ClinicSectorType extends Model {
   static entity = 'clinicSectorTypes'
@@ -7,7 +8,8 @@ export default class ClinicSectorType extends Model {
     return {
       id: this.attr(null),
       code: this.attr(''),
-      description: this.attr('')
+      description: this.attr(''),
+      clinicSectorList: this.hasMany(ClinicSector, 'clinic_sector_type_id')
 
     }
   }

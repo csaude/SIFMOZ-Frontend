@@ -174,6 +174,30 @@
                       option-label="clinicName"
                       :label="patientDestinationfieldLabel" />
                 </div>
+                <div class="row" v-if="isDCReferenceEpisode">
+                  <q-select
+                      class="col" dense outlined
+                      v-model="selectedClinicSectorType"
+                      use-input
+                      :disable="episode.id !== null && isEditStep"
+                      ref="clinicSectorType"
+                      input-debounce="0"
+                      :options="clinicSectorTypes"
+                      option-value="id"
+                      option-label="description"
+                      label="Tipo de Sector de Dispensa"/>
+                  <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      :disable="episode.id !== null && isEditStep"
+                      ref="referealClinicSector"
+                      :rules="[ val => !!val || 'Por favor indicar o sector de dispensa.']"
+                      v-model="selectedClinicSector"
+                      :options="referealClinicSectors"
+                      option-value="id"
+                      option-label="description"
+                      label="Sector de Dispensa" />
+                </div>
                 <div class="row">
                     <TextInput
                       v-model="closureEpisode.notes"
@@ -216,6 +240,9 @@ import Province from '../../../store/models/province/Province'
 import District from '../../../store/models/district/District'
 import PatientTransReference from '../../../store/models/tansreference/PatientTransReference'
 import PatientTransReferenceType from '../../../store/models/tansreference/PatientTransReferenceType'
+import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
+import FacilityType from '../../../store/models/facilityType/FacilityType'
+import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     data () {
@@ -233,7 +260,9 @@ export default {
             stopDate: '',
             step: '',
             selectedProvince: null,
-            selectedDistrict: null
+            selectedDistrict: null,
+            selectedClinicSectorType: null,
+            selectedClinicSector: null
         }
     },
     methods: {
@@ -288,6 +317,7 @@ export default {
         }
       },
       doSave () {
+                      console.log(this.episode)
         if (this.episode.id === null) {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
@@ -295,9 +325,12 @@ export default {
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
           this.episode.creationDate = new Date(new Date().setHours(0, 0, 0, 0))
         } else {
+                      console.log(this.closureEpisode)
           if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
             this.step = 'close'
+                      console.log(this.episodeToEdit)
              if (this.isCloseStep) {
+                      console.log(this.episodeToEdit)
               this.$refs.stopReason.validate()
               this.$refs.endNotes.$refs.ref.validate()
               if (!this.$refs.stopReason.hasError &&
@@ -320,7 +353,7 @@ export default {
                                               .with('patientVisitDetails.*')
                                               .where('id', this.episode.id)
                                               .first()
-                      if (this.isReferenceEpisode) {
+                      if (this.isReferenceEpisode && episode.hasVisits()) {
                           episode.lastVisit().prescription.patientVisitDetails = PatientVisitDetails.query()
                                                                                                     .with('pack')
                                                                                                     .where('prescription_id', episode.lastVisit().prescription.id)
@@ -333,19 +366,48 @@ export default {
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                         this.displayAlert('error', 'Por favor indicar o destino do paciente.')
                       } else {
-                        this.closureEpisode.clinicSector = this.episode.clinicSector
+                        if (this.selectedClinicSector === null) {
+                          this.closureEpisode.clinicSector = this.episode.clinicSector
+                        } else {
+                          this.closureEpisode.clinicSector = ClinicSector.query()
+                                                                          .with('clinic')
+                                                                          .with('clinicSectorType')
+                                                                          .where('id', this.selectedClinicSector.id)
+                                                                          .first()
+                        }
+
+                      console.log(this.closureEpisode)
                         Episode.apiSave(this.closureEpisode).then(resp => {
+                            this.closureEpisode.patientServiceIdentifier.patient = this.patient
+                            this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityTypeId)
+                            this.closureEpisode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.clinic.facilityTypeId)
+                            this.closureEpisode.patientServiceIdentifier.service.identifierType = IdentifierType.find(this.closureEpisode.patientServiceIdentifier.service.identifier_type_id)
+
                           if (this.isTransferenceEpisode || this.isReferenceEpisode) {
                             const transReference = new PatientTransReference({
                               syncStatus: 'P',
                               operationDate: this.closureEpisode.episodeDate,
                               creationDate: new Date(),
-                              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA').first(),
+                              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
                               origin: this.currClinic,
-                              destination: this.closureEpisode.referralClinic,
+                              destination: this.closureEpisode.referralClinic.uuid,
                               identifier: this.closureEpisode.patientServiceIdentifier,
                               patient: this.patient
                             })
+                            console.log(transReference)
+                            setTimeout(this.doTransReference(transReference), 2)
+                          } else if (this.isDCReferenceEpisode) {
+                            const transReference = new PatientTransReference({
+                              syncStatus: 'P',
+                              operationDate: this.closureEpisode.episodeDate,
+                              creationDate: new Date(),
+                              operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
+                              origin: this.currClinic,
+                              destination: this.selectedClinicSector.uuid,
+                              identifier: this.closureEpisode.patientServiceIdentifier,
+                              patient: this.patient
+                            })
+                            console.log(transReference)
                             setTimeout(this.doTransReference(transReference), 2)
                           }
                           this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -436,6 +498,13 @@ export default {
           }
         }
       },
+      clinicSectorTypes () {
+        return ClinicSectorType.query().with('clinicSectorList').get()
+      },
+      referealClinicSectors () {
+        if (this.selectedClinicSectorType === null) return []
+        return this.selectedClinicSectorType.clinicSectorList
+      },
       districts: {
         get () {
           if (this.selectedProvince !== null && this.selectedProvince !== undefined) {
@@ -451,6 +520,11 @@ export default {
         if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
         return this.closureEpisode.startStopReason.code === 'REFERIDO_PARA'
       },
+      isDCReferenceEpisode () {
+        if (this.closureEpisode === null || this.closureEpisode === undefined) return false
+        if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
+        return this.closureEpisode.startStopReason.code === 'REFERIDO_DC'
+      },
       isTransferenceEpisode () {
         if (this.closureEpisode === null || this.closureEpisode === undefined) return false
         if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
@@ -463,11 +537,17 @@ export default {
         set (value) {}
       },
       clinicSerctors () {
-        return ClinicSector.query()
-                          .with('clinic')
-                          .where((sector) => {
-                            return sector.clinic_id === this.currClinic.id && sector.active === true
-                          }).get()
+        const sectors = ClinicSector.query()
+                                    .with('clinic')
+                                    .with('clinicSectorType')
+                                    .where((sector) => {
+                                      return sector.clinic_id === this.currClinic.id && sector.active === true
+                                    }).get()
+        const sectorList = sectors.filter((sector) => {
+          return sector.clinicSectorType.code === 'PARAGEM_UNICA'
+        })
+
+        return sectorList
       },
       referralClinics () {
         let clinicList = []

@@ -46,6 +46,11 @@ export default class Episode extends Model {
     return this.episodeType.code === 'FIM'
   }
 
+  isDCReferenceEpisode () {
+    if (this.startStopReason === null || this.startStopReason === undefined) return false
+    return this.startStopReason.code === 'REFERIDO_DC'
+  }
+
   isTranferenceEpisode () {
     if (this.startStopReason === null) return false
     return this.startStopReason.code === 'TRANSFERIDO_PARA'

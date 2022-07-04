@@ -7,7 +7,7 @@
     @expandLess="expandLess"
     @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="!patientHasEpisodes && !flagGo" >Nenhuma Prescrição Adicionada</EmptyList>
+  <EmptyList v-if="patientHasNoPrescriptio" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-if="flagGo" >
     <span
       v-for="identifier in patient.identifiers" :key="identifier.id" >
@@ -120,6 +120,9 @@ export default {
       set (value) {
         this.flagGoReady = value
       }
+    },
+    patientHasNoPrescriptio () {
+      return !this.patientHasEpisodes && !this.flagGo
     },
     showAddButton () {
       return this.patientHasEpisodes

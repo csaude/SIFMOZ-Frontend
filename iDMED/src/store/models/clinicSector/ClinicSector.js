@@ -11,6 +11,7 @@ export default class ClinicSector extends Model {
       code: this.attr(''),
       description: this.attr(''),
       active: this.attr(''),
+      uuid: this.attr(''),
       clinic_id: this.attr(''),
       clinic_sector_type_id: this.attr(''),
       // Relationships
