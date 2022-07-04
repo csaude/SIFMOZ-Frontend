@@ -125,7 +125,7 @@ export default {
      ReferredPatients: require('components/Reports/ReferralManagement/ReferredPatients.vue').default,
      ReferredBackPatients: require('components/Reports/ReferralManagement/ReferredBackPatients.vue').default,
      ReferredPatientDispenseHistory: require('components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue').default,
-      AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default,
+     AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default,
      ReceivedStock: require('components/Reports/stock/ReceivedStock.vue').default,
      UsedStock: require('components/Reports/stock/UsedStock.vue').default,
      ArvDailyRegister: require('components/Reports/monitoring/ArvDailyRegister.vue').default,
