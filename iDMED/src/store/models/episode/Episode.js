@@ -46,9 +46,23 @@ export default class Episode extends Model {
     return this.episodeType.code === 'FIM'
   }
 
+  isBackReferenceEpisode () {
+    if (this.startStopReason === null || this.startStopReason === undefined) return false
+    return this.startStopReason.code === 'VOLTOU_REFERENCIA'
+  }
+
   isDCReferenceEpisode () {
     if (this.startStopReason === null || this.startStopReason === undefined) return false
     return this.startStopReason.code === 'REFERIDO_DC'
+  }
+
+  isReferenceEpisode () {
+    if (this.startStopReason === null || this.startStopReason === undefined) return false
+    return this.startStopReason.code === 'REFERIDO_PARA'
+  }
+
+  isReferenceOrTransferenceEpisode () {
+    return this.isDCReferenceEpisode() || this.isTranferenceEpisode() || this.isReferenceEpisode()
   }
 
   isTranferenceEpisode () {

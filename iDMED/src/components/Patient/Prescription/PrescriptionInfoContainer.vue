@@ -313,7 +313,7 @@ export default {
         return Episode.query()
                     .withAll()
                     .where('patientServiceIdentifier_id', this.identifier.id)
-                    .orderBy('creationDate', 'desc')
+                    .orderBy('episodeDate', 'desc')
                     .first()
       }
     },
@@ -326,7 +326,7 @@ export default {
                     .first()
     }, */
     showEndDetails () {
-      return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
+      return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode() && !this.lastEpisode.isDCReferenceEpisode()
     },
     headerColor () {
       if (!this.showEndDetails) {

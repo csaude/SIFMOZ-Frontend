@@ -37,7 +37,7 @@
           </div>
         </div>
         <div class="col q-py-md">
-          <ListHeader :addVisible="!showEndDetails" bgColor="bg-primary" @showAdd="showAddEditEpisode = true, step='create'">Episódios</ListHeader>
+          <ListHeader :addVisible="!showEndDetails" bgColor="bg-primary" @showAdd="openEpisodeCreation">Episódios</ListHeader>
           <EmptyList v-if="curIdentifier.episodes.length <= 0" >Nenhum Episódio Iniciado</EmptyList>
           <span
             v-for="episode in episodes" :key="episode.id" >
@@ -101,6 +101,11 @@ export default {
     init () {
       PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
       Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+    },
+    openEpisodeCreation () {
+      this.step = 'create'
+      this.selectedEpisode = new Episode()
+      this.showAddEditEpisode = true
     },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {
@@ -191,7 +196,7 @@ export default {
                                       .with('service')
                                       .with('clinic.province')
                                       .with('episodes.*', (query) => {
-                                              query.orderBy('creationDate', 'desc')
+                                              query.orderBy('episodeDate', 'desc')
                                             })
                                       .where('id', this.identifier.id).first()
         }
@@ -206,11 +211,12 @@ export default {
     episodes: {
       get () {
           const episodes = Episode.query()
-                                .withAll()
+                                .with('startStopReason')
                                 .with('episodeType')
-                                .with('clinicSector')
+                                .with('patientServiceIdentifier')
+                                .with('clinicSector.*')
                                 .where('patientServiceIdentifier_id', this.curIdentifier.id)
-                                .orderBy('creationDate', 'desc')
+                                .orderBy('episodeDate', 'desc')
                                 .limit(2)
                                 .get()
         if (episodes.length > 0) {
@@ -244,15 +250,11 @@ export default {
     },
     lastEpisode: {
       get () {
-        return Episode.query()
-                    .withAll()
-                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
-                    .orderBy('creationDate', 'desc')
-                    .first()
+        return this.episodes[0]
       }
     },
     showEndDetails () {
-      return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode()
+      return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode() && !this.lastEpisode.isDCReferenceEpisode()
     },
     canEdit () {
       return this.canEditIdentifier()
