@@ -169,6 +169,28 @@
                       option-label="clinicName"
                       :label="patientDestinationfieldLabel" />
                 </div>
+                <div class="row" v-if="isDCReferenceEpisode">
+                  <q-select
+                      class="col" dense outlined
+                      v-model="selectedClinicSectorType"
+                      use-input
+                      ref="clinicSectorType"
+                      input-debounce="0"
+                      :options="clinicSectorTypes"
+                      option-value="id"
+                      option-label="description"
+                      label="Tipo de Sector de Dispensa"/>
+                  <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      ref="referealClinicSector"
+                      :rules="[ val => !!val || 'Por favor indicar o sector de dispensa.']"
+                      v-model="selectedClinicSector"
+                      :options="referealClinicSectors"
+                      option-value="id"
+                      option-label="description"
+                      label="Sector de Dispensa" />
+                </div>
                 <div class="row">
                     <TextInput
                       v-model="closureEpisode.notes"
@@ -266,6 +288,7 @@ import Province from '../../../store/models/province/Province'
 import District from '../../../store/models/district/District'
 import PatientTransReference from '../../../store/models/tansreference/PatientTransReference'
 import PatientTransReferenceType from '../../../store/models/tansreference/PatientTransReferenceType'
+import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'step'],
     data () {
@@ -286,7 +309,9 @@ export default {
             usePreferedId: false,
             identifierTypeMask: '',
             selectedProvince: null,
-            selectedDistrict: null
+            selectedDistrict: null,
+            selectedClinicSectorType: null,
+            selectedClinicSector: null
         }
     },
     methods: {
@@ -445,7 +470,7 @@ export default {
         if (this.isCloseStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
           this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.endDate)
-          this.identifier.endDate = this.getJSDateFromDDMMYYY(this.endDate)
+          if (!this.isReferenceEpisode || !this.isDCReferenceEpisode) this.identifier.endDate = this.getJSDateFromDDMMYYY(this.endDate)
         }
         if (this.isReOpenStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
@@ -456,8 +481,18 @@ export default {
         if (this.isCloseStep || this.isReOpenStep) {
           this.closureEpisode.creationDate = new Date()
           this.closureEpisode.clinic = this.currClinic
-          this.closureEpisode.clinicSector = this.lastEpisode.clinicSector
+          console.log(this.selectedClinicSector)
+          if (this.selectedClinicSector !== null) {
+            this.closureEpisode.clinicSector = ClinicSector.query()
+                                                            .with('clinic')
+                                                            .with('clinicSectorType')
+                                                            .where('id', this.selectedClinicSector.id)
+                                                            .first()
+          } else {
+            this.closureEpisode.clinicSector = this.lastEpisode.clinicSector
+          }
           this.closureEpisode.clinicSector.clinic = this.currClinic
+          this.closureEpisode.clinicSector.clinicSectorType = ClinicSectorType.find(this.closureEpisode.clinicSector.clinic_sector_type_id)
 
           this.identifier.episodes.push(this.closureEpisode)
         }
@@ -479,14 +514,30 @@ export default {
               syncStatus: 'P',
               operationDate: this.closureEpisode.episodeDate,
               creationDate: new Date(),
-              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA').first(),
+              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
               origin: this.currClinic,
-              destination: this.closureEpisode.referralClinic,
+              destination: this.closureEpisode.referralClinic.uuid,
               identifier: Object.assign({}, this.identifier),
               patient: Object.assign({}, this.patient)
             })
             transReference.identifier.episodes = []
             transReference.patient.identifiers = []
+            console.log(transReference)
+            setTimeout(this.doTransReference(transReference), 2)
+          } else if (this.isDCReferenceEpisode) {
+            const transReference = new PatientTransReference({
+              syncStatus: 'P',
+              operationDate: this.closureEpisode.episodeDate,
+              creationDate: new Date(),
+              operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
+              origin: this.currClinic,
+              destination: this.selectedClinicSector.uuid,
+              identifier: Object.assign({}, this.identifier),
+              patient: Object.assign({}, this.patient)
+            })
+            transReference.identifier.episodes = []
+            transReference.patient.identifiers = []
+            console.log(transReference)
             setTimeout(this.doTransReference(transReference), 2)
           }
           let msg = ''
@@ -563,6 +614,13 @@ export default {
       this.init()
     },
     computed: {
+      clinicSectorTypes () {
+        return ClinicSectorType.query().with('clinicSectorList.*').get()
+      },
+      referealClinicSectors () {
+        if (this.selectedClinicSectorType === null) return []
+        return this.selectedClinicSectorType.clinicSectorList
+      },
       provinces: {
         get () {
            if (this.isReferenceEpisode) {
@@ -591,6 +649,11 @@ export default {
         if (this.closureEpisode === null || this.closureEpisode === undefined) return false
         if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
         return this.closureEpisode.startStopReason.code === 'TRANSFERIDO_PARA'
+      },
+      isDCReferenceEpisode () {
+        if (this.closureEpisode === null || this.closureEpisode === undefined) return false
+        if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
+        return this.closureEpisode.startStopReason.code === 'REFERIDO_DC'
       },
       referralClinics () {
         let clinicList = []
@@ -635,7 +698,7 @@ export default {
                         .with('district.province')
                         .with('postoAdministrativo')
                         .with('bairro')
-                        .with('clinic.province')
+                        .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                         .where('id', SessionStorage.getItem('selectedPatient').id)
                         .first()
         }
@@ -686,8 +749,17 @@ export default {
         return Clinic.query().with('province').where('mainClinic', false).get()
       },
       stopReasons () {
-        return StartStopReason.query()
+        const allReasons = StartStopReason.query()
                               .where('isStartReason', false).get()
+        let resonList = []
+        if (this.lastEpisode.isReferenceOrTransferenceEpisode()) {
+          resonList = allReasons.filter((reason) => {
+            return reason.code !== 'REFERIDO_DC' && reason.code !== 'TRANSFERIDO_PARA' && reason.code !== 'REFERIDO_PARA'
+          })
+          return resonList
+        } else {
+          return allReasons
+        }
       },
       startReasons () {
         return StartStopReason.query()
@@ -698,7 +770,7 @@ export default {
           return Episode.query()
                       .withAll()
                       .where('patientServiceIdentifier_id', this.identifier.id)
-                      .orderBy('creationDate', 'desc')
+                      .orderBy('episodeDate', 'desc')
                       .first()
         }
       }

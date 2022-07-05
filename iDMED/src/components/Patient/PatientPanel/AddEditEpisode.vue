@@ -317,7 +317,6 @@ export default {
         }
       },
       doSave () {
-                      console.log(this.episode)
         if (this.episode.id === null) {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
@@ -325,12 +324,9 @@ export default {
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
           this.episode.creationDate = new Date(new Date().setHours(0, 0, 0, 0))
         } else {
-                      console.log(this.closureEpisode)
           if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
             this.step = 'close'
-                      console.log(this.episodeToEdit)
              if (this.isCloseStep) {
-                      console.log(this.episodeToEdit)
               this.$refs.stopReason.validate()
               this.$refs.endNotes.$refs.ref.validate()
               if (!this.$refs.stopReason.hasError &&
@@ -361,13 +357,17 @@ export default {
                       }
                       if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
-                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && !episode.hasVisits()) {
+                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode || this.isDCReferenceEpisode) && !episode.hasVisits()) {
                         this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                         this.displayAlert('error', 'Por favor indicar o destino do paciente.')
                       } else {
                         if (this.selectedClinicSector === null) {
-                          this.closureEpisode.clinicSector = this.episode.clinicSector
+                          this.closureEpisode.clinicSector = ClinicSector.query()
+                                                                          .with('clinic')
+                                                                          .with('clinicSectorType')
+                                                                          .where('id', this.episode.clinicSector.id)
+                                                                          .first()
                         } else {
                           this.closureEpisode.clinicSector = ClinicSector.query()
                                                                           .with('clinic')
@@ -375,8 +375,7 @@ export default {
                                                                           .where('id', this.selectedClinicSector.id)
                                                                           .first()
                         }
-
-                      console.log(this.closureEpisode)
+                        console.log(this.closureEpisode)
                         Episode.apiSave(this.closureEpisode).then(resp => {
                             this.closureEpisode.patientServiceIdentifier.patient = this.patient
                             this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityTypeId)
@@ -423,23 +422,34 @@ export default {
 
         if (!this.isCloseStep) {
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
+          // this.episode.clinic.facilityType = FacilityType.find(this.episode.clinic.facilityTypeId)
+          this.episode.clinicSector.clinicSectorType = ClinicSectorType.find(this.episode.clinicSector.clinic_sector_type_id)
+          this.episode.patientServiceIdentifier.clinic.district = District.query().with('province').where('id', this.episode.patientServiceIdentifier.clinic.district_id).first()
+          this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
+          this.episode.patientServiceIdentifier.episodes = []
+          console.log(this.episode)
+          const lastEpisodeCopy = JSON.parse(JSON.stringify(this.lastEpisode))
           Episode.apiSave(this.episode).then(resp => {
-            // Episode.insert({ data: resp.response.data })
+            if (new Episode(this.episode).isBackReferenceEpisode()) {
+              const transReference = new PatientTransReference({
+                syncStatus: 'P',
+                operationDate: this.episode.episodeDate,
+                creationDate: new Date(),
+                operationType: PatientTransReferenceType.query().where('code', 'VOLTOU_DA_REFERENCIA').first(),
+                origin: this.currClinic,
+                destination: new Episode(lastEpisodeCopy).isDCReferenceEpisode() ? this.lastEpisode.clinicSector.uuid : this.lastEpisode.referralClinic.uuid,
+                identifier: this.episode.patientServiceIdentifier,
+                patient: this.patient
+              })
+              transReference.patient.clinic.facilityType = FacilityType.find(transReference.patient.clinic.facilityTypeId)
+
+              console.log(transReference)
+              setTimeout(this.doTransReference(transReference), 2)
+            }
             this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
           }).catch(error => {
-            this.listErrors = []
-            if (error.request.status !== 0) {
-              const arrayErrors = JSON.parse(error.request.response)
-              if (arrayErrors.total == null) {
-                this.listErrors.push(arrayErrors.message)
-              } else {
-                arrayErrors._embedded.errors.forEach(element => {
-                  this.listErrors.push(element.message)
-                })
-              }
-            }
-            this.displayAlert('error', this.listErrors)
-          })
+            console.log(error)
+            })
         }
       },
       doTransReference (transReference) {
@@ -593,15 +603,42 @@ export default {
       patient () {
         return new Patient(SessionStorage.getItem('selectedPatient'))
       },
+      lastEpisode: {
+        get () {
+          return Episode.query()
+                      .withAll()
+                      .where('patientServiceIdentifier_id', this.identifier.id)
+                      .orderBy('episodeDate', 'desc')
+                      .first()
+        }
+      },
       startReasons () {
-        return StartStopReason.query()
+        const allReasons = StartStopReason.query()
                               .where('isStartReason', true)
                               .orderBy('reason', 'asc')
                               .get()
+        let resonList = []
+        if (this.lastEpisode !== null && this.lastEpisode.isReferenceOrTransferenceEpisode()) {
+          resonList = allReasons.filter((reason) => {
+            return reason.code === 'VOLTOU_REFERENCIA'
+          })
+          return resonList
+        } else {
+          return allReasons
+        }
       },
       stopReasons () {
-        return StartStopReason.query()
+        const allReasons = StartStopReason.query()
                               .where('isStartReason', false).get()
+        let resonList = []
+        if (this.lastEpisode !== null && this.lastEpisode.isReferenceOrTransferenceEpisode()) {
+          resonList = allReasons.filter((reason) => {
+            return reason.code !== 'REFERIDO_DC' && reason.code !== 'TRANSFERIDO_PARA' && reason.code !== 'REFERIDO_PARA'
+          })
+          return resonList
+        } else {
+          return allReasons
+        }
       },
       isEditStep () {
         return this.step === 'edit'

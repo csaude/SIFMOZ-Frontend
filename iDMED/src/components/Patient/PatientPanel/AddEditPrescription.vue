@@ -1,5 +1,6 @@
 <template>
   <q-card>
+  <pre>{{step}} {{isEditPackStep}}</pre>
       <q-card-section class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
@@ -220,9 +221,8 @@
                 color="red"
                 class="all-pointer-events"
                 @click="$emit('close')"/>
-
               <q-btn
-                v-if="selectedClinicalService !==''"
+                v-if="selectedClinicalService.id !== null"
                 :label="dispenseLabel"
                 @click="generatePacksAndDispense()"
                 color="primary"
@@ -450,14 +450,16 @@ export default {
         this.selectedClinicalService = this.service
       }
       if (!this.isNewPackStep && !this.isEditPackStep) {
+        console.log(this.patient.identifiers)
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
             const episode = Episode.query()
                                     .withAll()
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
-                                    .orderBy('creationDate', 'desc')
+                                    .orderBy('episodeDate', 'desc')
                                     .first()
-            if (episode !== null && !episode.closed()) {
+                                    console.log(episode)
+            if (episode !== null && (!episode.closed() || episode.isDCReferenceEpisode())) {
               this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
               this.initPatientVisitDetails(episode)
             }
