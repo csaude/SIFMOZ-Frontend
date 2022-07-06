@@ -289,6 +289,7 @@ import District from '../../../store/models/district/District'
 import PatientTransReference from '../../../store/models/tansreference/PatientTransReference'
 import PatientTransReferenceType from '../../../store/models/tansreference/PatientTransReferenceType'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
+import Prescription from '../../../store/models/prescription/Prescription'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'step'],
     data () {
@@ -336,6 +337,25 @@ export default {
         })
         return filteredServices
       },
+      identifierHasValidPrescription (episode) {
+        const identifier = PatientServiceIdentifier.query()
+                                                    .with(['episodes.patientVisitDetails.*'])
+                                                    .where('id', episode.patientServiceIdentifier.id)
+                                                    .first()
+        console.log(identifier)
+        const lastVisitWithPrescription = identifier.lastVisitPrescription()
+        console.log(lastVisitWithPrescription)
+        if (lastVisitWithPrescription !== null) {
+          const lastPrescription = Prescription.query()
+                                                .with('patientVisitDetails.pack')
+                                                .with('duration')
+                                                .where('id', lastVisitWithPrescription.prescription.id)
+                                                .first()
+                                                console.log(lastPrescription.remainigDurationInWeeks())
+          if (lastPrescription.remainigDurationInWeeks() > 0) return true
+        }
+        return false
+      },
       submitForm () {
         this.submitting = true
         if (this.isCloseStep) {
@@ -359,7 +379,7 @@ export default {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data de inicio ao tratamento.')
               } else if (episode !== null && episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.endDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
-              } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && !episode.hasVisits()) {
+              } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
                 this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
               } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                 this.displayAlert('error', 'Por favor indicar o destino do paciente.')
@@ -762,8 +782,22 @@ export default {
         }
       },
       startReasons () {
-        return StartStopReason.query()
-                              .where('isStartReason', true).get()
+        const allReasons = StartStopReason.query()
+                              .where('isStartReason', true)
+                              .orderBy('reason', 'asc')
+                              .get()
+        let resonList = []
+        if (this.lastEpisode !== null && this.lastEpisode.isReferenceOrTransferenceEpisode()) {
+          resonList = allReasons.filter((reason) => {
+            return reason.code === 'VOLTOU_REFERENCIA'
+          })
+          return resonList
+        } else {
+          resonList = allReasons.filter((reason) => {
+            return reason.code !== 'VOLTOU_REFERENCIA'
+          })
+          return resonList
+        }
       },
       lastEpisode: {
         get () {
