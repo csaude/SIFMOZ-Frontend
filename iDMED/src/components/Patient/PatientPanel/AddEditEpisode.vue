@@ -624,7 +624,10 @@ export default {
           })
           return resonList
         } else {
-          return allReasons
+          resonList = allReasons.filter((reason) => {
+            return reason.code !== 'VOLTOU_REFERENCIA'
+          })
+          return resonList
         }
       },
       stopReasons () {

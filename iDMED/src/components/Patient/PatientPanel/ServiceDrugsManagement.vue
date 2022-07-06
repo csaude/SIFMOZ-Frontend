@@ -77,6 +77,7 @@ import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDru
 import Duration from '../../../store/models/Duration/Duration'
 import Prescription from '../../../store/models/prescription/Prescription'
 import Stock from '../../../store/models/stock/Stock'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
@@ -111,7 +112,18 @@ export default {
         this.nextPUpDate = nextPDate
         this.pickupDate = new Date(pickupDate)
       }
-      this.showAddEditDrug = true
+      const prescriptionCopy = new Prescription(JSON.parse(JSON.stringify(this.prescription)))
+      prescriptionCopy.patientVisitDetails = PatientVisitDetails.query()
+                                                                .with('pack')
+                                                                .where('prescription_id', prescriptionCopy.id)
+                                                                .get()
+      console.log(prescriptionCopy.remainigDurationInWeeks())
+      console.log(duration.weeks)
+      if (duration.weeks > prescriptionCopy.remainigDurationInWeeks()) {
+        this.displayAlert('error', 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' + Number((prescriptionCopy.remainigDurationInWeeks()) / 4) + ' mes(es)]')
+      } else {
+        this.showAddEditDrug = true
+      }
     },
     deleteRow (row) {
       const i = this.prescribedDrugs.map(toRemove => toRemove.id).indexOf(row.id) // find index of your object

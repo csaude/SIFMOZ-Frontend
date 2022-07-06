@@ -250,10 +250,18 @@ export default {
     },
     lastEpisode: {
       get () {
-        return this.episodes[0]
+        return Episode.query()
+                    .with('startStopReason')
+                    .with('episodeType')
+                    .with('patientServiceIdentifier')
+                    .with('clinicSector.*')
+                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                    .orderBy('episodeDate', 'desc')
+                    .first()
       }
     },
     showEndDetails () {
+      if (this.lastEpisode === null || this.lastEpisode === undefined) return false
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode() && !this.lastEpisode.isDCReferenceEpisode()
     },
     canEdit () {
