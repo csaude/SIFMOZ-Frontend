@@ -151,7 +151,7 @@ export default {
                              .with('entrance.stocks')
                              .with('drug')
                              .with('center')
-                             .with('clinic.province')
+                             .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                              .where('drug_id', this.drug.id)
                              .get()
 
@@ -220,7 +220,6 @@ export default {
       }
     },
     loadRelatedInventories (adjustment) {
-      // console.log(adjustment)
       const inventory = Inventory.query()
                                  .with('adjustments.adjustedStock.drug', (query) => {
                                     query.where((adjustedStock) => {

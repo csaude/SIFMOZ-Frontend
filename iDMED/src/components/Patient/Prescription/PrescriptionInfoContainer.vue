@@ -271,7 +271,7 @@ export default {
     },
 
     prescription () {
-      if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null) return null
+      if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null || this.lastStartEpisode.lastVisit().prescription === null) return null
         const presc = Prescription.query()
                                   .with('clinic')
                                   .with('doctor')

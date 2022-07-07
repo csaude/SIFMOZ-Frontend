@@ -4,6 +4,7 @@
             :addVisible="isDisplayStep"
             :doneVisible="doneVisible"
             :mainContainer="false"
+            @expandLess="expandLess"
             @addNewAdjustment="addNewAdjustment"
             @done="saveAjustment"
             @cancel="cancel"
@@ -17,6 +18,7 @@
             :rows="drugEventList"
             :columns="columns"
             row-key="id"
+            v-show="serviceInfoVisible"
             >
             <template v-slot:no-data="{ icon, filter }">
               <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
@@ -215,12 +217,16 @@ export default {
       drugEventList: [],
       adjustmentType: '',
       step: 'display',
+      serviceInfoVisible: true,
       curEvent: {}
     }
   },
   methods: {
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    expandLess (value) {
+      this.serviceInfoVisible = !value
     },
     saveAjustment () {
       let adjustment = null
@@ -252,10 +258,10 @@ export default {
       }
 
       adjustment.adjustedStock = Stock.query()
-                                      .with('clinic.province')
-                                      .with('entrance.clinic.province')
-                                      .with('center.clinic.province')
                                       .with('drug.form')
+                                      .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                      .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                                      .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                                       .where('id', this.stock.id)
                                       .first()
       if (new Date(this.curEvent.eventDate) < new Date(adjustment.adjustedStock.entrance.dateReceived)) {
@@ -352,14 +358,14 @@ export default {
             id: null,
             eventDate: '',
             moviment: '',
-            orderNumber: '-',
+            orderNumber: adjustmentType === 'POSETIVE' ? '' : '-',
             incomes: '-',
             outcomes: '-',
-            posetiveAdjustment: '-',
-            negativeAdjustment: '-',
+            posetiveAdjustment: adjustmentType === 'POSETIVE' ? '' : '-',
+            negativeAdjustment: adjustmentType === 'NEGATIVE' ? '' : '-',
             loses: '-',
             balance: '',
-            notes: '-'
+            notes: ''
           }
       this.curEvent = event
       this.drugEventList.unshift(event)
@@ -368,10 +374,10 @@ export default {
     generateDrugEventList () {
       const lote = Stock.query()
                         .with('adjustments.*')
-                        .with('entrance')
-                        .with('drug')
-                        .with('center')
-                        .with('clinic.province')
+                        .with('drug.form')
+                        .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                        .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                        .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                         .where('id', this.stock.id)
                         .first()
       this.loadRelatedEntrance(lote.entrance, lote)
@@ -401,7 +407,6 @@ export default {
             if (packStockList.length > 0) {
               packStockList.forEach((packStock) => {
                 if (new Date(packStock.PackagedDrug.pack.pickUpDate) >= new Date(event.eventDate) && new Date(packStock.PackagedDrug.pack.pickUpDate) < new Date(nextEvent.eventDate)) {
-          console.log(packStock)
                   event.outcomes = Number(event.outcomes + packStock.quantitySupplied)
                 }
               })
@@ -455,16 +460,19 @@ export default {
           } else {
             event.negativeAdjustment = adjustment.adjustedValue
           }
-        } else if (adjustment.type === 'INVENTORYSTOCKADJUSTMENT') {
+        } else if (adjustment.type === 'INVENTORYSTOCKADJUSTMENT' && (adjustment.operation.code === 'AJUSTE_POSETIVO' || adjustment.operation.code === 'AJUSTE_NEGATIVO')) {
           adjustment.inventory = Inventory.find(adjustment.inventory_id)
           event.id = adjustment.inventory.id
           event.eventDate = adjustment.inventory.startDate
           event.moviment = 'Inventário'
           if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
             event.posetiveAdjustment = adjustment.adjustedValue
-          } else {
+          } else if (adjustment.operation.code === 'AJUSTE_NEGATIVO') {
             event.negativeAdjustment = adjustment.adjustedValue
             event.outcomes = adjustment.adjustedValue
+          } else {
+            event.negativeAdjustment = 0
+            event.posetiveAdjustment = 0
           }
         }
         event.notes = adjustment.notes
@@ -543,6 +551,8 @@ export default {
     currClinic () {
       return Clinic.query()
                   .with('province')
+                  .with('facilityType')
+                  .with('district.province')
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
     }

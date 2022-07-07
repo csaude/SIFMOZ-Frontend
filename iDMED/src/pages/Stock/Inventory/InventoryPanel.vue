@@ -2,7 +2,7 @@
   <div>
     <TitleBar>Detalhes do Inventário</TitleBar>
     <div class="row">
-      <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg">
+      <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg" style="max-width: 500px;">
         <div>
           <ListHeader
             :addVisible="false"
@@ -56,7 +56,7 @@
             :thumb-style="thumbStyle"
             :content-style="contentStyle"
             :content-active-style="contentActiveStyle"
-            style="height: 700px;"
+            style="height: 750px;"
             class="q-pr-md"
           >
           <span
@@ -148,7 +148,7 @@ export default {
       const max = 100
       const inventory = Inventory.query()
                                  .with('adjustments.*')
-                                 .with('clinic.province')
+                                 .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                  .where('id', this.currInventory.id)
                                  .first()
       inventory.endDate = new Date()
@@ -184,10 +184,10 @@ export default {
       adjustment.clinic = this.currClinic
       adjustment.finalised = true
       adjustment.adjustedStock = Stock.query()
-                                      .with('entrance.clinic.province')
                                       .with('drug.form')
-                                      .with('center.clinic.province')
-                                      .with('clinic.province')
+                                      .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                      .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                                      .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                                       .where('id', adjustment.adjusted_stock_id)
                                       .first()
       adjustment.adjustedStock.stockMoviment = adjustment.balance
@@ -235,6 +235,10 @@ export default {
       console.log(adjustment)
       if (adjustment.adjustedStock === null) {
         adjustment.adjustedStock = Stock.query()
+                                        .with('drug.form')
+                                        .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                        .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                                        .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                                         .where('id', adjustment.adjusted_stock_id)
                                         .first()
       }
@@ -289,7 +293,7 @@ export default {
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
       return Inventory.query()
-                      .with('clinic.province')
+                      .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                       .with('adjustments.adjustedStock')
                       .where('id', e.id)
                       .first()
@@ -308,8 +312,9 @@ export default {
         Object.keys(this.currInventory.adjustments).forEach(function (i) {
           this.currInventory.adjustments[i].adjustedStock = Stock.query()
                                                                  .with('drug.form')
-                                                                 .with('center.clinic')
-                                                                 .with('entrance.clinic')
+                                                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                                                  .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                                                                  .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                                                                  .where('id', this.currInventory.adjustments[i].adjusted_stock_id)
                                                                  .first()
           console.log(this.currInventory.adjustments[i])
@@ -324,6 +329,8 @@ export default {
     currClinic () {
       return Clinic.query()
                   .with('province')
+                  .with('facilityType')
+                  .with('district.province')
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
     }

@@ -131,6 +131,8 @@ export default {
     currClinic () {
       return Clinic.query()
                   .with('province')
+                  .with('facilityType')
+                  .with('district.province')
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
     }

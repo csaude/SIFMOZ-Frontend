@@ -80,7 +80,6 @@
 <script>
 import { date, SessionStorage } from 'quasar'
 import Drug from '../../store/models/drug/Drug'
-// import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import { ref } from 'vue'
 import moment from 'moment'
 import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
@@ -92,8 +91,6 @@ const columns = [
   { name: 'state', align: 'center', label: 'Estado', sortable: true },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
-// let headerClass = 'col'
-// let title = ''
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
   data () {
@@ -133,38 +130,34 @@ export default {
     },
     drugs: {
       get () {
-      if (this.isCharts && this.dataLoaded && this.serviceCode != null) {
-        const drugsToShow = new Set()
-           const packagedDrugs = PackagedDrug.query()
-                    .with('drug.stocks')
-                  .with('drug.packaged_drugs')
-                 .with('pack.patientVisitDetails.episode.patientServiceIdentifier.service')
-                 .orderBy('name')
-                 .get()
-                  console.log(packagedDrugs)
-             const packagedDrugss = packagedDrugs.filter((packagedDrug) => {
-               console.log(moment(packagedDrug.pack.pickupDate).isAfter(date.subtractFromDate(new Date(), { months: 3 })))
-                    return moment(packagedDrug.pack.pickupDate).isAfter(date.subtractFromDate(new Date(), { months: 3 })) && packagedDrug.pack.patientVisitDetails[0].episode.patientServiceIdentifier.service.code === this.serviceCode
-             })
-               console.log(packagedDrugss)
-              packagedDrugss.forEach((packagedDrug) => {
-                     drugsToShow.add(packagedDrug.drug)
+        if (this.isCharts && this.dataLoaded && this.serviceCode != null) {
+          const drugsToShow = new Set()
+            const packagedDrugs = PackagedDrug.query()
+                                              .with('drug.stocks')
+                                              .with('drug.packaged_drugs')
+                                              .with('pack.patientVisitDetails.episode.patientServiceIdentifier.service')
+                                              .orderBy('name')
+                                              .get()
+              const packagedDrugss = packagedDrugs.filter((packagedDrug) => {
+                  return moment(packagedDrug.pack.pickupDate).isAfter(date.subtractFromDate(new Date(), { months: 3 })) && packagedDrug.pack.patientVisitDetails[0].episode.patientServiceIdentifier.service.code === this.serviceCode
               })
-              console.log(...drugsToShow.keys())
-           return [...drugsToShow.keys()]
-      } else {
-      return Drug.query()
-                 .with('stocks')
-                 .has('stocks')
-                 .with('packaged_drugs.pack', (query) => {
-                        query.where((pack) => {
-                          return pack.pickupDate >= date.subtractFromDate(new Date(), { months: 3 })
-                        })
-                      })
-                  .where('active', true)
-                 .orderBy('name')
-                 .get()
-      }
+                packagedDrugss.forEach((packagedDrug) => {
+                      drugsToShow.add(packagedDrug.drug)
+                })
+            return [...drugsToShow.keys()]
+        } else {
+          return Drug.query()
+                    .with('stocks')
+                    .has('stocks')
+                    .with('packaged_drugs.pack', (query) => {
+                            query.where((pack) => {
+                              return pack.pickupDate >= date.subtractFromDate(new Date(), { months: 3 })
+                            })
+                          })
+                      .where('active', true)
+                    .orderBy('name')
+                    .get()
+        }
       }
     }
   },

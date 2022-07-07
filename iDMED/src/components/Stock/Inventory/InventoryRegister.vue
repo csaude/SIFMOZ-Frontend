@@ -192,9 +192,9 @@ export default {
     initNewAdjustment (stock, drug) {
       const newAdjustment = new InventoryStockAdjustment({
         adjustedStock: Stock.query()
-                            .with('clinic.province')
-                            .with('entrance.clinic.province')
-                            .with('center.clinic.province')
+                            .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                            .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                            .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                             .where('id', stock.id)
                             .first(),
         clinic: this.currClinic,
@@ -236,6 +236,8 @@ export default {
     currClinic () {
       return Clinic.query()
                   .with('province')
+                  .with('facilityType')
+                  .with('district.province')
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
     }

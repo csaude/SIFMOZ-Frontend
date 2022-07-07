@@ -3,11 +3,12 @@
           <ListHeader
             :addVisible="false"
             :doneVisible="isEditStep"
+            @expandLess="expandLess"
             :mainContainer="false"
             @done="saveAdjustments"
-            bgColor="bg-primary">{{drug.name}}
+            :bgColor="headerColor">{{drug.name}}
           </ListHeader>
-          <div class="box-border q-pb-md">
+          <div class="box-border q-pb-md" v-show="infoContainerVisible">
             <q-table
                 class="col"
                 dense
@@ -60,7 +61,7 @@
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="reOpenDate" mask="DD-MM-YYYY" >
+                                <q-date v-model="props.row.adjustedStock.auxExpireDate" mask="DD-MM-YYYY" >
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -116,6 +117,7 @@
                 </template>
             </q-table>
           </div>
+          <q-separator color="orange" v-show="!infoContainerVisible"/>
           <q-dialog v-model="alert.visible" persistent>
             <Dialog :type="alert.type" @closeDialog="closeDialog">
               <template v-slot:title> Informação</template>
@@ -152,12 +154,16 @@ export default {
       }),
       columns,
       adjustments: ref([]),
-      step: 'display'
+      step: 'display',
+      infoContainerVisible: true
     }
   },
   methods: {
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
+    },
+    expandLess (value) {
+      this.infoContainerVisible = !value
     },
     init () {
       let i = 1
@@ -171,16 +177,17 @@ export default {
     initNewAdjustment (stock, drug, i) {
       let newAdjustment = null
       newAdjustment = InventoryStockAdjustment.query()
-                                            .with('adjustedStock')
-                                            .with('inventory')
-                                            .with('clinic.province')
-                                            .with('operation')
-                                            .where('adjusted_stock_id', stock.id)
-                                            .where((_record, query) => {
-                                                    query.where('inventory_id', this.inventory.id)
-                                                  })
-                                            .first()
-      if (newAdjustment === null) {
+                                              .with('adjustedStock')
+                                              .with('inventory')
+                                              .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                              .with('operation')
+                                              .where('adjusted_stock_id', stock.id)
+                                              .where((_record, query) => {
+                                                      query.where('inventory_id', this.inventory.id)
+                                                    })
+                                              .first()
+     console.log(newAdjustment)
+     if (newAdjustment === null) {
         newAdjustment = new InventoryStockAdjustment({
           inventory: this.inventory,
           clinic: this.currClinic
@@ -188,9 +195,9 @@ export default {
       }
       newAdjustment.index = i
       newAdjustment.adjustedStock = Stock.query()
-                                          .with('clinic.province')
-                                          .with('entrance.clinic.province')
-                                          .with('center.clinic.province')
+                                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                          .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                                          .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                                           .where('id', stock.id)
                                           .first()
       newAdjustment.adjustedStock.auxExpireDate = this.getDDMMYYYFromJSDate(newAdjustment.adjustedStock.expireDate)
@@ -205,13 +212,17 @@ export default {
           operation = StockOperationType.query().where('code', 'AJUSTE_POSETIVO').first()
         } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
           operation = StockOperationType.query().where('code', 'AJUSTE_NEGATIVO').first()
+        } else {
+          operation = StockOperationType.query().where('code', 'SEM_AJUSTE').first()
         }
         this.adjustments[k].captureDate = new Date()
         this.adjustments[k].operation = operation
         if (this.adjustments[k].isPosetiveAdjustment()) {
           this.adjustments[k].adjustedValue = Number(this.adjustments[k].balance - this.adjustments[k].adjustedStock.stockMoviment)
-        } else {
+        } else if (this.adjustments[k].isNegativeAdjustment()) {
           this.adjustments[k].adjustedValue = Number(this.adjustments[k].adjustedStock.stockMoviment - this.adjustments[k].balance)
+        } else {
+          this.adjustments[k].adjustedValue = 0
         }
       }.bind(this))
       this.doSave(0)
@@ -219,6 +230,7 @@ export default {
     },
     doSave (i) {
       if (this.adjustments[i] !== undefined) {
+        console.log(this.adjustments[i])
         InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
           this.adjustments[i].id = resp.response.data.id
           i = i + 1
@@ -274,8 +286,17 @@ export default {
     currClinic () {
       return Clinic.query()
                   .with('province')
+                  .with('facilityType')
+                  .with('district.province')
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
+    },
+    headerColor () {
+      if (this.isEditStep) {
+        return 'bg-amber-9'
+      } else {
+        return 'bg-primary'
+      }
     }
   }
 }

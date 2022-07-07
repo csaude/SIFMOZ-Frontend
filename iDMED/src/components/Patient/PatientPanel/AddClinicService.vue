@@ -342,16 +342,13 @@ export default {
                                                     .with(['episodes.patientVisitDetails.*'])
                                                     .where('id', episode.patientServiceIdentifier.id)
                                                     .first()
-        console.log(identifier)
         const lastVisitWithPrescription = identifier.lastVisitPrescription()
-        console.log(lastVisitWithPrescription)
         if (lastVisitWithPrescription !== null) {
           const lastPrescription = Prescription.query()
                                                 .with('patientVisitDetails.pack')
                                                 .with('duration')
                                                 .where('id', lastVisitWithPrescription.prescription.id)
                                                 .first()
-                                                console.log(lastPrescription.remainigDurationInWeeks())
           if (lastPrescription.remainigDurationInWeeks() > 0) return true
         }
         return false
@@ -415,6 +412,7 @@ export default {
             this.$refs.identifier.$refs.identifier.validate()
           } else {
             this.identifier.prefered = false
+            this.identifier.value = ''
           }
           if (!this.$refs.clinicalService.hasError &&
               !this.$refs.state.hasError) {
@@ -501,7 +499,6 @@ export default {
         if (this.isCloseStep || this.isReOpenStep) {
           this.closureEpisode.creationDate = new Date()
           this.closureEpisode.clinic = this.currClinic
-          console.log(this.selectedClinicSector)
           if (this.selectedClinicSector !== null) {
             this.closureEpisode.clinicSector = ClinicSector.query()
                                                             .with('clinic')
@@ -542,7 +539,6 @@ export default {
             })
             transReference.identifier.episodes = []
             transReference.patient.identifiers = []
-            console.log(transReference)
             setTimeout(this.doTransReference(transReference), 2)
           } else if (this.isDCReferenceEpisode) {
             const transReference = new PatientTransReference({
@@ -557,7 +553,6 @@ export default {
             })
             transReference.identifier.episodes = []
             transReference.patient.identifiers = []
-            console.log(transReference)
             setTimeout(this.doTransReference(transReference), 2)
           }
           let msg = ''
@@ -588,10 +583,7 @@ export default {
         })
       },
       doTransReference (transReference) {
-        console.log(transReference)
-        PatientTransReference.apiSave(transReference).then(resp => {
-            console.log(resp.response.data)
-        })
+        PatientTransReference.apiSave(transReference)
       },
       async fetchUpdatedIdentifier (id) {
         await PatientServiceIdentifier.apiFetchById(id).then(resp => {
