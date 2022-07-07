@@ -98,11 +98,16 @@ export default {
     }
   },
   mounted () {
-    Inventory.apiGetAll(0, 100)
+    Inventory.apiGetAll(0, 300)
   },
   computed: {
     inventories () {
-      return Inventory.query().withAll().orderBy('open', 'desc').orderBy('startDate', 'desc').get()
+      return Inventory.query()
+                      .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                      .with('adjustments')
+                      .orderBy('open', 'desc')
+                      .orderBy('startDate', 'desc')
+                      .get()
     }
   }
 }

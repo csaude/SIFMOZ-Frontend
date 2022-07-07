@@ -17,6 +17,7 @@ export default class Clinic extends Model {
       telephone: this.attr(''),
       clinicName: this.attr(''),
       mainClinic: this.attr(''),
+      uuid: this.attr(''),
       province_id: this.attr(''),
       district_id: this.attr(''),
       nationalClinic_id: this.attr(''),

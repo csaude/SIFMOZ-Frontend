@@ -267,10 +267,10 @@ export default {
           })
           if (!patientExists) {
             const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
-            if (identifier.lastEpisode === null) {
+            if (identifier.lastEpisode() === null) {
                 this.displayAlert('error', 'O paciente selecionado não possui episódios.')
             } else {
-               if (!identifier.lastEpisode.isStartEpisode) {
+               if (!identifier.lastEpisode().isStartEpisode()) {
                   this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
                    } else {
                   this.curGroup.members.push(this.initNewMember(patient))

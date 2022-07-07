@@ -43,6 +43,17 @@ export default class Prescription extends Model {
       return Number((prescriptionDuration - packagedWeeks) / 4)
     }
 
+    remainigDurationInWeeks () {
+      const prescriptionDuration = Number(this.duration.weeks)
+      let packagedWeeks = 0
+      this.patientVisitDetails.forEach((pvd) => {
+        if (pvd.pack !== null) {
+          packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply)
+        }
+      })
+      return Number(prescriptionDuration - packagedWeeks)
+    }
+
     lastPackOnPrescription () {
       let lastVisit = null
       this.patientVisitDetails.forEach((visit) => {

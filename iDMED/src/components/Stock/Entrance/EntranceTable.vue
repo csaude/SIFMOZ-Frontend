@@ -92,7 +92,7 @@ export default {
   computed: {
     stockEntrances () {
       return StockEntrance.query()
-                          .with('clinic.province')
+                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                           .with('stocks.drug')
                           .orderBy('dateReceived', 'desc')
                           .get()

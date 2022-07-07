@@ -1,7 +1,20 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" :bgColor="clinicalServiceHeaderColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
-    <q-card class="noRadius">
+    <ListHeader
+      :addVisible="false"
+      @expandLess="expandLess"
+      :bgColor="clinicalServiceHeaderColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }}
+    </ListHeader>
+    <q-card
+      v-show="serviceInfoVisible"
+      transition-show="flip-up"
+      transition-hide="flip-up"
+      class="noRadius">
+    <transition-group
+      appear
+      enter-active-class="animated fadeIn"
+      leave-active-class="animated fadeOut"
+    >
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
@@ -48,6 +61,7 @@
           </span>
         </div>
       </q-card-section>
+      </transition-group>
     </q-card>
     <q-dialog persistent v-model="showAddEditEpisode">
         <AddEditEpisode
@@ -87,6 +101,7 @@ export default {
       showAddEpisode: false,
       selectedEpisode: new Episode(),
       showAddEditEpisode: false,
+      serviceInfoVisible: true,
       step: ''
     }
   },
@@ -101,6 +116,9 @@ export default {
     init () {
       PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
       Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+    },
+    expandLess (value) {
+      this.serviceInfoVisible = !value
     },
     openEpisodeCreation () {
       this.step = 'create'
@@ -250,10 +268,18 @@ export default {
     },
     lastEpisode: {
       get () {
-        return this.episodes[0]
+        return Episode.query()
+                    .with('startStopReason')
+                    .with('episodeType')
+                    .with('patientServiceIdentifier')
+                    .with('clinicSector.*')
+                    .where('patientServiceIdentifier_id', this.curIdentifier.id)
+                    .orderBy('episodeDate', 'desc')
+                    .first()
       }
     },
     showEndDetails () {
+      if (this.lastEpisode === null || this.lastEpisode === undefined) return false
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode() && !this.lastEpisode.isDCReferenceEpisode()
     },
     canEdit () {

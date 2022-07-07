@@ -243,6 +243,7 @@ import PatientTransReferenceType from '../../../store/models/tansreference/Patie
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 import FacilityType from '../../../store/models/facilityType/FacilityType'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
+import Prescription from '../../../store/models/prescription/Prescription'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     data () {
@@ -357,7 +358,7 @@ export default {
                       }
                       if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
-                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode || this.isDCReferenceEpisode) && !episode.hasVisits()) {
+                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode || this.isDCReferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
                         this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                         this.displayAlert('error', 'Por favor indicar o destino do paciente.')
@@ -451,6 +452,25 @@ export default {
             console.log(error)
             })
         }
+      },
+      identifierHasValidPrescription (episode) {
+        const identifier = PatientServiceIdentifier.query()
+                                                    .with(['episodes.patientVisitDetails.*'])
+                                                    .where('id', episode.patientServiceIdentifier.id)
+                                                    .first()
+        console.log(identifier)
+        const lastVisitWithPrescription = identifier.lastVisitPrescription()
+        console.log(lastVisitWithPrescription)
+        if (lastVisitWithPrescription !== null) {
+          const lastPrescription = Prescription.query()
+                                                .with('patientVisitDetails.pack')
+                                                .with('duration')
+                                                .where('id', lastVisitWithPrescription.prescription.id)
+                                                .first()
+                                                console.log(lastPrescription.remainigDurationInWeeks())
+          if (lastPrescription.remainigDurationInWeeks() > 0) return true
+        }
+        return false
       },
       doTransReference (transReference) {
         PatientTransReference.apiSave(transReference).then(resp => {
@@ -624,7 +644,10 @@ export default {
           })
           return resonList
         } else {
-          return allReasons
+          resonList = allReasons.filter((reason) => {
+            return reason.code !== 'VOLTOU_REFERENCIA'
+          })
+          return resonList
         }
       },
       stopReasons () {

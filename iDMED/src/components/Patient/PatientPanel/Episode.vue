@@ -5,8 +5,10 @@
       <q-card-section class="row q-pa-sm">
         <div class="col-9">
           <div class="row ">
-            <div class="col text-grey-9 text-weight-medium">Sector Clínico:</div>
-            <div class="col text-grey-8">{{currEpisode.clinicSector !== null ? currEpisode.clinicSector.description : ''}}</div>
+            <div v-if="!currEpisode.isReferenceEpisode() && !currEpisode.isTranferenceEpisode()" class="col text-grey-9 text-weight-medium">Sector Clínico:</div>
+            <div v-if="!currEpisode.isReferenceEpisode() && !currEpisode.isTranferenceEpisode()" class="col text-grey-8">{{currEpisode.clinicSector !== null ? currEpisode.clinicSector.description : ''}}</div>
+            <div v-if="currEpisode.isReferenceEpisode() || currEpisode.isTranferenceEpisode()" class="col text-grey-9 text-weight-medium">Farmácia Referência:</div>
+            <div v-if="currEpisode.isReferenceEpisode() || currEpisode.isTranferenceEpisode()" class="col text-grey-8">{{currEpisode.referralClinic !== null ? currEpisode.referralClinic.clinicName : ''}}</div>
             <div class="col text-grey-9 text-weight-medium">{{currEpisode.isStartEpisode() ? 'Data de Início:' : 'Data de Fim:'}}</div>
             <div class="col text-grey-8">{{formatDate(currEpisode.episodeDate)}}</div>
           </div>
@@ -64,6 +66,7 @@ export default {
       return date.formatDate(dateString, 'DD-MM-YYYY')
     },
     canBeEdited () {
+      if (this.currEpisode.isReferenceEpisode() || this.currEpisode.isTranferenceEpisode() || this.currEpisode.isBackReferenceEpisode()) return false
       const eps = Episode.query().withAll().where('id', this.episode.id).first()
       return this.episode.isLast && !eps.hasVisits()
     }

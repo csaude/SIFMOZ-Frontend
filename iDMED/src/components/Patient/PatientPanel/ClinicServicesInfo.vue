@@ -75,8 +75,7 @@ export default {
       this.showAddEditClinicalService = true
     },
     expandLess (value) {
-      this.serviceInfoVisible = value
-      LocalStorage.set('clinicServiceInfoVisible', value)
+      this.serviceInfoVisible = !value
     },
     createFirstEpisode (identifier) {
       this.selectedIdentifier = identifier

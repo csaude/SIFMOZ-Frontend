@@ -493,7 +493,8 @@ export default {
     getCurrStockEntrance () {
       const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
       return StockEntrance.query()
-                          .withAll()
+                          .with('stocks')
+                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                           .where('id', e.id)
                           .first()
     },
@@ -555,11 +556,15 @@ export default {
       return this.guiaStep === 'display'
     },
     stockCenter () {
-      return StockCenter.query().with('clinic.province').first()
+      return StockCenter.query()
+                        .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                        .first()
     },
     currClinic () {
         return Clinic.query()
                     .with('province')
+                    .with('facilityType')
+                    .with('district.province')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       }

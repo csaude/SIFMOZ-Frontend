@@ -1,6 +1,5 @@
 <template>
   <q-card>
-  <pre>{{step}} {{isEditPackStep}}</pre>
       <q-card-section class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
@@ -556,11 +555,28 @@ export default {
       let hasSomePrescribed = false
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
+        let prescriptionCopy = null
+        if (visitDetails.prescription.id !== null) {
+          prescriptionCopy = new Prescription(JSON.parse(JSON.stringify(visitDetails.prescription)))
+          prescriptionCopy.patientVisitDetails = PatientVisitDetails.query()
+                                                                    .with('pack')
+                                                                    .where('prescription_id', prescriptionCopy.id)
+                                                                    .get()
+        }
         if (!visitDetails.createPackLater && visitDetails.prescription.prescribedDrugs.length > 0) {
           hasSomePrescribed = true
           if (Number(visitDetails.pack.weeksSupply) <= 0) {
             hasError = true
-            error = error === '' ? this.selectedClinicalService.description : error + ', ' + this.selectedClinicalService.description
+            const errorMsg = 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de'
+            error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
+          } else if (prescriptionCopy !== null && (Number(visitDetails.pack.weeksSupply) > Number(prescriptionCopy.remainigDurationInWeeks()))) {
+            hasError = true
+            const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente na prescrição de'
+            error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
+          } else if (prescriptionCopy === null && (Number(visitDetails.pack.weeksSupply) > Number(visitDetails.prescription.remainigDurationInWeeks()))) {
+            hasError = true
+            const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período de validade da prescrição de'
+            error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
           } else if (new Date(visitDetails.pack.pickupDate) > new Date()) {
             hasError = true
             error = 'A data de levantamento indicada é maior que a data corrente'
@@ -587,7 +603,7 @@ export default {
         if (!hasError) {
           this.proccedToDispense()
         } else {
-          this.displayAlert('error', 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de [' + error + ' ]')
+          this.displayAlert('error', error)
         }
       } else {
         this.displayAlert('error', 'Por favor indicar os medicamentos a dispensar.')
