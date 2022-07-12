@@ -38,6 +38,10 @@ export default class PatientVisit extends Model {
     return await this.api().post('/patientVisit', patientVisit)
   }
 
+  static async apiSaveRec (patientVisit) {
+    return await this.api().post('/patientVisit/saveRecord', patientVisit)
+  }
+
   static async apiUpdate (patientVisit) {
     return await this.api().patch('/patientVisit', patientVisit)
   }

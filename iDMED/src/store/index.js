@@ -70,6 +70,7 @@ import Report from './models/report/Report'
 import PatientTransReferenceType from './models/tansreference/PatientTransReferenceType'
 import PatientTransReference from './models/tansreference/PatientTransReference'
 import ClinicSectorType from './models/clinicSectorType/ClinicSectorType'
+import SpetialPrescriptionMotive from './models/prescription/SpetialPrescriptionMotive'
 
 // Vue.use(Vuex)
 
@@ -153,6 +154,7 @@ database.register(Report)
 database.register(PatientTransReferenceType)
 database.register(PatientTransReference)
 database.register(ClinicSectorType)
+database.register(SpetialPrescriptionMotive)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

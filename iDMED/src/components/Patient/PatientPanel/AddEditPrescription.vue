@@ -34,6 +34,24 @@
                   option-value="id"
                   option-label="code"
                   label="Serviço de Saúde e Sector Associado" />
+              <q-checkbox
+                v-model="spetialPrescription"
+                :disable="mustBeSpetial || isNewPackStep || isEditPackStep"
+                label="Prescrição especial"
+                class="col q-mb-sm" />
+
+              <q-select
+                  class="col"
+                  dense outlined
+                  v-if="spetialPrescription || curPrescriptionDetails.spetialPrescriptionMotive !== null"
+                  v-model="curPrescriptionDetails.spetialPrescriptionMotive"
+                  :options="spetialPrescriptionMotives"
+                  :disable="isNewPackStep || isEditPackStep"
+                  ref="spetialMotive"
+                  :rules="[ val => !!val || 'Por favor indicar o motivo da prescrição especial']"
+                  option-value="id"
+                  option-label="description"
+                  label="Motivo da prescrição especial" />
               <q-input
                 dense
                 outlined
@@ -232,7 +250,15 @@
         </div>
       </q-card-section>
       <q-dialog persistent v-model="alert.visible">
-        <Dialog :type="alert.type" @closeDialog="closeDialog">
+        <Dialog
+          :type="alert.type"
+          :object="msgObject"
+          @doOnYes="doOnYes"
+          @doOnNo="doOnNo"
+          @cancelYesNo="cancelYesNo"
+          @closeDialog="closeDialog"
+          @commitOperation="doOnContinue"
+          @cancelOperation="doOnCancel">
           <template v-slot:title> Informação</template>
           <template v-slot:msg> {{alert.msg}} </template>
         </Dialog>
@@ -263,6 +289,8 @@ import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 import moment from 'moment'
 import Stock from '../../../store/models/stock/Stock'
 import PackagedDrugStock from '../../../store/models/packagedDrug/PackagedDrugStock'
+import SpetialPrescriptionMotive from '../../../store/models/prescription/SpetialPrescriptionMotive'
+import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 export default {
   props: ['selectedVisitDetails', 'step', 'service'],
   data () {
@@ -286,7 +314,12 @@ export default {
       prescriptionDate: '',
       showDispenseMode: false,
       prescribedDrugs: [],
-      dispenseMode: []
+      dispenseMode: [],
+      spetialPrescription: false,
+      lastValidPrescription: null,
+      originalPickUpDate: null,
+      mustBeSpetial: false,
+      msgObject: {}
     }
   },
   methods: {
@@ -323,6 +356,8 @@ export default {
       setTimeout(() => {
         this.$q.loading.hide()
       }, 400)
+      this.spetialPrescription = false
+      this.mustBeSpetial = false
       this.showServiceDrugsManagement = false
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
@@ -334,6 +369,49 @@ export default {
           }
         }
       }.bind(this))
+      if (this.curPatientVisitDetail !== null) {
+        const identifier = PatientServiceIdentifier.query()
+                                                   .with(['episodes.patientVisitDetails.pack', 'episodes.patientVisitDetails.prescription.duration', 'episodes.patientVisitDetails.prescription.prescriptionDetails.*'])
+                                                   .with('service')
+                                                   .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.id)
+                                                   .first()
+        if (identifier.lastVisitPrescription() !== null) {
+          const prescription = identifier.lastVisitPrescription().prescription
+          prescription.patientVisitDetails = PatientVisitDetails.query()
+                                                                   .with('pack')
+                                                                   .where('prescription_id', prescription.id)
+                                                                   .get()
+          if (prescription.remainigDurationInWeeks() > 0) {
+            this.lastVisitPrescription = prescription
+            this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
+          }
+        }
+      }
+    },
+    doOnContinue (object) {
+      this.spetialPrescription = true
+      this.mustBeSpetial = true
+    },
+    doOnYes (object) {
+      const patientVDetails = object.patientVDetails
+      patientVDetails.pack.nextPickUpDate = object.nextPickUpDate
+
+      patientVDetails.pack.packagedDrugs.forEach((pd) => {
+        pd.nextPickUpDate = object.nextPickUpDate
+      })
+
+      this.savePack(object.patientVisit, patientVDetails, 0)
+    },
+    doOnNo (object) {
+      const patientVDetails = object.patientVDetails
+
+      this.savePack(object.patientVisit, patientVDetails, 0)
+    },
+    doOnCancel () {
+      this.selectedClinicalService = new ClinicalService()
+    },
+    cancelYesNo () {
+      this.alert.visible = false
     },
     initCurrPatientVisitDetails () {
       const pack = new Pack({
@@ -398,6 +476,9 @@ export default {
 
         let packagedDrugs = null
 
+        if (this.curPatientVisitDetail.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
+          this.spetialPrescription = true
+        }
         if (!this.isFirstPack) {
           this.curPatientVisitDetail.pack = this.lastPackFull
           packagedDrugs = this.curPatientVisitDetail.pack.packagedDrugs
@@ -449,7 +530,6 @@ export default {
         this.selectedClinicalService = this.service
       }
       if (!this.isNewPackStep && !this.isEditPackStep) {
-        console.log(this.patient.identifiers)
         Object.keys(this.patient.identifiers).forEach(function (key) {
           if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
             const episode = Episode.query()
@@ -526,6 +606,7 @@ export default {
       this.$refs.clinicalService.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
       if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
+      if (this.spetialPrescription) this.$refs.spetialMotive.validate()
       this.$refs.duration.validate()
       this.$refs.doctor.validate()
       // if (this.hasPatientType) this.$refs.patientType.validate()
@@ -541,6 +622,8 @@ export default {
           !this.$refs.dispenseType.hasError) {
             if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
+            } else if (this.spetialPrescription && this.$refs.hasError) {
+              this.displayAlert('error', 'Prescrição especial')
             } else if (new Date(this.pickupDate) > new Date()) {
               this.displayAlert('error', 'A data da prescrição indicada é maior que a data da corrente')
             } else {
@@ -725,13 +808,22 @@ export default {
           })
         } else {
           patientVDetails.pack.syncStatus = 'N'
-          Pack.apiSave(patientVDetails.pack).then(resp => {
-            patientVDetails.pack.id = resp.response.data.id
-            patientVDetails.pack.$id = resp.response.data.id
-            patientVDetails.pack.packagedDrugs = []
-            i = i + 1
-            setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
-          })
+          const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(patientVDetails.pack.pickupDate), 'days')
+          console.log(pickUpDiferrence)
+          if (pickUpDiferrence > 0) {
+            this.msgObject.patientVDetails = patientVDetails
+            this.msgObject.patientVisit = patientVisit
+            this.msgObject.nextPickUpDate = moment(patientVDetails.pack.nextPickUpDate, 'DD-MM-YYYY').add('d', pickUpDiferrence)
+            this.displayAlert('YesNo', 'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?')
+          } else {
+            Pack.apiSave(patientVDetails.pack).then(resp => {
+              patientVDetails.pack.id = resp.response.data.id
+              patientVDetails.pack.$id = resp.response.data.id
+              patientVDetails.pack.packagedDrugs = []
+              i = i + 1
+              setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+            })
+          }
         }
       } else {
         const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
@@ -741,6 +833,16 @@ export default {
         })
         this.savePatientVisit(patientVisitCopy)
       }
+    },
+    savePack (patientVisit, patientVisitDetails, i) {
+      console.log(patientVisit)
+      Pack.apiSave(patientVisitDetails.pack).then(resp => {
+        patientVisitDetails.pack.id = resp.response.data.id
+        patientVisitDetails.pack.$id = resp.response.data.id
+        patientVisitDetails.pack.packagedDrugs = []
+        i = i + 1
+        setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+      })
     },
     savePatientVisit (patientVisit) {
       PatientVisit.apiSave(patientVisit).then(resp => {
@@ -822,6 +924,11 @@ export default {
             return dispenseMode.code.includes(this.mds)
           }).get()
         }
+    },
+    spetialPrescriptionMotives: {
+      get () {
+        return SpetialPrescriptionMotive.all()
+      }
     },
     isFirstPack: {
       get () {

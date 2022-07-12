@@ -3,6 +3,7 @@ import Prescription from '../prescription/Prescription'
 import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import DispenseType from '../dispenseType/DispenseType'
 import TherapeuticLine from '../therapeuticLine/TherapeuticLine'
+import SpetialPrescriptionMotive from '../prescription/SpetialPrescriptionMotive'
 
 export default class PrescriptionDetail extends Model {
     static entity = 'prescriptionsDetails'
@@ -14,11 +15,13 @@ export default class PrescriptionDetail extends Model {
         therapeutic_line_id: this.attr(''),
         therapeutic_regimen_id: this.attr(''),
         dispense_type_id: this.attr(''),
+        spetialPrescriptionMotive_id: this.attr(''),
         // Relationships
         prescription: this.belongsTo(Prescription, 'prescription_id'),
         therapeuticLine: this.belongsTo(TherapeuticLine, 'therapeutic_line_id'),
         therapeuticRegimen: this.belongsTo(TherapeuticRegimen, 'therapeutic_regimen_id'),
-        dispenseType: this.belongsTo(DispenseType, 'dispense_type_id')
+        dispenseType: this.belongsTo(DispenseType, 'dispense_type_id'),
+        spetialPrescriptionMotive: this.belongsTo(SpetialPrescriptionMotive, 'spetialPrescriptionMotive_id')
       }
     }
 
