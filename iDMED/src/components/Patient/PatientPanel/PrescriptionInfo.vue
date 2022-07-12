@@ -5,9 +5,10 @@
     :mainContainer="true"
     bgColor="bg-primary"
     @expandLess="expandLess"
-    @showAdd="selectedVisitDetails='', showAddPrescription = true">Prescrição
+    @showAdd="selectedVisitDetails='', step='', showAddPrescription = true">Prescrição
   </ListHeader>
-  <EmptyList v-if="patientHasNoPrescriptio" >Nenhuma Prescrição Adicionada</EmptyList>
+  <div v-show="infoVisible">
+    <EmptyList v-if="patientHasNoPrescriptio" >Nenhuma Prescrição Adicionada</EmptyList>
   <div v-if="flagGo" >
     <span
       v-for="identifier in patient.identifiers" :key="identifier.id" >
@@ -25,6 +26,7 @@
         :step="step"
         @close="showAddPrescription = false" />
   </q-dialog>
+  </div>
 </div>
 </template>
 
@@ -94,7 +96,7 @@ export default {
       return hasPresc
     },
     expandLess (value) {
-      this.infoVisible = value
+      this.infoVisible = !value
     },
     addNewPack (patientVisitDetails) {
       this.selectedVisitDetails = patientVisitDetails

@@ -134,6 +134,7 @@ import ReferedStockMoviment from '../../store/models/stockrefered/ReferedStockMo
 import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
 import PatientTransReferenceType from '../../store/models/tansreference/PatientTransReferenceType'
 import ClinicSectorType from '../../store/models/clinicSectorType/ClinicSectorType'
+import SpetialPrescriptionMotive from '../../store/models/prescription/SpetialPrescriptionMotive'
 export default {
   data () {
     return {
@@ -179,6 +180,7 @@ export default {
         FacilityType.apiGetAll(offset, max)
         ClinicSectorType.apiGetAll(offset, max)
         PatientTransReferenceType.apiGetAll(offset, max)
+        SpetialPrescriptionMotive.apiGetAll(offset, max)
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {

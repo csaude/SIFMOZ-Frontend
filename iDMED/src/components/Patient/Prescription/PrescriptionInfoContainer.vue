@@ -1,7 +1,11 @@
   <template>
   <div>
-  <ListHeader :addVisible="false" :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
-    <q-card
+  <ListHeader
+    :addVisible="false"
+    @expandLess="expandLess"
+    :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
+    <div v-show="infoVisible">
+      <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
       class="noRadius">
       <q-card-section class="row q-pa-none">
@@ -56,6 +60,7 @@
       </q-card-section>
     </q-card>
     <EmptyList v-else >Nenhuma Prescrição Adicionada para o serviço {{(identifier.service === null || identifier.service === undefined) ? 'Sem Info' : identifier.service.code}}</EmptyList>
+    </div>
     <q-dialog persistent v-model="alert.visible">
         <Dialog :type="alert.type" @closeDialog="closeDialog">
           <template v-slot:title> Informação</template>
@@ -91,6 +96,7 @@ export default {
         visible: false,
         msg: ''
       }),
+      infoVisible: true,
       isPatientActive: false,
       selectedPack: new Pack(),
       showAddEditEpisode: false
@@ -113,6 +119,9 @@ export default {
       if (this.prescriptionDetails !== null) {
       PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
       }
+    },
+    expandLess (value) {
+      this.infoVisible = !value
     },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {

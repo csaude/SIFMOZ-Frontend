@@ -7,14 +7,7 @@
     </ListHeader>
     <q-card
       v-show="serviceInfoVisible"
-      transition-show="flip-up"
-      transition-hide="flip-up"
-      class="noRadius">
-    <transition-group
-      appear
-      enter-active-class="animated fadeIn"
-      leave-active-class="animated fadeOut"
-    >
+      class="noRadius q-mt-xs">
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
@@ -61,7 +54,6 @@
           </span>
         </div>
       </q-card-section>
-      </transition-group>
     </q-card>
     <q-dialog persistent v-model="showAddEditEpisode">
         <AddEditEpisode

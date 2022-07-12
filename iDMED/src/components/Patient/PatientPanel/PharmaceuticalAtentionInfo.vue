@@ -8,18 +8,20 @@
       @showAdd="showAddPharmaceuticalAtention = true">
       Atenção Farmacêutica
     </ListHeader>
-    <EmptyList v-if="patientVisits.length <= 0" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
-    <div v-else >
-     <span v-for="patientVisit in patientVisits" :key="patientVisit.id">
-        <PharmaceuticalAtentionContainer
-          :selectedPatientVisit="patientVisit"/>
-      </span>
+    <div v-show="infoVisible">
+      <EmptyList v-if="patientVisits.length <= 0" >Nenhuma Atenção Farmacêutica Adicionada</EmptyList>
+      <div v-else >
+      <span v-for="patientVisit in patientVisits" :key="patientVisit.id">
+          <PharmaceuticalAtentionContainer
+            :selectedPatientVisit="patientVisit"/>
+        </span>
+      </div>
+      <q-dialog persistent v-model="showAddPharmaceuticalAtention">
+        <AddEditPharmaceuticalAtention
+          @close="showAddPharmaceuticalAtention= false"
+        :editMode=false />
+    </q-dialog>
     </div>
-    <q-dialog persistent v-model="showAddPharmaceuticalAtention">
-      <AddEditPharmaceuticalAtention
-        @close="showAddPharmaceuticalAtention= false"
-       :editMode=false />
-  </q-dialog>
   </div>
 </template>
 
@@ -41,16 +43,13 @@ export default {
   methods: {
     init () {
       this.patientVisits.forEach(patientVisit => {
-        console.log(patientVisit)
         PregnancyScreening.apiGetAllByPatientVisitId(patientVisit.id).then(resp => {
-          console.log('PregnancyScreening:   ')
-          console.log(resp.response.data)
           this.flagGo = true
         })
       })
     },
     expandLess (value) {
-      this.infoVisible = true
+      this.infoVisible = !value
     }
   },
   created () {
