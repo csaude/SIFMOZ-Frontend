@@ -109,7 +109,8 @@ export default {
       this.group.members.forEach((member) => {
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')
-                                .with('clinic').where('id', member.patient.id).first()
+                                .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                .where('id', member.patient.id).first()
         member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
           return identifier.service.id === this.group.service.id
         })
@@ -123,9 +124,19 @@ export default {
       this.group.members = this.group.members.filter((member) => { return member.isActive() })
           this.group.members.forEach((member) => {
           member.endDate = new Date()
-          member.patient = Patient.query().with('clinic.province').with('province').with('district.province').where('id', member.patient.id).first()
+          member.patient = Patient.query()
+                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                  .with('province')
+                                  .with('district.province')
+                                  .where('id', member.patient.id)
+                                  .first()
           member.group = null
-          member.clinic = Clinic.query().with('province').where('id', member.clinic_id).first()
+          member.clinic = Clinic.query()
+                                .with('province')
+                                .with('district.province')
+                                .with('facilityType')
+                                .where('id', member.clinic_id)
+                                .first()
        })
        this.group.service.identifierType = IdentifierType.find(this.group.service.identifier_type_id)
        this.group.endDate = new Date()
@@ -158,7 +169,7 @@ export default {
                                           patient: Patient.query()
                                                           .with('province')
                                                           .with('district.province')
-                                                          .with('clinic.province')
+                                                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                                           .where('id', patient.id)
                                                           .first(),
                                           clinic: this.clinic
@@ -194,7 +205,7 @@ export default {
     },
     newPacking (lasHeader) {
       console.log(lasHeader)
-      if (lasHeader !== null) this.defaultPickUpDate = lasHeader.nextPickUpDate
+      if (lasHeader !== null && lasHeader !== undefined) this.defaultPickUpDate = lasHeader.nextPickUpDate
       this.showNewPackingForm = true
     }
   },
@@ -209,13 +220,18 @@ export default {
                     .with(['packHeaders.groupPacks.pack', 'packHeaders.duration'])
                     .with('members.patient.identifiers.identifierType')
                     .with('groupType')
-                    .with('clinic.province')
+                    .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                     .where('id', SessionStorage.getItem('selectedGroup').id)
                     .first()
       }
     },
     clinic () {
-      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+      return Clinic.query()
+                    .with('province')
+                    .with('district.province')
+                    .with('facilityType')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
     }
   },
   components: {
