@@ -213,6 +213,8 @@ import GroupType from '../../store/models/groupType/GroupType'
 import Clinic from '../../store/models/clinic/Clinic'
 import { QSpinnerBall, SessionStorage } from 'quasar'
 import GroupMember from '../../store/models/groupMember/GroupMember'
+import Episode from '../../store/models/episode/Episode'
+import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -238,10 +240,10 @@ export default {
     init () {
       if (!this.isCreateStep) {
         this.curGroup = Group.query()
-                            .with(['service.clinic.province', 'service.identifierType'])
+                            .with(['service.clinic.facilityType', 'service.clinic.district.province', 'service.clinic.province', 'service.identifierType'])
                             .with(['members.patient', 'members.clinic.province'])
                             .with('groupType')
-                            .with('clinic.province')
+                            .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                             .where('id', SessionStorage.getItem('selectedGroup').id)
                             .first()
         this.curGroup.members = this.curGroup.members.filter((member) => {
@@ -253,7 +255,7 @@ export default {
                                   .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                                   .with('province')
                                   .with('district.province')
-                                  .with('clinic.province')
+                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                   .where('id', member.patient.id)
                                   .first()
         })
@@ -267,12 +269,14 @@ export default {
           })
           if (!patientExists) {
             const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
+            identifier.episodes = Episode.query().withAll().where('patientServiceIdentifier_id', identifier.id).get()
             if (identifier.lastEpisode() === null) {
                 this.displayAlert('error', 'O paciente selecionado não possui episódios.')
             } else {
-               if (!identifier.lastEpisode().isStartEpisode()) {
+              console.log(identifier.lastEpisode())
+                if (!identifier.lastEpisode().isStartEpisode()) {
                   this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
-                   } else {
+                } else {
                   this.curGroup.members.push(this.initNewMember(patient))
                 }
             }
@@ -304,7 +308,7 @@ export default {
                               .with('province')
                               .with('members.group.service')
                               .with('district.province')
-                              .with('clinic.province')
+                              .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                               .where('clinic_id', this.clinic.id)
                               .get()
       this.searchResults = patients.filter((patient) => {
@@ -357,14 +361,21 @@ export default {
         this.curGroup.startDate = this.getJSDateFromDDMMYYY(this.startDate)
         this.curGroup.clinic = this.clinic
       }
-      Group.apiSave(this.curGroup).then(resp => {
+      const group = JSON.parse(JSON.stringify(this.curGroup))
+      group.members.forEach((member) => {
+        member.startDate = group.startDate
+        member.patient.identifiers = []
+      })
+      console.log(group)
+      Group.apiSave(group).then(resp => {
         Group.apiFetchById(resp.response.data.id).then(resp => {
+          this.loadMembersData()
           this.curGroup = Group.query()
                                .with('groupType')
                                .with('members.patient.*')
                                .with('service.*')
                                .with('packHeaders.*')
-                               .with('clinic.province')
+                               .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                .where('id', resp.response.data.id)
                                .first()
           console.log(this.curGroup)
@@ -384,6 +395,15 @@ export default {
           }
           this.displayAlert('error', listErrors)
         })
+    },
+    loadMembersData () {
+      this.curGroup.members.forEach((member) => {
+        member.patient.identifiers.forEach((identifier) => {
+          identifier.episodes.forEach((episode) => {
+            PatientVisitDetails.apiGetAllByEpisodeId(episode.id, 0, 500)
+          })
+        })
+      })
     },
     displayAlert (type, msg) {
       this.alert.type = type
@@ -411,7 +431,12 @@ export default {
       }
     },
     clinic () {
-      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+      return Clinic.query()
+                  .with('province')
+                  .with('facilityType')
+                  .with('district.province')
+                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .first()
     },
     isCreateStep () {
       return this.step === 'create'

@@ -23,7 +23,7 @@
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Tipo:</div>
-        <div class="col text-grey-10">{{group.groupType.code}}</div>
+        <div class="col text-grey-10">{{group.groupType.description}}</div>
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Data Início:</div>

@@ -155,9 +155,22 @@ export default {
     doMemberRemotion () {
       this.selectedMember.endDate = new Date()
       const member = Object.assign({}, this.selectedMember)
-      member.patient = Patient.query().with('clinic.province').with('province').with('district.province').where('id', member.patient.id).first()
-      member.group = Group.query().with('clinic.province').where('id', member.group_id).first()
-      member.clinic = Clinic.query().with('province').where('id', member.clinic_id).first()
+      member.patient = Patient.query()
+                              .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                              .with('province')
+                              .with('district.province')
+                              .where('id', member.patient.id)
+                              .first()
+      member.group = Group.query()
+                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                          .where('id', member.group_id)
+                          .first()
+      member.clinic = Clinic.query()
+                            .with('province')
+                            .with('district.province')
+                            .with('facilityType')
+                            .where('id', member.clinic_id)
+                            .first()
       console.log(member)
       GroupMember.apiUpdate(member).then(resp => {
         this.getGroupMembers()
@@ -184,12 +197,15 @@ export default {
       group.members.forEach((member) => {
           member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                   .with('province')
-                                  .with('clinic').where('id', member.patient.id).first()
+                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                  .where('id', member.patient.id)
+                                  .first()
           member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
             return identifier.service.id === this.selectedGroup.service.id
           })
           member.patient.identifiers[0].episodes = []
           member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
+         console.log(member)
          this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
       })
       if (!group.isDesintegrated()) {

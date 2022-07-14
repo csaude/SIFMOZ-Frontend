@@ -1,8 +1,7 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;">
-        <form @submit.prevent="doFormValidation" >
-            <q-card-section >
-              <div class="row items-center text-subtitle1">
+            <q-card-section class="q-pa-none bg-green-2">
+              <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  name="groups" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">Grupo: {{curGroup.code}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{curGroup.name}}</div>
@@ -10,6 +9,7 @@
               </div>
               <q-separator/>
             </q-card-section>
+        <form @submit.prevent="doFormValidation" >
             <div class="q-mx-lg">
               <div class="q-mt-lg">
                   <div class="row items-center q-mb-sm">
@@ -236,11 +236,11 @@ export default {
       this.generatepacks()
     },
     addPrescribedDrug (prescribedDrug, visitDetails) {
-      console.log(prescribedDrug)
+      console.log(visitDetails)
       prescribedDrug.prescription_id = visitDetails.prescription.id
       this.selectedGroup.members.forEach((member) => {
         const psdrugExists = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.some((pd) => {
-          return pd.drug.id === prescribedDrug.drug.id
+          return pd.drug.id === prescribedDrug.drug.id && member.patient.id === visitDetails.patientVisit.patient_id
         })
         if (psdrugExists) {
           this.displayAlert('error', 'O medicamento seleccionado não pode ser adicionado, pois já existe na lista a dispensar para o membro [' + member.patient.fullName + ']')
@@ -266,7 +266,7 @@ export default {
       patient.identifiers[0].service = ClinicalService.query()
                                                       .with('identifierType')
                                                       .with('therapeuticRegimens')
-                                                      .with('clinicSectors')
+                                                      .with('clinicSectors.*')
                                                       .with('attributes.clinicalServiceAttributeType')
                                                       .where('id', patient.identifiers[0].service.id)
                                                       .first()
@@ -282,6 +282,7 @@ export default {
       this.showAddEditDrug = true
     },
     generatepacks () {
+      console.log('generatepacks')
       this.$q.loading.show({
         message: 'Por favor aguarde ...',
         spinnerColor: 'grey-4',
@@ -303,7 +304,8 @@ export default {
           patientVisitDetails: [],
           syncStatus: member.patient.his_id.length > 10 ? 'R' : 'N'
         })
-        this.initNewPack(member.patient.identifiers[0].episodes[0].patientVisitDetails[0], pack, member.patient, member.patient.identifiers[0].episodes[0])
+        this.initNewPack(member.patient.identifiers[0].episodes[0].lastVisit(), pack, member.patient, member.patient.identifiers[0].episodes[0])
+        console.log(pack)
         const groupPack = new GroupPack({
           pack: pack
         })
@@ -314,8 +316,8 @@ export default {
     },
     savePatientVisitDetails (groupPacks, i) {
       if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
-        console.log(groupPacks[i])
         const patientVisit = Object.assign({}, groupPacks[i].pack.patientVisitDetails[0].patientVisit)
+        console.log(patientVisit)
         patientVisit.patientVisitDetails.push(groupPacks[i].pack.patientVisitDetails[0])
         patientVisit.patientVisitDetails[0].patientVisit = null
         groupPacks[i].pack.patientVisitDetails = []
@@ -336,13 +338,11 @@ export default {
         this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
           groupPack.pack.patientVisitDetails = []
         })
-        console.log(this.curGroupPackHeader)
         GroupPackHeader.apiSave(this.curGroupPackHeader).then(resp => {
           this.curGroupPackHeader.id = resp.response.data.id
           Group.apiFetchById(this.curGroupPackHeader.group.id)
           this.displayAlert('info', 'Operação efectuada com sucesso.')
         })
-        console.log(this.curGroupPackHeader)
       }
     },
     savePack (pack, i) {
@@ -362,7 +362,7 @@ export default {
       this.curGroupPackHeader.group = Group.query()
                                             .with('service')
                                             .with('groupType')
-                                            .with('clinic.province')
+                                            .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                             .where('id', this.group.id)
                                             .first()
       this.curGroupPackHeader.duration = this.drugsDuration
@@ -370,6 +370,7 @@ export default {
       this.curGroupPackHeader.nextPickUpDate = this.getJSDateFromDDMMYYY(this.nextPDate)
     },
     initNewPack (visitDetails, pack, patient, episode) {
+      // visitDetails.prescription.prescribedDrugs = PrescribedDrug.query().where('prescription_id', visitDetails.prescription.id).get()
       Object.keys(visitDetails.prescription.prescribedDrugs).forEach(function (k) {
         const packagedDrugStocks = []
         const stocksToMoviment = []
@@ -377,9 +378,9 @@ export default {
         let qtyPrescribed = prescribedDrug.qtyPrescribed
         const packDrug = new PackagedDrug()
         const stocks = Stock.query()
-                            .with('clinic.province')
-                            .with('entrance.clinic.province')
-                            .with('center.clinic.province')
+                            .with(['clinic.*'])
+                            .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                            .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
                             .with('drug.form')
                             .where('drug_id', prescribedDrug.drug.id)
                             .orderBy('expireDate', 'asc')
@@ -423,7 +424,7 @@ export default {
                                           patient: Patient.query()
                                                           .with('province')
                                                           .with('district.province')
-                                                          .with('clinic.province')
+                                                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                                           .where('id', patient.id)
                                                           .first(),
                                           clinic: this.clinic
@@ -443,7 +444,6 @@ export default {
                                           .where('id', episode.id)
                                           .first()
                         })
-                        console.log(pvd)
         pack.patientVisitDetails = []
         pack.patientVisitDetails.push(pvd)
         pack.packagedDrugs.push(packDrug)
@@ -460,7 +460,9 @@ export default {
       group.members.forEach((member) => {
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')
-                                .with('clinic').where('id', member.patient.id).first()
+                                .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                .where('id', member.patient.id)
+                                .first()
         member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
           return identifier.service.id === this.group.service.id
         })
@@ -548,8 +550,15 @@ export default {
         return DispenseMode.all()
       }
     },
-    clinic () {
-      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+    clinic: {
+      get () {
+        return Clinic.query()
+                      .with('province')
+                      .with('district.province')
+                      .with('facilityType')
+                      .where('id', SessionStorage.getItem('currClinic').id)
+                      .first()
+      }
     }
   },
   mounted () {

@@ -97,6 +97,10 @@ import { SessionStorage } from 'quasar'
 import Patient from '../../store/models/patient/Patient'
 import GroupType from '../../store/models/groupType/GroupType'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+import Episode from '../../store/models/episode/Episode'
+import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
+import Prescription from '../../store/models/prescription/Prescription'
+import Pack from '../../store/models/packaging/Pack'
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -145,12 +149,30 @@ export default {
       const max = 100
       this.doPatientGet(this.clinic.id, offset, max)
     },
+    loadPatientInfo () {
+      const patientList = Patient.query().with('identifiers.episodes').get()
+      patientList.forEach((patient) => {
+        patient.identifiers.forEach((identifier) => {
+          Episode.apiGetAllByIdentifierId(identifier.id, 0, 200)
+          identifier.episodes.forEach((episode) => {
+            PatientVisitDetails.apiGetAllByEpisodeId(episode.id, 0, 300).then(resp => {
+              resp.response.data.forEach((pvd) => {
+                Prescription.apiFetchById(pvd.prescription.id)
+                Pack.apiFetchById(pvd.pack.id)
+              })
+            })
+          })
+        })
+      })
+    },
     doPatientGet (clinicId, offset, max) {
       Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-            if (resp.response.data.length > 0) {
-              offset = offset + max
-              setTimeout(this.doPatientGet(clinicId, offset, max), 2)
-            }
+          if (resp.response.data.length > 0) {
+            offset = offset + max
+            setTimeout(this.doPatientGet(clinicId, offset, max), 2)
+          } else {
+            this.loadPatientInfo()
+          }
         }).catch(error => {
             console.log(error)
         })
