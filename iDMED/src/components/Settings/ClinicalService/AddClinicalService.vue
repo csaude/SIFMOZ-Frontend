@@ -248,11 +248,13 @@ export default {
           .has('code').get()
       },
       clinicSectors () {
-          return ClinicSector.query().with('clinic').has('code').where('active', true).where('clinic_id', this.currClinic.id).get()
+          return ClinicSector.query().withAll().has('code').where('active', true).where('clinic_id', this.currClinic.id).get()
       },
         currClinic () {
         return Clinic.query()
                     .with('province')
+                    .with('district.province')
+                    .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       }
@@ -328,7 +330,7 @@ export default {
     },
     codeRules (val) {
       if (this.clinicalService.code === '') {
-        return 'o Código e obrigatorio'
+        return 'o Código é obrigatorio'
       } else if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
       return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }

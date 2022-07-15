@@ -74,6 +74,7 @@ import { ref } from 'vue'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 import { SessionStorage } from 'quasar'
+import { v4 as uuidv4 } from 'uuid'
 export default {
       props: ['selectedClinicSector', 'onlyView'],
     data () {
@@ -102,14 +103,21 @@ export default {
     },
     computed: {
          clinics () {
-            return Clinic.query().has('code').get()
+            return Clinic.query()
+                        .with('province')
+                        .with('district.province')
+                        .with('facilityType')
+                        .has('code')
+                        .get()
         },
           clinicSectors () {
-            return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
+            return ClinicSector.query().withAll().where('clinic_id', this.currClinic.id).get()
         },
         currClinic () {
         return Clinic.query()
                     .with('province')
+                    .with('district.province')
+                    .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       },
@@ -129,6 +137,7 @@ export default {
         },
         submitClinicSector () {
           this.clinicSector.active = true
+          if (this.clinicSector.uuid === null) this.clinicSector.uuid = uuidv4()
           this.submitting = true
           console.log(this.clinicSector)
            ClinicSector.apiSave(this.clinicSector).then(resp => {

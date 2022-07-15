@@ -127,10 +127,11 @@ export default {
  computed: {
       clinics () {
           return Clinic.query()
-                           .with('province')
-                           .with('district.province')
-                           .has('code')
-                          .get()
+                      .with('province')
+                      .with('district.province')
+                      .with('facilityType')
+                      .has('code')
+                      .get()
       }
   },
   methods: {

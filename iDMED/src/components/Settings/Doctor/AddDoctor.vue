@@ -1,7 +1,7 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
    <q-card-section>
-            <div class="text-h6">Clínico!</div>
+            <div class="text-h6">Clínico</div>
         </q-card-section>
         <form @submit.prevent="validateDoctor" >
             <q-card-section class="q-px-md">
@@ -154,14 +154,17 @@ export default {
         clinics () {
             return Clinic.query()
                            .with('nationalClinic')
-                           .with('province')
-                           .with('district')
+                          .with('province')
+                          .with('district.province')
+                          .with('facilityType')
                            .has('code')
                           .get()
         },
          currClinic () {
         return Clinic.query()
                     .with('province')
+                    .with('district.province')
+                    .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
       }

@@ -116,7 +116,7 @@ export default {
   },
  computed: {
       clinicSectors () {
-          return ClinicSector.query().with('clinic').has('code').get()
+          return ClinicSector.query().withAll().has('code').get()
       }
   },
   methods: {

@@ -97,13 +97,16 @@ export default {
       }
     },
     getDrugs () {
-      let drugs = ''
+      let drugs = []
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').has('stocks').where('active', true).get()
+        drugs = Drug.query().with('form').with('stocks').where('active', true).get()
       }
-      return drugs
+      const validDrugs = drugs.filter((drug) => {
+        return drug.active === true && drug.hasStock()
+      })
+      return validDrugs
     },
     loadDefaultParameters () {
       if (this.prescribedDrug.drug !== null) {
@@ -114,12 +117,14 @@ export default {
     }
   },
   computed: {
-    drugs () {
-      return this.getDrugs()
+    drugs: {
+      get () {
+        return this.getDrugs()
+      }
     },
     therapeuticRegimen () {
       return TherapeuticRegimen.query()
-                               .with('drugs.form')
+                               .with(['drugs.form', 'drugs.stocks'])
                                .where('id', this.visitDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id).first()
     }
   },

@@ -116,9 +116,10 @@ export default {
     computed: {
          clinicos () {
              return Clinic.query()
-                           .with('province')
-                           .with('district.province')
-                           .has('code')
+                          .with('province')
+                          .with('district.province')
+                          .with('facilityType')
+                          .has('code')
                           .get()
         },
           provinces () {
