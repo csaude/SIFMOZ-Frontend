@@ -671,7 +671,11 @@ export default {
               visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription.prescriptionDate)
               visitDetails.patientVisit = null
             }
-            this.generatePacks(visitDetails)
+            error = this.generatePacks(visitDetails)
+            console.log(error)
+            if (error !== undefined && error !== null && error.length > 0) {
+              hasError = true
+            }
           } else {
             if (visitDetails.prescription.prescribedDrugs.length > 0) {
               if (!this.isNewPackStep || !this.isEditPackStep) {
@@ -718,37 +722,51 @@ export default {
         const validStock = stocks.filter((item) => {
           return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
         })
-        let i = 0
-        while (qtyPrescribed > 0) {
-          if (validStock[i].stockMoviment >= qtyPrescribed) {
-            validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
-            stocksToMoviment.push(validStock[i])
-            qtyPrescribed = 0
-            // const pkstock = this.initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
-            const packagedDrugStock = new PackagedDrugStock()
-            packagedDrugStock.drug = prescribedDrug.drug
-            packagedDrugStock.stock = validStock[i]
-            packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
-            packagedDrugStock.creationDate = new Date()
-            packagedDrugStocks.push(packagedDrugStock)
+        console.log(stocks)
+        console.log(validStock)
+        if (validStock !== undefined && validStock !== null) {
+          let avalivableStock = 0
+          validStock.forEach((vs) => {
+            avalivableStock += vs.stockMoviment
+          })
+          if (avalivableStock >= qtyPrescribed) {
+            let i = 0
+            while (qtyPrescribed > 0) {
+              if (validStock[i].stockMoviment >= qtyPrescribed) {
+                validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
+                stocksToMoviment.push(validStock[i])
+                qtyPrescribed = 0
+                // const pkstock = this.initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
+                const packagedDrugStock = new PackagedDrugStock()
+                packagedDrugStock.drug = prescribedDrug.drug
+                packagedDrugStock.stock = validStock[i]
+                packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
+                packagedDrugStock.creationDate = new Date()
+                packagedDrugStocks.push(packagedDrugStock)
+              } else {
+                const availableBalance = validStock[i].stockMoviment
+                qtyPrescribed = Number(qtyPrescribed - validStock[i].stockMoviment)
+                validStock[i].stockMoviment = 0
+                stocksToMoviment.push(validStock[i])
+                const packagedDrugStock = new PackagedDrugStock()
+                packagedDrugStock.drug = prescribedDrug.drug
+                packagedDrugStock.stock = validStock[i]
+                packagedDrugStock.quantitySupplied = availableBalance
+                packagedDrugStock.creationDate = new Date()
+                i = i + 1
+              }
+            }
+            packDrug.packagedDrugStocks = packagedDrugStocks
+            packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
+            packDrug.drug = prescribedDrug.drug
+            packDrug.toContinue = prescribedDrug.toContinue
+            visitDetails.pack.packagedDrugs.push(packDrug)
           } else {
-            const availableBalance = validStock[i].stockMoviment
-            qtyPrescribed = Number(qtyPrescribed - validStock[i].stockMoviment)
-            validStock[i].stockMoviment = 0
-            stocksToMoviment.push(validStock[i])
-            const packagedDrugStock = new PackagedDrugStock()
-            packagedDrugStock.drug = prescribedDrug.drug
-            packagedDrugStock.stock = validStock[i]
-            packagedDrugStock.quantitySupplied = availableBalance
-            packagedDrugStock.creationDate = new Date()
-            i = i + 1
+            return 'Não existe stock suficiente do medicamento ' + prescribedDrug.drug.name
           }
+        } else {
+          return 'Não existe stock suficiente do medicamento ' + prescribedDrug.drug.name
         }
-        packDrug.packagedDrugStocks = packagedDrugStocks
-        packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
-        packDrug.drug = prescribedDrug.drug
-        packDrug.toContinue = prescribedDrug.toContinue
-        visitDetails.pack.packagedDrugs.push(packDrug)
       })
     },
     proccedToDispense () {

@@ -4,6 +4,8 @@ import Form from '../form/Form'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
 import Stock from '../stock/Stock'
+import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
+import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegimensDrug'
 // import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 
 export default class Drug extends Model {
@@ -28,7 +30,8 @@ export default class Drug extends Model {
       clinicalService: this.belongsTo(ClinicalService, 'clinicalService_id'),
       packaged_drugs: this.hasMany(PackagedDrug, 'drug_id'),
       packagedDrugStocks: this.hasMany(PackagedDrugStock, 'drug_id'),
-      stocks: this.hasMany(Stock, 'drug_id')
+      stocks: this.hasMany(Stock, 'drug_id'),
+      therapeuticRegimenList: this.belongsToMany(TherapeuticRegimen, TherapeuticRegimensDrug, 'drug_id', 'therapeutic_regimen_id')
     }
   }
 
@@ -39,6 +42,15 @@ export default class Drug extends Model {
       curStock = curStock + this.stocks[i].stockMoviment
     }.bind(this))
     return curStock
+  }
+
+  hasStock () {
+    if (this.stocks === null || this.stocks === undefined) return false
+    const hasStock = this.stocks.some((stock) => {
+      return stock.stockMoviment > 0
+    })
+
+    return hasStock
   }
 
   getMonthAVGConsuption () {
