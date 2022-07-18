@@ -40,6 +40,7 @@
  import { ref } from 'vue'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import EpisodeType from 'src/store/models/episodeType/EpisodeType'
 export default {
      props: ['dataLoaded'],
     data () {
@@ -144,7 +145,7 @@ export default {
                                .whereHas('episodes', (query) => {
                               query.where((episodes) => {
                                   console.log(episodes)
-                                   return episodes.notes === 'Inicio ao tratamento'
+                                   return episodes.episode_type_id === this.episodeTypeInitial.id
                               })
                               }).get()
          }
@@ -159,11 +160,16 @@ export default {
           .with('therapeuticRegimens')
           .with('clinicSectors.clinic')
           .has('code').get()
+      },
+       episodeTypeInitial () {
+          return EpisodeType.query().where((episodeType) => {
+                                 return episodeType.code === 'INICIO'
+                              }).get()
       }
     },
     mounted () {
      //  this.loadData()
-       this.getClinicalServicesOptions()
+    //   this.getClinicalServicesOptions()
     },
      created () {
   },
