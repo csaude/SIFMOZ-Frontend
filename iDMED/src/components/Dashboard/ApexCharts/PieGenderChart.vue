@@ -1,7 +1,7 @@
 <template>
-  <div style="width: 1200px; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)">
+  <div>
     <apexchart
-  style="max-width: 50%; "
+  style="max-width: 100%; "
   type="donut"
   :options="chartOptions"
   :series="series"

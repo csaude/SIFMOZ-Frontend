@@ -13,31 +13,24 @@
   <div class="q-mt-lg">
   <p align="center"> <strong>Serviço {{serviceCode}} </strong></p>
   </div>
-         <div class="q-mt-lg">
-          <BarByDispenseType v-bind:serviceCode=serviceCode :dataLoaded=dataLoaded > </BarByDispenseType>
-             <div
-      class="row q-col-gutter-md q-px-md q-py-md"
+        <div class="q-mt-lg">
+          <BarByDispenseType class="graph-conainer" v-bind:serviceCode=serviceCode :dataLoaded=dataLoaded > </BarByDispenseType>
+        <div
+      class=""
       key="allCharts"
     >
-    <div class="col-md-6 col-sm-12 col-xs-12">
-              <LineByAge :serviceCode=serviceCode :dataLoaded=dataLoaded > </LineByAge>
+    <div class="row">
+      <LineByAge class="col graph-conainer" :serviceCode=serviceCode :dataLoaded=dataLoaded > </LineByAge>
+      <PieGenderChart class="col graph-conainer" :serviceCode=serviceCode > </PieGenderChart>
+      <LineBySex class="col graph-conainer" :serviceCode=serviceCode :dataLoaded=dataLoaded> </LineBySex>
     </div>
-      <div class="col-md-6 col-sm-12 col-xs-12">
-           <LineBySex :serviceCode=serviceCode :dataLoaded=dataLoaded> </LineBySex>
+      <div class="row" >
+        <DispenseTypeByAgeTable class="q-ma-md" :serviceCode=serviceCode :dataLoaded=dataLoaded > </DispenseTypeByAgeTable>
       </div>
-          <div
-      class="row q-col-gutter-md q-px-md q-py-md"
-      key="allCharts"
-    >
-    <div class="col-md-6 col-sm-12 col-xs-12">
-              <PieGenderChart :serviceCode=serviceCode > </PieGenderChart>
+      <div class="row q-mt-md justify-center">
+        <StockReport class="q-mb-lg" :isCharts= true :dataLoaded=dataLoaded :serviceCode=serviceCode > </StockReport>
+      </div>
     </div>
-     <div class="col-md-6 col-sm-12 col-xs-12" >
-            <StockReport :isCharts= true :dataLoaded=dataLoaded :serviceCode=serviceCode > </StockReport>
-      </div>
-        <DispenseTypeByAgeTable :serviceCode=serviceCode :dataLoaded=dataLoaded > </DispenseTypeByAgeTable>
-          </div>
-             </div>
          </div>
 </div>
 </template>
@@ -185,5 +178,12 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+    .graph-conainer {
+      border: 1px solid $grey-13;
+      border-radius: 10px;
+      margin: 15px;
+      padding: 15px;
+      background-color: $light-green-1;
+    }
 </style>

@@ -1,12 +1,13 @@
 <template>
-   <div>
+   <div class="q-pa-md">
     <apexchart
- style="max-width: 100%; "
-  height="500"
-  type="bar"
-  :options="chartOptions"
-  :series="series"
-></apexchart>
+      style="max-width: 100%; "
+        height="500"
+        type="bar"
+        :options="chartOptions"
+        :series="series"
+      >
+      </apexchart>
    </div>
 </template>
 
@@ -191,3 +192,10 @@ fill: {
     }
 }
 </script>
+
+<style lang="scss">
+    .graph-conainer {
+      border: 3px solid $grey-13;
+      border-radius: 0px;
+    }
+</style>

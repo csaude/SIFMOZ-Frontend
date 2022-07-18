@@ -141,6 +141,8 @@ export default {
           this.displayAlert('error', 'A data de inicio do inventário não pode ser superior a data corrente.')
         } else
         if (inventory !== null && (new Date(this.currInventory.startDate) < new Date(inventory.endDate))) {
+          console.log(new Date(this.currInventory.startDate))
+          console.log(new Date(inventory.endDate))
           this.displayAlert('error', 'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' + this.getDDMMYYYFromJSDate(inventory.endDate) + ']')
         } else
         if (this.currInventory.generic) {
@@ -160,12 +162,13 @@ export default {
       if (!this.currInventory.generic) {
         this.doBeforeSave()
       }
-      console.log(this.currInventory)
       this.currInventory.clinic = this.currClinic
+      console.log(this.currInventory)
       await Inventory.apiSave(this.currInventory).then(resp => {
         SessionStorage.set('currInventory', resp.response.data)
-        Inventory.apiFetchById(resp.response.data.id)
-        this.$router.push('/stock/inventory')
+        Inventory.apiFetchById(resp.response.data.id).then(resp => {
+          this.$router.push('/stock/inventory')
+        })
       }).catch(error => {
           const listErrors = []
           if (error.request.response != null) {
@@ -235,11 +238,11 @@ export default {
     },
     currClinic () {
       return Clinic.query()
-                  .with('province')
-                  .with('facilityType')
-                  .with('district.province')
-                  .where('id', SessionStorage.getItem('currClinic').id)
-                  .first()
+                   .with('province')
+                   .with('facilityType')
+                   .with('district.province')
+                   .where('id', SessionStorage.getItem('currClinic').id)
+                   .first()
     }
   }
 }

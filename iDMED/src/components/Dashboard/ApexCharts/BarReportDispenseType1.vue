@@ -3,7 +3,7 @@
     <apexchart
     ref="chart"
     @dataPointSelection="dataPointSelectionHandler"
- style="max-width: 100%; "
+  style="max-width: 100%; "
   height="500"
   type="bar"
   :options="chartOptions"
