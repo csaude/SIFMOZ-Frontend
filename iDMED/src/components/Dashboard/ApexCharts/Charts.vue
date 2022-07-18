@@ -1,14 +1,12 @@
 <template>
 <div>
-<div class="q-mt-lg">
-<div class="row">
-<div class="col q-ml-md" v-for="(item) in this.clinicalServiceReports" :key="item.id">
-  <q-btn :color=item.colour @click="setServiceCode(item.code)" :style=item.style>
+<div class="row justify-center q-mt-lg">
+  <div class="col-2 q-ml-md" v-for="(item) in this.clinicalServiceReports" :key="item.id">
+    <q-btn :color=item.colour @click="setServiceCode(item.code)" :style=item.style>
       <q-icon left size="6em" :name=item.icon  />
       <div >Serviço  {{item.code}} <br> {{this.patientByServiceCode(item.code).length}} Pacientes Activos ao Levantamento </div>
     </q-btn>
-    </div>
-</div>
+  </div>
 </div>
   <div class="q-mt-lg">
   <p align="center"> <strong>Serviço {{serviceCode}} </strong></p>
