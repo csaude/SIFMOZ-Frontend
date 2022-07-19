@@ -190,12 +190,12 @@ export default {
         }
 }
 </script>
-<style lang="sass">
+<style lang="sass" scoped>
 .my-sticky-header-table
   .q-table__top,
   thead tr:first-child th
     /* bg color is important for th; just specify one */
-    background-color: #0ba58b
+    background-color: $light-green-1
 
   thead tr th
     position: sticky

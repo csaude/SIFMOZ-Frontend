@@ -197,8 +197,8 @@ export default {
         },
         patients: [],
         newPatient: false,
-        username: localStorage.getItem('hisUser'), // 'admin',
-        password: localStorage.getItem('hisPass') // 'ESaudeMz321'
+        username: localStorage.getItem('hisUser'),
+        password: localStorage.getItem('hisPass')
       }
     },
     methods: {

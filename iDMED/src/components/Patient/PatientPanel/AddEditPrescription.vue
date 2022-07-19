@@ -551,6 +551,7 @@ export default {
         clinic: this.currClinic,
         syncStatus: this.patient.his_id.length > 10 ? 'R' : 'N'
       })
+
       let prescription = null
       if (this.service === null || this.service === undefined) {
         prescription = new Prescription({
@@ -770,6 +771,10 @@ export default {
       })
     },
     proccedToDispense () {
+      const username = localStorage.getItem('hisUser')
+      const password = localStorage.getItem('hisPass')
+      const encode64Credentials = btoa(username + ':' + password)
+
       if (this.isNewPackStep || this.isEditPackStep || this.isFirstPack) {
         this.curPatientVisitDetails[0].patientVisit = null
         this.curPatientVisitDetails[0].prescription.patientVisitDetails = null
@@ -781,6 +786,8 @@ export default {
         if (visitDetails.prescription.prescribedDrugs.length > 0) {
           if (!visitDetails.createPackLater) {
             visitDetails.pack.dispenseMode = this.dispenseMode
+            visitDetails.pack.providerUuid = encode64Credentials
+            visitDetails.pack.syncStatus = this.patient.his_id.length > 10 ? 'R' : 'N'
           } else {
             visitDetails.pack = null
           }
@@ -788,6 +795,7 @@ export default {
             visitDetails.clinic = this.currClinic
             // visitDetails.prescription = null
           }
+          console.log('pack', this.patientVisit)
           this.patientVisit.visitDate = visitDetails.pack.pickupDate
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
@@ -811,7 +819,6 @@ export default {
             patientVDetails.prescription.prescribedDrugs = []
             patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
             if (patientVDetails.pack !== null) {
-                patientVDetails.pack.syncStatus = 'N'
                 Pack.apiSave(patientVDetails.pack).then(resp => {
                   patientVDetails.pack.id = resp.response.data.id
                   patientVDetails.pack.$id = resp.response.data.id
@@ -825,7 +832,6 @@ export default {
             }
           })
         } else {
-          patientVDetails.pack.syncStatus = 'N'
           const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(patientVDetails.pack.pickupDate), 'days')
           console.log(pickUpDiferrence)
           if (pickUpDiferrence > 0) {

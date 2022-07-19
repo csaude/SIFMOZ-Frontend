@@ -5,7 +5,7 @@
          style="max-width: 100%; "
           :rows="dispensesByTypeAgeAndGender"
           :columns="columns"
-           class="my-sticky-header-table"
+           class="my-sticky-header-table text-color-white"
             title="Total de dispensa por Idade no Serviço"
            hide-bottom>
         <template v-slot:body="props">
@@ -294,11 +294,10 @@ export default {
 <style lang="sass">
 .my-sticky-header-table
   /* height or max-height is important */
-
   .q-table__top,
   thead tr:first-child th
     /* bg color is important for th; just specify one */
-    background-color: #0ba58b
+    background-color: $light-green-1
 
   thead tr th
     position: sticky
