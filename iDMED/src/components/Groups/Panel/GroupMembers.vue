@@ -120,6 +120,7 @@ export default {
       columns,
       fecthedMemberData: 0,
       members: ref([]),
+      allMembers: ref([]),
       dialogTitle: 'Informação',
       selectedMember: null,
       step: 'display'
@@ -171,7 +172,6 @@ export default {
                             .with('facilityType')
                             .where('id', member.clinic_id)
                             .first()
-      console.log(member)
       GroupMember.apiUpdate(member).then(resp => {
         this.getGroupMembers()
         this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -205,9 +205,9 @@ export default {
           })
           member.patient.identifiers[0].episodes = []
           member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-         console.log(member)
          this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
       })
+      this.allMembers = group.members
       if (!group.isDesintegrated()) {
         this.members = group.members.filter((member) => { return member.isActive() })
       } else {
@@ -235,6 +235,9 @@ export default {
     },
     loadMembers () {
       if (this.dataFechComplete) {
+        if (this.selectedGroup.isDesintegrated()) {
+          this.members = this.allMembers
+        }
         this.members.forEach((member) => {
           if (member.patient.identifiers[0].episodes[0].lastVisit().pack !== null) {
             member.patient.identifiers[0].episodes[0].lastVisit().pack = Pack.query()
@@ -254,7 +257,6 @@ export default {
           prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
           member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
         })
-        console.log(this.members)
         return this.members
       } else {
         return []

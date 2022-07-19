@@ -22,7 +22,7 @@
             </template>
             <template #header="props">
                   <q-tr class="text-left bg-grey-3"  :props="props">
-                    <q-th style="width: 70px"  >{{columns[0].label}}</q-th>
+                    <q-th v-if="false" style="width: 70px"  >{{columns[0].label}}</q-th>
                     <q-th class="col" >{{columns[1].label}}</q-th>
                     <q-th class="text-center" >{{columns[2].label}}</q-th>
                     <q-th class="text-center" >{{columns[3].label}}</q-th>
@@ -40,7 +40,7 @@
             </template>
             <template #body="props">
               <q-tr :props="props">
-                <q-td key="order" :props="props">
+                <q-td v-if="false" key="order" :props="props">
                 </q-td>
                 <q-td key="generic" :props="props">
                   {{props.row.getInventoryType()}}
