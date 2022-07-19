@@ -1,14 +1,16 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <form @submit.prevent="submitForm" >
-            <q-card-section class="q-px-md">
-                <div class="q-mt-lg">
-                    <div class="row items-center q-mb-md">
+  <q-card style="width: 900px; max-width: 90vw;">
+        <form @submit.prevent="submitForm" class="q-ma-none">
+            <q-card-section class="q-pa-none bg-green-2">
+                <div class="q-pa-md">
+                    <div class="row items-center">
                         <q-icon name="groups" size="sm"/>
                         <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
                     </div>
-                    <q-separator color="grey-13" size="1px"/>
                 </div>
+                <q-separator color="grey-13" size="1px"/>
+            </q-card-section>
+          <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
                       <q-select
@@ -97,7 +99,7 @@
                 <q-separator color="grey-13" size="1px"/>
                 <div class="row q-mt-none">
                 <div class="col-6 q-pr-sm">
-                  <div class="col text-center q-mb-lg text-subtitle1">
+                  <div class="col text-center q-mb-lg text-subtitle1 ">
                     Por Adicionar
                   </div>
                   <q-table
@@ -269,15 +271,26 @@ export default {
           })
           if (!patientExists) {
             const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
-            identifier.episodes = Episode.query().withAll().where('patientServiceIdentifier_id', identifier.id).get()
+            identifier.episodes = Episode.query().with(['patientVisitDetails.*', 'patientServiceIdentifier', 'episodeType', 'startStopReason']).where('patientServiceIdentifier_id', identifier.id).get()
             if (identifier.lastEpisode() === null) {
                 this.displayAlert('error', 'O paciente selecionado não possui episódios.')
             } else {
-              console.log(identifier.lastEpisode())
                 if (!identifier.lastEpisode().isStartEpisode()) {
                   this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
                 } else {
-                  this.curGroup.members.push(this.initNewMember(patient))
+                  if (identifier.lastEpisode().hasVisits()) {
+                    const lastVisit = PatientVisitDetails.query()
+                                                        .with(['patientVisit', 'prescription.duration', 'prescription.patientVisitDetails.*', 'pack'])
+                                                        .where('id', identifier.lastEpisode().lastVisit().id)
+                                                        .first()
+                    if (lastVisit.prescription.remainigDurationInWeeks() > 0) {
+                      this.curGroup.members.push(this.initNewMember(patient))
+                    } else {
+                      this.displayAlert('error', 'Este paciente não possui uma prescrição válida, não pode ser adicionado ao grupo.')
+                    }
+                  } else {
+                    this.displayAlert('error', 'Este paciente não possui uma prescrição válida, não pode ser adicionado ao grupo.')
+                  }
                 }
             }
           } else {

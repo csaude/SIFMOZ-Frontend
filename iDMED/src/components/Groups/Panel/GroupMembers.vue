@@ -143,7 +143,7 @@ export default {
     doOnConfirm () {
       this.alert.visible = false
       if (this.isGroupDesintagrationStep) {
-        this.emit('desintagrateGroup')
+        this.$emit('desintagrateGroup')
       } else if (this.isMemberRemotionStep) {
         this.doMemberRemotion()
       }
