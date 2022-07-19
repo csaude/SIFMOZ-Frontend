@@ -115,7 +115,6 @@ export default {
           return identifier.service.id === this.group.service.id
         })
         Episode.apiGetAllByIdentifierId(member.patient.identifiers[0].id).then(resp => {
-          console.log(resp.response.data)
           this.fecthedEpisodes = this.fecthedEpisodes + 1
         })
       })
@@ -142,7 +141,6 @@ export default {
        this.group.endDate = new Date()
        const group = Object.assign({}, this.group)
        group.packHeaders = []
-       console.log(group)
        Group.apiUpdate(group).then(resp => {
          Group.apiFetchById(group.id)
          this.displayAlert('info', 'Operação efectuada com sucesso.')
