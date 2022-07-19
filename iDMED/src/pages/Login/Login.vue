@@ -175,6 +175,14 @@ export default ({
         {
           utilizador: 'iDMED',
           senha: 'iDMED123'
+        },
+        {
+          utilizador: 'IDMED.JEMBI',
+          senha: 'Jembi123'
+        },
+        {
+          utilizador: 'domingos.bernardo',
+          senha: 'dBernardo1'
         }
       ]
     }
