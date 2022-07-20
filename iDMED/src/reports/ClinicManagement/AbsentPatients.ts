@@ -46,8 +46,8 @@ export default {
       createRow.push(rows[row].nid)
       createRow.push(rows[row].name)
       createRow.push(moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].dateIdentifiedAbandonment !== null ? moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY') : '')
+      createRow.push(rows[row].returnedPickUp !== null ? moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY') : '')
       createRow.push(rows[row].contact)
 
       data.push(createRow)
@@ -328,8 +328,8 @@ export default {
       createRow.push(rows[row].nid)
       createRow.push(rows[row].name)
       createRow.push(moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY'))
-      createRow.push(moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].dateIdentifiedAbandonment !== null ? moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY') : '')
+      createRow.push(rows[row].returnedPickUp !== null ? moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY') : '')
       createRow.push(rows[row].contact)
 
       data.push(createRow)
