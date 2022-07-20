@@ -79,12 +79,6 @@
                           label="Quantidade"
                           dense
                           class="col" />
-                        <TextInput
-                          v-model="props.row.adjustedStock.drug.form.description"
-                          disable
-                          label="Forma"
-                          dense
-                          class="col q-ml-sm" />
                       </div>
                     </q-td>
                       <q-td key="balance" :props="props">

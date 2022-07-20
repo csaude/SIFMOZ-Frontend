@@ -137,10 +137,10 @@ export default {
         const inventory = Inventory.query().orderBy('endDate', 'desc').first()
         console.log(this.currInventory)
         console.log(inventory)
-        if (new Date(this.currInventory.startDate) > new Date()) {
+        if (new Date(this.currInventory.startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)) {
           this.displayAlert('error', 'A data de inicio do inventário não pode ser superior a data corrente.')
         } else
-        if (inventory !== null && (new Date(this.currInventory.startDate) < new Date(inventory.endDate))) {
+        if (inventory !== null && (new Date(this.currInventory.startDate).setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0))) {
           console.log(new Date(this.currInventory.startDate))
           console.log(new Date(inventory.endDate))
           this.displayAlert('error', 'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' + this.getDDMMYYYFromJSDate(inventory.endDate) + ']')
@@ -163,9 +163,9 @@ export default {
         this.doBeforeSave()
       }
       this.currInventory.clinic = this.currClinic
-      console.log(this.currInventory)
       await Inventory.apiSave(this.currInventory).then(resp => {
         SessionStorage.set('currInventory', resp.response.data)
+      console.log(resp.response)
         Inventory.apiFetchById(resp.response.data.id).then(resp => {
           this.$router.push('/stock/inventory')
         })

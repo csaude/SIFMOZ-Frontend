@@ -40,7 +40,8 @@
                     quarters: [
                         { id: 1, description: 'Trimestre 1' },
                         { id: 2, description: 'Trimestre 2' },
-                        { id: 3, description: 'Trimestre 3' }
+                        { id: 3, description: 'Trimestre 3' },
+                        { id: 3, description: 'Trimestre 4' }
                         ]
                         }
             },
