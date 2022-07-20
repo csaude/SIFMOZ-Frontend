@@ -280,7 +280,9 @@ export default {
         }
       },
       async savePatient () {
-        this.patient.identifiers = []
+        if (!this.newPatient) {
+          this.patient.identifiers = []
+        }
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           if (this.patient.bairro !== null && this.patient.bairro.id === null) {
             Localidade.apiSave(this.patient.bairro).then(resp => {
