@@ -23,6 +23,7 @@ export default class Pack extends Model {
         packageReturned: this.number(0),
         reasonForPackageReturn: this.attr(''),
         clinic_id: this.attr(''),
+        providerUuid: this.attr(''),
         syncStatus: this.attr(''),
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
