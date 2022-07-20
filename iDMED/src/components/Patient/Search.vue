@@ -436,7 +436,7 @@ export default {
             this.$q.notify({
             color: 'negative',
             position: 'center',
-            message: 'Não contem nenhum parâmetro de pesquisa. Por favor, indtroduza um Nº de Identificador',
+            message: 'Não contém nenhum parâmetro de pesquisa. Por favor, introduza um Nº de Identificador',
             icon: 'report_problem'
           })
         } else {
@@ -517,6 +517,7 @@ export default {
               return psi
       },
       buildLocalPatientFromOpenMRS (localpatient, pacienteOpenMRS) {
+        console.log(pacienteOpenMRS)
         const cellphoneObject = pacienteOpenMRS.person.attributes.find(attribute => attribute.attributeType.uuid === 'e2e3fd64-1d5f-11e0-b929-000c29ad1d07')
               localpatient.hisUuid = pacienteOpenMRS.uuid
               localpatient.his = (this.selectedDataSources.id.length > 4) ? this.selectedDataSources : null
@@ -529,10 +530,10 @@ export default {
               localpatient.dateOfBirth = pacienteOpenMRS.person.birthdate
               localpatient.identifiers.push(this.buildPatientIdentifierFromOpenMRS(pacienteOpenMRS.identifiers[0].identifier))
               localpatient.cellphone = (cellphoneObject !== null && cellphoneObject !== undefined) ? cellphoneObject.value : ''
-              localpatient.address = pacienteOpenMRS.person.addresses[0].address5
-              // localpatient.addressReference = pacienteOpenMRS.person.names[0]
-              localpatient.province = Province.query().where('description', pacienteOpenMRS.person.addresses[0].countyDistrict).first()
-              // localpatient.district = localpatient.district.province
+              localpatient.address = pacienteOpenMRS.person.addresses[0].address3
+              localpatient.addressReference = pacienteOpenMRS.person.addresses[0].address1
+              localpatient.district = District.query().with('province').where('description', pacienteOpenMRS.person.addresses[0].countyDistrict).first()
+              localpatient.province = localpatient.district.province
               // localpatient.postoAdministrativo_id = pacienteOpenMRS.person.names[0]
               // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
               // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
