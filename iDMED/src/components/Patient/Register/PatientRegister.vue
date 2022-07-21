@@ -283,6 +283,11 @@ export default {
         if (!this.newPatient) {
           this.patient.identifiers = []
         }
+        if (this.patient.identifiers.length > 0 && this.patient.identifiers[0].clinic === null) {
+          this.patient.identifiers = []
+        }
+        console.log(this.newPatient)
+        console.log(this.patient)
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           if (this.patient.bairro !== null && this.patient.bairro.id === null) {
             Localidade.apiSave(this.patient.bairro).then(resp => {
