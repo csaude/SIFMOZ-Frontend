@@ -359,6 +359,8 @@ export default {
           }
           )
       })
+      } else {
+        this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
       }
            }).catch(error => {
             this.listErrors = []
