@@ -180,8 +180,14 @@ import District from '../../../store/models/district/District'
 import moment from 'moment'
 import PostoAdministrativo from '../../../store/models/PostoAdministrativo/PostoAdministrativo'
 import Localidade from '../../../store/models/Localidade/Localidade'
+import TransferenceService from 'src/services/Transferences/TransferenceService'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import Episode from 'src/store/models/episode/Episode'
+import Pack from 'src/store/models/packaging/Pack'
+import Prescription from 'src/store/models/prescription/Prescription'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 export default {
-    props: ['clinic', 'selectedPatient', 'newPatient'],
+    props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData'],
     emits: ['update:newPatient'],
     data () {
         return {
@@ -312,12 +318,51 @@ export default {
           }
       },
       async doSave () {
+        console.log(this.patient)
         await Patient.apiSave(this.patient).then(resp => {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id
             SessionStorage.set('selectedPatient', new Patient(this.patient))
+             if (this.transferencePatientData.length > 0) {
+             const psi = TransferenceService.buildPatientIdentifierFromIdmed((this.transferencePatientData[0]))
+             psi.patient = this.patient
+           //  psi.patient_id = this.patient.id
+            // psi.$patient_id = this.patient.$id
+            psi.patient.id = resp.response.data.id
+             psi.patient.$id = resp.response.data.id
+              PatientServiceIdentifier.apiSave(psi).then(respPatientSI => {
+             const episode = TransferenceService.buildEpisodeFromIdmed((this.transferencePatientData[0]))
+             episode.patientServiceIdentifier = psi
+            // episode.patientServiceIdentifier_id = respPatientSI.response.data.id
+            // episode.$patientServiceIdentifier_id = respPatientSI.response.data.id
+            episode.patientServiceIdentifier.id = respPatientSI.response.data.id
+            episode.patientServiceIdentifier.$id = respPatientSI.response.data.id
+              Episode.apiSave(episode).then(respEpi => {
+              const patientVisit = TransferenceService.getPatientVisitWithDetailsPRescriptionAndPack(this.transferencePatientData[0])
+       Prescription.apiSave(patientVisit.patientVisitDetails[0].prescription).then(respPres => {
+         patientVisit.patientVisitDetails[0].prescription.id = respPres.response.data.id
+        patientVisit.patientVisitDetails[0].prescription.$id = respPres.response.data.id
+       Pack.apiSave(patientVisit.patientVisitDetails[0].pack).then(respPack => {
+          patientVisit.patientVisitDetails[0].pack.id = respPack.response.data.id
+        patientVisit.patientVisitDetails[0].pack.$id = respPack.response.data.id
+        patientVisit.patientVisitDetails[0].episode = respEpi.response.data
+        patientVisit.patientVisitDetails[0].episode.id = respEpi.response.data.id
+        patientVisit.patientVisitDetails[0].episode.$id = respEpi.response.data.id
+        patientVisit.patient = this.patient
+        patientVisit.patient.id = resp.response.data.id
+         patientVisit.patient.$id = resp.response.data.id
+         PatientVisit.apiSave(patientVisit).then(resp => {
             this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
-          }).catch(error => {
+            })
+       })
+       })
+          }
+          )
+      })
+      } else {
+        this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
+      }
+           }).catch(error => {
             this.listErrors = []
           if (error.request.status !== 0) {
             const arrayErrors = JSON.parse(error.request.response)
@@ -457,6 +502,7 @@ export default {
     mounted () {
       this.initParams()
       this.initPatient()
+      console.log(this.transferencePatientData)
     }
 }
 </script>
