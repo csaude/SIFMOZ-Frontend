@@ -64,7 +64,7 @@
         </template>
     </q-table>
         </div>
-         <div class="absolute-bottomg">
+         <div v-if="false" class="absolute-bottomg">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
                 <q-btn size="xl" fab icon="add" @click="addDrug" color="primary" />
              </q-page-sticky>

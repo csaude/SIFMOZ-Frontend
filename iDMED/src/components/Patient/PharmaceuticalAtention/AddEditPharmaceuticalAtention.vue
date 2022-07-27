@@ -195,10 +195,16 @@ export default {
                             .with('district')
                             .with('postoAdministrativo')
                             .with('bairro')
-                            .with('clinic.province').where('id', selectedP.id).first()
+                            .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                            .where('id', selectedP.id).first()
       },
       currClinic () {
-      return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+      return Clinic.query()
+                    .with('province')
+                    .with('district.province')
+                    .with('facilityType')
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
     }
     },
     methods: {
@@ -213,9 +219,9 @@ export default {
            //  this.$refs.data.$refs.ref.validate()
            if (this.visitDate === '') {
               this.displayAlert('error', 'Por Favor Preencha data de consulta')
-           } else if (this.getJSDateFromDDMMYYY(this.visitDate) < new Date(this.patient.dateOfBirth)) {
+           } else if (this.getJSDateFromDDMMYYY(this.visitDate).setHours(0, 0, 0, 0) < new Date(this.patient.dateOfBirth).setHours(0, 0, 0, 0)) {
               this.displayAlert('error', 'A data de consulta indicada é maior que a data de nascimento do paciente/utente')
-           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) > this.getJSDateFromDDMMYYY(this.visitDate))) {
+           } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate).setHours(0, 0, 0, 0) > this.getJSDateFromDDMMYYY(this.visitDate).setHours(0, 0, 0, 0))) {
               this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
            } else if (this.hasVisitSameDay && !this.editMode) {
              this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')
@@ -269,7 +275,7 @@ export default {
             this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
             this.patientVisit.adherenceScreening.push(this.adherenceScreening)
             this.patientVisit.ramScreening.push(this.rAMScreening)
-
+console.log(this.patientVisit)
             await PatientVisit.apiSave(this.patientVisit).then(resp => {
               console.log(resp.response.data)
               PatientVisit.apiFetchById(resp.response.data.id)
@@ -304,7 +310,8 @@ export default {
                           .with('adherenceScreening')
                           .with('ramScreening')
                           .with('patientVisitDetails')
-                          .with('clinic').where('patient_id', this.patient.id).has('clinic').has('vitalSigns').get()
+                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                          .where('patient_id', this.patient.id).has('clinic').has('vitalSigns').get()
 
                       for (const visit of visits) {
                    if (new Date(visit.visitDate).getTime() === this.getJSDateFromDDMMYYY(this.visitDate).getTime() && visit.vitalSigns.length > 0) {
