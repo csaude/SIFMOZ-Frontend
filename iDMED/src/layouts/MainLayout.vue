@@ -24,6 +24,7 @@
                         <q-route-tab exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
                         <q-route-tab exact :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />
                         <q-route-tab exact :to="'/settings'" name="settings" icon="settings" label="Administração" />
+                        <q-route-tab exact :to="'/migration'" name="migration" icon="branding_watermark" label="Migração" />
                     </q-tabs>
               <q-btn-dropdown unelevated v-model="userInfoOpen" no-caps @click="onMainClick">
               <template v-slot:label>
