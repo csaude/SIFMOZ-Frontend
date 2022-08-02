@@ -71,6 +71,7 @@ import PatientTransReferenceType from './models/tansreference/PatientTransRefere
 import PatientTransReference from './models/tansreference/PatientTransReference'
 import ClinicSectorType from './models/clinicSectorType/ClinicSectorType'
 import SpetialPrescriptionMotive from './models/prescription/SpetialPrescriptionMotive'
+import MigrationStage from './models/Migration/MigrationStage'
 
 // Vue.use(Vuex)
 
@@ -155,6 +156,7 @@ database.register(PatientTransReferenceType)
 database.register(PatientTransReference)
 database.register(ClinicSectorType)
 database.register(SpetialPrescriptionMotive)
+database.register(MigrationStage)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
