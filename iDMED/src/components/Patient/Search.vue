@@ -123,6 +123,7 @@
             :newPatient="newPatient"
             :selectedPatient="currPatient"
             :clinic="currClinic"
+            :transferencePatientData="transferencePatientData"
             @close="showPatientRegister = false" />
       </q-dialog>
     </div>
@@ -169,6 +170,8 @@ import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/
 // import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
+import TransferenceService from 'src/services/Transferences/TransferenceService'
+import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 const columns = [
  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   { name: 'identifier', align: 'left', label: 'Identificador', sortable: false },
@@ -198,7 +201,8 @@ export default {
         patients: [],
         newPatient: false,
         username: localStorage.getItem('hisUser'),
-        password: localStorage.getItem('hisPass')
+        password: localStorage.getItem('hisPass'),
+        transferencePatientData: []
       }
     },
     methods: {
@@ -214,7 +218,17 @@ export default {
         this.newPatient = true
       },
       search () {
-        (this.selectedDataSources.id.length > 4) ? this.openMRSSerach(this.selectedDataSources) : this.localSearch()
+      //  (this.selectedDataSources.id.length > 4) ? this.provincialServiceSearch(this.selectedDataSources) : this.localSearch()
+         if (this.selectedDataSources.id.length > 4) {
+          if (this.selectedDataSources.abbreviation.length <= 2) {
+            TransferenceService.provincialServiceSearch(this.$q, this.currPatient, this.patients, this.transferencePatientData)
+            console.log(this.transferencePatientData)
+          } else {
+            this.openMRSSerach(this.selectedDataSources)
+          }
+        } else {
+          this.localSearch()
+        }
       },
       editPatient (patient) {
         this.currPatient = Object.assign({}, patient)
@@ -282,6 +296,7 @@ export default {
         InteroperabilityType.apiGetAll(offset, max)
         InteroperabilityAttribute.apiGetAll(offset, max)
         HealthInformationSystem.apiGetAll(offset, max)
+        DispenseMode.apiGetAll()
       },
        getAllPacksOfClinic () {
         const offset = 0
@@ -397,7 +412,11 @@ export default {
                 spinner: QSpinnerBall
         })
         if (this.selectedDataSources.id.length > 4) {
-          this.checkOpenMRS(this.selectedDataSources)
+          if (this.selectedDataSources.abbreviation.length <= 2) {
+            TransferenceService.checkProvincialServer(this.$q)
+          } else {
+             this.checkOpenMRS(this.selectedDataSources)
+          }
         } else {
           this.$q.notify({
             color: 'positive',

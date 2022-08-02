@@ -72,6 +72,8 @@ import PatientTransReference from './models/tansreference/PatientTransReference'
 import ClinicSectorType from './models/clinicSectorType/ClinicSectorType'
 import SpetialPrescriptionMotive from './models/prescription/SpetialPrescriptionMotive'
 import MigrationStage from './models/Migration/MigrationStage'
+import ProvincialServer from './models/provincialServer/ProvincialServer'
+import SystemConfigs from './models/systemConfigs/SystemConfigs'
 
 // Vue.use(Vuex)
 
@@ -80,7 +82,7 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://localhost:8884/'
+  baseURL: 'http://172.104.236.126:5110/'
 })
 
 // VuexORM.use(datePlugin)
@@ -157,6 +159,8 @@ database.register(PatientTransReference)
 database.register(ClinicSectorType)
 database.register(SpetialPrescriptionMotive)
 database.register(MigrationStage)
+database.register(ProvincialServer)
+database.register(SystemConfigs)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

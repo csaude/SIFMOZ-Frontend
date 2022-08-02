@@ -18,6 +18,7 @@ export default class PatientTransReference extends Model {
       destination: this.attr(''),
       identifierId: this.attr(''),
       patientId: this.attr(''),
+      matchId: this.attr(''),
 
       // Relationshiops
       operationType: this.belongsTo(PatientTransReferenceType, 'patientTransReferenceTypeId'),

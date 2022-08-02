@@ -135,6 +135,7 @@ import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
 import PatientTransReferenceType from '../../store/models/tansreference/PatientTransReferenceType'
 import ClinicSectorType from '../../store/models/clinicSectorType/ClinicSectorType'
 import SpetialPrescriptionMotive from '../../store/models/prescription/SpetialPrescriptionMotive'
+import ProvincialServer from '../../store/models/provincialServer/ProvincialServer'
 export default {
   data () {
     return {
@@ -181,6 +182,7 @@ export default {
         ClinicSectorType.apiGetAll(offset, max)
         PatientTransReferenceType.apiGetAll(offset, max)
         SpetialPrescriptionMotive.apiGetAll(offset, max)
+        ProvincialServer.apiGetAll()
       },
       saveCurrClinic () {
         Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
