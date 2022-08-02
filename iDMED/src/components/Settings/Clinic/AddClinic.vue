@@ -20,6 +20,20 @@
                     :disable="onlyView"
                     lazy-rules
                     label="Código *" />
+                  <q-select
+                    dense outlined
+                    class=" q-ml-md col"
+                    v-model="clinic.facilityType"
+                    :disable="onlyView"
+                    :options="facilityTypes"
+                    transition-show="flip-up"
+                    transition-hide="flip-down"
+                    ref="facilityType"
+                    option-value="id"
+                    option-label="description"
+                    :rules="[ val => ( val != null ) || ' Por favor indique o tipo de farmacia']"
+                    lazy-rules
+                    label="Tipo de Farmácia *" />
             </div>
              <div class="row q-mb-md">
                 <q-select
@@ -90,6 +104,8 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import Province from '../../../store/models/province/Province'
 import District from '../../../store/models/district/District'
 import { ref } from 'vue'
+import { v4 as uuidv4 } from 'uuid'
+import FacilityType from '../../../store/models/facilityType/FacilityType'
 export default {
       props: ['selectedClinic', 'onlyView'],
     data () {
@@ -125,6 +141,9 @@ export default {
           provinces () {
             return Province.query().with('districts').has('code').get()
         },
+        facilityTypes () {
+          return FacilityType.all()
+        },
         districts () {
         if (this.clinic.province !== null) {
             return District.query().with('province').where('province_id', this.clinic.province.id).get()
@@ -139,7 +158,10 @@ export default {
              this.$refs.code.$refs.ref.validate()
               this.$refs.province.validate()
               this.$refs.district.validate()
+              this.$refs.facilityType.validate()
+
             if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
+             !this.$refs.facilityType.hasError &&
              !this.$refs.province.hasError && !this.$refs.district.hasError) {
                 this.submitClinic()
             }
@@ -149,6 +171,7 @@ export default {
             this.clinic.mainClinic = 0
             this.clinic.active = true
             this.clinic.province.districts = []
+            if (this.clinic.uuid === null) this.clinic.uuid = uuidv4()
             console.log(this.clinic)
            Clinic.apiSave(this.clinic).then(resp => {
               this.submitting = false
