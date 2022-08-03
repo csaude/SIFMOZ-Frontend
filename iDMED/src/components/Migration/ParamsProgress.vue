@@ -24,28 +24,35 @@
 <script>
 import VueApexCharts from 'vue3-apexcharts'
 const columns = [
-  { name: 'calories', align: 'center', label: 'Total', field: 'calories', sortable: true },
-  { name: 'fat', label: 'Migrados', field: 'fat', sortable: true },
-  { name: 'carbs', label: 'Rejeitados', field: 'carbs' }
-]
-
-const rows = [
-  {
-    calories: 159,
-    fat: 6.0,
-    carbs: 24
-  }
+  { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
+  { name: 'migrated', label: 'Migrados', field: 'migrated', sortable: true },
+  { name: 'rejected', label: 'Rejeitados', field: 'rejected' }
 ]
 export default {
   props: ['data'],
   components: {
     apexchart: VueApexCharts
   },
+  watch: {
+    data: function (newVal, oldVal) {
+      this.series[0] = newVal.stage_progress.toFixed(2)
+    }
+  },
+  computed: {
+    rows () {
+      return [
+        {
+          total: this.data.total_records,
+          migrated: this.data.total_migrated,
+          rejected: this.data.total_rejcted
+        }
+      ]
+    }
+  },
   data () {
     return {
       columns,
-      rows,
-     series: [Math.round(Number(100))],
+      series: [this.data.stage_progress.toFixed(2)],
           chartOptions: {
             chart: {
               height: 350,
@@ -87,7 +94,7 @@ export default {
             stroke: {
               dashArray: 4
             },
-            labels: ['Parâmetros']
+            labels: ['Parametros']
           }
     }
   }
