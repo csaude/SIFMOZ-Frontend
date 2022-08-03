@@ -1,6 +1,5 @@
 <template>
   <div>
-  <pre>{{loadedMembers}}</pre>
     <ListHeader
         :addVisible="!selectedGroup.isDesintegrated()"
         :mainContainer="true"
