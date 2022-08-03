@@ -65,6 +65,8 @@ export default {
           this.patientStatus = progss
         } else if (progss.migration_stage === 'STOCK_MIGRATION_STAGE') {
           this.stockStatus = progss
+        } else if (progss.migration_stage === 'PARAMS_MIGRATION_STAGE') {
+          this.paramsStatus = progss
         }
       })
       this.hideLoading()
