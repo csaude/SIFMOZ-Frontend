@@ -63,8 +63,8 @@ export default class Report extends Model {
       return await this.api().get(`/historicoLevantamentoReport/printReport/${reportId}/${fileType}`)
     }
 
-    static async apiMigrationStatus () {
-      return await this.api().get('/migration/migrationStatus')
+    static apiMigrationStatus () {
+      return this.api().get('/migration/migrationStatus')
     }
 
   static getFormatDDMMYYYY (date) {

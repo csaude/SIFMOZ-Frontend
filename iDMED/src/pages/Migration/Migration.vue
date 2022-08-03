@@ -16,13 +16,16 @@
 <script>
 import Report from 'src/store/models/report/Report'
 import MigrationStage from 'src/store/models/Migration/MigrationStage'
+import { QSpinnerBall, useQuasar } from 'quasar'
 export default {
   data () {
     return {
       progress: [],
       paramsStatus: null,
       stockStatus: null,
-      patientStatus: null
+      patientStatus: null,
+      $q: useQuasar(),
+      t: ''
     }
   },
   components: {
@@ -33,13 +36,28 @@ export default {
     PatientProgress: require('components/Migration/PatientProgress.vue').default
   },
   methods: {
+    showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Carregando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      console.log('hide')
+      this.$q.loading.hide()
+    },
     getMigrationPregress () {
       Report.apiMigrationStatus().then(resp => {
-        console.log(resp.response.data)
         this.progress = resp.response.data
         this.loadSpecificStatus()
+        this.t = null
+        if (this.isMigrationFinished) this.t = ''
       })
-      // setTimeout(this.getMigrationPregress(), 10000)
+      // setTimeout(this.getMigrationPregress(), 0)
     },
     loadSpecificStatus () {
       this.progress.forEach(progss => {
@@ -49,20 +67,44 @@ export default {
           this.stockStatus = progss
         }
       })
+      this.hideLoading()
     },
     migrationStarted () {
+      this.showloading()
       MigrationStage.apiGetAll(0, 5)
       this.getMigrationPregress()
     }
 
   },
+  watch: {
+     t (oldt, newt) {
+      if (oldt !== newt) {
+      if (!this.isMigrationFinished) {
+        oldt = newt
+        clearInterval(this.t)
+      }
+           setInterval(() => {
+              this.getMigrationPregress()
+          }, 6 * 1000)
+      } else {
+          clearInterval(this.t)
+      }
+  }
+  },
   mounted () {
+    this.showloading()
     this.getMigrationPregress()
     MigrationStage.apiGetAll(0, 5)
   },
   computed: {
     currStatus () {
       return this.progress
+    },
+    isMigrationFinished () {
+      const isFinished = this.progress.some((p) => {
+        return p.stage_progress === 100
+      })
+      return isFinished
     },
     statusLoaded () {
       return this.progress.length > 0
