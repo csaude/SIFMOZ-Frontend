@@ -33,17 +33,26 @@ export default {
   components: {
     apexchart: VueApexCharts
   },
-  data () {
-    return {
-      columns,
-      rows: [
+  watch: {
+    data: function (newVal, oldVal) {
+      this.series[0] = newVal.stage_progress.toFixed(2)
+    }
+  },
+  computed: {
+    rows () {
+      return [
         {
           total: this.data.total_records,
           migrated: this.data.total_migrated,
           rejected: this.data.total_rejcted
         }
-      ],
-      series: [Math.round(Number(this.data.stage_progress))],
+      ]
+    }
+  },
+  data () {
+    return {
+      columns,
+      series: [this.data.stage_progress.toFixed(2)],
           chartOptions: {
             chart: {
               height: 350,
