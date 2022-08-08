@@ -30,7 +30,7 @@
               </div>
             </q-card-section>
             <q-card-section align="center">
-              <q-form class="q-gutter-md" @submit.prevent="processForm">
+              <q-form class="q-gutter-md" @submit.prevent="processForm" v-if="configs !== null">
             <div class="q-pa-sm text-center justify-center" style="max-width: 50%">
             <div class="row q-mb-sm">
                 <q-input
@@ -75,6 +75,70 @@
             </div>
             </div>
               </q-form>
+                         <q-form class="q-gutter-md" @submit.prevent="doSave" v-if="configs === null">
+            <div class="q-pa-sm text-center justify-center" style="max-width: 50%">
+            <div class="q-pa-md">
+    <div class="q-gutter-sm">
+      <q-radio v-model="instalation_type" val="PROVINCIAL" label="Provincial" />
+      <q-radio v-model="instalation_type" val="LOCAL" label="Local" />
+    </div>
+            </div>
+            <div class="row q-mb-sm">
+                         <q-select
+                    dense outlined
+                    class="col"
+                    v-model="province"
+                    :options="provinces"
+                    transition-show="flip-up"
+                    transition-hide="flip-down"
+                    ref="province"
+                    option-value="id"
+                    option-label="description"
+                    :rules="[ val => ( val != null ) || ' Por favor indique a província']"
+                    lazy-rules
+                    label="Província *" />
+            </div>
+            <div class="row q-mb-sm" v-if= "instalation_type === 'LOCAL'">
+                  <q-select
+                    class="col"
+                    dense outlined
+                     transition-show="flip-up"
+                    transition-hide="flip-down"
+                    v-model="district"
+                    :options="districts"
+                    ref="district"
+                    option-value="id"
+                    option-label="description"
+                    :rules="[ val => ( val != null) || ' Por favor indique o Distrito']"
+                    lazy-rules
+                    label="Distrito" />
+            </div>
+             <div class="row q-mb-sm" v-if= "instalation_type === 'LOCAL'">
+                <q-select
+                    dense outlined
+                    class="col"
+                    v-model="clinic"
+                    :options="clinics"
+                    transition-show="flip-up"
+                    transition-hide="flip-down"
+                    ref="clinic"
+                    option-value="id"
+                    option-label="clinicName"
+                    :rules="[ val => ( val != null ) || ' Por favor indique a clinica']"
+                    lazy-rules
+                    label="Clinica" />
+            </div>
+            <div class="row">
+                <q-btn
+                    :loading="submitting"
+                    class="full-width q-py-sm"
+                    unelevated rounded
+                    color="primary"
+                    type="submit"
+                    label="Proximo" />
+            </div>
+            </div>
+              </q-form>
             </q-card-section>
             <q-card-section align="center">
               <div class="row justify-center q-pt-xl q-py-xl q-gutter-xl">
@@ -99,11 +163,22 @@
 
 <script>
 import { QSpinnerBall, useQuasar } from 'quasar'
+import Province from '../../store/models/province/Province'
+import District from '../../store/models/district/District'
+import Clinic from 'src/store/models/clinic/Clinic'
+import { ref } from 'vue'
+import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
 
 export default ({
   data () {
      const $q = useQuasar()
     return {
+       instalation_type: ref(null),
+        province: null,
+      district: null,
+      clinic: null,
+      systemConfigs: new SystemConfigs(),
+      instalationConfig: null,
       context: 'login context',
       $q,
       username: '',
@@ -194,7 +269,7 @@ export default ({
       spinner: QSpinnerBall
       // delay: 400 // ms
     })
-
+ this.loadProvinceAndDistrict()
     setTimeout(() => {
       this.$q.loading.hide()
     }, 600)
@@ -202,8 +277,36 @@ export default ({
    mounted () {
 },
   computed: {
+     provinces () {
+            return Province.query().with('districts').has('code').get()
+        },
+        districts () {
+        if (this.province !== null) {
+            return District.query().with('province').where('province_id', this.province.id).get()
+        } else {
+            return null
+        }
+  },
+   clinics () {
+        if (this.district !== null) {
+            return Clinic.query().with('province.district').where('district_id', this.district.id).get()
+        } else {
+            return null
+        }
+  },
+      configs () {
+       return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
+      }
   },
   methods: {
+      loadProvinceAndDistrict () {
+         const offset = 0
+        const max = 100
+         SystemConfigs.apiGetAll()
+        Province.apiGetAll(offset, max)
+        District.apiGetAll(offset, max)
+        Clinic.apiGetAll(offset, max)
+    },
     processForm: function () {
       console.log({ username: this.username, password: this.password })
       this.submitting = true
@@ -249,7 +352,27 @@ export default ({
       //       }
       //     }
       //   })
-    }
+    },
+     async doSave () {
+       this.systemConfigs.value = this.instalation_type
+       this.systemConfigs.key = 'INSTALATION_TYPE'
+       this.systemConfigs.description = this.instalation_type === 'LOCAL' ? this.clinic.uuid : this.province.code
+        await SystemConfigs.apiSave(this.systemConfigs).then(resp => {
+         /// this.$router.push({ path: '/Login' })
+           }).catch(error => {
+            this.listErrors = []
+          if (error.request.status !== 0) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              this.listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                this.listErrors.push(element.message)
+              })
+            }
+          }
+          })
+      }
   }
 })
 </script>
