@@ -47,7 +47,6 @@ export default {
         })
     },
     hideLoading () {
-      console.log('hide')
       this.$q.loading.hide()
     },
     getMigrationPregress () {
@@ -55,9 +54,8 @@ export default {
         this.progress = resp.response.data
         this.loadSpecificStatus()
         this.t = null
-        if (this.isMigrationFinished) this.t = ''
+        if (!this.isMigrationFinished) this.t = ''
       })
-      // setTimeout(this.getMigrationPregress(), 0)
     },
     loadSpecificStatus () {
       this.progress.forEach(progss => {
@@ -81,7 +79,7 @@ export default {
   watch: {
      t (oldt, newt) {
       if (oldt !== newt) {
-      if (!this.isMigrationFinished) {
+      if (this.isMigrationFinished) {
         oldt = newt
         clearInterval(this.t)
       }
@@ -104,7 +102,7 @@ export default {
     },
     isMigrationFinished () {
       const isFinished = this.progress.some((p) => {
-        return p.stage_progress === 100
+        return p.stage_progress < 100
       })
       return isFinished
     },
