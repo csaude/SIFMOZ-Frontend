@@ -121,7 +121,18 @@ export default {
                  this.displayAlert('info', this.doctor.id === null ? 'Clinico adicionado com sucesso.' : 'Clinico actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
-                this.displayAlert('error', error)
+                this.listErrors = []
+              if (error.request !== undefined && error.request.status !== 0) {
+                const arrayErrors = JSON.parse(error.request.response)
+                if (arrayErrors.total == null) {
+                  this.listErrors.push(arrayErrors.message)
+                } else {
+                  arrayErrors._embedded.errors.forEach(element => {
+                    this.listErrors.push(element.message)
+                  })
+                }
+              }
+                this.displayAlert('error', this.listErrors)
             })
         },
          displayAlert (type, msg) {

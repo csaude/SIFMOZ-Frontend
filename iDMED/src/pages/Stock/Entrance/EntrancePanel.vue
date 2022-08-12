@@ -400,6 +400,9 @@ export default {
       } else if (!date.isValid(stock.expireDate)) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma data de validade válida!')
+      } else if (stock.expireDate.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) {
+        this.submitting = false
+        this.displayAlert('error', 'A data de validade não pode ser anterior a data corrente!')
       } else if (Number(stock.unitsReceived) <= 0) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma quantidade válida!')

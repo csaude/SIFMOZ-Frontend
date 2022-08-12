@@ -86,8 +86,9 @@ const columns = [
 ]
 export default {
   data () {
+    const filter = ref('')
     return {
-      filter: ref(''),
+      filter,
       columns
     }
   },

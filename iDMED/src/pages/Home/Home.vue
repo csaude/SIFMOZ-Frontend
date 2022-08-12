@@ -140,7 +140,7 @@ export default {
   data () {
     return {
       clinic: {
-        id: 'ff8081817c668dcc017c66dc3d330002'
+        id: '8a8a822d826821f4018268221e810000'
       }
     }
   },
@@ -185,7 +185,7 @@ export default {
         ProvincialServer.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('ff8081817c668dcc017c66dc3d330002').then(resp => {
+        Clinic.apiFetchById('8a8a822d826821f4018268221e810000').then(resp => {
           SessionStorage.set('currClinic', resp.response.data)
         })
       },

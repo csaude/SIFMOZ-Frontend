@@ -264,13 +264,13 @@ export default {
       },
       submitForm () {
         this.$refs.firstNames.$refs.nome.$refs.ref.validate()
-        this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
+        // this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
         this.$refs.lastNames.$refs.lastName.$refs.ref.validate()
         this.$refs.gender.validate()
         this.$refs.province.validate()
         this.$refs.district.validate()
         if (!this.$refs.firstNames.$refs.nome.$refs.ref.hasError &&
-            !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
+            // !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
             !this.$refs.lastNames.$refs.lastName.$refs.ref.hasError &&
             !this.$refs.province.hasError &&
             !this.$refs.gender.hasError &&
