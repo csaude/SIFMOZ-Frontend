@@ -151,23 +151,10 @@ import TherapeuticLine from 'src/store/models/therapeuticLine/TherapeuticLine'
 import Form from 'src/store/models/form/Form'
 import Doctor from 'src/store/models/doctor/Doctor'
 import DispenseType from 'src/store/models/dispenseType/DispenseType'
-// import RAMScreening from 'src/store/models/screening/RAMScreening'
-// import AdherenceScreening from 'src/store/models/screening/AdherenceScreening'
-// import PregnancyScreening from 'src/store/models/screening/PregnancyScreening'
-// import TBScreening from 'src/store/models/screening/TBScreening'
-// import VitalSignsScreening from 'src/store/models/screening/VitalSignsScreening'
 import InteroperabilityType from 'src/store/models/interoperabilityType/InteroperabilityType'
 import InteroperabilityAttribute from 'src/store/models/interoperabilityAttribute/InteroperabilityAttribute'
 import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
-import Pack from 'src/store/models/packaging/Pack'
-import Prescription from 'src/store/models/prescription/Prescription'
-import Episode from 'src/store/models/episode/Episode'
-import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
-import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-// import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
-// import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
-// import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
 import TransferenceService from 'src/services/Transferences/TransferenceService'
@@ -273,119 +260,45 @@ export default {
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       loadAppParameters () {
-        const offset = 0
-        const max = 100
-        Duration.apiGetAll(offset, max)
-        Province.apiGetAll(offset, max)
-        District.apiGetAll(offset, max)
-        ClinicalServiceAttributeType.apiGetAll(offset, max)
-        ClinicalService.apiGetAll(offset, max)
-        ClinicSector.apiGetAll(offset, max)
-        IdentifierType.apiGetAll(offset, max)
-        EpisodeType.apiGetAll(offset, max)
-        FacilityType.apiGetAll(offset, max)
-        StartStopReason.apiGetAll(offset, max)
-        ClinicalServiceAttribute.apiGetAll(offset, max)
-        Drug.apiGetAll(offset, max)
-        TherapeuticRegimen.apiGetAll(offset, max)
-        TherapeuticLine.apiGetAll(offset, max)
-        Form.apiGetAll(offset, max)
-        Doctor.apiFetchByClinicId(this.clinic.id)
-        DispenseType.apiGetAll(offset, max)
-        Clinic.apiGetAll(offset, max)
-        InteroperabilityType.apiGetAll(offset, max)
-        InteroperabilityAttribute.apiGetAll(offset, max)
-        HealthInformationSystem.apiGetAll(offset, max)
-        DispenseMode.apiGetAll()
-      },
-       getAllPacksOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPackGet(this.clinic.id, offset, max)
-      },
-      getAllPrescriptionOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPrescriptionkGet(this.clinic.id, offset, max)
-      },
-      getAllPatientVisitsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientVisitGet(this.clinic.id, offset, max)
-      },
-      getAlPatientVisitDetailsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientVisitDetailsGet(this.clinic.id, offset, max)
+        if (Duration.query().count() <= 0) {
+          const offset = 0
+          const max = 100
+          Duration.apiGetAll(offset, max)
+          Province.apiGetAll(offset, max)
+          District.apiGetAll(offset, max)
+          ClinicalServiceAttributeType.apiGetAll(offset, max)
+          ClinicalService.apiGetAll(offset, max)
+          ClinicSector.apiGetAll(offset, max)
+          IdentifierType.apiGetAll(offset, max)
+          EpisodeType.apiGetAll(offset, max)
+          FacilityType.apiGetAll(offset, max)
+          StartStopReason.apiGetAll(offset, max)
+          ClinicalServiceAttribute.apiGetAll(offset, max)
+          Drug.apiGetAll(offset, max)
+          TherapeuticRegimen.apiGetAll(offset, max)
+          TherapeuticLine.apiGetAll(offset, max)
+          Form.apiGetAll(offset, max)
+          Doctor.apiFetchByClinicId(this.clinic.id)
+          DispenseType.apiGetAll(offset, max)
+          Clinic.apiGetAll(offset, max)
+          InteroperabilityType.apiGetAll(offset, max)
+          InteroperabilityAttribute.apiGetAll(offset, max)
+          HealthInformationSystem.apiGetAll(offset, max)
+          DispenseMode.apiGetAll()
+        }
       },
       getAllPatientsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientGet(this.clinic.id, offset, max)
-      },
-      getAllIdentifiersOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doIdentifiersGet(this.clinic.id, offset, max)
-      },
-      getAllEpisodesOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doEpisodeGet(this.clinic.id, offset, max)
-      },
-      doPackGet (clinicId, offset, max) {
-        Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              // if (resp.response.data.length > 0) {
-              //   offset = offset + max
-              //   setTimeout(this.doPackGet(clinicId, offset, max), 2)
-              // }
-          })
-      },
-      doPrescriptionkGet (clinicId, offset, max) {
-        Prescription.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPrescriptionkGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doEpisodeGet (clinicId, offset, max) {
-        Episode.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doEpisodeGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doPatientVisitDetailsGet (clinicId, offset, max) {
-        PatientVisitDetails.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPatientVisitDetailsGet(clinicId, offset, max), 2)
-              }
-          })
+        if (Patient.query().count() <= 0) {
+          const offset = 0
+          const max = 100
+          this.doPatientGet(this.clinic.id, offset, max)
+        }
       },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doPatientVisitGet (clinicId, offset, max) {
-        PatientVisit.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doIdentifiersGet (clinicId, offset, max) {
-        PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doIdentifiersGet(clinicId, offset, max), 2)
               }
           })
       },
@@ -402,7 +315,7 @@ export default {
       saveDefaultHIS () {
         HealthInformationSystem.create({
             data: { id: -1, abbreviation: 'iDMED', description: 'iDMED', active: true }
-      })
+        })
       },
       loadHISDataSource () {
         this.patients = []
@@ -584,17 +497,6 @@ export default {
     mounted () {
       this.saveDefaultHIS()
       this.getAllDataSources(0)
-      /* this.loadAppParameters()
-      this.getAllPatientsOfClinic()
-      this.getAllIdentifiersOfClinic()
-      this.getAllPrescriptionOfClinic()
-      this.getAllEpisodesOfClinic()
-      this.getAllPatientVisitsOfClinic()
-      this.getAllPacksOfClinic()
-      this.getAlPatientVisitDetailsOfClinic()
-      PackagedDrug.apiGetAll()
-      PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll() */
       this.getAllPatientsOfClinic()
       this.loadAppParameters()
     },

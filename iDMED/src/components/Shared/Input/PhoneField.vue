@@ -5,6 +5,7 @@
         ref="ref"
         dense
         :value="phone"
+        maxlength="12"
         type="tel"
         @input="(event) => $emit('update:phone', event.target.value)"
         lazy-rules
