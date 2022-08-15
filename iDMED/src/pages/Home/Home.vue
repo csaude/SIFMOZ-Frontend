@@ -137,15 +137,6 @@ import ClinicSectorType from '../../store/models/clinicSectorType/ClinicSectorTy
 import SpetialPrescriptionMotive from '../../store/models/prescription/SpetialPrescriptionMotive'
 import ProvincialServer from '../../store/models/provincialServer/ProvincialServer'
 export default {
-  data () {
-    return {
-      clinic: {
-        id: '8a8a822d826821f4018268221e810000'
-      }
-    }
-  },
-    components: {
-    },
     methods: {
       loadAppParameters () {
         const offset = 0
@@ -153,7 +144,6 @@ export default {
         Duration.apiGetAll(offset, max)
         Province.apiGetAll(offset, max)
         District.apiGetAll(offset, max)
-        // this.getAllInventoriesOfClinic()
         ClinicalServiceAttributeType.apiGetAll(offset, max)
         ClinicalService.apiGetAll(offset, max)
         ClinicSector.apiGetAll(offset, max)
@@ -166,7 +156,6 @@ export default {
         TherapeuticRegimen.apiGetAll(offset, max)
         TherapeuticLine.apiGetAll(offset, max)
         Form.apiGetAll(offset, max)
-      //  Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll(offset, max)
         Clinic.apiGetAll(offset, max)
         InteroperabilityType.apiGetAll(offset, max)
@@ -185,8 +174,12 @@ export default {
         ProvincialServer.apiGetAll()
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('8a8a822d826821f4018268221e810000').then(resp => {
-          SessionStorage.set('currClinic', resp.response.data)
+        Clinic.apiGetAll(0, 200).then(resp => {
+          const mainClinic = resp.response.data.filter(clinic => {
+            return clinic.mainClinic
+          })
+          console.log(mainClinic)
+          SessionStorage.set('currClinic', mainClinic)
         })
       },
       getAllInventoriesOfClinic () {
@@ -202,7 +195,7 @@ export default {
       getAllPatientsOfClinic () {
         const offset = 0
         const max = 100
-        this.doPatientGet(this.clinic.id, offset, max)
+        this.doPatientGet(SessionStorage.getItem('currClinic').id, offset, max)
       },
       doInventoryGet (clinicId, offset, max) {
         Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -236,8 +229,12 @@ export default {
       }
     },
     mounted () {
+      setTimeout(() => {
       this.loadAppParameters()
+     }, 3000)
+     setTimeout(() => {
       this.getAllPatientsOfClinic()
+     }, 4000)
     },
     created () {
       this.$q.loading.show({
@@ -253,30 +250,14 @@ export default {
       this.saveCurrClinic()
     },
     computed: {
-      /*
-      clinic: {
-        get () {
-          return Clinic.query()
-                    .with('province')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
-        }
-      } */
-      /*
-      clinic: {
-        get () {
-          return new Clinic(SessionStorage.getItem('currClinic'))
-        }
-      } */
-      // clinic: {
-      //   get () {
-      //     return new Clinic(SessionStorage.getItem('currClinic'))
-      //   }
-      // }
-      /*
       clinic () {
-        return new Clinic(SessionStorage.getItem('currClinic'))
-      } */
+        return Clinic.query()
+                   .with('province')
+                   .with('facilityType')
+                   .with('district.province')
+                   .where('id', SessionStorage.getItem('currClinic').id)
+                   .first()
+      }
     }
 }
 </script>
