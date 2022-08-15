@@ -168,7 +168,7 @@ import District from '../../store/models/district/District'
 import Clinic from 'src/store/models/clinic/Clinic'
 import { ref } from 'vue'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
-
+// import UsersService from '../../services/UsersService'
 export default ({
   data () {
      const $q = useQuasar()
@@ -190,6 +190,7 @@ export default ({
         fetchUser: true
       },
       error: null,
+      initialDistrict: 0,
       users: [
         {
           utilizador: 'IDMED.FHI',
@@ -289,7 +290,7 @@ export default ({
   },
    clinics () {
         if (this.district !== null) {
-            return Clinic.query().with('province.district').where('district_id', this.district.id).get()
+           return this.getClinicsByDistrictId()
         } else {
             return null
         }
@@ -305,8 +306,29 @@ export default ({
          SystemConfigs.apiGetAll()
         Province.apiGetAll(offset, max)
         District.apiGetAll(offset, max)
-        Clinic.apiGetAll(offset, max)
+        // Clinic.apiGetAll(offset, max)
     },
+      async getAllClinicsByDistrictId (districtId) {
+           await Clinic.api().get('/clinic/district/' + districtId).then(resp => {
+            }).catch(error => {
+                console.log(error)
+            })
+      },
+       getClinicsByDistrictId () {
+        if (this.initialDistrict !== this.district.id) {
+               this.$q.loading.show({
+          spinner: QSpinnerBall,
+          message: 'Carregando Unidades Sanitarias. Por favor, aguarde...'
+        })
+         this.initialDistrict = this.district.id
+              this.getAllClinicsByDistrictId(this.district.id).then(resp => {
+                this.clinic = null
+                  this.$q.loading.hide()
+              })
+        }
+              return Clinic.query().with('province').with('district')
+                   .with('district.province').where('district_id', this.district.id).get()
+        },
     processForm: function () {
       console.log({ username: this.username, password: this.password })
       this.submitting = true
@@ -332,26 +354,6 @@ export default ({
             classes: 'glossy'
          })
       }
-
-      // UsersService.login({
-      //   'username': this.username,
-      //   'password': this.password
-      // }).then((response) => {
-      //     if (response.response.data) {
-      //       console.log('Login >>>>>>>>', response.response.data)//.access_token);
-      //       localStorage.setItem('id_token', response.response.data.access_token)
-      //       localStorage.setItem('refresh_token', response.response.data.refresh_token)
-
-      //       if (response.response.data.roles[0] === 'ROLE_ADMIN') {
-      //         this.$router.push({path: '/'})
-      //         // this.$router.push({path: 'Admin'})
-      //       } else if (response.response.data.roles[0] === 'ROLE_DRIVER') {
-      //         this.$router.push({name: 'Garage'})
-      //       } else {
-      //         this.$router.push({name: '/'})
-      //       }
-      //     }
-      //   })
     },
      async doSave () {
        this.systemConfigs.value = this.instalation_type
@@ -373,6 +375,44 @@ export default ({
           }
           })
       }
+      /*
+       authUser () {
+            console.log({ username: this.username, password: this.password })
+            this.$refs.user.validate()
+            this.$refs.password.validate()
+            if (!this.$refs.user.hasError && !this.$refs.password.hasError) {
+                this.submitting = true
+                UsersService.login({
+                    username: this.username,
+                    password: this.password
+                }).then((response) => {
+                    this.submitting = false
+                        console.log('Login >>>>>>>>', response)
+                        localStorage.setItem('id_token', response.response.data.access_token)
+                        localStorage.setItem('refresh_token', response.response.data.refresh_token)
+                        localStorage.setItem('username', response.response.data.username)
+                         localStorage.setItem('user', this.username)
+                          localStorage.setItem('hisUser', this.username)
+                       localStorage.setItem('hisPass', this.password)
+                        this.$router.push({ path: '/' })
+                }).catch(error => {
+                    console.log(error)
+                    this.submitting = false
+                    if (error.request.response != null) {
+                        const arrayErrors = JSON.parse(error.request.response)
+                        if (arrayErrors.total == null) {
+                        this.listErrors.push(arrayErrors.message)
+                        } else {
+                        arrayErrors._embedded.errors.forEach(element => {
+                            this.listErrors.push(element.message)
+                        })
+                        }
+                        console.log(this.listErrors)
+                    }
+                })
+            }
+        }
+        */
   }
 })
 </script>
