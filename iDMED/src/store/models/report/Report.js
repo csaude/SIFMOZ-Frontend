@@ -67,6 +67,10 @@ export default class Report extends Model {
       return this.api().get('/migration/migrationStatus')
     }
 
+    static apiMigrationStatusDetails (stage) {
+      return this.api().get(`/migration/migrationStatusDetails/${stage}`)
+    }
+
   static getFormatDDMMYYYY (date) {
     return moment(date).format('DD-MM-YYYY')
   }

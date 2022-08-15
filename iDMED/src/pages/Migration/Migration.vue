@@ -10,6 +10,17 @@
       <div class="col"><StockProgress :data="stockStatus"  /></div>
       <div class="col"><PatientProgress :data="patientStatus"  /></div>
     </div>
+    <div class="column items-center">
+      <div class="row q-mt-xl">
+        <q-btn outline rounded color="blue-9" label="Imprimir relatório de erros" @click="printReport()"/>
+        <q-btn class="q-ml-md" outline rounded color="blue-9" label="Ver detalhes do progresso" @click="showprogressDetails=true"/>
+      </div>
+    </div>
+    <q-dialog persistent v-model="showprogressDetails">
+        <ProgressDetails
+          :stage="stage"
+          @close="showprogressDetails = false" />
+    </q-dialog>
   </div>
 </template>
 
@@ -21,6 +32,8 @@ export default {
   data () {
     return {
       progress: [],
+      stage: '',
+      showprogressDetails: false,
       paramsStatus: null,
       stockStatus: null,
       patientStatus: null,
@@ -33,7 +46,8 @@ export default {
     ParamsProgress: require('components/Migration/ParamsProgress.vue').default,
     StockProgress: require('components/Migration/StockProgress.vue').default,
     MigrationStart: require('components/Migration/MigrationStart.vue').default,
-    PatientProgress: require('components/Migration/PatientProgress.vue').default
+    PatientProgress: require('components/Migration/PatientProgress.vue').default,
+    ProgressDetails: require('components/Migration/ProgressDetails.vue').default
   },
   methods: {
     showloading () {
@@ -61,10 +75,19 @@ export default {
       this.progress.forEach(progss => {
         if (progss.migration_stage === 'PATIENT_MIGRATION_STAGE') {
           this.patientStatus = progss
+          if ((this.patientStatus.total_migrated !== 0 || this.patientStatus.total_rejcted !== 0) && this.patientStatus.stage_progress < 100) {
+            this.stage = 'PATIENT_MIGRATION_STAGE'
+          }
         } else if (progss.migration_stage === 'STOCK_MIGRATION_STAGE') {
           this.stockStatus = progss
+          if ((this.stockStatus.total_migrated !== 0 || this.stockStatus.total_rejcted !== 0) && this.stockStatus.stage_progress < 100) {
+            this.stage = 'STOCK_MIGRATION_STAGE'
+          }
         } else if (progss.migration_stage === 'PARAMS_MIGRATION_STAGE') {
           this.paramsStatus = progss
+          if ((this.paramsStatus.total_migrated !== 0 || this.paramsStatus.total_rejcted !== 0) && this.paramsStatus.stage_progress < 100) {
+            this.stage = 'PARAMS_MIGRATION_STAGE'
+          }
         }
       })
       this.hideLoading()
