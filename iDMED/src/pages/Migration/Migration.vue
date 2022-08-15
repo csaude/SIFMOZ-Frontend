@@ -10,7 +10,7 @@
       <div class="col"><StockProgress :data="stockStatus"  /></div>
       <div class="col"><PatientProgress :data="patientStatus"  /></div>
     </div>
-    <div class="column items-center">
+    <div class="column items-center" v-if="statusLoaded && hasStarted">
       <div class="row q-mt-xl">
         <q-btn outline rounded color="blue-9" label="Imprimir relatório de erros" @click="printReport()"/>
         <q-btn class="q-ml-md" outline rounded color="blue-9" label="Ver detalhes do progresso" @click="showprogressDetails=true"/>
