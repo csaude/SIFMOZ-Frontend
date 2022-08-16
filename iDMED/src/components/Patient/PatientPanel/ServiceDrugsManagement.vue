@@ -117,7 +117,6 @@ export default {
                                                                 .with('pack')
                                                                 .where('prescription_id', prescriptionCopy.id)
                                                                 .get()
-      console.log(prescriptionCopy.remainigDurationInWeeks())
       console.log(duration.weeks)
       if (duration.weeks > prescriptionCopy.remainigDurationInWeeks()) {
         this.displayAlert('error', 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' + Number((prescriptionCopy.remainigDurationInWeeks()) / 4) + ' mes(es)]')
@@ -137,10 +136,14 @@ export default {
       if (!prescribedDrugExists) {
         const hasStock = this.checkStock(prescribedDrug)
         if (hasStock) {
-          this.showAddEditDrug = false
-          if (!this.visitDetails.createPackLater) prescribedDrug.nextPickUpDate = this.nextPUpDate
-          this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
-          this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+          if (new PrescribedDrug(prescribedDrug).getQtyPrescribed(this.duration) <= 0) {
+            this.displayAlert('error', 'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.')
+          } else {
+            this.showAddEditDrug = false
+            if (!this.visitDetails.createPackLater) prescribedDrug.nextPickUpDate = this.nextPUpDate
+            this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
+            this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
+          }
         } else {
           this.displayAlert('error', 'O medicamento seleccionado não possui stock suficinete para dispensar.')
         }
