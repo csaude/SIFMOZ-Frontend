@@ -278,26 +278,14 @@ export default {
                 if (!identifier.lastEpisode().isStartEpisode()) {
                   this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
                 } else {
-                  if (identifier.lastEpisode().hasVisits()) {
-                    const lastVisit = PatientVisitDetails.query()
-                                                        .with(['patientVisit', 'prescription.duration', 'prescription.patientVisitDetails.*', 'pack'])
-                                                        .where('id', identifier.lastEpisode().lastVisit().id)
-                                                        .first()
-                    if (lastVisit.prescription.remainigDurationInWeeks() > 0) {
-                      this.curGroup.members.push(this.initNewMember(patient))
-                    } else {
-                      this.displayAlert('error', 'Este paciente não possui uma prescrição válida, não pode ser adicionado ao grupo.')
-                    }
-                  } else {
-                    this.displayAlert('error', 'Este paciente não possui uma prescrição válida, não pode ser adicionado ao grupo.')
-                  }
+                  this.curGroup.members.push(this.initNewMember(patient))
                 }
             }
           } else {
-            this.displayAlert('error', 'O paciente selecionado ja se encontra associado ao grupo.')
+            this.displayAlert('error', 'O paciente selecionado ja se encontra associado a este grupo [' + this.curGroup.service.code + '].')
           }
       } else {
-        this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + '], do grupo [' + this.curGroup.code + ' - ' + this.curGroup.name + ']')
+        this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + ']')
       }
     },
     initNewMember (patient) {
