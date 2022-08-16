@@ -16,6 +16,12 @@
         <q-btn class="q-ml-md" outline rounded color="blue-9" label="Ver detalhes do progresso" @click="showprogressDetails=true"/>
       </div>
     </div>
+    <q-dialog persistent v-model="alert.visible">
+      <Dialog :type="alert.type" @closeDialog="closeDialog">
+        <template v-slot:title> Informação</template>
+        <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
+    </q-dialog>
     <q-dialog persistent v-model="showprogressDetails">
         <ProgressDetails
           :stage="stage"
@@ -27,10 +33,15 @@
 <script>
 import Report from 'src/store/models/report/Report'
 import MigrationStage from 'src/store/models/Migration/MigrationStage'
-import { QSpinnerBall, useQuasar } from 'quasar'
+import { QSpinnerBall, useQuasar, SessionStorage } from 'quasar'
+import migrationReport from 'src/reports/Migration/migrationReport.ts'
+import Clinic from 'src/store/models/clinic/Clinic'
+// import Clinic from 'src/store/models/clinic/Clinic'
+import { ref } from 'vue'
 export default {
   data () {
     return {
+      currClinic: {},
       progress: [],
       stage: '',
       showprogressDetails: false,
@@ -38,7 +49,12 @@ export default {
       stockStatus: null,
       patientStatus: null,
       $q: useQuasar(),
-      t: ''
+      t: '',
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        })
     }
   },
   components: {
@@ -50,6 +66,30 @@ export default {
     ProgressDetails: require('components/Migration/ProgressDetails.vue').default
   },
   methods: {
+    printReport () {
+      Report.api().get('/migrationLog/printReport', { responseType: 'json' }).then(resp => {
+            if (!resp.response.data[0]) {
+              this.displayAlert('error', 'Nao existem Dados para este relatorio')
+            } else {
+              // Setting parameters
+              const provinceName = this.currClinic.province.description
+
+              const districtName = this.currClinic.district.description
+
+              const usName = this.currClinic.clinicName
+
+              migrationReport.downloadExcel(provinceName, districtName, usName, resp.response.data)
+            }
+        })
+    },
+       displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
+      },
     showloading () {
       console.log('loaging')
        this.$q.loading.show({
@@ -115,9 +155,12 @@ export default {
   }
   },
   mounted () {
+    this.currClinic = new Clinic(SessionStorage.getItem('currClinic')[0])
+    // alert(SessionStorage.getItem('currClinic').id)
     this.showloading()
     this.getMigrationPregress()
     MigrationStage.apiGetAll(0, 5)
+    // this.currClinic = Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
   },
   computed: {
     currStatus () {
