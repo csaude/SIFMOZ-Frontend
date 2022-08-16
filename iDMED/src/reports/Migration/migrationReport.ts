@@ -150,8 +150,8 @@ export default {
       },
       columns: [
         { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
-        { name: 'ENTIDADE (Fonte)', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'ID (Fonte)', totalsRowFunction: 'none', filterButton: false },
+        { name: 'ENTIDADE (iDart)', totalsRowLabel: 'Totals:', filterButton: false },
+        { name: 'ID (iDart)', totalsRowFunction: 'none', filterButton: false },
         { name: 'CODIGO DO ERRO', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'ESTADO', totalsRowFunction: 'none', filterButton: false },
         { name: 'DESCRICAO', totalsRowFunction: 'none', filterButton: false }
