@@ -155,7 +155,7 @@ export default {
   }
   },
   mounted () {
-    this.currClinic = new Clinic(SessionStorage.getItem('currClinic')[0])
+    this.currClinic = new Clinic(SessionStorage.getItem('currClinic'))
     // alert(SessionStorage.getItem('currClinic').id)
     this.showloading()
     this.getMigrationPregress()

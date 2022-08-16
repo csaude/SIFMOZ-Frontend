@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { SessionStorage, QSpinnerBall } from 'quasar'
+import { SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from '../../store/models/clinic/Clinic'
 import District from '../../store/models/district/District'
 import Province from '../../store/models/province/Province'
@@ -137,7 +137,25 @@ import ClinicSectorType from '../../store/models/clinicSectorType/ClinicSectorTy
 import SpetialPrescriptionMotive from '../../store/models/prescription/SpetialPrescriptionMotive'
 import ProvincialServer from '../../store/models/provincialServer/ProvincialServer'
 export default {
+  data () {
+    return {
+      $q: useQuasar()
+    }
+  },
     methods: {
+      showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Carregando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
       loadAppParameters () {
         const offset = 0
         const max = 100
@@ -172,14 +190,14 @@ export default {
         PatientTransReferenceType.apiGetAll(offset, max)
         SpetialPrescriptionMotive.apiGetAll(offset, max)
         ProvincialServer.apiGetAll()
+        this.hideLoading()
       },
       saveCurrClinic () {
         Clinic.apiGetAll(0, 200).then(resp => {
           const mainClinic = resp.response.data.filter(clinic => {
             return clinic.mainClinic
           })
-          console.log(mainClinic)
-          SessionStorage.set('currClinic', mainClinic)
+          SessionStorage.set('currClinic', mainClinic[0])
         })
       },
       getAllInventoriesOfClinic () {
@@ -237,16 +255,7 @@ export default {
      }, 4000)
     },
     created () {
-      this.$q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall
-      // delay: 400 // ms
-    })
-
-    setTimeout(() => {
-      this.$q.loading.hide()
-     }, 600)
+      this.showloading()
       this.saveCurrClinic()
     },
     computed: {
