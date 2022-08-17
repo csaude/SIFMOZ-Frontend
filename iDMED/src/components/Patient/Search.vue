@@ -228,7 +228,7 @@ export default {
         this.newPatient = true
       },
       goToPatientPanel (selectedPatient) {
-        this.$q.loading.show({
+        /* this.$q.loading.show({
           message: 'Carregando ...',
           spinnerColor: 'grey-4',
           spinner: QSpinnerBall
@@ -236,7 +236,7 @@ export default {
 
         setTimeout(() => {
           this.$q.loading.hide()
-        }, 1000)
+        }, 1000) */
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
        proccedToPatientPanel (patient) {

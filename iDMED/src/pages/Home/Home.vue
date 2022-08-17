@@ -189,8 +189,10 @@ export default {
         ClinicSectorType.apiGetAll(offset, max)
         PatientTransReferenceType.apiGetAll(offset, max)
         SpetialPrescriptionMotive.apiGetAll(offset, max)
-        ProvincialServer.apiGetAll()
-        this.hideLoading()
+        ProvincialServer.apiGetAll().then(resp => {
+          console.log(resp)
+            this.hideLoading()
+        })
       },
       saveCurrClinic () {
         Clinic.apiGetAll(0, 200).then(resp => {
