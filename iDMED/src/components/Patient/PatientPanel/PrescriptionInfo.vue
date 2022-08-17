@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
+import { SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
@@ -45,31 +45,52 @@ export default {
       infoVisible: true,
       selectedVisitDetails: '',
       step: '',
-      flagGoReady: false
+      flagGoReady: false,
+      $q: useQuasar()
     }
   },
   methods: {
+    showloading () {
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Carregando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
     init () {
       this.identifiers.forEach(identifier => {
         Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
           if (resp.response.data.length > 0) {
-            resp.response.data.forEach(episode => {
+            console.log(resp.response.data)
+            this.identifiers.episodes = resp.response.data
+            this.identifiers.episodes.forEach(episode => {
               PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
+                console.log(resp.response.data)
+                episode.patientVisitDetails = resp.response.data
                 const i = 0
-                this.loadVisitDetailsInfo(resp.response.data, i)
-                })
+                this.loadVisitDetailsInfo(episode.patientVisitDetails, i)
               })
-            } else {
-              this.flagGoReady = true
-            }
-          })
+            })
+          } else {
+            this.flagGoReady = true
+          }
         })
+      })
     },
     loadVisitDetailsInfo (visitDetails, i) {
       if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
         Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+          console.log(resp.response.data)
+          visitDetails[i].prescription = resp.response.data
           if (visitDetails[i].pack !== null) {
             Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
+              console.log(resp.response.data)
+              visitDetails[i].pack = resp.response.data
               i = i + 1
               this.loadVisitDetailsInfo(visitDetails, i)
             })
@@ -110,9 +131,18 @@ export default {
     }
   },
   created () {
+    this.showloading()
     this.init()
   },
   mounted () {
+  },
+  watch: {
+    flagGoReady: function (newVal, oldVal) {
+      if (newVal) {
+        console.log(newVal)
+        this.hideLoading()
+      }
+    }
   },
   computed: {
     flagGo: {
