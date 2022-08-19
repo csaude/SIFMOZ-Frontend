@@ -175,7 +175,8 @@ export default {
         TherapeuticLine.apiGetAll(offset, max)
         Form.apiGetAll(offset, max)
         DispenseType.apiGetAll(offset, max)
-        Clinic.apiGetAll(offset, max)
+        this.getAllClinic()
+       // Clinic.apiGetAll(offset, max)
         InteroperabilityType.apiGetAll(offset, max)
         InteroperabilityAttribute.apiGetAll(offset, max)
         HealthInformationSystem.apiGetAll(offset, max)
@@ -195,12 +196,17 @@ export default {
         })
       },
       saveCurrClinic () {
-        Clinic.apiGetAll(0, 200).then(resp => {
-          const mainClinic = resp.response.data.filter(clinic => {
-            return clinic.mainClinic
-          })
-          SessionStorage.set('currClinic', mainClinic[0])
-        })
+        // Clinic.apiGetAll(0, 200).then(resp => {
+        //   const mainClinic = resp.response.data.filter(clinic => {
+        //     return clinic.mainClinic
+        //   })
+          SessionStorage.set('currClinic', Clinic.query().where('mainClinic', true).get())
+        // })
+      },
+      getAllClinic () {
+        const offset = 0
+        const max = 100
+        this.doClinicGet(offset, max)
       },
       getAllInventoriesOfClinic () {
         const offset = 0
@@ -227,6 +233,16 @@ export default {
               console.log(error)
           })
       },
+    doClinicGet (offset, max) {
+          Clinic.apiGetAll(offset, max).then(resp => {
+                if (resp.response.data.length > 0) {
+                  offset = offset + max
+                  setTimeout(this.doClinicGet(offset, max), 2)
+                }
+            }).catch(error => {
+                console.log(error)
+            })
+            },
       doStockEntranceGet (clinicId, offset, max) {
         StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
