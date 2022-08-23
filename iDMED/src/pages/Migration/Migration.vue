@@ -132,7 +132,7 @@ export default {
       })
       this.hideLoading()
     },
-    migrationStarted () {
+    migrationStarted (started) {
       this.showloading()
       MigrationStage.apiGetAll(0, 5)
       this.getMigrationPregress()
@@ -148,7 +148,7 @@ export default {
       }
            setInterval(() => {
               this.getMigrationPregress()
-          }, 6 * 1000)
+          }, 2 * 10000)
       } else {
           clearInterval(this.t)
       }

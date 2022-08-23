@@ -723,8 +723,6 @@ export default {
         const validStock = stocks.filter((item) => {
           return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
         })
-        console.log(stocks)
-        console.log(validStock)
         if (validStock !== undefined && validStock !== null) {
           let avalivableStock = 0
           validStock.forEach((vs) => {
@@ -811,6 +809,9 @@ export default {
                                     .withAll()
                                     .where('id', patientVDetails.episode.id)
                                     .first()
+        /* if (episode.startStopReason.code === 'NOVO_PACIENTE' || episode.startStopReason.code === 'NOVO_PACIENTE') {
+            patientVDetails.prescription.patientType = 'NOVO'
+        } */
         patientVDetails.episode.patientVisitDetails = []
         if (patientVDetails.prescription.id === null) {
           Prescription.apiSave(patientVDetails.prescription).then(resp => {
