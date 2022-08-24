@@ -85,7 +85,7 @@
                     outlined
                     v-model="searchParam"
                     label="Pesquisar por Identificador/Nome"
-                    @update:model-value="search()"
+                    @blur="search()"
                     style="width: 400px"
                     :disable="curGroup.service === null"
                     class="q-mt-md"
@@ -213,7 +213,7 @@ import moment from 'moment'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import GroupType from '../../store/models/groupType/GroupType'
 import Clinic from '../../store/models/clinic/Clinic'
-import { QSpinnerBall, SessionStorage } from 'quasar'
+import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar'
 import GroupMember from '../../store/models/groupMember/GroupMember'
 import Episode from '../../store/models/episode/Episode'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
@@ -236,7 +236,15 @@ export default {
       curGroup: new Group(),
       searchParam: '',
       searchResults: ref([]),
+      $q: useQuasar(),
       startDate: ''
+    }
+  },
+  watch: {
+     searchResults (oldp, newp) {
+      if (oldp !== newp) {
+        this.hideLoading()
+      }
     }
   },
   methods: {
@@ -357,19 +365,30 @@ export default {
                       })
       this.curGroup.members = members
     },
+    notMember (patient) {
+      const exists = this.curGroup.members.some((mb) => {
+                        return mb.patient.id === patient.id
+                      })
+      return !exists
+    },
     search () {
-      const patients = Patient.query()
-                              .has('identifiers')
-                              .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                              .with('province')
-                              .with('members.group.service')
-                              .with('district.province')
-                              .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                              .where('clinic_id', this.clinic.id)
-                              .get()
-      this.searchResults = patients.filter((patient) => {
-        return (this.hasIdentifierLike(patient, this.searchParam) || this.stringContains(patient.firstNames, this.searchParam)) && this.isAssociatedToSelectedService(patient)
+      this.showloading()
+      Patient.delete((patient) => {
+        return this.notMember(patient)
       })
+        Patient.apisearchByParam(this.searchParam, this.clinic.id).then(resp => {
+            if (resp.response.data.length >= 0) {
+              this.searchResults = Patient.query()
+                                  .has('identifiers')
+                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                  .with('province')
+                                  .with('members.group.service')
+                                  .with('district.province')
+                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                  .where('clinic_id', this.clinic.id)
+                                  .get()
+            }
+         })
     },
     isAssociatedToSelectedService (patient) {
       if (patient.identifiers.length <= 0) return false
