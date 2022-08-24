@@ -217,6 +217,7 @@ import { QSpinnerBall, SessionStorage } from 'quasar'
 import GroupMember from '../../store/models/groupMember/GroupMember'
 import Episode from '../../store/models/episode/Episode'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
+import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -264,18 +265,39 @@ export default {
         this.startDate = this.formatDate(this.curGroup.startDate)
       }
     },
+    showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Processando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
+    doIdentifiersGetAllByPatient (patientId, offset, max) {
+      this.showloading()
+      PatientServiceIdentifier.apiGetAllByPatientId(patientId, offset, max)
+    },
     addPatient (patient) {
-      if (!patient.isActiveOnGroupOfService(this.curGroup.service)) {
+      this.showloading()
+      const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
+      identifier.episodes = Episode.query().with(['patientVisitDetails.*', 'patientServiceIdentifier', 'episodeType', 'startStopReason']).where('patientServiceIdentifier_id', identifier.id).get()
+      const lastEpisode = identifier.lastEpisode()
+
+      if (!lastEpisode.startStopReason === null) {
+        if (!patient.isActiveOnGroupOfService(this.curGroup.service)) {
           const patientExists = this.curGroup.members.some((member) => {
             return member.patient.id === patient.id
           })
           if (!patientExists) {
-            const identifier = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
-            identifier.episodes = Episode.query().with(['patientVisitDetails.*', 'patientServiceIdentifier', 'episodeType', 'startStopReason']).where('patientServiceIdentifier_id', identifier.id).get()
-            if (identifier.lastEpisode() === null) {
+            if (lastEpisode === null) {
                 this.displayAlert('error', 'O paciente selecionado não possui episódios.')
             } else {
-                if (!identifier.lastEpisode().isStartEpisode()) {
+                if (!lastEpisode.isStartEpisode()) {
                   this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
                 } else {
                   this.curGroup.members.push(this.initNewMember(patient))
@@ -284,8 +306,41 @@ export default {
           } else {
             this.displayAlert('error', 'O paciente selecionado ja se encontra associado a este grupo [' + this.curGroup.service.code + '].')
           }
+        } else {
+          this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + ']')
+        }
+        this.hideLoading()
       } else {
-        this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + ']')
+        PatientServiceIdentifier.apiGetAllByPatientId(patient.id, 0, 100).then(resp => {
+          const identifier1 = patient.identifiers.filter((identif) => { return identif.service.id === this.curGroup.service.id })[0]
+          identifier1.episodes = Episode.query().with(['patientVisitDetails.*', 'patientServiceIdentifier', 'episodeType', 'startStopReason']).where('patientServiceIdentifier_id', identifier.id).get()
+          const lastEpisode1 = identifier1.lastEpisode()
+
+          if (!patient.isActiveOnGroupOfService(this.curGroup.service)) {
+          const patientExists = this.curGroup.members.some((member) => {
+            return member.patient.id === patient.id
+          })
+          if (!patientExists) {
+            if (lastEpisode1 === null) {
+                this.displayAlert('error', 'O paciente selecionado não possui episódios.')
+            } else {
+                if (!lastEpisode1.isStartEpisode()) {
+                  this.displayAlert('error', 'O Último episódio do paciente não é de inicio.')
+                } else {
+                  this.curGroup.members.push(this.initNewMember(patient))
+                }
+            }
+          } else {
+            this.displayAlert('error', 'O paciente selecionado ja se encontra associado a este grupo [' + this.curGroup.service.code + '].')
+          }
+        } else {
+          this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço [' + this.curGroup.service.code + ']')
+        }
+          this.hideLoading()
+        }).catch(error => {
+            console.log(error)
+            this.hideLoading()
+        })
       }
     },
     initNewMember (patient) {
@@ -406,6 +461,10 @@ export default {
         })
       })
     },
+    // getAllIdentifiersByClinicalService (clinicalServiceId) {
+    //   // const identifiers = PatientServiceIdentifier.apiGetAllIdentifiersByClinicalService(clinicalServiceId)
+    //   // console.log(identifiers)
+    // },
     displayAlert (type, msg) {
       this.alert.type = type
       this.alert.msg = msg
