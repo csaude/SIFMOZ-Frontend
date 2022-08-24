@@ -141,6 +141,10 @@ export default class Patient extends Model {
     return await this.api().get(`/patient/${id}`)
   }
 
+  static async apiSearch (patient) {
+    return await this.api().post('/patient/search', patient)
+  }
+
   static async apiSave (patient) {
     return await this.api().post('/patient', patient)
   }

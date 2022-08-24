@@ -38,6 +38,10 @@ export default class Clinic extends Model {
     return this.api().get(`/clinic/${id}`)
   }
 
+  static apiFetchMainClinic () {
+    return this.api().get('/clinic/mainClinic')
+  }
+
   static async apiGetAll (offset, max) {
     return await this.api().get('/clinic?offset=' + offset + '&max=' + max)
   }

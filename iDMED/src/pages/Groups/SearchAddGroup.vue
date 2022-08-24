@@ -57,7 +57,7 @@
                   {{props.row.name}}
                 </q-td>
                 <q-td key="groupType" :props="props">
-                  {{props.row.groupType.code}}
+                  {{props.row.groupType.description}}
                 </q-td>
                 <q-td key="service" :props="props">
                   {{props.row.service.code}}
