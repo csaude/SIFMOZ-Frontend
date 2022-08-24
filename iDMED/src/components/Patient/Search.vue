@@ -23,14 +23,18 @@
             v-model="patientId"
             :rules="[]"/>
           <nameInput
-            @update:model-value="search()"
+            @blur="search()"
             class="q-ml-md"
             label="Nome"
             :rules="[]"
             :readonly="this.selectedDataSources.id.length > 4"
-            v-model="currPatient.firstNames"/>
+            v-model="currPatient.firstNames">
+            <template v-slot:append>
+              <q-icon name="close" @click="text = ''" class="cursor-pointer" />
+            </template>
+          </nameInput>
           <TextField
-            @update:model-value="search()"
+            @blur="search()"
             label="Outros Nomes"
             v-model="currPatient.middleNames"
             dense
@@ -41,9 +45,10 @@
             label="Apelido"
             :rules="[]"
             :readonly="this.selectedDataSources.id.length > 4"
-            @update:model-value="search()"
+            @blur="search()"
             v-model="currPatient.lastNames"
             class="q-ml-md"/>
+            <q-btn v-if="canClear" @click="clearSearchParams" class="q-ml-md q-mb-xs" square color="amber" icon="clear" />
       </div>
       <div class="q-mt-lg q-mb-md">
           <div class="row items-center q-mb-md">
@@ -169,12 +174,11 @@ const columns = [
 ]
 export default {
     data () {
-       const $q = useQuasar()
       return {
         searchField: '',
         selected: ref([]),
         columns,
-        $q,
+        $q: useQuasar(),
         showPatientRegister: false,
         currPatient: new Patient({
           identifiers: [
@@ -189,10 +193,38 @@ export default {
         newPatient: false,
         username: localStorage.getItem('hisUser'),
         password: localStorage.getItem('hisPass'),
-        transferencePatientData: []
+        transferencePatientData: [],
+        patientList: []
       }
     },
+    watch: {
+     patients (oldp, newp) {
+      if (oldp !== newp) {
+        this.hideLoading()
+      }
+    }
+  },
     methods: {
+      clearSearchParams () {
+        this.currPatient = new Patient({
+            identifiers: [
+              new PatientServiceIdentifier({})
+            ]
+          })
+      },
+      showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Pesquisando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
       init () {},
       createPatient () {
         this.currPatient = new Patient({
@@ -343,20 +375,26 @@ export default {
         }
       },
       localSearch () {
-        const patientList = Patient.query()
-                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                                  .with('province')
-                                  .with('attributes')
-                                  .with('appointments')
-                                  .with('district.*')
-                                  .with('postoAdministrativo')
-                                  .with('bairro')
-                                  .with(['clinic.province', 'clinic.district.province'])
-                                  .where('clinic_id', this.clinic.id)
-                                  .get()
-        this.patients = patientList.filter((patient) => {
-          return this.filterPatient(patient)
-        })
+        this.showloading()
+        Patient.deleteAll()
+        this.currPatient.clinic = this.clinic
+        Patient.apiSearch(this.currPatient).then(resp => {
+          // this.patientList = resp.response.data
+
+        if (resp.response.data.length >= 0) {
+          this.patients = Patient.query()
+                                    .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                    .with('province')
+                                    .with('attributes')
+                                    .with('appointments')
+                                    .with('district.*')
+                                    .with('postoAdministrativo')
+                                    .with('bairro')
+                                    .with(['clinic.province', 'clinic.district.province'])
+                                    .where('clinic_id', this.clinic.id)
+                                    .get()
+          }
+         })
       },
       openMRSSerach (his) {
         const openMRSInstance = axios.create({
@@ -473,6 +511,12 @@ export default {
       }
     },
     computed: {
+      canClear () {
+        return this.currPatient.identifiers[0].value !== '' ||
+               this.currPatient.firstNames !== '' ||
+               this.currPatient.middleNames !== '' ||
+               this.currPatient.lastNames !== ''
+      },
       patientId: {
         get () {
           if (this.currPatient.identifiers[0] === null || this.currPatient.identifiers[0] === undefined) return null
@@ -497,8 +541,8 @@ export default {
     mounted () {
       this.saveDefaultHIS()
       this.getAllDataSources(0)
-      this.getAllPatientsOfClinic()
-      this.loadAppParameters()
+      // this.getAllPatientsOfClinic()
+      // this.loadAppParameters()
     },
     components: {
         TitleBar: require('components/Shared/TitleBar.vue').default,

@@ -200,7 +200,7 @@ export default {
         //   const mainClinic = resp.response.data.filter(clinic => {
         //     return clinic.mainClinic
         //   })
-          SessionStorage.set('currClinic', Clinic.query().where('mainClinic', true).get())
+        SessionStorage.set('currClinic', Clinic.query().where('mainClinic', true).first())
         // })
       },
       getAllClinic () {
@@ -220,7 +220,7 @@ export default {
       },
       getAllPatientsOfClinic () {
         const offset = 0
-        const max = 100
+        const max = 400
         this.doPatientGet(SessionStorage.getItem('currClinic').id, offset, max)
       },
       doInventoryGet (clinicId, offset, max) {
@@ -255,7 +255,7 @@ export default {
       },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
+              if (resp.response.data.length > 0 && offset < 1800) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
               }
@@ -268,9 +268,9 @@ export default {
       setTimeout(() => {
       this.loadAppParameters()
      }, 3000)
-     setTimeout(() => {
+     /* setTimeout(() => {
       this.getAllPatientsOfClinic()
-     }, 4000)
+     }, 4000) */
     },
     created () {
       this.showloading()
