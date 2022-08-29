@@ -66,8 +66,10 @@ export default {
         visible: false,
         msg: ''
       }),
-      stockEntrance: new StockEntrance(),
-      dateReceived: ''
+      stockEntrance: new StockEntrance({
+        dateReceived: new Date()
+      }),
+      dateReceived: this.getDDMMYYYFromJSDate(new Date())
     }
   },
   components: {

@@ -165,6 +165,8 @@ export default {
               } else if (!clinicalService.active) {
                   clinicalService.active = true
               }
+              console.log(clinicalService)
+              clinicalService.therapeuticRegimens = []
              ClinicalService.apiSave(clinicalService).then(resp => {
                   this.displayAlert('info', 'Servico Clinico actualizado com sucesso')
             }).catch(error => {

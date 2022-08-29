@@ -19,8 +19,9 @@ export default {
   },
   methods: {
     initMigration () {
-      MigrationStage.initMigration()
-      this.$emit('migrationStarted')
+      MigrationStage.initMigration().then(resp => {
+        this.$emit('migrationStarted', true)
+      })
     }
   }
 }

@@ -23,14 +23,18 @@
             v-model="patientId"
             :rules="[]"/>
           <nameInput
-            @update:model-value="search()"
+            @blur="search()"
             class="q-ml-md"
             label="Nome"
             :rules="[]"
             :readonly="this.selectedDataSources.id.length > 4"
-            v-model="currPatient.firstNames"/>
+            v-model="currPatient.firstNames">
+            <template v-slot:append>
+              <q-icon name="close" @click="text = ''" class="cursor-pointer" />
+            </template>
+          </nameInput>
           <TextField
-            @update:model-value="search()"
+            @blur="search()"
             label="Outros Nomes"
             v-model="currPatient.middleNames"
             dense
@@ -41,9 +45,10 @@
             label="Apelido"
             :rules="[]"
             :readonly="this.selectedDataSources.id.length > 4"
-            @update:model-value="search()"
+            @blur="search()"
             v-model="currPatient.lastNames"
             class="q-ml-md"/>
+            <q-btn v-if="canClear" @click="clearSearchParams" class="q-ml-md q-mb-xs" square color="amber" icon="clear" />
       </div>
       <div class="q-mt-lg q-mb-md">
           <div class="row items-center q-mb-md">
@@ -151,23 +156,10 @@ import TherapeuticLine from 'src/store/models/therapeuticLine/TherapeuticLine'
 import Form from 'src/store/models/form/Form'
 import Doctor from 'src/store/models/doctor/Doctor'
 import DispenseType from 'src/store/models/dispenseType/DispenseType'
-// import RAMScreening from 'src/store/models/screening/RAMScreening'
-// import AdherenceScreening from 'src/store/models/screening/AdherenceScreening'
-// import PregnancyScreening from 'src/store/models/screening/PregnancyScreening'
-// import TBScreening from 'src/store/models/screening/TBScreening'
-// import VitalSignsScreening from 'src/store/models/screening/VitalSignsScreening'
 import InteroperabilityType from 'src/store/models/interoperabilityType/InteroperabilityType'
 import InteroperabilityAttribute from 'src/store/models/interoperabilityAttribute/InteroperabilityAttribute'
 import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
-import Pack from 'src/store/models/packaging/Pack'
-import Prescription from 'src/store/models/prescription/Prescription'
-import Episode from 'src/store/models/episode/Episode'
-import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
-import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-// import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
-// import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
-// import PrescriptionDetail from 'src/store/models/prescriptionDetails/PrescriptionDetail'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
 import TransferenceService from 'src/services/Transferences/TransferenceService'
@@ -182,12 +174,11 @@ const columns = [
 ]
 export default {
     data () {
-       const $q = useQuasar()
       return {
         searchField: '',
         selected: ref([]),
         columns,
-        $q,
+        $q: useQuasar(),
         showPatientRegister: false,
         currPatient: new Patient({
           identifiers: [
@@ -202,10 +193,38 @@ export default {
         newPatient: false,
         username: localStorage.getItem('hisUser'),
         password: localStorage.getItem('hisPass'),
-        transferencePatientData: []
+        transferencePatientData: [],
+        patientList: []
       }
     },
+    watch: {
+     patients (oldp, newp) {
+      if (oldp !== newp) {
+        this.hideLoading()
+      }
+    }
+  },
     methods: {
+      clearSearchParams () {
+        this.currPatient = new Patient({
+            identifiers: [
+              new PatientServiceIdentifier({})
+            ]
+          })
+      },
+      showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Pesquisando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
       init () {},
       createPatient () {
         this.currPatient = new Patient({
@@ -241,7 +260,7 @@ export default {
         this.newPatient = true
       },
       goToPatientPanel (selectedPatient) {
-        this.$q.loading.show({
+        /* this.$q.loading.show({
           message: 'Carregando ...',
           spinnerColor: 'grey-4',
           spinner: QSpinnerBall
@@ -249,7 +268,7 @@ export default {
 
         setTimeout(() => {
           this.$q.loading.hide()
-        }, 1000)
+        }, 1000) */
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
        proccedToPatientPanel (patient) {
@@ -273,119 +292,45 @@ export default {
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       loadAppParameters () {
-        const offset = 0
-        const max = 100
-        Duration.apiGetAll(offset, max)
-        Province.apiGetAll(offset, max)
-        District.apiGetAll(offset, max)
-        ClinicalServiceAttributeType.apiGetAll(offset, max)
-        ClinicalService.apiGetAll(offset, max)
-        ClinicSector.apiGetAll(offset, max)
-        IdentifierType.apiGetAll(offset, max)
-        EpisodeType.apiGetAll(offset, max)
-        FacilityType.apiGetAll(offset, max)
-        StartStopReason.apiGetAll(offset, max)
-        ClinicalServiceAttribute.apiGetAll(offset, max)
-        Drug.apiGetAll(offset, max)
-        TherapeuticRegimen.apiGetAll(offset, max)
-        TherapeuticLine.apiGetAll(offset, max)
-        Form.apiGetAll(offset, max)
-        Doctor.apiFetchByClinicId(this.clinic.id)
-        DispenseType.apiGetAll(offset, max)
-        Clinic.apiGetAll(offset, max)
-        InteroperabilityType.apiGetAll(offset, max)
-        InteroperabilityAttribute.apiGetAll(offset, max)
-        HealthInformationSystem.apiGetAll(offset, max)
-        DispenseMode.apiGetAll()
-      },
-       getAllPacksOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPackGet(this.clinic.id, offset, max)
-      },
-      getAllPrescriptionOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPrescriptionkGet(this.clinic.id, offset, max)
-      },
-      getAllPatientVisitsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientVisitGet(this.clinic.id, offset, max)
-      },
-      getAlPatientVisitDetailsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientVisitDetailsGet(this.clinic.id, offset, max)
+        if (Duration.query().count() <= 0) {
+          const offset = 0
+          const max = 100
+          Duration.apiGetAll(offset, max)
+          Province.apiGetAll(offset, max)
+          District.apiGetAll(offset, max)
+          ClinicalServiceAttributeType.apiGetAll(offset, max)
+          ClinicalService.apiGetAll(offset, max)
+          ClinicSector.apiGetAll(offset, max)
+          IdentifierType.apiGetAll(offset, max)
+          EpisodeType.apiGetAll(offset, max)
+          FacilityType.apiGetAll(offset, max)
+          StartStopReason.apiGetAll(offset, max)
+          ClinicalServiceAttribute.apiGetAll(offset, max)
+          Drug.apiGetAll(offset, max)
+          TherapeuticRegimen.apiGetAll(offset, max)
+          TherapeuticLine.apiGetAll(offset, max)
+          Form.apiGetAll(offset, max)
+          Doctor.apiFetchByClinicId(this.clinic.id)
+          DispenseType.apiGetAll(offset, max)
+          Clinic.apiGetAll(offset, max)
+          InteroperabilityType.apiGetAll(offset, max)
+          InteroperabilityAttribute.apiGetAll(offset, max)
+          HealthInformationSystem.apiGetAll(offset, max)
+          DispenseMode.apiGetAll()
+        }
       },
       getAllPatientsOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doPatientGet(this.clinic.id, offset, max)
-      },
-      getAllIdentifiersOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doIdentifiersGet(this.clinic.id, offset, max)
-      },
-      getAllEpisodesOfClinic () {
-        const offset = 0
-        const max = 100
-        this.doEpisodeGet(this.clinic.id, offset, max)
-      },
-      doPackGet (clinicId, offset, max) {
-        Pack.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              // if (resp.response.data.length > 0) {
-              //   offset = offset + max
-              //   setTimeout(this.doPackGet(clinicId, offset, max), 2)
-              // }
-          })
-      },
-      doPrescriptionkGet (clinicId, offset, max) {
-        Prescription.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPrescriptionkGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doEpisodeGet (clinicId, offset, max) {
-        Episode.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doEpisodeGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doPatientVisitDetailsGet (clinicId, offset, max) {
-        PatientVisitDetails.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPatientVisitDetailsGet(clinicId, offset, max), 2)
-              }
-          })
+        if (Patient.query().count() <= 0) {
+          const offset = 0
+          const max = 100
+          this.doPatientGet(this.clinic.id, offset, max)
+        }
       },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doPatientVisitGet (clinicId, offset, max) {
-        PatientVisit.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
-              }
-          })
-      },
-      doIdentifiersGet (clinicId, offset, max) {
-        PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doIdentifiersGet(clinicId, offset, max), 2)
               }
           })
       },
@@ -402,7 +347,7 @@ export default {
       saveDefaultHIS () {
         HealthInformationSystem.create({
             data: { id: -1, abbreviation: 'iDMED', description: 'iDMED', active: true }
-      })
+        })
       },
       loadHISDataSource () {
         this.patients = []
@@ -430,20 +375,26 @@ export default {
         }
       },
       localSearch () {
-        const patientList = Patient.query()
-                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                                  .with('province')
-                                  .with('attributes')
-                                  .with('appointments')
-                                  .with('district.*')
-                                  .with('postoAdministrativo')
-                                  .with('bairro')
-                                  .with(['clinic.province', 'clinic.district.province'])
-                                  .where('clinic_id', this.clinic.id)
-                                  .get()
-        this.patients = patientList.filter((patient) => {
-          return this.filterPatient(patient)
-        })
+        this.showloading()
+        Patient.deleteAll()
+        this.currPatient.clinic = this.clinic
+        Patient.apiSearch(this.currPatient).then(resp => {
+          // this.patientList = resp.response.data
+
+        if (resp.response.data.length >= 0) {
+          this.patients = Patient.query()
+                                    .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                    .with('province')
+                                    .with('attributes')
+                                    .with('appointments')
+                                    .with('district.*')
+                                    .with('postoAdministrativo')
+                                    .with('bairro')
+                                    .with(['clinic.province', 'clinic.district.province'])
+                                    .where('clinic_id', this.clinic.id)
+                                    .get()
+          }
+         })
       },
       openMRSSerach (his) {
         const openMRSInstance = axios.create({
@@ -560,6 +511,12 @@ export default {
       }
     },
     computed: {
+      canClear () {
+        return this.currPatient.identifiers[0].value !== '' ||
+               this.currPatient.firstNames !== '' ||
+               this.currPatient.middleNames !== '' ||
+               this.currPatient.lastNames !== ''
+      },
       patientId: {
         get () {
           if (this.currPatient.identifiers[0] === null || this.currPatient.identifiers[0] === undefined) return null
@@ -584,19 +541,8 @@ export default {
     mounted () {
       this.saveDefaultHIS()
       this.getAllDataSources(0)
-      /* this.loadAppParameters()
-      this.getAllPatientsOfClinic()
-      this.getAllIdentifiersOfClinic()
-      this.getAllPrescriptionOfClinic()
-      this.getAllEpisodesOfClinic()
-      this.getAllPatientVisitsOfClinic()
-      this.getAllPacksOfClinic()
-      this.getAlPatientVisitDetailsOfClinic()
-      PackagedDrug.apiGetAll()
-      PrescribedDrug.apiGetAll()
-      PrescriptionDetail.apiGetAll() */
-      this.getAllPatientsOfClinic()
-      this.loadAppParameters()
+      // this.getAllPatientsOfClinic()
+      // this.loadAppParameters()
     },
     components: {
         TitleBar: require('components/Shared/TitleBar.vue').default,

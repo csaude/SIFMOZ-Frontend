@@ -264,13 +264,13 @@ export default {
       },
       submitForm () {
         this.$refs.firstNames.$refs.nome.$refs.ref.validate()
-        this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
+        // this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
         this.$refs.lastNames.$refs.lastName.$refs.ref.validate()
         this.$refs.gender.validate()
         this.$refs.province.validate()
         this.$refs.district.validate()
         if (!this.$refs.firstNames.$refs.nome.$refs.ref.hasError &&
-            !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
+            // !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
             !this.$refs.lastNames.$refs.lastName.$refs.ref.hasError &&
             !this.$refs.province.hasError &&
             !this.$refs.gender.hasError &&
@@ -323,7 +323,7 @@ export default {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id
             SessionStorage.set('selectedPatient', new Patient(this.patient))
-             if (this.transferencePatientData.length > 0) {
+             if (this.transferencePatientData !== undefined && this.transferencePatientData.length > 0) {
              const psi = TransferenceService.buildPatientIdentifierFromIdmed((this.transferencePatientData[0]))
              psi.patient = this.patient
            //  psi.patient_id = this.patient.id
@@ -364,7 +364,7 @@ export default {
       }
            }).catch(error => {
             this.listErrors = []
-          if (error.request.status !== 0) {
+          if (error.request !== undefined && error.request.status !== 0) {
             const arrayErrors = JSON.parse(error.request.response)
             if (arrayErrors.total == null) {
               this.listErrors.push(arrayErrors.message)
@@ -401,7 +401,7 @@ export default {
                                         .with('identifiers.*')
                                         .with('postoAdministrativo')
                                         .with('bairro')
-                                        .with(['clinic.province', 'clinic.district.province'])
+                                        .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                         .where('id', this.selectedPatient.id).first()
               this.dateOfBirth = moment(this.patient.dateOfBirth).format('DD-MM-YYYY')
           }

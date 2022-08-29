@@ -136,7 +136,6 @@ export default defineComponent({
      menusVisible (name) {
         const menus = localStorage.getItem('role_menus')
         if (!menus.includes(name)) {
-               // this.displayAlert('error', 'O seu Perfil Nao tem o previlegio desta Funcionalidade')
                return false
         } else {
           return true

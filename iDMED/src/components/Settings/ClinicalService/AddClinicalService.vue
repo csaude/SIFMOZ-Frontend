@@ -133,6 +133,7 @@
             </q-card-section>
          </q-step>
          <q-step
+          v-if="isRegimenAttrSelected"
           :name="4"
           title="Adicionar Regimes Terapêuticos"
       >
@@ -155,7 +156,7 @@
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
                 <q-btn v-if="step > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="step !== 4 ? 'Proximo' : 'Submeter'" class="q-ml-sm"/>
+          <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="submitNextButtonLabel" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
                <q-dialog v-model="alert.visible">
@@ -257,6 +258,17 @@ export default {
                     .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
+      },
+      isRegimenAttrSelected () {
+        if (this.selectedAttributes.length <= 0) return false
+        const isSelected = this.selectedAttributes.some((attr) => {
+          return attr.code === 'THERAPEUTICAL_REGIMEN'
+        })
+        return isSelected
+      },
+      submitNextButtonLabel () {
+        if ((this.step === 3 && !this.isRegimenAttrSelected) || this.step === 4) return 'Submeter'
+        return 'Próximo'
       }
   },
   methods: {

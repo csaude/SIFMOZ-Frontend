@@ -90,6 +90,7 @@ VuexORM.use(VuexORMAxios, {
     'X-Requested-With': 'XMLHttpRequest'
   },
   baseURL: 'http://localhost:8884/api'
+    // baseURL: 'http://10.10.2.199:8884/'
 })
 
 // Request interceptor for API calls
@@ -116,7 +117,6 @@ axios.interceptors.request.use(
 
   // Response interceptor for API calls
    axios.interceptors.response.use((response) => {
-    console.log(response)
     return response
   }, async function (error) {
     const originalRequest = error.config

@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { SessionStorage, QSpinnerBall } from 'quasar'
+import { SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from '../../store/models/clinic/Clinic'
 import District from '../../store/models/district/District'
 import Province from '../../store/models/province/Province'
@@ -118,7 +118,7 @@ import TherapeuticRegimen from '../../store/models/therapeuticRegimen/Therapeuti
 import TherapeuticLine from '../../store/models/therapeuticLine/TherapeuticLine'
 import Form from '../../store/models/form/Form'
 import Duration from '../../store/models/Duration/Duration'
-import Doctor from '../../store/models/doctor/Doctor'
+// import Doctor from '../../store/models/doctor/Doctor'
 import DispenseType from '../../store/models/dispenseType/DispenseType'
 import FacilityType from '../../store/models/facilityType/FacilityType'
 import InteroperabilityType from '../../store/models/interoperabilityType/InteroperabilityType'
@@ -136,19 +136,16 @@ import PatientTransReferenceType from '../../store/models/tansreference/PatientT
 import ClinicSectorType from '../../store/models/clinicSectorType/ClinicSectorType'
 import SpetialPrescriptionMotive from '../../store/models/prescription/SpetialPrescriptionMotive'
 import ProvincialServer from '../../store/models/provincialServer/ProvincialServer'
-import Menu from 'src/store/models/userLogin/Menu'
 export default {
   data () {
     return {
-      clinic: {
-        id: 'e48afbe0-1280-11ed-861d-0242ac120002'
-      }
+       $q: useQuasar()
     }
   },
     components: {
     },
     methods: {
-        menusVisible (name) {
+       menusVisible (name) {
         const menus = localStorage.getItem('role_menus')
         if (!menus.includes(name)) {
                return false
@@ -156,13 +153,25 @@ export default {
           return true
         }
       },
+            showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Carregando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
       loadAppParameters () {
         const offset = 0
         const max = 100
         Duration.apiGetAll(offset, max)
         Province.apiGetAll(offset, max)
         District.apiGetAll(offset, max)
-        // this.getAllInventoriesOfClinic()
         ClinicalServiceAttributeType.apiGetAll(offset, max)
         ClinicalService.apiGetAll(offset, max)
         ClinicSector.apiGetAll(offset, max)
@@ -175,9 +184,10 @@ export default {
         TherapeuticRegimen.apiGetAll(offset, max)
         TherapeuticLine.apiGetAll(offset, max)
         Form.apiGetAll(offset, max)
-       Doctor.apiFetchByClinicId(this.clinic.id)
+      //  Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll(offset, max)
-        Clinic.apiGetAll(offset, max)
+        this.getAllClinic()
+       // Clinic.apiGetAll(offset, max)
         InteroperabilityType.apiGetAll(offset, max)
         InteroperabilityAttribute.apiGetAll(offset, max)
         HealthInformationSystem.apiGetAll(offset, max)
@@ -191,13 +201,18 @@ export default {
        ClinicSectorType.apiGetAll(offset, max)
         PatientTransReferenceType.apiGetAll(offset, max)
         SpetialPrescriptionMotive.apiGetAll(offset, max)
-        ProvincialServer.apiGetAll()
-           Menu.apiGetAll()
+       ProvincialServer.apiGetAll().then(resp => {
+          console.log(resp)
+            this.hideLoading()
+        })
       },
       saveCurrClinic () {
-        Clinic.apiFetchById('e48afbe0-1280-11ed-861d-0242ac120002').then(resp => {
-          SessionStorage.set('currClinic', resp.response.data)
-        })
+         SessionStorage.set('currClinic', Clinic.query().where('mainClinic', true).first())
+      },
+      getAllClinic () {
+        const offset = 0
+        const max = 100
+        this.doClinicGet(offset, max)
       },
       getAllInventoriesOfClinic () {
         const offset = 0
@@ -211,8 +226,8 @@ export default {
       },
       getAllPatientsOfClinic () {
         const offset = 0
-        const max = 100
-        this.doPatientGet(this.clinic.id, offset, max)
+        const max = 400
+        this.doPatientGet(SessionStorage.getItem('currClinic').id, offset, max)
       },
       doInventoryGet (clinicId, offset, max) {
         Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -224,6 +239,16 @@ export default {
               console.log(error)
           })
       },
+    doClinicGet (offset, max) {
+          Clinic.apiGetAll(offset, max).then(resp => {
+                if (resp.response.data.length > 0) {
+                  offset = offset + max
+                  setTimeout(this.doClinicGet(offset, max), 2)
+                }
+            }).catch(error => {
+                console.log(error)
+            })
+            },
       doStockEntranceGet (clinicId, offset, max) {
         StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
               if (resp.response.data.length > 0) {
@@ -236,7 +261,7 @@ export default {
       },
       doPatientGet (clinicId, offset, max) {
         Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
+              if (resp.response.data.length > 0 && offset < 1800) {
                 offset = offset + max
                 setTimeout(this.doPatientGet(clinicId, offset, max), 2)
               }
@@ -246,47 +271,26 @@ export default {
       }
     },
     mounted () {
+     setTimeout(() => {
       this.loadAppParameters()
-     // this.getAllPatientsOfClinic()
+     }, 3000)
+     /* setTimeout(() => {
+      this.getAllPatientsOfClinic()
+     }, 4000) */
     },
     created () {
-      this.$q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall
-      // delay: 400 // ms
-    })
-
-    setTimeout(() => {
-      this.$q.loading.hide()
-     }, 600)
+      this.showloading()
       this.saveCurrClinic()
     },
     computed: {
-      /*
-      clinic: {
-        get () {
-          return Clinic.query()
-                    .with('province')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
-        }
-      } */
-      /*
-      clinic: {
-        get () {
-          return new Clinic(SessionStorage.getItem('currClinic'))
-        }
-      } */
-      // clinic: {
-      //   get () {
-      //     return new Clinic(SessionStorage.getItem('currClinic'))
-      //   }
-      // }
-      /*
       clinic () {
-        return new Clinic(SessionStorage.getItem('currClinic'))
-      } */
+        return Clinic.query()
+                   .with('province')
+                   .with('facilityType')
+                   .with('district.province')
+                   .where('id', SessionStorage.getItem('currClinic').id)
+                   .first()
+      }
     }
 }
 </script>
