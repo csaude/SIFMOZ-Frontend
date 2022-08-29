@@ -7,12 +7,19 @@
     <PatientPanel
       :selectedPatient="currPatient"
       v-if="isPatientDetails" />
+         <q-dialog v-model="alert.visible">
+          <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="commitOperation">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+        </q-dialog>
   </div>
 </template>
 
 <script>
 // import { LocalStorage } from 'quasar'
-import { SessionStorage } from 'quasar'
+import { LocalStorage, SessionStorage } from 'quasar'
+import { ref } from 'vue'
 import Patient from '../../store/models/patient/Patient'
 import Clinic from '../../store/models/clinic/Clinic'
 export default {
@@ -20,7 +27,12 @@ export default {
       return {
         isSearch: true,
         isPatientDetails: false,
-        currPatient: new Patient()
+        currPatient: new Patient(),
+        alert: ref({
+                type: '',
+                visible: false,
+                msg: ''
+              })
       }
     },
     methods: {
@@ -39,14 +51,33 @@ export default {
               console.log(error)
           })
       },
+        displayAlert (type, msg) {
+        this.alert.type = type
+        this.alert.msg = msg
+        this.alert.visible = true
+      },
+      closeDialog () {
+        this.alert.visible = false
+        this.$router.push({ path: '/' })
+        if (this.alert.type === 'info') {
+          this.$emit('close')
+        }
+      },
       getAllPatientsOfClinic () {
         const offset = 0
         const max = 100
         this.doPatientGet(this.clinic.id, offset, max)
+      },
+      getRolesToMenu () {
+        const menus = LocalStorage.getItem('role_menus')
+        if (!menus.includes('Pacientes')) {
+               this.displayAlert('error', 'O seu Perfil Nao tem o previlegio desta Funcionalidade')
+        }
       }
     },
     mounted () {
       // this.getAllPatientsOfClinic()
+      this.getRolesToMenu()
     },
     computed: {
       clinic: {
@@ -63,7 +94,8 @@ export default {
       */
     },
     components: {
-        search: require('components/Patient/Search.vue').default
+        search: require('components/Patient/Search.vue').default,
+        Dialog: require('components/Shared/Dialog/Dialog.vue').default
     }
 }
 </script>

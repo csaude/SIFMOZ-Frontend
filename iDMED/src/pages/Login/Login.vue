@@ -30,7 +30,7 @@
               </div>
             </q-card-section>
             <q-card-section align="center">
-              <q-form class="q-gutter-md" @submit.prevent="processForm" v-if="configs !== null">
+              <q-form class="q-gutter-md" @submit.prevent="authUser" v-if="configs !== null">
             <div class="q-pa-sm text-center justify-center" style="max-width: 50%">
             <div class="row q-mb-sm">
                 <q-input
@@ -38,7 +38,7 @@
                     ref="user"
                     v-model="username"
                     type="text"
-                    :rules="[ val => val.length >= 4 || 'O nome do utilizador deve ter um minimo de 4 caracteres']"
+                    :rules="[ val => val.length >= 3 || 'O nome do utilizador deve ter um minimo de 4 caracteres']"
                     lazy-rules
                     label="Utilizador" >
                     <template v-slot:append>
@@ -168,7 +168,7 @@ import District from '../../store/models/district/District'
 import Clinic from 'src/store/models/clinic/Clinic'
 import { ref } from 'vue'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
-// import UsersService from '../../services/UsersService'
+import UsersService from '../../services/UsersService'
 export default ({
   data () {
      const $q = useQuasar()
@@ -374,8 +374,7 @@ export default ({
             }
           }
           })
-      }
-      /*
+      },
        authUser () {
             console.log({ username: this.username, password: this.password })
             this.$refs.user.validate()
@@ -394,6 +393,7 @@ export default ({
                          localStorage.setItem('user', this.username)
                           localStorage.setItem('hisUser', this.username)
                        localStorage.setItem('hisPass', this.password)
+                        localStorage.setItem('role_menus', response.response.data.menus)
                         this.$router.push({ path: '/' })
                 }).catch(error => {
                     console.log(error)
@@ -412,7 +412,6 @@ export default ({
                 })
             }
         }
-        */
   }
 })
 </script>
