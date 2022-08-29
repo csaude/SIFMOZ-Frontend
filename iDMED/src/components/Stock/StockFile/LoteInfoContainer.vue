@@ -235,6 +235,7 @@ export default {
       if (this.isLossAdjustment) {
           destruction = new DestroyedStock({
             notes: this.curEvent.moviment,
+            date: new Date(this.curEvent.eventDate),
             clinic: this.currClinic
           })
         adjustment = new StockDestructionAdjustment({

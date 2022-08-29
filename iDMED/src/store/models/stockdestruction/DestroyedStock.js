@@ -9,6 +9,7 @@ export default class DestroyedStock extends Model {
         return {
             id: this.attr(null),
             notes: this.attr(''),
+            date: this.attr(null),
             updateStatus: this.attr('P'),
             clinic_id: this.attr(''),
             // relationships
