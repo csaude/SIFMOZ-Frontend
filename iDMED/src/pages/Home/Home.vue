@@ -2,10 +2,10 @@
  <q-page class="flex flex-center">
   <div class="">
    <div class="row q-pa-xl q-gutter-xl">
-    <div class="col">
+    <div class="col" v-if="menusVisible('Pacientes')">
     <router-link :to="`/patients`">
-        <q-btn round>
-          <q-avatar size="190px">
+        <q-btn round >
+          <q-avatar size="190px" >
             <img src="~assets/patientsButton.png">
           </q-avatar>
           <q-tooltip content-class="bg-pink-4 text-white shadow-4"
@@ -17,7 +17,7 @@
         </q-btn>
      </router-link>
     </div>
-    <div class="col">
+    <div class="col" v-if="menusVisible('Grupos')">
     <router-link :to="`/group/search`">
         <q-btn round>
           <q-avatar size="190px">
@@ -32,7 +32,7 @@
         </q-btn>
      </router-link>
     </div>
-    <div class="col">
+    <div class="col" v-if="menusVisible('Stock')">
     <router-link :to="`/stock`">
         <q-btn round>
           <q-avatar size="190px">
@@ -50,7 +50,7 @@
    </div>
    <div class="row ">
    <div class="col col-sm-3"/>
-   <div class="col">
+   <div class="col" v-if="menusVisible('Dashboard')">
      <router-link :to="`/dashboard`">
         <q-btn round>
           <q-avatar size="190px">
@@ -65,7 +65,7 @@
         </q-btn>
      </router-link>
    </div>
-   <div class="col">
+   <div class="col" v-if="menusVisible('Relatorios')">
      <router-link :to="`/reports`">
         <q-btn round>
           <q-avatar size="190px">
@@ -80,7 +80,7 @@
         </q-btn>
      </router-link>
    </div>
-   <div class="col-2">
+   <div class="col-2" v-if="menusVisible('Administração')">
       <router-link :to="`/settings`">
         <q-btn round>
           <q-avatar size="190px">
@@ -106,13 +106,13 @@ import Clinic from '../../store/models/clinic/Clinic'
 import District from '../../store/models/district/District'
 import Province from '../../store/models/province/Province'
 import Patient from '../../store/models/patient/Patient'
-import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+ import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import ClinicSector from '../../store/models/clinicSector/ClinicSector'
 import IdentifierType from '../../store/models/identifierType/IdentifierType'
 import EpisodeType from '../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../store/models/startStopReason/StartStopReason'
 import ClinicalServiceAttributeType from '../../store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
-import ClinicalServiceAttribute from '../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+ import ClinicalServiceAttribute from '../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import Drug from '../../store/models/drug/Drug'
 import TherapeuticRegimen from '../../store/models/therapeuticRegimen/TherapeuticRegimen'
 import TherapeuticLine from '../../store/models/therapeuticLine/TherapeuticLine'
@@ -139,11 +139,21 @@ import ProvincialServer from '../../store/models/provincialServer/ProvincialServ
 export default {
   data () {
     return {
-      $q: useQuasar()
+       $q: useQuasar()
     }
   },
+    components: {
+    },
     methods: {
-      showloading () {
+       menusVisible (name) {
+        const menus = localStorage.getItem('role_menus')
+        if (!menus.includes(name)) {
+               return false
+        } else {
+          return true
+        }
+      },
+            showloading () {
       console.log('loaging')
        this.$q.loading.show({
           spinner: QSpinnerBall,
@@ -174,6 +184,7 @@ export default {
         TherapeuticRegimen.apiGetAll(offset, max)
         TherapeuticLine.apiGetAll(offset, max)
         Form.apiGetAll(offset, max)
+      //  Doctor.apiFetchByClinicId(this.clinic.id)
         DispenseType.apiGetAll(offset, max)
         this.getAllClinic()
        // Clinic.apiGetAll(offset, max)
@@ -187,21 +198,16 @@ export default {
         ReferedStockMoviment.apiGetAll(offset, max)
         DestroyedStock.apiGetAll(offset, max)
         FacilityType.apiGetAll(offset, max)
-        ClinicSectorType.apiGetAll(offset, max)
+       ClinicSectorType.apiGetAll(offset, max)
         PatientTransReferenceType.apiGetAll(offset, max)
         SpetialPrescriptionMotive.apiGetAll(offset, max)
-        ProvincialServer.apiGetAll().then(resp => {
+       ProvincialServer.apiGetAll().then(resp => {
           console.log(resp)
             this.hideLoading()
         })
       },
       saveCurrClinic () {
-        // Clinic.apiGetAll(0, 200).then(resp => {
-        //   const mainClinic = resp.response.data.filter(clinic => {
-        //     return clinic.mainClinic
-        //   })
-        SessionStorage.set('currClinic', Clinic.query().where('mainClinic', true).first())
-        // })
+         SessionStorage.set('currClinic', Clinic.query().where('mainClinic', true).first())
       },
       getAllClinic () {
         const offset = 0
@@ -265,7 +271,7 @@ export default {
       }
     },
     mounted () {
-      setTimeout(() => {
+     setTimeout(() => {
       this.loadAppParameters()
      }, 3000)
      /* setTimeout(() => {

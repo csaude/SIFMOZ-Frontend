@@ -18,12 +18,12 @@
                       align="justify"
                       narrow-indicator>
                         <q-route-tab exact default :to="'/home'" name="home" icon="home" label="Inicial" />
-                        <q-route-tab exact :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
-                        <q-route-tab exact :to="'/group/search'" name="groups" icon="groups" label="Grupos" />
-                        <q-route-tab exact :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
-                        <q-route-tab exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
-                        <q-route-tab exact :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />
-                        <q-route-tab exact :to="'/settings'" name="settings" icon="settings" label="Administração" />
+                        <q-route-tab v-if="menusVisible('Pacientes')" exact :to="'/patients'" name="patients" icon="person_outline" label="Pacientes/Utentes" />
+                        <q-route-tab v-if="menusVisible('Grupos')" exact :to="'/group/search'" name="groups" icon="groups" label="Grupos" />
+                        <q-route-tab v-if="menusVisible('Stock')" exact :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
+                        <q-route-tab v-if="menusVisible('Dashboard')" exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
+                        <q-route-tab v-if="menusVisible('Relatorios')" exact :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />
+                        <q-route-tab  v-if="menusVisible('Administração')" exact :to="'/settings'" name="settings" icon="settings" label="Administração" />
                         <q-route-tab v-if="activateMigration" exact :to="'/migration'" name="migration" icon="branding_watermark" label="Migração" />
                     </q-tabs>
               <q-btn-dropdown unelevated v-model="userInfoOpen" no-caps @click="onMainClick">
@@ -113,11 +113,14 @@ export default defineComponent({
       onMainClick: '',
       onItemClick: '',
       username: localStorage.getItem('hisUser'),
-      tab: ref('home')
+      tab: ref('home'),
+     // menusVisible: true,
+      menusArray: ['Tela Inicial', 'Pacientes', 'Grupos', 'Stock', 'Dashboard', 'Administracao', 'Migracao']
     }
   },
   mounted () {
     SystemConfigs.apiGetAll()
+   // this.getRolesToMenu()
   },
   computed: {
     activateMigration () {
@@ -128,6 +131,16 @@ export default defineComponent({
       return SystemConfigs.query().where('key', 'ACTIVATE_DATA_MIGRATION').first()
     }
   },
-  components: { }
+  components: { },
+  methods: {
+     menusVisible (name) {
+        const menus = localStorage.getItem('role_menus')
+        if (!menus.includes(name)) {
+               return false
+        } else {
+          return true
+        }
+      }
+  }
 })
 </script>
