@@ -18,7 +18,7 @@
 
 <script>
 // import { LocalStorage } from 'quasar'
-import { LocalStorage, SessionStorage } from 'quasar'
+import { SessionStorage } from 'quasar'
 import { ref } from 'vue'
 import Patient from '../../store/models/patient/Patient'
 import Clinic from '../../store/models/clinic/Clinic'
@@ -67,17 +67,10 @@ export default {
         const offset = 0
         const max = 100
         this.doPatientGet(this.clinic.id, offset, max)
-      },
-      getRolesToMenu () {
-        const menus = LocalStorage.getItem('role_menus')
-        if (!menus.includes('Pacientes')) {
-               this.displayAlert('error', 'O seu Perfil Nao tem o previlegio desta Funcionalidade')
-        }
       }
     },
     mounted () {
       // this.getAllPatientsOfClinic()
-      this.getRolesToMenu()
     },
     computed: {
       clinic: {
