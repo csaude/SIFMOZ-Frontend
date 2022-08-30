@@ -19,6 +19,6 @@ export default class District extends Model {
   }
 
   static async apiGetAll (offset, max) {
-    return await this.api().get('/district?offset=' + offset + '&max=' + max)
+    return await this.api().get('/district')
   }
 }

@@ -74,7 +74,14 @@ import SpetialPrescriptionMotive from './models/prescription/SpetialPrescription
 import MigrationStage from './models/Migration/MigrationStage'
 import ProvincialServer from './models/provincialServer/ProvincialServer'
 import SystemConfigs from './models/systemConfigs/SystemConfigs'
-
+import UserLogin from './models/userLogin/User'
+import Role from './models/userLogin/Role'
+import Menu from './models/userLogin/Menu'
+import RoleMenu from './models/userLogin/RoleMenu'
+import UserRole from './models/userLogin/UserRole'
+import UserClinic from './models/userLogin/UserClinic'
+import UserClinicSector from './models/userLogin/UserClinicSector'
+import SecUserRole from './models/userLogin/SecUserRole'
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -82,10 +89,58 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://localhost:8884/'
-  // baseURL: 'http://10.10.2.199:8884/'
+  baseURL: 'http://localhost:8884/api'
+    // baseURL: 'http://10.10.2.199:8884/'
 })
 
+// Request interceptor for API calls
+axios.interceptors.request.use(
+  async config => {
+    config.headers = {
+      Accept: 'application/json'
+    }
+    if (config.url === '/province' || config.url === '/district' || config.url.includes('/clinic/district') || config.url === '/systemConfigs') {
+      delete config.headers.Authorization
+    } else if (localStorage.getItem('id_token') != null) {
+      config.headers['X-Auth-Token'] = [
+        '', localStorage.getItem('id_token')
+      ].join(' ')
+    } else {
+       console.log('>>VFF2 ' + JSON.parse(localStorage.getItem('id_token')) + '------------' + JSON.stringify(localStorage))
+        delete config.headers.Authorization // ["Authorization"]
+    }
+    return config
+  },
+  error => {
+    Promise.reject(error)
+  })
+
+  // Response interceptor for API calls
+   axios.interceptors.response.use((response) => {
+    return response
+  }, async function (error) {
+    const originalRequest = error.config
+    // const rToken = localStorage.getItem('id_token')
+     const rToken = localStorage.getItem('refresh_token')
+  if (rToken != null && rToken.length > 10) {
+    if ((error.response.status === 403 || error.response.status === 401) && !originalRequest._retry) {
+          originalRequest._retry = true
+      console.log('http://localhost:8884/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+      return axios.post('http://localhost:8884/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+        .then(({ data }) => {
+          console.log('==got the following token back: ' + data.access_token + '___________________________________________')
+          localStorage.setItem('id_token', data.access_token)
+          localStorage.setItem('refresh_token', data.access_token)
+        //  axios.defaults.headers.common['X-Auth-Token'] = data.access_token
+        originalRequest.headers['X-Auth-Token'] = [
+          '', localStorage.getItem('id_token')
+        ].join(' ')
+      return axios(originalRequest)
+        })
+    }
+  }
+    return Promise.reject(error)
+  })
 // VuexORM.use(datePlugin)
 
 const database = new VuexORM.Database()
@@ -162,6 +217,14 @@ database.register(SpetialPrescriptionMotive)
 database.register(MigrationStage)
 database.register(ProvincialServer)
 database.register(SystemConfigs)
+database.register(UserLogin)
+database.register(Role)
+database.register(Menu)
+database.register(RoleMenu)
+database.register(UserRole)
+database.register(UserClinic)
+database.register(UserClinicSector)
+database.register(SecUserRole)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

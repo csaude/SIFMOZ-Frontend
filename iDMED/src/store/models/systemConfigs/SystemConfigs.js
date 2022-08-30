@@ -16,10 +16,6 @@ export default class SystemConfigs extends Model {
     return await this.api().get(`/systemConfigs/${id}`)
   }
 
-  static async apiFetchByKey (key) {
-    return await this.api().get(`/systemConfigs/${key}`)
-  }
-
   static async apiGetAll () {
     return await this.api().get('/systemConfigs')
   }
