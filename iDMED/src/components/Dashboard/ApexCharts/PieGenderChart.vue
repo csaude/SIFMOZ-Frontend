@@ -1,31 +1,43 @@
 <template>
-  <div>
-    <apexchart
-  style="max-width: 100%; "
-  type="donut"
-  :options="chartOptions"
-  :series="series"
-></apexchart>
+  <div class="relative-position">
+  <div
+      v-if="loaded">
+      <apexchart
+      style="max-width: 100%; "
+      type="donut"
+      :options="chartOptions"
+      :series="series"
+    ></apexchart>
+  </div>
+   <div v-if="!loaded" class="absolute-center">
+        <q-spinner-ball
+          color="primary"
+          size="xl"
+        />
+      </div>
   </div>
 </template>
 
 <script>
+import { SessionStorage } from 'quasar'
+import { ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
-import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
-// import moment from 'moment'
-// const series = []
-// const categories = []
+import Clinic from '../../../store/models/clinic/Clinic'
+import Report from 'src/store/models/report/Report'
 
 export default {
-  props: ['serviceCode'],
+  props: ['serviceCode', 'year'],
   emits: ['update:serviceCode'],
       Nmap: new Map(),
       Nmap1: new Map(),
      components: {
     apexchart: VueApexCharts
   },
-  data: function () {
+  data () {
+    const loading = ref(false)
     return {
+      loading,
+      series: [],
        chartOptions: {
         labels: ['Masculino', 'Feminino'],
         colors: ['#0096FF', '#FF1493'],
@@ -81,85 +93,52 @@ export default {
     }
   },
   methods: {
-      getTotalActives () {
-          const activesTotal = []
-          activesTotal.push(this.patientAdultsMale.length)
-          activesTotal.push(this.patientFeminineTarv.length)
-          return activesTotal
+      getActivePatientPercentage () {
+        this.loading = true
+          Report.apiGetActivePatientPercentage(this.year, this.clinic.id, this.serviceCode).then(resp => {
+            console.log(resp.response.data)
+            if (resp.response.data.length > 0) {
+              this.series[0] = resp.response.data[1].quantity
+              this.series[1] = resp.response.data[0].quantity
+            } else {
+              this.series[0] = 0
+              this.series[1] = 0
+            }
+            this.loading = false
+          })
   }
   },
   computed: {
-         patientAdultsMale () {
-         return PatientServiceIdentifier.query()
-                           .with('identifierType')
-                            .with('service')
-                             .where((patientServiceIdentifier) => {
-                                 return patientServiceIdentifier.endDate === null
-                              })
-                             .whereHas('service', (query) => {
-                              query.where((service) => {
-                                 return service.code === this.serviceCode
-                              })
-                              })
-                              .whereHas('patient', (query) => {
-                              query.where((patient) => {
-                                   return patient.gender === 'Masculino'
-                              })
-                              })
-                               .whereHas('episodes', (query) => {
-                              query.where((episodes) => {
-                                   return episodes.notes === 'Inicio ao tratamento'
-                              })
-                              }).get()
-         },
-          patientFeminineTarv () {
-         return PatientServiceIdentifier.query()
-                           .with('identifierType')
-                            .with('service')
-                             .where((patientServiceIdentifier) => {
-                                 return patientServiceIdentifier.endDate === null
-                              })
-                             .whereHas('service', (query) => {
-                              query.where((service) => {
-                                 return service.code === this.serviceCode
-                              })
-                              })
-                                .whereHas('patient', (query) => {
-                              query.where((patient) => {
-                                   return patient.gender === 'Feminino'
-                              })
-                              })
-                               .whereHas('episodes', (query) => {
-                              query.where((episodes) => {
-                                   return episodes.notes === 'Inicio ao tratamento'
-                              })
-                              }).get()
-         },
-       series () {
-      //   var series = [11, 32, 45, 32]
-       const series = this.getTotalActives()
-        return series
+    clinic () {
+      return Clinic.query()
+                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .first()
+    },
+    loaded () {
+      return !this.loading
     }
   },
-    created () {
-    },
-      watch: {
+  created () {
+    this.getActivePatientPercentage()
+  },
+  watch: {
    serviceCode: function (newVal, oldVal) {
-          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-     this.chartOptions = {
+      this.getActivePatientPercentage()
+      this.chartOptions = {
             ...this.chartOptions,
             ...{
-         title: {
-          text: 'Percentual de Pacientes activos no Serviço ' + this.serviceCode,
-          align: 'center',
-          style: {
-            color: '#000000'
+          title: {
+            text: 'Percentual de Pacientes activos no Serviço ' + this.serviceCode,
+            align: 'center',
+            style: {
+              color: '#000000'
+            }
           }
-          }
- }
- }
         }
-     }
+      }
+    },
+    year: function (newVal, oldVal) { this.getActivePatientPercentage() }
+  }
 }
 
 </script>

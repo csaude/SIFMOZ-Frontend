@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="relative-position">
   <apexchart
     style="max-width: 100%; "
     height="500"
@@ -7,19 +7,24 @@
     :options="chartOptions"
     :series="series"
 ></apexchart>
+<div v-if="!loaded" class="absolute-center">
+        <q-spinner-ball
+          color="primary"
+          size="xl"
+        />
+      </div>
 </div>
 </template>
 
 <script>
  import VueApexCharts from 'vue3-apexcharts'
- import Episode from '../../../store/models/episode/Episode'
-import moment from 'moment'
-import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
-// import moment from 'moment'
-// import { QSpinnerBall } from 'quasar'
+ import { ref } from 'vue'
+import Clinic from '../../../store/models/clinic/Clinic'
+import Report from 'src/store/models/report/Report'
+import { SessionStorage } from 'quasar'
 const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 export default {
-   props: ['serviceCode', 'dataLoaded'],
+   props: ['serviceCode', 'year'],
      emits: ['update:serviceCode'],
       Nmap: new Map(),
       NmapChild: new Map(),
@@ -28,7 +33,9 @@ export default {
     apexchart: VueApexCharts
   },
   data: function () {
+    const loading = ref(false)
     return {
+      loading,
       chartOptions: { // ApexCharts options
         chart: {
           id: 'vue-chart-line'
@@ -79,178 +86,49 @@ tooltip: {
       }
   },
   methods: {
-       idadeCalculator (birthDate) {
-            if (moment(birthDate).isValid()) {
-               const utentBirthDate = moment(birthDate)
-               const todayDate = moment(new Date())
-               const idade = todayDate.diff(utentBirthDate, 'years')
-               console.log(idade)
-               return idade
+     getPatientsFirstDispenseByAge () {
+      this.loading = true
+      const fm = { name: 'Criancas', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+      const ms = { name: 'Adultos', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+
+      Report.apiGetPatientsFirstDispenseByAge(this.year, this.clinic.id, this.serviceCode).then(resp => {
+        console.log(resp.response.data)
+        for (let i = 1; i <= 12; i++) {
+          resp.response.data.forEach((item) => {
+            if (item.faixa === 'MENOR' && item.month === i) {
+              fm.data[i - 1] = item.quantity
+            } else if (item.faixa === 'ADULTO' && item.month === i) {
+              ms.data[i - 1] = item.quantity
             }
-        },
-          doEpisodeGet (clinicId, offset, max) {
-        Episode.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-              if (resp.response.data.length > 0) {
-                offset = offset + max
-                setTimeout(this.doEpisodeGet(clinicId, offset, max), 2)
-              }
-          }).catch(error => {
-              console.log(error)
           })
-      },
-        getAdultPatientsByMonth () {
-    const monthsPresent = []
-    const toDate = str => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'))
-    const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-   const map = this.patientAdultsTarv.reduce((a, b) => {
-  const m = toDate(b.startDate).getMonth()
-  console.log(m)
-  a[m] = (a[m] || 0) + 1
-  monthsPresent.push(month[+m])
-     return a
-}, {})
-  let result = Object.entries(map).map(([key, data]) => ({ data, key: month[+key] }))
-   const monthsNot = month.filter(item => !monthsPresent.includes(item))
-   for (const item of monthsNot) {
-     result.push(({ data: 0, key: item }))
-   }
-  result = result.sort(function (a, b) {
-  // sort based on the value in the monthNames object
-  console.log(+moment(a.key, 'MMM') - moment(b.key, 'MMM'))
-  return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
-})
-  return result
-  },
-    getChildPatientsByMonth () {
-    const monthsPresent = []
-    const toDate = str => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'))
-    const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-   const map = this.patientChildsTarv.reduce((a, b) => {
-  const m = toDate(b.startDate).getMonth()
-  console.log(m)
-  a[m] = (a[m] || 0) + 1
-  monthsPresent.push(month[+m])
-     return a
-}, {})
-  let result = Object.entries(map).map(([key, data]) => ({ data, key: month[+key] }))
-   const monthsNot = month.filter(item => !monthsPresent.includes(item))
-   for (const item of monthsNot) {
-     result.push(({ data: 0, key: item }))
-   }
-  result = result.sort(function (a, b) {
-  // sort based on the value in the monthNames object
-  console.log(+moment(a.key, 'MMM') - moment(b.key, 'MMM'))
-  return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
-})
-  return result
-  },
-    updateChart () {
-        this.chartOptions = {
-            ...this.chartOptions,
-            ...{
-         title: {
-          text: 'Total de Pacientes no Serviço ' + this.serviceCode + ' que iniciaram o levantamento',
-          align: 'center',
-          style: {
-            color: '#000000'
-          }
-          }
- }
- }
-     const mapIter = this.Nmap.values()
-         const arrDone = []
-       for (const item of mapIter) {
-         arrDone.push(item.data)
-         }
-          const mapIter2 = this.NmapChild.values()
-         const arrConfirmed = []
-       for (const item of mapIter2) {
-         arrConfirmed.push(item.data)
-         }
-    this.series = [
-      {
-        name: 'Adultos',
-        data: [...arrDone]
-      },
-      {
-        name: 'Criancas',
-        data: [...arrConfirmed]
-      }
-    ]
+        }
+        this.series = []
+        this.series[0] = fm
+        this.series[1] = ms
+        this.loading = false
+      })
     }
   },
    watch: {
    serviceCode: function (newVal, oldVal) {
-          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-          this.Nmap = this.getAdultPatientsByMonth()
-        this.NmapChild = this.getChildPatientsByMonth()
-        this.updateChart()
+     this.getPatientsFirstDispenseByAge()
         },
-    dataLoaded: function (newVal, oldVal) {
-          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-          this.Nmap = this.getAdultPatientsByMonth()
-        this.NmapChild = this.getChildPatientsByMonth()
-        this.updateChart()
+    year: function (newVal, oldVal) {
+      this.getPatientsFirstDispenseByAge()
         }
         },
   computed: {
-         patientAdultsTarv () {
-         return PatientServiceIdentifier.query()
-                           .with('identifierType')
-                            .with('service')
-                             .whereHas('service', (query) => {
-                              query.where((service) => {
-                                 return service.code === this.serviceCode
-                              })
-                              })
-                              .whereHas('patient', (query) => {
-                              query.where((patient) => {
-                                   return this.idadeCalculator(patient.dateOfBirth) > 15
-                              })
-                              })
-                               .whereHas('episodes', (query) => {
-                              query.where((episodes) => {
-                                  console.log(episodes)
-                                   return episodes.notes === 'Inicio ao tratamento'
-                              })
-                              }).get()
-         },
-          patientChildsTarv () {
-         return PatientServiceIdentifier.query()
-                           .with('identifierType')
-                            .with('service')
-                             .whereHas('service', (query) => {
-                              query.where((service) => {
-                                 return service.code === this.serviceCode
-                              })
-                              })
-                              .whereHas('patient', (query) => {
-                              query.where((patient) => {
-                                   return this.idadeCalculator(patient.dateOfBirth) < 15
-                              })
-                              })
-                               .whereHas('episodes', (query) => {
-                              query.where((episodes) => {
-                                  console.log(episodes)
-                                   return episodes.notes === 'Inicio ao tratamento'
-                              })
-                              }).get()
-         }
+    clinic () {
+      return Clinic.query()
+                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .first()
+    },
+    loaded () {
+      return !this.loading
+    }
   },
     created () {
-   // this.Nmap1 = this.getAppointmentsDoneByMonth()
- //  this.doEpisodeGet('ff8081817c668dcc017c66dc3d330002', 0, 100)
- /*   this.$q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall
-      // delay: 400 // ms
-    })
-  //   this.Nmap = new Map()
- Episode.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002').then(resp => {
-       console.log(this.patientMensTarv)
-          this.$q.loading.hide()
-      }) */
+      this.getPatientsFirstDispenseByAge()
     }
 }
 

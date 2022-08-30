@@ -71,6 +71,38 @@ export default class Report extends Model {
       return this.api().get(`/migration/migrationStatusDetails/${stage}`)
     }
 
+    static apiGetRegisteredPatientByDispenseType (year, clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getRegisteredPatientByDispenseType/${year}/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetPatientsFirstDispenseByGender (year, clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getPatientsFirstDispenseByGender/${year}/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetPatientsFirstDispenseByAge (year, clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getPatientsFirstDispenseByAge/${year}/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetActivePatientPercentage (year, clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getActivePatientPercentage/${year}/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetDispenseByAge (year, clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getDispenseByAge/${year}/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetDispensesByGender (year, clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getDispensesByGender/${year}/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetStockAlert (clinicId, serviceCode) {
+      return this.api().get(`/dashBoard/getStockAlert/${clinicId}/${serviceCode}`)
+    }
+
+    static apiGetDashboardServiceButton (year, clinicId) {
+      return this.api().get(`/dashBoard/getDashboardServiceButton/${year}/${clinicId}`)
+    }
+
   static getFormatDDMMYYYY (date) {
     return moment(date).format('DD-MM-YYYY')
   }
