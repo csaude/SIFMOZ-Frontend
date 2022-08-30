@@ -203,6 +203,7 @@ export default {
         SpetialPrescriptionMotive.apiGetAll(offset, max)
        ProvincialServer.apiGetAll().then(resp => {
           console.log(resp)
+             this.saveCurrClinic()
             this.hideLoading()
         })
       },
@@ -280,7 +281,6 @@ export default {
     },
     created () {
       this.showloading()
-      this.saveCurrClinic()
     },
     computed: {
       clinic () {
