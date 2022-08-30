@@ -1,28 +1,32 @@
 <template>
-   <div>
+   <div class="relative-position">
     <apexchart
- style="max-width: 100%; "
-  height="500"
-  type="bar"
-  :options="chartOptions"
-  :series="series"
-></apexchart>
+    style="max-width: 100%; "
+      height="500"
+      type="bar"
+      :options="chartOptions"
+      :series="series"
+    ></apexchart>
+   <div v-if="!loaded" class="absolute-center">
+        <q-spinner-ball
+          color="primary"
+          size="xl"
+        />
+      </div>
    </div>
 </template>
 
 <script>
  import VueApexCharts from 'vue3-apexcharts'
- import moment from 'moment'
-import DispenseType from '../../../store/models/dispenseType/DispenseType'
- // import { QSpinnerBall } from 'quasar'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-// import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import { ref } from 'vue'
+ import { SessionStorage } from 'quasar'
+import Report from 'src/store/models/report/Report'
+import Clinic from '../../../store/models/clinic/Clinic'
 const monthsX = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEC']
 const toDateStr = str => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'))
 const monthsEng = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-const latestPrescriptions = []
 export default {
-      props: ['serviceCode'],
+      props: ['serviceCode', 'year'],
       mapDispenseMonthly: new Map(),
       mapDispenseQuarterly: new Map(),
       mapDispenseSemestraly: new Map(),
@@ -32,12 +36,13 @@ export default {
        monthsX,
        toDateStr,
        monthsEng,
-        components: {
-    apexchart: VueApexCharts
-  },
+      components: {
+        apexchart: VueApexCharts
+      },
   data: function () {
+    const loading = ref(false)
     return {
-      latestPrescriptions,
+      loading,
       chartOptions: { // ApexCharts options
         chart: {
           id: 'vue-chart-bar'
@@ -60,30 +65,30 @@ export default {
                 borderRadius: 10
               }
            },
-   stroke: {
-    show: true,
-    curve: 'smooth',
-    lineCap: 'butt',
-    colors: undefined,
-    width: 2,
-    dashArray: 0
-},
-fill: {
-          opacity: 2
+          stroke: {
+            show: true,
+            curve: 'smooth',
+            lineCap: 'butt',
+            colors: undefined,
+            width: 2,
+            dashArray: 0
         },
-         tooltip: {
-          y: {
-            formatter: function (val) {
-              return val
-            }
-          }
-         },
-      dataLabels: {
-          enabled: true
-        },
-         xaxis: {
-      categories: [...monthsX]
-      }
+        fill: {
+                  opacity: 2
+                },
+                tooltip: {
+                  y: {
+                    formatter: function (val) {
+                      return val
+                    }
+                  }
+                },
+              dataLabels: {
+                  enabled: true
+                },
+                xaxis: {
+              categories: [...monthsX]
+              }
       },
       series: [{
           name: 'series-1',
@@ -92,189 +97,55 @@ fill: {
       }
   },
   methods: {
-      getLastPrescriptionsMonthlyByMonth () {
-       const monthsPresent = []
-   const map = this.monthlyDispensePrescriptions.reduce((a, b) => {
-  const m = toDateStr(b.prescription.prescriptionDate).getMonth()
-  a[m] = (a[m] || 0) + 1
-  monthsPresent.push(monthsEng[+m])
-     return a
-}, {})
-   let result = Object.entries(map).map(([key, data]) => ({ data, key: monthsEng[+key] }))
-   const monthsNot = monthsEng.filter(item => !monthsPresent.includes(item))
-   for (const item of monthsNot) {
-     result.push(({ data: 0, key: item }))
-   }
-  result = result.sort(function (a, b) {
-  // sort based on the value in the monthNames object
-  return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
-})
-  return result
-  },
-    getLastPrescriptionsQuarterlyByMonth () {
-       const monthsPresent = []
-   const map = this.quarterlyDispensePrescriptions.reduce((a, b) => {
-  const m = toDateStr(b.prescription.prescriptionDate).getMonth()
-  a[m] = (a[m] || 0) + 1
-  monthsPresent.push(monthsEng[+m])
-     return a
-}, {})
-   let result = Object.entries(map).map(([key, data]) => ({ data, key: monthsEng[+key] }))
-   const monthsNot = monthsEng.filter(item => !monthsPresent.includes(item))
-   for (const item of monthsNot) {
-     result.push(({ data: 0, key: item }))
-   }
-  result = result.sort(function (a, b) {
-  // sort based on the value in the monthNames object
-  return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
-})
-  return result
-  },
-   getLastPrescriptionsSemestralByMonth () {
-       const monthsPresent = []
-   const map = this.semestralDispensePrescriptions.reduce((a, b) => {
-  const m = toDateStr(b.prescription.prescriptionDate).getMonth()
-  a[m] = (a[m] || 0) + 1
-  monthsPresent.push(monthsEng[+m])
-     return a
-}, {})
-   let result = Object.entries(map).map(([key, data]) => ({ data, key: monthsEng[+key] }))
-   const monthsNot = monthsEng.filter(item => !monthsPresent.includes(item))
-   for (const item of monthsNot) {
-     result.push(({ data: 0, key: item }))
-   }
-  result = result.sort(function (a, b) {
-  // sort based on the value in the monthNames object
-  return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
-})
-  return result
-  },
-   getDispenseTypeId (id) {
-      return DispenseType.find(id)
-  },
-       getLastPatientTarvPrescription () {
-          const patientVisitDetails = PatientVisitDetails.query()
-                            .with('patientVisit')
-                             .with('prescription')
-                            .with('prescription.prescriptionDetails')
-                             .with('prescription.prescriptionDetails.dispenseType')
-                            .with('patientVisit.patient')
-                            .with('episode.patientServiceIdentifier.service')
-                              .get()
-                     const patientVisitDetailsTarv = patientVisitDetails.filter((patientVisitDetail) => {
-                  return patientVisitDetail.episode.patientServiceIdentifier.service.code === this.serviceCode
-                })
-              patientVisitDetailsTarv.forEach(patientVisitDetail => {
-             //  let patient = patientVisitDetail.patientVisit.patient
-                if (this.latestPrescriptions.length === 0) {
-                  this.latestPrescriptions.push(patientVisitDetail)
-                } else {
-               const visit = this.latestPrescriptions.filter(x => x.patientVisit.patient.id === patientVisitDetail.patientVisit.patient.id)
-                if (visit.length > 0) {
-                  const index = this.latestPrescriptions.map(x => {
-                              return x.Id
-                                 }).indexOf(visit[0].id)
-                      const prescriptionDate = visit[0].prescription.prescriptionDate
-                     // console.log(visit.prescription.prescriptionDate)
-                   if (moment(prescriptionDate).isBefore(patientVisitDetail.prescription.prescriptionDate)) {
-                        this.latestPrescriptions.splice(index, 1)
-                         this.latestPrescriptions.push(patientVisitDetail)
-                   }
-                } else {
-                     this.latestPrescriptions.push(patientVisitDetail)
-                }
-             }
-              })
-              if (patientVisitDetailsTarv.length === 0) {
-                this.latestPrescriptions = []
-              }
-         return this.latestPrescriptions
-          },
-          updateChart () {
-             const arrPending = []
-             const arrDone = []
-             const arrConfirmed = []
-         if (this.mapDispenseMonthly !== undefined) {
-       const mapIter = this.mapDispenseMonthly.values()
-       for (const item of mapIter) {
-         arrPending.push(item.data)
-         }
-         }
-           if (this.mapDispenseQuarterly !== undefined) {
-           const mapIter1 = this.mapDispenseQuarterly.values()
-       for (const item of mapIter1) {
-         arrDone.push(item.data)
-         }
-           }
-   if (this.mapDispenseSemestraly !== undefined) {
-           const mapIter2 = this.mapDispenseSemestraly.values()
-       for (const item of mapIter2) {
-         arrConfirmed.push(item.data)
-         }
-   }
-    this.series = [
-       {
-        name: 'Dispensa Mensal',
-        data: [...arrPending]
-      },
-      {
-        name: 'Dispensa Trimestral',
-        data: [...arrDone]
-      },
-       {
-        name: 'Dispensa Semestral',
-        data: [...arrConfirmed]
-      }
-    ]
-          }
+    getRegisteredPatientByDispenseType () {
+      this.loading = true
+      const dms = { name: 'Dispensa Mensal', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+      const dts = { name: 'Dispensa Trimestral', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+      const dss = { name: 'Dispensa Semestral', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+
+      console.log(this.year)
+      console.log(this.serviceCode)
+
+      Report.apiGetRegisteredPatientByDispenseType(this.year, this.clinic.id, this.serviceCode).then(resp => {
+        console.log(resp.response.data)
+        for (let i = 1; i <= 12; i++) {
+          resp.response.data.forEach((item) => {
+            if (item.dispense_type === 'DM' && item.month === i) {
+              dms.data[i - 1] = item.quantity
+            } else if (item.dispense_type === 'DT' && item.month === i) {
+              dts.data[i - 1] = item.quantity
+            } else if (item.dispense_type === 'DS' && item.month === i) {
+              dss.data[i - 1] = item.quantity
+            }
+          })
+        }
+        this.series = []
+        this.series[0] = dms
+        this.series[1] = dts
+        this.series[2] = dss
+        this.loading = false
+      })
+    },
+    reload () {
+      this.getRegisteredPatientByDispenseType()
+    }
   },
   computed: {
-         monthlyDispensePrescriptions () {
-        return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DM'
-                })
-      },
-       quarterlyDispensePrescriptions () {
-          return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DT'
-                })
-      },
-       semestralDispensePrescriptions () {
-         return this.latestPrescriptions.filter((latestVisitDetails) => {
-                  return latestVisitDetails.prescription.prescriptionDetails[0].dispenseType.code === 'DS'
-                })
-      }
+      clinic () {
+      return Clinic.query()
+                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .first()
+    },
+    loaded () {
+      return !this.loading
+    }
   },
     created () {
-    /*  this.$q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall
-      // delay: 400 // ms
-    }) */
-    // this.loadData()
-     this.getLastPatientTarvPrescription()
-      console.log(this.allDispensePrescriptions)
-   //    console.log(this.quarterlyDispensePrescriptions)
-        this.mapDispenseMonthly = this.getLastPrescriptionsMonthlyByMonth()
-    this.mapDispenseQuarterly = this.getLastPrescriptionsQuarterlyByMonth()
-    this.mapDispenseSemestraly = this.getLastPrescriptionsSemestralByMonth()
-    this.updateChart()
-    },
-     mounted () {
-  //    this.updateChart()
+      this.getRegisteredPatientByDispenseType()
     },
      watch: {
-   serviceCode: function (newVal, oldVal) {
-          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-            this.getLastPatientTarvPrescription()
-      console.log(this.allDispensePrescriptions)
-   //    console.log(this.quarterlyDispensePrescriptions)
-        this.mapDispenseMonthly = this.getLastPrescriptionsMonthlyByMonth()
-    this.mapDispenseQuarterly = this.getLastPrescriptionsQuarterlyByMonth()
-    this.mapDispenseSemestraly = this.getLastPrescriptionsSemestralByMonth()
-        this.updateChart()
-        }
-        }
+      serviceCode: function (newVal, oldVal) { this.reload() },
+      year: function (newVal, oldVal) { this.reload() }
+    }
 }
 </script>

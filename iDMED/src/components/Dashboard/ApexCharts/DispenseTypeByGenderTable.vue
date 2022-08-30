@@ -6,18 +6,18 @@
           :rows="rows"
           :columns="columnsGender"
            class="my-sticky-header-table text-color-white"
-            title="Total de dispensa por Idade no Serviço"
+            title="Total de dispensa por Genero no Serviço"
            hide-bottom>
         <template v-slot:body="props">
             <q-tr :props="props">
             <q-td key="dispenseType" :props="props">
                 {{ props.row.dispenseType }}
             </q-td>
-            <q-td key="adulto" :props="props">
-                {{ props.row.adulto }}
+            <q-td key="masculino" :props="props">
+                {{ props.row.masculino }}
             </q-td>
-              <q-td key="menor" :props="props">
-                {{ props.row.menor }}
+              <q-td key="femenino" :props="props">
+                {{ props.row.femenino }}
             </q-td>
             </q-tr>
         </template>
@@ -26,14 +26,14 @@
     </div>
 </template>
 <script>
+import Clinic from '../../../store/models/clinic/Clinic'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
-import Clinic from '../../../store/models/clinic/Clinic'
 
 const columnsGender = [
   { name: 'dispenseType', required: true, label: 'Tipo de Dispensa', align: 'left', field: row => row.dispenseType, format: val => `${val}` },
-  { name: 'adulto', required: true, label: 'Adulto', align: 'left', field: row => row.adulto, format: val => `${val}` },
-   { name: 'menor', required: true, label: 'Criança', align: 'left', field: row => row.menor, format: val => `${val}` }
+  { name: 'masculino', required: true, label: 'Masculino', align: 'left', field: row => row.masculino, format: val => `${val}` },
+   { name: 'femenino', required: true, label: 'Feminino', align: 'left', field: row => row.femenino, format: val => `${val}` }
 ]
 
 export default {
@@ -45,8 +45,8 @@ export default {
     }
   },
   methods: {
-    getDispenseByAge () {
-      Report.apiGetDispenseByAge(this.year, this.clinic.id, this.serviceCode).then(resp => {
+    getDispensesByGender () {
+      Report.apiGetDispensesByGender(this.year, this.clinic.id, this.serviceCode).then(resp => {
         this.rowData = resp.response.data
       })
     }
@@ -62,14 +62,14 @@ export default {
     }
   },
     created () {
-      this.getDispenseByAge()
+      this.getDispensesByGender()
     },
     watch: {
-      serviceCode: function (newVal, oldVal) {
-          this.getDispenseByAge()
+   serviceCode: function (newVal, oldVal) {
+          this.getDispensesByGender()
       },
       year: function (newVal, oldVal) {
-        this.getDispenseByAge()
+        this.getDispensesByGender()
       }
   }
 }
