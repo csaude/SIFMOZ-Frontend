@@ -82,6 +82,7 @@ import UserRole from './models/userLogin/UserRole'
 import UserClinic from './models/userLogin/UserClinic'
 import UserClinicSector from './models/userLogin/UserClinicSector'
 import SecUserRole from './models/userLogin/SecUserRole'
+
 // Vue.use(Vuex)
 
 VuexORM.use(VuexORMAxios, {
@@ -92,7 +93,7 @@ VuexORM.use(VuexORMAxios, {
   baseURL: 'http://localhost:8884/api'
     // baseURL: 'http://10.10.2.199:8884/'
 })
-
+let numTries = 0
 // Request interceptor for API calls
 axios.interceptors.request.use(
   async config => {
@@ -126,6 +127,15 @@ axios.interceptors.request.use(
     if ((error.response.status === 403 || error.response.status === 401) && !originalRequest._retry) {
           originalRequest._retry = true
       console.log('http://localhost:8884/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+      numTries++
+      if (numTries > 5) {
+        localStorage.removeItem('authUser')
+        localStorage.removeItem('user')
+        localStorage.removeItem('username')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('password')
+        window.location.reload()
+      }
       return axios.post('http://localhost:8884/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
         .then(({ data }) => {
           console.log('==got the following token back: ' + data.access_token + '___________________________________________')
