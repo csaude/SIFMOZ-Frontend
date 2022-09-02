@@ -101,7 +101,7 @@ export default {
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').with('stocks').where('active', true).get()
+        drugs = Drug.query().with('form').with('stocks').with('clinicalService.identifierType').where('active', true).get()
       }
       const validDrugs = drugs.filter((drug) => {
         return drug.active === true && drug.hasStock()

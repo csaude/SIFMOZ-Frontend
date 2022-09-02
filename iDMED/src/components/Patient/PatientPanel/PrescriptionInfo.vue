@@ -69,11 +69,13 @@ export default {
             console.log(resp.response.data)
             this.identifiers.episodes = resp.response.data
             this.identifiers.episodes.forEach(episode => {
-              PatientVisitDetails.apiGetAllByEpisodeId(episode.id).then(resp => {
+              PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
                 console.log(resp.response.data)
-                episode.patientVisitDetails = resp.response.data
-                const i = 0
-                this.loadVisitDetailsInfo(episode.patientVisitDetails, i)
+                episode.patientVisitDetails[0] = resp.response.data
+                PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
+                  console.log(resp1.response.data)
+                })
+                this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
               })
             })
           } else {
@@ -91,12 +93,10 @@ export default {
             Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
               console.log(resp.response.data)
               visitDetails[i].pack = resp.response.data
-              i = i + 1
-              this.loadVisitDetailsInfo(visitDetails, i)
+              this.flagGoReady = true
             })
           } else {
-            i = i + 1
-            this.loadVisitDetailsInfo(visitDetails, i)
+            this.flagGoReady = true
           }
         })
       } else {

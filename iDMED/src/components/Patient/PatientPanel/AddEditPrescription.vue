@@ -716,10 +716,11 @@ export default {
                             .with(['clinic.*'])
                             .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
                             .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
-                            .with('drug.form')
+                            .with(['drug.form, drug.clinicalService.identifierType'])
                             .where('drug_id', prescribedDrug.drug.id)
                             .orderBy('expireDate', 'asc')
                             .get()
+        console.log('stocks', stocks)
         const validStock = stocks.filter((item) => {
           return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
         })
@@ -793,7 +794,7 @@ export default {
             visitDetails.clinic = this.currClinic
             // visitDetails.prescription = null
           }
-          console.log('pack', this.patientVisit)
+          console.log('patientVisit', this.patientVisit)
           this.patientVisit.visitDate = visitDetails.pack.pickupDate
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
@@ -814,12 +815,14 @@ export default {
         } */
         patientVDetails.episode.patientVisitDetails = []
         if (patientVDetails.prescription.id === null) {
+            console.log('Prescription', patientVDetails.prescription)
           Prescription.apiSave(patientVDetails.prescription).then(resp => {
             patientVDetails.prescription.id = resp.response.data.id
             patientVDetails.prescription.$id = resp.response.data.id
             patientVDetails.prescription.prescribedDrugs = []
             patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
             if (patientVDetails.pack !== null) {
+                console.log('Pack', patientVDetails.pack)
                 Pack.apiSave(patientVDetails.pack).then(resp => {
                   patientVDetails.pack.id = resp.response.data.id
                   patientVDetails.pack.$id = resp.response.data.id
@@ -856,11 +859,12 @@ export default {
           pvd.prescription.prescriptionDetails = []
           pvd.prescription.prescribedDrugs = []
         })
+        console.log('patientVDetails', patientVisitCopy)
         this.savePatientVisit(patientVisitCopy)
       }
     },
     savePack (patientVisit, patientVisitDetails, i) {
-      console.log(patientVisit)
+      console.log('pack', patientVisitDetails.pack)
       Pack.apiSave(patientVisitDetails.pack).then(resp => {
         patientVisitDetails.pack.id = resp.response.data.id
         patientVisitDetails.pack.$id = resp.response.data.id
@@ -1089,7 +1093,7 @@ export default {
     therapeuticRegimens: {
       get () {
         return TherapeuticRegimen.query()
-                                .with('clinicalService')
+                                .with('clinicalService.identifierType')
                                 .has('code')
                                 .where('active', true)
                                 .where('clinical_service_id', this.selectedClinicalService.id)
@@ -1103,7 +1107,7 @@ export default {
     },
     doctors: {
       get () {
-        return Doctor.query().where('clinic_id', this.currClinic.id)
+        return Doctor.query().with(['clinic.province', 'clinic.district.province', 'clinic.facilityType']).where('clinic_id', this.currClinic.id)
                     .get()
       }
     },
