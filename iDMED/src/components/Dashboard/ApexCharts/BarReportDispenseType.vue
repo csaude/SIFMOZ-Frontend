@@ -54,7 +54,7 @@ export default {
           speed: 1000
         },
          title: {
-          text: 'Tipo de Dispensa',
+          text: 'Total de Pacientes com Levantamentos no Serviço ' + this.serviceCode,
           align: 'center',
           style: {
             color: '#000000'

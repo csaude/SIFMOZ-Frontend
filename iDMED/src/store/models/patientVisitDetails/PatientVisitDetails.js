@@ -49,4 +49,12 @@ export default class PatientVisitDetails extends Model {
   static async apiGetAllByEpisodeId (episodeId, offset, max) {
     return await this.api().get('/patientVisitDetails/episode/' + episodeId + '?offset=' + offset + '&max=' + max)
   }
+
+  static async apiGetLastByEpisodeId (episodeId) {
+    return await this.api().get('/patientVisitDetails/getLastByEpisodeId/' + episodeId)
+  }
+
+  static async apiGetAllofPrecription (prescriptionId) {
+    return await this.api().get('/patientVisitDetails/getAllofPrecription/' + prescriptionId)
+  }
 }
