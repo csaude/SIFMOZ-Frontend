@@ -33,18 +33,18 @@ export default class Group extends Model {
   }
 
   static async apiFetchById (id) {
-    return await this.api().get(`/group/${id}`)
+    return await this.api().get(`/groupInfo/${id}`)
   }
 
   static async apiSave (group) {
-    return await this.api().post('/group', group)
+    return await this.api().post('/groupInfo', group)
   }
 
   static async apiUpdate (group) {
-    return await this.api().post('/group', group)
+    return await this.api().post('/groupInfo', group)
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
-    return await this.api().get('/group/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+    return await this.api().get('/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 }
