@@ -104,7 +104,7 @@ export default {
         drugs = Drug.query().with('form').with('stocks').with('clinicalService.identifierType').where('active', true).get()
       }
       const validDrugs = drugs.filter((drug) => {
-        return drug.active === true && drug.hasStock()
+        return drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock()
       })
       return validDrugs
     },
@@ -124,7 +124,7 @@ export default {
     },
     therapeuticRegimen () {
       return TherapeuticRegimen.query()
-                               .with(['drugs.form', 'drugs.stocks'])
+                               .with(['drugs.form', 'drugs.stocks', 'drugs.clinicalService.identifierType'])
                                .where('id', this.visitDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                .first()
     }

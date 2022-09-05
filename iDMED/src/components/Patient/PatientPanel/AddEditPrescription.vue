@@ -716,11 +716,10 @@ export default {
                             .with(['clinic.*'])
                             .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
                             .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
-                            .with(['drug.form, drug.clinicalService.identifierType'])
+                            .with(['drug.form', 'drug.clinicalService.identifierType'])
                             .where('drug_id', prescribedDrug.drug.id)
                             .orderBy('expireDate', 'asc')
                             .get()
-        console.log('stocks', stocks)
         const validStock = stocks.filter((item) => {
           return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
         })
@@ -740,6 +739,7 @@ export default {
                 const packagedDrugStock = new PackagedDrugStock()
                 packagedDrugStock.drug = prescribedDrug.drug
                 packagedDrugStock.stock = validStock[i]
+                console.log('stock', packagedDrugStock.stock)
                 packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
                 packagedDrugStock.creationDate = new Date()
                 packagedDrugStocks.push(packagedDrugStock)
@@ -792,9 +792,7 @@ export default {
           }
           if (this.isFirstPack && visitDetails.prescription.id !== null) {
             visitDetails.clinic = this.currClinic
-            // visitDetails.prescription = null
           }
-          console.log('patientVisit', this.patientVisit)
           this.patientVisit.visitDate = visitDetails.pack.pickupDate
           this.patientVisit.patientVisitDetails.push(visitDetails)
         }
