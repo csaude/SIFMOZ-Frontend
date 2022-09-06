@@ -217,6 +217,7 @@ export default {
         }
       },
       objectExistsOnArray (description, array) {
+        if (array === null || array.length <= 0) return false
         const exists = array.some((o) => {
           return o.description.toLowerCase() === description.toLowerCase()
         })
@@ -247,6 +248,7 @@ export default {
         })
       },
       filterBairros (val, update, abort) {
+        if (this.bairros === null || this.bairros.length <= 0) return
         if (val === '') {
             update(() => {
               this.filterRedBairros = this.bairros
@@ -296,6 +298,7 @@ export default {
         console.log(this.patient)
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           if (this.patient.bairro !== null && this.patient.bairro.id === null) {
+            this.patient.bairro.district = this.patient.district
             Localidade.apiSave(this.patient.bairro).then(resp => {
               this.patient.bairro.id = resp.response.data.id
               this.doSave()
