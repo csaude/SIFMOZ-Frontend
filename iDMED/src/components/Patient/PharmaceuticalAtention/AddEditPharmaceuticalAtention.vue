@@ -156,7 +156,7 @@ export default {
           rAMScreening: new RAMScreening(),
           step: ref(1),
           visitDate: '',
-          imcDescription: '',
+          // imcDescription: '',
           hasVisitSameDay: false,
           contentStyle: {
         backgroundColor: '#ffffff',
@@ -186,6 +186,22 @@ export default {
         }
     },
     computed: {
+      imcDescription: {
+        get () {
+          let imcDesc = ''
+          const imc = this.vitalSigns.imc
+            if (imc >= 16 && imc <= 16.9) {
+              imcDesc = 'Muito abaixo do peso'
+            } else if (imc >= 17 && imc <= 18.4) {
+              imcDesc = 'Abaixo do peso'
+            } else if (imc >= 18.5 && imc <= 24.9) {
+              imcDesc = 'Peso normal'
+            } else if (imc >= 25 && imc <= 29.9) {
+              imcDesc = 'Acima do peso'
+            }
+          return imcDesc
+        }
+      },
       patient () {
       const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with('identifiers.*')
@@ -275,9 +291,7 @@ export default {
             this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
             this.patientVisit.adherenceScreening.push(this.adherenceScreening)
             this.patientVisit.ramScreening.push(this.rAMScreening)
-console.log(this.patientVisit)
             await PatientVisit.apiSave(this.patientVisit).then(resp => {
-              console.log(resp.response.data)
               PatientVisit.apiFetchById(resp.response.data.id)
              this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
             // this.$emit('patientVisitNew', this.patientVisit)
@@ -299,7 +313,7 @@ console.log(this.patientVisit)
        getImcValue () {
         if (this.vitalSigns.height !== 0.0 && this.vitalSigns.weight !== 0) {
           this.vitalSigns.imc = this.vitalSigns.weight / ((this.vitalSigns.height) * (this.vitalSigns.height))
-           this.getImcDescription()
+          // this.getImcDescription()
         }
         },
          verifyHasSameDay () {
@@ -325,19 +339,6 @@ console.log(this.patientVisit)
                           }
                        }
          },
-      getImcDescription () {
-          const imc = this.vitalSigns.imc
-        if (imc >= 16 && imc <= 16.9) {
-          this.imcDescription = 'Muito abaixo do peso'
-        } else if (imc >= 17 && imc <= 18.4) {
-          this.imcDescription = 'Abaixo do peso'
-        } else if (imc >= 18.5 && imc <= 24.9) {
-          this.imcDescription = 'Peso normal'
-        } else if (imc >= 25 && imc <= 29.9) {
-          this.imcDescription = 'Acima do peso'
-        }
-        return this.imcDescription
-      },
       getJSDateFromDDMMYYY (dateString) {
         const dateParts = dateString.split('-')
         return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
