@@ -28,12 +28,15 @@
                               class="col"
                               v-model="dateOfBirth"
                               ref="birthDate"
-                              :input="idadeCalculator()"
+                              @update:model-value="idadeCalculator(dateOfBirth)"
                               label="Data de Nascimento *">
                               <template v-slot:append>
                                   <q-icon name="event" class="cursor-pointer">
                                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                      <q-date v-model="dateOfBirth" mask="DD-MM-YYYY" >
+                                      <q-date
+                                      v-model="dateOfBirth"
+                                      mask="DD-MM-YYYY"
+                                      @update:model-value="idadeCalculator(dateOfBirth)">
                                       <div class="row items-center justify-end">
                                           <q-btn v-close-popup label="Close" color="primary" flat />
                                       </div>
@@ -437,12 +440,13 @@ export default {
         Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
       },
       moment,
-        idadeCalculator () {
-            if (this.dateOfBirth && moment(this.dateOfBirth).isValid()) {
-                const utentBirthDate = moment(this.dateOfBirth)
-                const todayDate = moment(new Date())
-                const idade = todayDate.diff(utentBirthDate, 'years')
-                this.age = idade
+      idadeCalculator (birthDate) {
+            if (moment(birthDate, 'DD/MM/YYYY').isValid()) {
+               const utentBirthDate = moment(birthDate, 'DD/MM/YYYY')
+               const todayDate = moment(new Date())
+               const idade = todayDate.diff(utentBirthDate, 'years')
+               console.log(idade)
+               this.age = idade
             }
         }
     },
