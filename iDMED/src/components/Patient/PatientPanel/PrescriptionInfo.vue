@@ -63,26 +63,30 @@ export default {
       this.$q.loading.hide()
     },
     init () {
-      this.identifiers.forEach(identifier => {
-        Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-          if (resp.response.data.length > 0) {
-            console.log(resp.response.data)
-            this.identifiers.episodes = resp.response.data
-            this.identifiers.episodes.forEach(episode => {
-              PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                console.log(resp.response.data)
-                episode.patientVisitDetails[0] = resp.response.data
-                PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
-                  console.log(resp1.response.data)
-                })
-                this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-              })
-            })
-          } else {
+      if (this.identifiers.length <= 0) {
             this.flagGoReady = true
-          }
+      } else {
+        this.identifiers.forEach(identifier => {
+          Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+            if (resp.response.data.length > 0) {
+              console.log(resp.response.data)
+              this.identifiers.episodes = resp.response.data
+              this.identifiers.episodes.forEach(episode => {
+                PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                  console.log(resp.response.data)
+                  episode.patientVisitDetails[0] = resp.response.data
+                  PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
+                    console.log(resp1.response.data)
+                  })
+                  this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                })
+              })
+            } else {
+              this.flagGoReady = true
+            }
+          })
         })
-      })
+      }
     },
     loadVisitDetailsInfo (visitDetails, i) {
       if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
@@ -154,6 +158,7 @@ export default {
       }
     },
     patientHasNoPrescriptio () {
+      if (this.patient.identifiers.length <= 0) return true
       return !this.patientHasEpisodes && !this.flagGo
     },
     showAddButton () {
