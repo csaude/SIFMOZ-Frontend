@@ -512,7 +512,7 @@ export default {
     },
     computed: {
       canClear () {
-        return this.currPatient.identifiers[0].value !== '' ||
+        return (this.currPatient.identifiers[0] && this.currPatient.identifiers[0].value !== '') ||
                this.currPatient.firstNames !== '' ||
                this.currPatient.middleNames !== '' ||
                this.currPatient.lastNames !== ''

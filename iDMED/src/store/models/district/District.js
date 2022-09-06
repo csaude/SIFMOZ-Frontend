@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Province from 'src/store/models/province/Province'
+import Localidade from '../Localidade/Localidade'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
 
 export default class District extends Model {
@@ -14,7 +15,8 @@ export default class District extends Model {
 
       // Relationshiops
       province: this.belongsTo(Province, 'province_id'),
-      postosAdministrativos: this.hasMany(PostoAdministrativo, 'district_id')
+      postosAdministrativos: this.hasMany(PostoAdministrativo, 'district_id'),
+      localidades: this.hasMany(Localidade, 'district_id')
     }
   }
 

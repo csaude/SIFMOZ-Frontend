@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
+import District from '../district/District'
 
 export default class Localidade extends Model {
   static entity = 'localidades'
@@ -10,9 +11,11 @@ export default class Localidade extends Model {
       code: this.attr(''),
       description: this.attr(''),
       postoAdministrativo_id: this.attr(''),
+      district_id: this.attr(''),
 
       // Relationshiops
-      postoAdministrativo: this.belongsTo(PostoAdministrativo, 'postoAdministrativo_id')
+      postoAdministrativo: this.belongsTo(PostoAdministrativo, 'postoAdministrativo_id'),
+      district: this.belongsTo(District, 'district_id')
     }
   }
 
