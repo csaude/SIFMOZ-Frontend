@@ -137,7 +137,7 @@
 
 <script>
 import { ref } from 'vue'
-import axios from 'axios'
+// import axios from 'axios'
 import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
 import Duration from 'src/store/models/Duration/Duration'
 import Province from 'src/store/models/province/Province'
@@ -191,8 +191,7 @@ export default {
         },
         patients: [],
         newPatient: false,
-        username: localStorage.getItem('hisUser'),
-        password: localStorage.getItem('hisPass'),
+        username: localStorage.getItem('user'),
         transferencePatientData: [],
         patientList: []
       }
@@ -397,9 +396,6 @@ export default {
          })
       },
       openMRSSerach (his) {
-        const openMRSInstance = axios.create({
-          baseURL: 'http://172.104.236.126:5110'
-        })
         const nid = this.currPatient.identifiers[0].value.replaceAll('/', '-')
 
         if (nid.length <= 0) {
@@ -410,11 +406,11 @@ export default {
             icon: 'report_problem'
           })
         } else {
-          openMRSInstance.get('/patient/openmrsSearch/' + his.id + '/' + nid + '/' + this.username + '/' + this.password)
+          Patient.api().get('/patient/openmrsSearch/' + his.id + '/' + nid + '/' + localStorage.getItem('encodeBase64'))
                         .then((response) => {
                           this.patients = []
-                          if (response.data.results.length > 0) {
-                            response.data.results.forEach(pacienteOpenMRS => {
+                          if (response.response.data.results.length > 0) {
+                            response.response.data.results.forEach(pacienteOpenMRS => {
                             const localpatient = new Patient({
                                 identifiers: []
                               })
@@ -433,12 +429,9 @@ export default {
         }
       },
       checkOpenMRS (his) {
-        const openMRSInstance = axios.create({
-           baseURL: 'http://172.104.236.126:5110'
-        })
-        openMRSInstance.get('/patient/openmrsSession/' + his.id + '/' + this.username + '/' + this.password)
+        Patient.api().get('/patient/openmrsSession/' + his.id + '/' + localStorage.getItem('encodeBase64'))
                        .then((response) => {
-                         if (response.data.authenticated === false || response.data.authenticated === undefined || response.data.authenticated === null) {
+                         if (response.response.data.authenticated === false || response.response.data.authenticated === undefined || response.response.data.authenticated === null) {
                             this.$q.notify({
                             color: 'negative',
                             position: 'center',
@@ -503,7 +496,7 @@ export default {
               localpatient.address = pacienteOpenMRS.person.addresses[0].address3
               localpatient.addressReference = pacienteOpenMRS.person.addresses[0].address1
               localpatient.district = District.query().with('province').where('description', pacienteOpenMRS.person.addresses[0].countyDistrict).first()
-              localpatient.province = localpatient.district.province
+              localpatient.province = localpatient.district !== null && localpatient.district !== undefined ? localpatient.district.province : null
               // localpatient.postoAdministrativo_id = pacienteOpenMRS.person.names[0]
               // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
               // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
