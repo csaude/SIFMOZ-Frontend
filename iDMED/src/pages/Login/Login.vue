@@ -335,9 +335,6 @@ export default ({
       setTimeout(() => {
         this.submitting = false
       }, 500)
-      localStorage.setItem('user', 'admin')
-      localStorage.setItem('hisUser', this.username)
-      localStorage.setItem('hisPass', this.password)
 
       if (this.users.filter(user => user.utilizador === this.username && user.senha === this.password).length > 0) {
         this.$router.push({ path: '/' })
@@ -376,6 +373,7 @@ export default ({
           })
       },
        authUser () {
+            const encodedStringBtoA = btoa(String(this.username).concat(':').concat(this.password))
             console.log({ username: this.username, password: this.password })
             this.$refs.user.validate()
             this.$refs.password.validate()
@@ -391,8 +389,7 @@ export default ({
                         localStorage.setItem('refresh_token', response.response.data.refresh_token)
                         localStorage.setItem('username', response.response.data.username)
                         localStorage.setItem('user', this.username)
-                        localStorage.setItem('hisUser', this.username)
-                       localStorage.setItem('hisPass', this.password)
+                        localStorage.setItem('encodeBase64', encodedStringBtoA)
                         localStorage.setItem('role_menus', response.response.data.menus)
                         this.$router.push({ path: '/' })
                 }).catch(error => {

@@ -112,7 +112,7 @@ export default defineComponent({
       userInfoOpen: false,
       onMainClick: '',
       onItemClick: '',
-      username: localStorage.getItem('hisUser'),
+      username: localStorage.getItem('user'),
       tab: ref('home'),
      // menusVisible: true,
       menusArray: ['Tela Inicial', 'Pacientes', 'Grupos', 'Stock', 'Dashboard', 'Administracao', 'Migracao']
