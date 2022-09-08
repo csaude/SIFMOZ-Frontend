@@ -126,7 +126,7 @@ export default {
                this.submitting = false
                 console.log(resp.response.data)
                  Drug.apiFetchById(resp.response.data.id)
-                this.displayAlert('info', this.drug.id === null ? 'Medicamento adiconado com sucesso.' : 'Medicamento actualizado com sucesso.')
+                this.displayAlert('info', this.drug.id === null ? 'Medicamento adicionado com sucesso.' : 'Medicamento actualizado com sucesso.')
             }).catch(error => {
                 this.submitting = false
                 this.displayAlert('error', error)
