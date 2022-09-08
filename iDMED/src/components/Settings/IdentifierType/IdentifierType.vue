@@ -114,7 +114,7 @@ export default {
           console.log(this.identifierType)
           IdentifierType.apiSave(this.identifierType).then(resp => {
             this.submitting = false
-              this.displayAlert('info', this.identifierType.id === null ? 'Identificador adiconado com sucesso.' : 'Identificador actualizado com sucesso.')
+              this.displayAlert('info', this.identifierType.id === null ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
           }).catch(error => {
             this.submitting = false
               this.displayAlert('error', error)

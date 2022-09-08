@@ -126,7 +126,7 @@ export default {
             NationalClinic.apiSave(this.nationalClinic).then(resp => {
                 console.log(resp.response.data)
              //  this.$emit('close')
-                 this.displayAlert('info', this.nationalClinic.id === null ? 'Unidade Sanitaria adiconado com sucesso.' : 'Unidade Sanitaria actualizado com sucesso.')
+                 this.displayAlert('info', this.nationalClinic.id === null ? 'Unidade Sanitaria adicionado com sucesso.' : 'Unidade Sanitaria actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })

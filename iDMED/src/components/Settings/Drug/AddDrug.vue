@@ -23,7 +23,7 @@
                     <div class="q-mt-md">
                     </div>
                     <div class="row">
-                        <numberField v-model="drug.defaultTimes" label="N de toma *"  :disable="onlyView" ref="defaultTimes"/>
+                        <numberField v-model="drug.defaultTimes" label="Numero de toma *"  :disable="onlyView" ref="defaultTimes"/>
                       <numberField v-model="drug.defaultTreatment" class="q-ml-md" label="Numero de vezes a tomar *"  :disable="onlyView" ref="tomar"/>
                         <q-select
                           class="col q-ml-md"
@@ -126,7 +126,7 @@ export default {
                this.submitting = false
                 console.log(resp.response.data)
                  Drug.apiFetchById(resp.response.data.id)
-                this.displayAlert('info', this.drug.id === null ? 'Medicamento adiconado com sucesso.' : 'Medicamento actualizado com sucesso.')
+                this.displayAlert('info', this.drug.id === null ? 'Medicamento adicionado com sucesso.' : 'Medicamento actualizado com sucesso.')
             }).catch(error => {
                 this.submitting = false
                 this.displayAlert('error', error)
