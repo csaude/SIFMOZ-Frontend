@@ -90,8 +90,8 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-   baseURL: 'http://localhost:8884/api'
-  // baseURL: 'http://172.104.236.126:5110/api'
+  // baseURL: 'http://localhost:8884/api'
+   baseURL: 'http://172.104.236.126:5110/api'
 })
 let numTries = 0
 // Request interceptor for API calls
