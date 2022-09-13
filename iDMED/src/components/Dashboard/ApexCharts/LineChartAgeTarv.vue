@@ -42,7 +42,7 @@ export default {
         },
         colors: ['#6a0dad', '#AAFF00'],
          title: {
-          text: 'Total de Pacientes no Serviço ' + this.serviceCode + ' que iniciaram o levantamento',
+          text: 'Total de Pacientes no Serviço ' + this.serviceCode + '\n que iniciaram o levantamento',
           size: 10,
           align: 'center',
           style: {

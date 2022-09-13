@@ -82,6 +82,7 @@ import UserRole from './models/userLogin/UserRole'
 import UserClinic from './models/userLogin/UserClinic'
 import UserClinicSector from './models/userLogin/UserClinicSector'
 import SecUserRole from './models/userLogin/SecUserRole'
+import GroupMemberPrescription from './models/group/GroupMemberPrescription'
 
 // Vue.use(Vuex)
 
@@ -90,7 +91,7 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://172.104.236.126:5110/api'
+  baseURL: 'http://localhost:8884/api'
     // baseURL: 'http://10.10.2.199:8884/'
 })
 let numTries = 0
@@ -235,6 +236,7 @@ database.register(UserRole)
 database.register(UserClinic)
 database.register(UserClinicSector)
 database.register(SecUserRole)
+database.register(GroupMemberPrescription)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]

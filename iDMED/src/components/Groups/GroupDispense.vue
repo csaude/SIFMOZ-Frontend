@@ -102,7 +102,7 @@
                       class="col"
                       dense
                       flat
-                      :rows="member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs"
+                      :rows="member.groupMemberPrescription !== null ? member.groupMemberPrescription.prescription.prescribedDrugs : member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs"
                       :columns="columns"
                       row-key="id"
                       >
@@ -164,7 +164,7 @@
             :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
             @close="showAddEditDrug = false" />
         </q-dialog>
-        <q-dialog v-model="alert.visible">
+        <q-dialog persistent v-model="alert.visible">
           <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
@@ -194,6 +194,7 @@ import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 import Prescription from '../../store/models/prescription/Prescription'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
+import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -232,33 +233,101 @@ export default {
         this.pickupDate = this.getDDMMYYYFromJSDate(this.defaultPickUpDate)
       }
     },
+    getNextPickUpDate () {
+      const dates = []
+      if (this.selectedGroup.packHeaders.length > 0) {
+        this.selectedGroup.packHeaders.forEach((header) => {
+           dates.push(new Date(this.selectedGroup.packHeaders.nextPickUpDate))
+        })
+      } else {
+        this.selectedGroup.members.forEach((member) => {
+          dates.push(new Date(member.patient.identifiers[0].episodes[0].lastVisit().pack.nextPickUpDate))
+        })
+      }
+      return new Date(Math.max.apply(null, dates))
+    },
+    checkMembersPrescriptions () {
+      let error = 'Os seguintes pacientes possuem prescrições inválidas ['
+      let invalidPrescription = ''
+      this.selectedGroup.members.forEach((member) => {
+        if (member.patient.identifiers[0].episodes[0].lastVisit().prescription.leftDuration <= 0 && member.groupMemberPrescription === null) {
+          invalidPrescription += invalidPrescription === '' ? member.patient.fullName : ', ' + member.patient.fullName
+        }
+      })
+      if (invalidPrescription !== '') {
+        error += invalidPrescription + ']'
+        return error
+      } else {
+        return null
+      }
+    },
     doFormValidation () {
-      this.generatepacks()
+      const prescriptionError = this.checkMembersPrescriptions()
+      if (prescriptionError !== null) {
+        this.displayAlert('error', prescriptionError)
+      } else if (this.pickupDate === '' || this.pickupDate === undefined) {
+        this.displayAlert('error', 'Por favor, indique a data do levantamento.')
+      } else if (new Date(this.pickupDate) > new Date()) {
+        this.displayAlert('error', 'A data da dispensa indicada é maior que a data da corrente')
+      } else if (new Date(this.pickupDate) < this.getNextPickUpDate()) {
+        this.displayAlert('error', 'A data da dispensa não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.getNextPickUpDate()))
+      } else if (this.drugsDuration === '') {
+        this.displayAlert('error', 'Por favor, o período para o qual está a efectuar a dispensa.')
+      } else if (this.nextPDate === '' || this.nextPDate === undefined) {
+        this.displayAlert('error', 'Por favor, indique a data do próximo levantamento.')
+      } else if (new Date(this.nextPDate) < new Date(this.pickupDate)) {
+        this.displayAlert('error', 'A data do próximo levantamento não pode ser anterior a data do levantamento.')
+      } else if (this.dispenseMode === '') {
+        this.displayAlert('error', 'Por favor indicar o modo de dispensa.')
+      } else {
+        this.generatepacks()
+      }
+    },
+    memerHasGroupPrescription (member) {
+      return member.groupMemberPrescription !== null
     },
     addPrescribedDrug (prescribedDrug, visitDetails) {
       console.log(visitDetails)
       prescribedDrug.prescription_id = visitDetails.prescription.id
       this.selectedGroup.members.forEach((member) => {
-        const psdrugExists = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.some((pd) => {
+        let prescribedDrugs
+        if (member.groupMemberPrescription != null) {
+          prescribedDrugs = member.groupMemberPrescription.prescription.prescribedDrugs
+        } else {
+          prescribedDrugs = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs
+        }
+        const psdrugExists = prescribedDrugs.some((pd) => {
           return pd.drug.id === prescribedDrug.drug.id && member.patient.id === visitDetails.patientVisit.patient_id
         })
         if (psdrugExists) {
           this.displayAlert('error', 'O medicamento seleccionado não pode ser adicionado, pois já existe na lista a dispensar para o membro [' + member.patient.fullName + ']')
         } else {
+          if (member.groupMemberPrescription != null && member.patient.id === visitDetails.patientVisit.patient_id) {
+            prescribedDrug.prescription_id = member.groupMemberPrescription.prescription.id
+          member.groupMemberPrescription.prescription.prescribedDrugs.push(prescribedDrug)
+        } else {
           if (member.patient.identifiers[0].episodes[0].lastVisit().prescription.id === visitDetails.prescription.id) {
             member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.push(prescribedDrug)
           }
+        }
         }
       })
       this.showAddEditDrug = false
     },
     removePrescribedDrug (prescribedDrug) {
       this.selectedGroup.members.forEach((member) => {
-        if (member.patient.identifiers[0].episodes[0].lastVisit().prescription.id === prescribedDrug.prescription_id) {
-          const newPrescribedDrugs = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs.filter((prescDr) => {
+        let prescription
+        if (member.groupMemberPrescription != null) {
+          prescription = member.groupMemberPrescription.prescription
+        } else {
+          prescription = member.patient.identifiers[0].episodes[0].lastVisit().prescription
+        }
+        if (prescription.id === prescribedDrug.prescription_id) {
+        console.log(prescribedDrug)
+          const newPrescribedDrugs = prescription.prescribedDrugs.filter((prescDr) => {
             return prescDr.drug.id !== prescribedDrug.drug.id
           })
-          member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs = newPrescribedDrugs
+          prescription.prescribedDrugs = newPrescribedDrugs
         }
       })
     },
@@ -292,6 +361,8 @@ export default {
       setTimeout(() => {
         this.$q.loading.hide()
       }, 900)
+      let errorMsg = 'Não existe stock suficiente do medicamento ['
+      let error = ''
       this.initGroupPackHeader()
       this.curGroup.members.forEach((member) => {
         const pack = new Pack({
@@ -304,15 +375,22 @@ export default {
           patientVisitDetails: [],
           syncStatus: member.patient.his_id.length > 10 ? 'R' : 'N'
         })
-        this.initNewPack(member.patient.identifiers[0].episodes[0].lastVisit(), pack, member.patient, member.patient.identifiers[0].episodes[0])
-        console.log(pack)
+         const drugerror = this.initNewPack(member.patient.identifiers[0].episodes[0].lastVisit(), pack, member.patient, member.patient.identifiers[0].episodes[0], member)
+        if (drugerror !== undefined) error += drugerror
+        console.log(error)
         const groupPack = new GroupPack({
           pack: pack
         })
         this.curGroupPackHeader.groupPacks.push(groupPack)
       })
-      const i = 0
-      this.savePatientVisitDetails(this.curGroupPackHeader.groupPacks, i)
+      if (error !== undefined && error !== null && error.length > 0) {
+        errorMsg += error + ']'
+        console.log(errorMsg)
+        this.displayAlert('error', errorMsg)
+      } else {
+        const i = 0
+        this.savePatientVisitDetails(this.curGroupPackHeader.groupPacks, i)
+      }
     },
     savePatientVisitDetails (groupPacks, i) {
       if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
@@ -369,85 +447,118 @@ export default {
       this.curGroupPackHeader.packDate = this.getJSDateFromDDMMYYY(this.pickupDate)
       this.curGroupPackHeader.nextPickUpDate = this.getJSDateFromDDMMYYY(this.nextPDate)
     },
-    initNewPack (visitDetails, pack, patient, episode) {
-      // visitDetails.prescription.prescribedDrugs = PrescribedDrug.query().where('prescription_id', visitDetails.prescription.id).get()
-      Object.keys(visitDetails.prescription.prescribedDrugs).forEach(function (k) {
-        const packagedDrugStocks = []
-        const stocksToMoviment = []
-        const prescribedDrug = visitDetails.prescription.prescribedDrugs[k]
-        let qtyPrescribed = prescribedDrug.qtyPrescribed
-        const packDrug = new PackagedDrug()
+    initNewPack (visitDetails, pack, patient, episode, member) {
+      let prescription
+      let drugErrors = ''
+      if (member.groupMemberPrescription != null) {
+        prescription = member.groupMemberPrescription.prescription
+      } else {
+        prescription = member.patient.identifiers[0].episodes[0].lastVisit().prescription
+      }
+      prescription.prescribedDrugs.forEach((prescribedDrug) => {
         const stocks = Stock.query()
-                            .with(['clinic.*'])
-                            .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
-                            .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
-                            .with('drug.form')
                             .where('drug_id', prescribedDrug.drug.id)
                             .orderBy('expireDate', 'asc')
                             .get()
         const validStock = stocks.filter((item) => {
           return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
         })
-        let i = 0
-        while (qtyPrescribed > 0) {
-          if (validStock[i] !== undefined && (validStock[i].stockMoviment >= qtyPrescribed)) {
-            validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
-            stocksToMoviment.push(validStock[i])
-            qtyPrescribed = 0
-            // const pkstock = this.initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
-            const packagedDrugStock = new PackagedDrugStock()
-            packagedDrugStock.drug = prescribedDrug.drug
-            packagedDrugStock.stock = validStock[i]
-            packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
-            packagedDrugStock.creationDate = new Date()
-            packagedDrugStocks.push(packagedDrugStock)
-          } else {
-            const availableBalance = validStock[i].stockMoviment
-            qtyPrescribed = Number(qtyPrescribed - validStock[i].stockMoviment)
-            validStock[i].stockMoviment = 0
-            stocksToMoviment.push(validStock[i])
-            const packagedDrugStock = new PackagedDrugStock()
-            packagedDrugStock.drug = prescribedDrug.drug
-            packagedDrugStock.stock = validStock[i]
-            packagedDrugStock.quantitySupplied = availableBalance
-            packagedDrugStock.creationDate = new Date()
-            i = i + 1
+
+        let allAvalibleValidStock
+        if (validStock !== undefined && validStock !== null && validStock.length > 0) {
+          validStock.forEach((stock) => {
+            allAvalibleValidStock += stock.stockMoviment
+          })
+          if (allAvalibleValidStock < prescribedDrug.qtyPrescribed) {
+            drugErrors += drugErrors === '' ? prescribedDrug.drug.name : ', ' + prescribedDrug.drug.name
           }
+        } else {
+          drugErrors += drugErrors === '' ? prescribedDrug.drug.name : ', ' + prescribedDrug.drug.name
         }
-        packDrug.packagedDrugStocks = packagedDrugStocks
-        packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
-        packDrug.drug = prescribedDrug.drug
-        packDrug.toContinue = prescribedDrug.toContinue
-        const pvd = new PatientVisitDetails({
-                          patientVisit: new PatientVisit({
-                                          visitDate: this.curGroupPackHeader.packDate,
-                                          patient: Patient.query()
-                                                          .with('province')
-                                                          .with('district.province')
-                                                          .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                                                          .where('id', patient.id)
-                                                          .first(),
-                                          clinic: this.clinic
-                                        }),
-                          clinic: this.clinic,
-                          prescription: Prescription.query()
-                                                    .with('doctor')
-                                                    .with('duration')
-                                                    .with('prescriptionDetails')
-                                                    .where('id', visitDetails.prescription.id)
-                                                    .first(),
-                          episode: Episode.query()
-                                          .with('startStopReason')
-                                          .with('episodeType')
-                                          .with('clinicSector')
-                                          .with('patientServiceIdentifier')
-                                          .where('id', episode.id)
-                                          .first()
-                        })
-        pack.patientVisitDetails = []
-        pack.patientVisitDetails.push(pvd)
-        pack.packagedDrugs.push(packDrug)
+      })
+      if (drugErrors !== '') {
+        return drugErrors
+      } else {
+      Object.keys(prescription.prescribedDrugs).forEach(function (k) {
+        const packagedDrugStocks = []
+        const stocksToMoviment = []
+        const prescribedDrug = prescription.prescribedDrugs[k]
+        let qtyPrescribed = prescribedDrug.qtyPrescribed
+        const packDrug = new PackagedDrug()
+        const stocks = Stock.query()
+                            .with(['clinic.*'])
+                            .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
+                            .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
+                            .with(['drug.form', 'drug.clinicalService.identifierType'])
+                            .where('drug_id', prescribedDrug.drug.id)
+                            .orderBy('expireDate', 'asc')
+                            .get()
+        const validStock = stocks.filter((item) => {
+          return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
+        })
+          let i = 0
+          while (qtyPrescribed > 0) {
+            console.log(i)
+        console.log(validStock)
+            if ((validStock[i].stockMoviment >= qtyPrescribed)) {
+              validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
+              stocksToMoviment.push(validStock[i])
+              qtyPrescribed = 0
+              // const pkstock = this.initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
+              const packagedDrugStock = new PackagedDrugStock()
+              packagedDrugStock.drug = prescribedDrug.drug
+              packagedDrugStock.stock = validStock[i]
+              packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
+              packagedDrugStock.creationDate = new Date()
+              packagedDrugStocks.push(packagedDrugStock)
+            } else {
+              const availableBalance = validStock[i].stockMoviment
+              qtyPrescribed = Number(qtyPrescribed - validStock[i].stockMoviment)
+              validStock[i].stockMoviment = 0
+              stocksToMoviment.push(validStock[i])
+              const packagedDrugStock = new PackagedDrugStock()
+              packagedDrugStock.drug = prescribedDrug.drug
+              packagedDrugStock.stock = validStock[i]
+              packagedDrugStock.quantitySupplied = availableBalance
+              packagedDrugStock.creationDate = new Date()
+              i = i + 1
+            }
+          }
+          packDrug.packagedDrugStocks = packagedDrugStocks
+          packDrug.quantitySupplied = prescribedDrug.qtyPrescribed
+          packDrug.drug = prescribedDrug.drug
+          packDrug.toContinue = prescribedDrug.toContinue
+          const pvd = new PatientVisitDetails({
+                            patientVisit: new PatientVisit({
+                                            visitDate: this.curGroupPackHeader.packDate,
+                                            patient: Patient.query()
+                                                            .with('province')
+                                                            .with('district.province')
+                                                            .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                                            .where('id', patient.id)
+                                                            .first(),
+                                            clinic: this.clinic
+                                          }),
+                            clinic: this.clinic,
+                            prescription: Prescription.query()
+                                                      .with('doctor')
+                                                      .with('duration')
+                                                      .with('prescriptionDetails')
+                                                      .where('id', prescription.id)
+                                                      .first(),
+                            episode: Episode.query()
+                                            .with('startStopReason')
+                                            .with('episodeType')
+                                            .with('clinicSector')
+                                            .with('patientServiceIdentifier')
+                                            .where('id', episode.id)
+                                            .first()
+                          })
+          pack.patientVisitDetails = []
+          pack.patientVisitDetails.push(pvd)
+          pack.packagedDrugs.push(packDrug)
       }.bind(this))
+    }
     },
     loadGroup () {
       const group = Group.query()
@@ -458,6 +569,10 @@ export default {
                         .first()
       group.members = group.members.filter((member) => { return member.isActive() })
       group.members.forEach((member) => {
+        member.groupMemberPrescription = GroupMemberPrescription.query()
+                                                                  .with(['prescription.prescriptionDetails', 'prescription.duration', 'prescription.doctor', 'prescription.prescribedDrugs.drug.form'])
+                                                                  .where('member_id', member.id)
+                                                                  .first()
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')
                                 .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])

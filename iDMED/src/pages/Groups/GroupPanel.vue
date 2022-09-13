@@ -14,7 +14,11 @@
           class="q-pr-md"
         >
           <span>
-            <group-members @addNewMember="addNewMember" @newPrescription="newPrescription" @desintagrateGroup="desintagrateGroup"/>
+            <group-members
+              v-if="dataFetchDone"
+              @addNewMember="addNewMember"
+              @newPrescription="newPrescription"
+              @desintagrateGroup="desintagrateGroup"/>
             <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
           </span>
         </q-scroll-area>
@@ -41,6 +45,7 @@
           <addEditPrescription
             :selectedVisitDetails="patientVisitDetails"
             :service="group.service"
+            :member="selectedMember"
             step="create"
             @close="showAddPrescription = false" />
       </q-dialog>
@@ -49,7 +54,7 @@
 
 <script>
 import { ref } from 'vue'
-import { QSpinnerBall, SessionStorage } from 'quasar'
+import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
 import Group from '../../store/models/group/Group'
 import Patient from '../../store/models/patient/Patient'
 import Episode from '../../store/models/episode/Episode'
@@ -60,6 +65,10 @@ import Clinic from '../../store/models/clinic/Clinic'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
 import IdentifierType from '../../store/models/identifierType/IdentifierType'
+import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import Prescription from '../../store/models/prescription/Prescription'
+import Pack from '../../store/models/packaging/Pack'
+import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
 export default {
   data () {
     return {
@@ -91,21 +100,35 @@ export default {
       showNewPackingForm: false,
       showAddPrescription: false,
       patientVisitDetails: '',
+      membersInfoLoaded: false,
+      $q: useQuasar(),
+      selectedMember: null,
       defaultPickUpDate: null
     }
   },
+  watch: {
+     membersInfoLoaded (oldp, newp) {
+      if (oldp !== newp) {
+        this.fecthMembersData()
+        this.hideLoading()
+      }
+    }
+  },
   methods: {
+    showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Processando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
     fecthMembersData () {
-      this.$q.loading.show({
-        message: 'Carregando detalhes do grupo...',
-        spinnerColor: 'grey-4',
-        spinner: QSpinnerBall
-      })
-
-      setTimeout(() => {
-        this.$q.loading.hide()
-      }, 700)
-      DispenseMode.apiGetAll()
       this.group.members.forEach((member) => {
         member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')
@@ -114,10 +137,50 @@ export default {
         member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
           return identifier.service.id === this.group.service.id
         })
-        Episode.apiGetAllByIdentifierId(member.patient.identifiers[0].id).then(resp => {
-          this.fecthedEpisodes = this.fecthedEpisodes + 1
+      })
+    },
+    loadMemberInfo () {
+      this.showloading()
+      DispenseMode.apiGetAll()
+      this.group.members.forEach((member) => {
+        GroupMemberPrescription.apiFetchByMemberId(member.id).then(respd => {
+          if (respd.response.status === 200) {
+            Prescription.apiFetchById(respd.response.data.prescription.id)
+          }
+        })
+        Patient.apiFetchById(member.patient.id).then(res0 => {
+          member.patient = res0.response.data
+          member.patient.identifiers.forEach((identifier) => {
+            identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
+            if (identifier.service.code === this.group.service.code) {
+              Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+                if (resp.response.data.length > 0) {
+                  identifier.episodes = resp.response.data
+                  identifier.episodes.forEach(episode => {
+                    PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                      if (resp.response.data) {
+                        episode.patientVisitDetails[0] = resp.response.data
+                        PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
+                        })
+                        this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                      }
+                    })
+                  })
+                }
+              })
+            }
+          })
         })
       })
+    },
+    loadVisitDetailsInfo (visitDetails, i) {
+        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+          visitDetails[i].prescription = resp.response.data
+            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
+              visitDetails[i].pack = resp.response.data
+              this.membersInfoLoaded = true
+            })
+        })
     },
     desintagrateGroup () {
       this.group.members = this.group.members.filter((member) => { return member.isActive() })
@@ -154,7 +217,9 @@ export default {
     closeDialog () {
       this.alert.visible = false
     },
-    newPrescription (patient, identifier) {
+    newPrescription (member, identifier) {
+      this.selectedMember = member
+      const patient = member.patient
       patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDetails[0] = PrescriptionDetail.query()
                                                                                                           .with('therapeuticLine')
                                                                                                           .with('therapeuticRegimen')
@@ -191,6 +256,7 @@ export default {
                                           .where('id', this.group.service.id)
                                           .first()
       SessionStorage.set('selectedPatient', patient)
+      SessionStorage.set('selectedMember', member)
       this.showAddPrescription = true
     },
     addNewMember () {
@@ -208,7 +274,7 @@ export default {
     }
   },
   mounted () {
-    this.fecthMembersData()
+    this.loadMemberInfo()
   },
   computed: {
     group: {
@@ -230,6 +296,9 @@ export default {
                     .with('facilityType')
                     .where('id', SessionStorage.getItem('currClinic').id)
                     .first()
+    },
+    dataFetchDone () {
+      return this.membersInfoLoaded
     }
   },
   components: {

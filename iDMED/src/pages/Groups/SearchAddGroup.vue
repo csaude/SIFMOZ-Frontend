@@ -123,7 +123,7 @@ export default {
     init () {
       GroupType.apiGetAll()
       ClinicalService.apiGetAll()
-      this.getAllPatientsOfClinic()
+      // this.getAllPatientsOfClinic()
       this.getAllGroupsOfClinic()
     },
     search () {
@@ -137,6 +137,7 @@ export default {
     },
     openGroup (group) {
       SessionStorage.set('selectedGroup', group)
+      // pull all selected group info
       this.$router.push('/group/panel')
     },
     getAllGroupsOfClinic () {
