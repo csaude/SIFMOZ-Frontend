@@ -47,4 +47,8 @@ export default class Group extends Model {
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
+
+  static async apiValidateBeforeAdd (patientId, code) {
+    return await this.api().get(`/groupInfo/validadePatient/${patientId}/${code}`)
+  }
 }

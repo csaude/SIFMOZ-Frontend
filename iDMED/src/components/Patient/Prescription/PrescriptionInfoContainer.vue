@@ -26,7 +26,7 @@
             <div class="col text-grey-9 text-weight-medium">Tipo Dispensa:</div>
             <div v-if="prescriptionDetails.dispenseType !== null" class="col text-grey-8">{{ (prescriptionDetails.dispenseType === null || prescriptionDetails.dispenseType === undefined) ? 'Sem Info' : prescriptionDetails.dispenseType.description }}</div>
             <div class="col text-grey-9 text-weight-medium">Validade:</div>
-            <div class="col" :class="validadeColor">{{ (prescriptionDetails === null || prescriptionDetails === undefined) ? 'Sem Info' : remainigDuration }} mes(es)</div>
+            <div class="col" :class="validadeColor">{{ (prescriptionDetails === null || prescriptionDetails === undefined) ? 'Sem Info' : prescription.leftDuration }} mes(es)</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Duração:</div>

@@ -291,8 +291,11 @@ import Stock from '../../../store/models/stock/Stock'
 import PackagedDrugStock from '../../../store/models/packagedDrug/PackagedDrugStock'
 import SpetialPrescriptionMotive from '../../../store/models/prescription/SpetialPrescriptionMotive'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import GroupMember from '../../../store/models/groupMember/GroupMember'
+import GroupMemberPrescription from '../../../store/models/group/GroupMemberPrescription'
+import Group from '../../../store/models/group/Group'
 export default {
-  props: ['selectedVisitDetails', 'step', 'service'],
+  props: ['selectedVisitDetails', 'step', 'service', 'member'],
   data () {
     return {
       alert: ref({
@@ -640,6 +643,9 @@ export default {
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         let prescriptionCopy = null
+        if (visitDetails.createPackLater) {
+          hasSomePrescribed = true
+        }
         if (visitDetails.prescription.id !== null) {
           prescriptionCopy = new Prescription(JSON.parse(JSON.stringify(visitDetails.prescription)))
           prescriptionCopy.patientVisitDetails = PatientVisitDetails.query()
@@ -778,26 +784,79 @@ export default {
         this.curPatientVisitDetails[0].prescription.prescriptionDetails[0].prescription = null
       }
       this.patientVisit.patientVisitDetails = []
-      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-        const visitDetails = Object.assign({}, this.curPatientVisitDetails[k])
-        if (visitDetails.prescription.prescribedDrugs.length > 0) {
-          if (!visitDetails.createPackLater) {
-            visitDetails.pack.dispenseMode = this.dispenseMode
-            visitDetails.pack.providerUuid = encode64Credentials
-            visitDetails.pack.syncStatus = this.patient.his_id.length > 10 ? 'R' : 'N'
-          } else {
-            visitDetails.pack = null
+      if (this.member !== null && this.member !== undefined) {
+          const memberPrescription = new GroupMemberPrescription({
+            prescription: this.curPatientVisitDetails[0].prescription,
+            member: GroupMember.query()
+                              .with('patient')
+                              .where('id', SessionStorage.getItem('selectedMember').id)
+                              .first(),
+            used: false
+          })
+          memberPrescription.member.clinic = Clinic.query()
+                                                  .with('province')
+                                                  .with('district.province')
+                                                  .with('facilityType')
+                                                  .where('id', SessionStorage.getItem('currClinic').id)
+                                                  .first()
+          memberPrescription.member.group = Group.query()
+                                                  .with('service')
+                                                  .with('groupType')
+                                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                                  .where('id', SessionStorage.getItem('selectedGroup').id)
+                                                  .first()
+          memberPrescription.member.patient = Patient.query()
+                                                      .with('province')
+                                                      .with('district.province')
+                                                      .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                                      .where('id', this.member.patient.id)
+                                                      .first()
+          memberPrescription.prescription.doctor = Doctor.query().with(['clinic.province', 'clinic.district.province', 'clinic.facilityType']).where('id', memberPrescription.prescription.doctor.id).first()
+          memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen = TherapeuticRegimen.query()
+                                                                                                        .with('clinicalService.identifierType')
+                                                                                                        .has('code')
+                                                                                                        .where('active', true)
+                                                                                                        .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
+                                                                                                        .first()
+          console.log(memberPrescription.prescription)
+          Prescription.apiSave(memberPrescription.prescription).then(resp => {
+            memberPrescription.prescription.id = resp.response.data.id
+            memberPrescription.prescription.$id = resp.response.data.id
+            memberPrescription.prescription.prescribedDrugs = []
+            memberPrescription.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
+            console.log(memberPrescription)
+            GroupMemberPrescription.apiSave(memberPrescription).then(resp1 => {
+              console.log(resp1.response.data)
+              GroupMemberPrescription.apiFetchByMemberId(this.member.id).then(respd => {
+                if (respd.response.status === 200) {
+                  Prescription.apiFetchById(respd.response.data.prescription.id)
+                }
+              })
+              this.displayAlert('info', 'Prescrição gravada com sucesso.')
+            })
+          })
+      } else {
+          Object.keys(this.curPatientVisitDetails).forEach(function (k) {
+          const visitDetails = Object.assign({}, this.curPatientVisitDetails[k])
+          if (visitDetails.prescription.prescribedDrugs.length > 0) {
+            if (!visitDetails.createPackLater) {
+              visitDetails.pack.dispenseMode = this.dispenseMode
+              visitDetails.pack.providerUuid = encode64Credentials
+              visitDetails.pack.syncStatus = this.patient.his_id.length > 10 ? 'R' : 'N'
+            } else {
+              visitDetails.pack = null
+            }
+            if (this.isFirstPack && visitDetails.prescription.id !== null) {
+              visitDetails.clinic = this.currClinic
+            }
+            this.patientVisit.visitDate = visitDetails.pack.pickupDate
+            this.patientVisit.patientVisitDetails.push(visitDetails)
           }
-          if (this.isFirstPack && visitDetails.prescription.id !== null) {
-            visitDetails.clinic = this.currClinic
-          }
-          this.patientVisit.visitDate = visitDetails.pack.pickupDate
-          this.patientVisit.patientVisitDetails.push(visitDetails)
-        }
-      }.bind(this))
+        }.bind(this))
 
-      const i = 0
-      this.saveVisitPrescriptionAndPack(this.patientVisit, i)
+        const i = 0
+        this.saveVisitPrescriptionAndPack(this.patientVisit, i)
+      }
     },
     saveVisitPrescriptionAndPack (patientVisit, i) {
       if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
@@ -806,9 +865,6 @@ export default {
                                     .withAll()
                                     .where('id', patientVDetails.episode.id)
                                     .first()
-        /* if (episode.startStopReason.code === 'NOVO_PACIENTE' || episode.startStopReason.code === 'NOVO_PACIENTE') {
-            patientVDetails.prescription.patientType = 'NOVO'
-        } */
         patientVDetails.episode.patientVisitDetails = []
         if (patientVDetails.prescription.id === null) {
             console.log('Prescription', patientVDetails.prescription)

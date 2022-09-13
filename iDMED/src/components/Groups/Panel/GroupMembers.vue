@@ -6,7 +6,7 @@
         @showAdd="addMember"
         bgColor="bg-primary">Membros do Grupo
       </ListHeader>
-    <span v-if="dataFechComplete && loadedMembers.length > 0">
+    <span v-if="!dataFechComplete && loadedMembers.length > 0">
       <div class="q-mb-md box-border">
         <q-table
           class="col"
@@ -35,10 +35,10 @@
                 {{props.row.patient.fullName}}
               </q-td>
               <q-td key="lasPrescriptionDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDate)}}
+                {{getDDMMYYYFromJSDate(props.row.groupMemberPrescription !== null ? (props.row.groupMemberPrescription.prescription.prescriptionDate) : props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDate)}}
               </q-td>
               <q-td key="remainingTime" :props="props">
-                {{props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.remainigDuration()}} mes(es)
+                {{props.row.groupMemberPrescription !== null ? (props.row.groupMemberPrescription.prescription.leftDuration) : props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.leftDuration}} mes(es)
               </q-td>
               <q-td key="lastDispenseDate" :props="props">
                 {{
@@ -62,7 +62,7 @@
                   color="blue-8"
                   :disable="selectedGroup.isDesintegrated()"
                   icon="post_add"
-                  @click="newPrescription(props.row.patient, props.row.patient.identifiers[0])">
+                  @click="newPrescription(props.row, props.row.patient.identifiers[0])">
                   <q-tooltip class="bg-blue-5">Nova Prescrição</q-tooltip>
                 </q-btn>
                   <q-btn flat round
@@ -91,7 +91,7 @@
 <script>
 import { ref } from 'vue'
 import Group from '../../../store/models/group/Group'
-import { SessionStorage } from 'quasar'
+import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
 import Episode from '../../../store/models/episode/Episode'
 import Patient from '../../../store/models/patient/Patient'
 import Pack from '../../../store/models/packaging/Pack'
@@ -100,6 +100,7 @@ import moment from 'moment'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import GroupMember from '../../../store/models/groupMember/GroupMember'
 import Clinic from '../../../store/models/clinic/Clinic'
+import GroupMemberPrescription from '../../../store/models/group/GroupMemberPrescription'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -118,15 +119,78 @@ export default {
         msg: ''
       }),
       columns,
+      membersInfoLoaded: false,
       fecthedMemberData: 0,
       members: ref([]),
       allMembers: ref([]),
       dialogTitle: 'Informação',
       selectedMember: null,
+      $q: useQuasar(),
       step: 'display'
     }
   },
+  watch: {
+     membersInfoLoaded (oldp, newp) {
+      if (oldp !== newp) {
+        this.hideLoading()
+      }
+    }
+  },
   methods: {
+    showloading () {
+      console.log('loaging')
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Processando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
+    loadMemberInfo () {
+      this.members.forEach((member) => {
+        member.patient.identifiers.forEach((identifier) => {
+          if (identifier.service.code === member.group.service.code) {
+            Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+            if (resp.response.data.length > 0) {
+              identifier.episodes = resp.response.data
+              identifier.episodes.forEach(episode => {
+                PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                  console.log(resp.response.data)
+                  if (resp.response.data) {
+                    episode.patientVisitDetails[0] = resp.response.data
+                    this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                  }
+                })
+              })
+            }
+          })
+          }
+        })
+      })
+    },
+    loadVisitDetailsInfo (visitDetails, i) {
+      if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
+        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+          console.log(resp.response.data)
+          visitDetails[i].prescription = resp.response.data
+          if (visitDetails[i].pack !== null) {
+            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
+              console.log(resp.response.data)
+              visitDetails[i].pack = resp.response.data
+                this.membersInfoLoaded = true
+            })
+          } else {
+              this.membersInfoLoaded = true
+          }
+        })
+      } else {
+        this.membersInfoLoaded = true
+      }
+    },
     addMember () {
       this.$emit('addNewMember')
     },
@@ -194,7 +258,12 @@ export default {
                         .with('groupType')
                         .where('id', SessionStorage.getItem('selectedGroup').id)
                         .first()
+                        console.log(group)
       group.members.forEach((member) => {
+          member.groupMemberPrescription = GroupMemberPrescription.query()
+                                                                  .with('prescription.*')
+                                                                  .where('member_id', member.id)
+                                                                  .first()
           member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                   .with('province')
                                   .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
@@ -205,7 +274,7 @@ export default {
           })
           member.patient.identifiers[0].episodes = []
           member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-         this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+         // this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
       })
       this.allMembers = group.members
       if (!group.isDesintegrated()) {
@@ -234,7 +303,6 @@ export default {
       return visits
     },
     loadMembers () {
-      if (this.dataFechComplete) {
         if (this.selectedGroup.isDesintegrated()) {
           this.members = this.allMembers
         }
@@ -249,7 +317,7 @@ export default {
           const prescription = Prescription.query()
                                           .with('prescriptionDetails')
                                           .with('duration')
-                                          .with('prescribedDrugs.drug.form')
+                                          .with(['prescribedDrugs.drug.form', 'prescribedDrugs.drug.clinicalService.identifierType'])
                                           .with('doctor')
                                           .with('patientVisitDetails.*')
                                           .where('id', member.patient.identifiers[0].episodes[0].lastVisit().prescription.id)
@@ -258,9 +326,6 @@ export default {
           member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
         })
         return this.members
-      } else {
-        return []
-      }
     },
     lastStartEpisodeWithPrescription (identifierId) {
       let episode = null
@@ -294,16 +359,21 @@ export default {
     }
   },
   mounted () {
-    this.getGroupMembers()
+    // this.loadMemberInfo()
+     this.getGroupMembers()
   },
   computed: {
     selectedGroup: {
       get () {
-        return Group.query().with('service').with('members.patient.identifiers.identifierType').where('id', SessionStorage.getItem('selectedGroup').id).first()
+        return Group.query()
+                    .with('service')
+                    .with(['members.patient.*', 'members.patient.identifiers.identifierType', 'members.clinic'])
+                    .where('id', SessionStorage.getItem('selectedGroup').id)
+                    .first()
       }
     },
     dataFechComplete () {
-      return this.fecthedMemberData >= this.selectedGroup.members.length
+      return this.membersInfoLoaded
     },
     loadedMembers: {
       get () {

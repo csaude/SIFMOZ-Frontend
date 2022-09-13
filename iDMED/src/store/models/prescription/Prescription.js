@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import Doctor from '../doctor/Doctor'
 import Duration from '../Duration/Duration'
+import GroupMemberPrescription from '../group/GroupMemberPrescription'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug'
@@ -20,6 +21,7 @@ export default class Prescription extends Model {
         modified: this.boolean(false),
         patientType: this.attr(''),
         patientStatus: this.attr(''),
+        leftDuration: this.attr(''),
         doctor_id: this.attr(''),
         clinic_id: this.attr(''),
         // Relationships
@@ -28,7 +30,8 @@ export default class Prescription extends Model {
         patientVisitDetails: this.hasMany(PatientVisitDetails, 'prescription_id'),
         prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id'),
         duration: this.belongsTo(Duration, 'duration_id'),
-        prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id')
+        prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id'),
+        groupMemberPrescription: this.hasMany(GroupMemberPrescription, 'prescription_id')
       }
     }
 

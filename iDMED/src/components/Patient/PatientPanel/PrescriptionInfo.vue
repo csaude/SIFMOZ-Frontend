@@ -76,9 +76,6 @@ export default {
                   console.log(resp.response.data)
                   if (resp.response.data) {
                     episode.patientVisitDetails[0] = resp.response.data
-                    PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
-                      console.log(resp1.response.data)
-                    })
                     this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
                   } else this.flagGoReady = true
                 })
