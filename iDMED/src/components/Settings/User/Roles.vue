@@ -157,10 +157,10 @@ export default {
             this.$q.dialog({ title: 'Confirm', message: role.active ? 'Deseja Inactivar o Perfil?' : 'Deseja Activar o Perfil?', cancel: true, persistent: true }).onOk(() => {
                if (role.active) {
                 role.active = false
-                msg = 'Perfil inactivada com sucesso.'
+                msg = 'Perfil inactivado com sucesso.'
               } else if (!role.active) {
                   role.active = true
-                msg = 'Perfil activada com sucesso.'
+                msg = 'Perfil activado com sucesso.'
               }
              Role.apiSave(role).then(resp => {
                   this.displayAlert('info', msg)

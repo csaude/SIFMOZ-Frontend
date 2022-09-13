@@ -776,9 +776,7 @@ export default {
       })
     },
     proccedToDispense () {
-      const username = localStorage.getItem('hisUser')
-      const password = localStorage.getItem('hisPass')
-      const encode64Credentials = btoa(username + ':' + password)
+      const encode64Credentials = localStorage.getItem('encodeBase64')
 
       if (this.isNewPackStep || this.isEditPackStep || this.isFirstPack) {
         this.curPatientVisitDetails[0].patientVisit = null

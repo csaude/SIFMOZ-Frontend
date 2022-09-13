@@ -161,7 +161,7 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary" />
+                <q-btn type="submit" :loading="submitLoading" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
         <q-dialog v-model="alert.visible">
@@ -203,6 +203,7 @@ export default {
             selectedProvince: {},
             genders: ['Masculino', 'Feminino'],
             age: '',
+            submitLoading: false,
             patient: new Patient(),
             filterRedDistricts: ref([]),
             filterRedPostos: ref([]),
@@ -268,6 +269,7 @@ export default {
           return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       submitForm () {
+        this.submitLoading = true
         this.$refs.firstNames.$refs.nome.$refs.ref.validate()
         // this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
         this.$refs.lastNames.$refs.lastName.$refs.ref.validate()
@@ -283,11 +285,15 @@ export default {
               const dateObject = this.getJSDateFromDDMMYYY(this.dateOfBirth)
               if (dateObject > new Date()) {
                 this.displayAlert('error', 'A data de nascimento indicada é maior que a data da corrente.')
+                this.submitLoading = false
               } else if (this.isEditStep && (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < dateObject))) {
                 this.displayAlert('error', 'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
+                this.submitLoading = false
               } else {
                 this.savePatient()
               }
+        } else {
+          this.submitLoading = false
         }
       },
       async savePatient () {
@@ -307,6 +313,7 @@ export default {
               this.doSave()
             }).catch(error => {
                 this.listErrors = []
+                this.submitLoading = false
               if (error.request.status !== 0) {
                 const arrayErrors = JSON.parse(error.request.response)
                 if (arrayErrors.total == null) {
@@ -359,6 +366,7 @@ export default {
          patientVisit.patient.$id = resp.response.data.id
          PatientVisit.apiSave(patientVisit).then(resp => {
             this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
+            this.submitLoading = false
             })
        })
        })
@@ -367,9 +375,11 @@ export default {
       })
       } else {
         this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
+        this.submitLoading = false
       }
            }).catch(error => {
             this.listErrors = []
+            this.submitLoading = false
           if (error.request !== undefined && error.request.status !== 0) {
             const arrayErrors = JSON.parse(error.request.response)
             if (arrayErrors.total == null) {
