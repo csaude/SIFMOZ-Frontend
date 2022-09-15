@@ -118,7 +118,7 @@ export default {
                this.submitting = false
                 console.log(resp.response.data)
                  Doctor.apiFetchById(resp.response.data.id)
-                 this.displayAlert('info', this.doctor.id === null ? 'Clinico adicionado com sucesso.' : 'Clinico actualizado com sucesso.')
+                 this.displayAlert('info', this.doctor.id === null ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                 this.listErrors = []

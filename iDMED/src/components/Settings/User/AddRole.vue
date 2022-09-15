@@ -21,7 +21,7 @@
                     ref="description"
                     square
                     v-model="role.description"
-                    :rules="[ val => val.length >= 3 || 'A Descrição indicado é inválido']"
+                    :rules="[ val => val.length >= 3 || 'A Descrição indicada é inválida']"
                     lazy-rules
                     :disable="onlyView"
                     class="col fild-radius"
@@ -127,7 +127,7 @@ export default {
             this.role.authority = 'ROLE_' + this.role.name
            Role.apiSave(this.role).then(resp => {
               this.submitting = false
-                 this.displayAlert('info', this.role.id === null ? 'Perfil Cadastrada Com Sucesso' : 'Perfil actualizada com sucesso.')
+                 this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                   this.displayAlert('error', error)

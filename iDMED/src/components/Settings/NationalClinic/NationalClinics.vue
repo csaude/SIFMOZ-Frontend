@@ -157,13 +157,13 @@ export default {
       promptToConfirm (nationalClinic) {
            let msg = ''
              nationalClinic.province.districts = []
-            this.$q.dialog({ title: 'Confirm', message: nationalClinic.active ? 'Deseja Inactivar a Unidade Sanitaria?' : 'Deseja Activar o Unidade Sanitaria?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirm', message: nationalClinic.active ? 'Deseja Inactivar a Unidade Sanitária?' : 'Deseja Activar a Unidade Sanitária?', cancel: true, persistent: true }).onOk(() => {
               if (nationalClinic.active) {
                 nationalClinic.active = false
-                  msg = 'Unidade Sanitaria inactivada com sucesso.'
+                  msg = 'Unidade Sanitária inactivada com sucesso.'
               } else if (!nationalClinic.active) {
                   nationalClinic.active = true
-                     msg = 'Unidade Sanitaria activado com sucesso.'
+                     msg = 'Unidade Sanitária activado com sucesso.'
               }
              NationalClinic.apiSave(nationalClinic).then(resp => {
                 this.$emit('nationalClinic', msg)

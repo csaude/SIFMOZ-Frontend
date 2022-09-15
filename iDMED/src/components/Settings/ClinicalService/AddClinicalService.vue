@@ -278,7 +278,7 @@ export default {
           this.clinicalService.active = true
             console.log(this.clinicalService)
              ClinicalService.apiSave(this.clinicalService).then(resp => {
-                this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínicos adicionado com sucesso.' : 'Serviço Clínicos actualizado com sucesso.')
+                this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
              ClinicalService.apiFetchById(resp.response.data.id)
              console.log(resp.response.data)
             }).catch(error => {

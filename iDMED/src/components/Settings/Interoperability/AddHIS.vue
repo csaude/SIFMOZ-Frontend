@@ -153,7 +153,7 @@ export default {
            this.his.active = true
             HealthInformationSystem.apiSave(this.his).then(resp => {
                 // console.log(resp.response.data)
-             this.displayAlert('info', 'Sistema De informação de saude gravado com sucesso.')
+             this.displayAlert('info', 'Sistema De Informação de Saúde gravado com sucesso.')
              HealthInformationSystem.apiFetchById(resp.response.data.id)
             }).catch(error => {
                 this.displayAlert('error', error)
@@ -210,7 +210,7 @@ export default {
     },
       codeRules (val) {
       if (this.his.code === '') {
-        return 'o Código e obrigatorio'
+        return 'o Código e obrigatório'
       } else if (!this.his.id && this.selectedHis.id === this.his.id) {
       return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
          }

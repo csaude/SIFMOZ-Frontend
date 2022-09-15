@@ -7,7 +7,7 @@
                     ref="nome"
                     v-model="nationalClinic.facilityName"
                     :disable="onlyView"
-                    label="Nome da Unidade Sanitaria" />
+                    label="Nome da Unidade Sanitária" />
             </div>
               <div class="row q-mt-md">
                 <codeInput
@@ -126,7 +126,7 @@ export default {
             NationalClinic.apiSave(this.nationalClinic).then(resp => {
                 console.log(resp.response.data)
              //  this.$emit('close')
-                 this.displayAlert('info', this.nationalClinic.id === null ? 'Unidade Sanitaria adicionado com sucesso.' : 'Unidade Sanitaria actualizado com sucesso.')
+                 this.displayAlert('info', this.nationalClinic.id === null ? 'Unidade Sanitária adicionada com sucesso.' : 'Unidade Sanitária actualizado com sucesso.')
             }).catch(error => {
                 this.displayAlert('error', error)
             })

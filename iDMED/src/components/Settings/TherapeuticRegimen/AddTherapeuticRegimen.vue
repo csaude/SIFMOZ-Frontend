@@ -121,7 +121,7 @@ export default {
          this.submitting = false
                 console.log(resp.response.data.id)
               TherapeuticRegimen.apiFetchById(resp.response.data.id)
-                this.displayAlert('info', 'Regime Terapeutico gravado com sucesso.')
+                this.displayAlert('info', 'Regime Terapêutico gravado com sucesso.')
             }).catch(error => {
               this.submitting = false
                 this.displayAlert('error', error)
