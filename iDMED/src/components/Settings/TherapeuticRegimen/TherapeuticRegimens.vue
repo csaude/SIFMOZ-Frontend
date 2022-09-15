@@ -38,13 +38,13 @@
             </q-td>
                   <q-td key="options" :props="props">
                   <div class="col">
-                    <q-btn flat round
+                    <!-- <q-btn flat round
                     color="amber-8"
                     icon="edit"
                     v-if="props.row.active === true"
                    @click="editTherapeuticRegimen(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                  </q-btn>
+                  </q-btn> -->
 
                   <q-btn flat round
                     class="q-ml-md"
