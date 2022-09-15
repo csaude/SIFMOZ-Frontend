@@ -44,7 +44,7 @@
       class="col"
       title="Funcionalidades"
       :rows="role.menus"
-      :columns="columns"
+      :columns="columns1"
       row-key="code"
       v-if="onlyView"
         />
@@ -73,6 +73,10 @@ const columns = [
   { name: 'descricao', required: true, label: 'Seleccionar Todas', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
 
+const columns1 = [
+  { name: 'descricao', required: true, label: 'Descricão', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
+]
+
 export default {
       props: ['selectedRole', 'onlyView'],
     data () {
@@ -88,6 +92,7 @@ export default {
               msg: ''
             }),
             columns,
+            columns1,
             step: ref(1),
              isPwd: ref(true)
         }
