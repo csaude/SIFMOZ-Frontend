@@ -70,7 +70,7 @@ import { ref } from 'vue'
 import Menu from 'src/store/models/userLogin/Menu'
 
 const columns = [
-  { name: 'descricao', required: true, label: 'Descrição', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
+  { name: 'descricao', required: true, label: 'Seleccionar Todas', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
 
 export default {
