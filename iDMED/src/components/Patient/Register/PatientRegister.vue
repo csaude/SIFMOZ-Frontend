@@ -303,8 +303,6 @@ export default {
         if (this.patient.identifiers.length > 0 && this.patient.identifiers[0].clinic === null) {
           this.patient.identifiers = []
         }
-        console.log(this.newPatient)
-        console.log(this.patient)
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
           if (this.patient.bairro !== null && this.patient.bairro.id === null) {
             this.patient.bairro.district = this.patient.district
@@ -331,11 +329,24 @@ export default {
           }
       },
       async doSave () {
-        console.log(this.patient)
+        // console.log(this.patient.clinic)
+        const clinicAux = Clinic.query()
+                      .with('province')
+                      .with('district.province')
+                      .with('facilityType')
+                      .where('id', this.patient.clinic.id)
+                      .first()
+        this.patient.clinic = clinicAux
         await Patient.apiSave(this.patient).then(resp => {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id
             SessionStorage.set('selectedPatient', new Patient(this.patient))
+            if (!this.newPatient) {
+              Patient.update({
+                where: this.patient.id,
+                data: this.patient
+              })
+            }
              if (this.transferencePatientData !== undefined && this.transferencePatientData.length > 0) {
              const psi = TransferenceService.buildPatientIdentifierFromIdmed((this.transferencePatientData[0]))
              psi.patient = this.patient
