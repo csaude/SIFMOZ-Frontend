@@ -21,7 +21,7 @@
                     ref="description"
                     square
                     v-model="role.description"
-                    :rules="[ val => val.length >= 3 || 'A Descrição indicado é inválido']"
+                    :rules="[ val => val.length >= 3 || 'A Descrição indicada é inválida']"
                     lazy-rules
                     :disable="onlyView"
                     class="col fild-radius"
@@ -44,7 +44,7 @@
       class="col"
       title="Funcionalidades"
       :rows="role.menus"
-      :columns="columns"
+      :columns="columns1"
       row-key="code"
       v-if="onlyView"
         />
@@ -70,7 +70,11 @@ import { ref } from 'vue'
 import Menu from 'src/store/models/userLogin/Menu'
 
 const columns = [
-  { name: 'descricao', required: true, label: 'Descrição', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
+  { name: 'descricao', required: true, label: 'Seleccionar Todas', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
+]
+
+const columns1 = [
+  { name: 'descricao', required: true, label: 'Descricão', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
 
 export default {
@@ -88,6 +92,7 @@ export default {
               msg: ''
             }),
             columns,
+            columns1,
             step: ref(1),
              isPwd: ref(true)
         }
@@ -127,7 +132,7 @@ export default {
             this.role.authority = 'ROLE_' + this.role.name
            Role.apiSave(this.role).then(resp => {
               this.submitting = false
-                 this.displayAlert('info', this.role.id === null ? 'Perfil Cadastrada Com Sucesso' : 'Perfil actualizada com sucesso.')
+                 this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                   this.displayAlert('error', error)

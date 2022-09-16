@@ -387,7 +387,7 @@ export default {
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.id === null) {
         this.submitting = false
-        this.displayAlert('error', 'Por favor indicar o medicamento!')
+        this.displayAlert('error', 'Por favor indicar o medicamento')
       } else if (stock.manufacture === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o fabricante!')

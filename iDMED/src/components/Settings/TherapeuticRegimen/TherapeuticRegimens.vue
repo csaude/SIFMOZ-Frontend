@@ -150,7 +150,7 @@ export default {
             this.$q.dialog({ title: 'Confirm', message: therapeuticRegimen.active ? 'Deseja Inactivar o Regime?' : 'Deseja Activar o Regime?', cancel: true, persistent: true }).onOk(() => {
               if (therapeuticRegimen.active) {
                 therapeuticRegimen.active = false
-                  msg = 'Regime inactivada com sucesso.'
+                  msg = 'Regime inactivado com sucesso.'
               } else if (!therapeuticRegimen.active) {
                   therapeuticRegimen.active = true
                      msg = 'Regime activado com sucesso.'

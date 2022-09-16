@@ -167,13 +167,13 @@ export default {
       },
       promptToConfirm (doctor) {
         let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: doctor.active ? 'Deseja Inactivar o Clinico?' : 'Deseja Activar o Clinico?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirm', message: doctor.active ? 'Deseja Inactivar o Clínico?' : 'Deseja Activar o Clínico?', cancel: true, persistent: true }).onOk(() => {
               if (doctor.active) {
                 doctor.active = false
-                  msg = 'Clinico inactivada com sucesso.'
+                  msg = 'Clínico inactivada com sucesso.'
               } else if (!doctor.active) {
                   doctor.active = true
-                     msg = 'Clinico activado com sucesso.'
+                     msg = 'Clínico activado com sucesso.'
               }
               console.log(doctor)
              Doctor.apiSave(doctor).then(resp => {

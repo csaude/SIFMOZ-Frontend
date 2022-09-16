@@ -159,7 +159,7 @@ export default {
              this.editMode = false
       },
         promptToConfirm (clinicalService) {
-            this.$q.dialog({ title: 'Confirm', message: clinicalService.active ? 'Deseja Inactivar o Serviço Clinico?' : 'Deseja Activar o Serviço Clinico?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirm', message: clinicalService.active ? 'Deseja Inactivar o Serviço Clínico?' : 'Deseja Activar o Serviço Clínico?', cancel: true, persistent: true }).onOk(() => {
               if (clinicalService.active) {
                 clinicalService.active = false
               } else if (!clinicalService.active) {
@@ -168,7 +168,7 @@ export default {
               console.log(clinicalService)
               clinicalService.therapeuticRegimens = []
              ClinicalService.apiSave(clinicalService).then(resp => {
-                  this.displayAlert('info', 'Servico Clinico actualizado com sucesso')
+                  this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
             }).catch(error => {
                    this.displayAlert('error', error)
             })

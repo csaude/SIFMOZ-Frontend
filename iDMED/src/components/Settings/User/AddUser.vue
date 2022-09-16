@@ -315,13 +315,13 @@ export default {
         }
            } else if (this.step === 2) {
             if (this.selectedRoles.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um Menu para dar Acesso')
+           this.displayAlert('error', 'Por Favor seleccione pelo menos um Menú para dar Acesso')
             } else {
                 this.$refs.stepper.next()
            }
            } else if (this.step === 3) {
             if (this.selectedClinicSectors.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos uma Farmacia para dar Acesso')
+           this.displayAlert('error', 'Por Favor seleccione pelo menos uma Farmácia para dar Acesso')
             } else {
                  this.submitUser()
            }
@@ -354,7 +354,7 @@ export default {
             this.user.accountLocked = false
            UserLogin.apiSave(this.user).then(resp => {
                this.submitting = false
-                 this.displayAlert('info', this.user.id === null ? 'Utilizador Cadastrada Com Sucesso' : 'Utilizador actualizada com sucesso.')
+                 this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                   this.displayAlert('error', error)

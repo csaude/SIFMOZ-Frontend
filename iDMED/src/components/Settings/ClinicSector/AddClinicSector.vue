@@ -143,7 +143,7 @@ export default {
            ClinicSector.apiSave(this.clinicSector).then(resp => {
              this.submitting = false
                 console.log(resp.response.data)
-                this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clinico adicionado com sucesso.' : 'Sector Clinico actualizado com sucesso.')
+                this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
             }).catch(error => {
               this.submitting = false
                this.displayAlert('error', error)
