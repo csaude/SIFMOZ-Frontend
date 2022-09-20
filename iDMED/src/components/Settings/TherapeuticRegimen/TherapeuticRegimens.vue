@@ -69,7 +69,7 @@
         </div>
          <div class="absolute-bottomg">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
-                <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" />
+                <!-- <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" /> -->
              </q-page-sticky>
         </div>
           <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
