@@ -3,7 +3,7 @@
     <q-table
             :class=headerClass
             dense
-            :rows="drugs"
+            :rows="rows"
             :columns="columns"
             :filter="filter"
             row-key="id"
@@ -47,18 +47,18 @@
                 <q-td key="order" :props="props" v-if="false">
                 </q-td>
                 <q-td key="drug" :props="props">
-                  {{props.row.name}}
+                  {{props.row.drug}}
                 </q-td>
-                <q-td key="consumeAVG" :props="props">
-                  {{props.row.getMonthAVGConsuption()}}
+                <q-td key="avgConsuption" :props="props">
+                  {{props.row.avgConsuption}}
                 </q-td>
-                <q-td key="currUnits" :props="props">
-                  {{props.row.getCurStockAmount()}}
+                <q-td key="balance" :props="props">
+                  {{props.row.balance}}
                 </q-td>
                 <q-td key="state" :props="props">
-                  <q-chip :color="props.row.getConsuptionRelatedColor()" text-color="white">
-                    {{props.row.getConsuptionState()}}
-                  </q-chip>
+                    <q-chip :color="getConsuptionRelatedColor(props.row.state)" text-color="white">
+                      {{ props.row.state }}
+                    </q-chip>
                 </q-td>
                 <q-td key="options" :props="props" v-if=!isCharts>
                   <div class="col">
@@ -78,17 +78,17 @@
 </template>
 
 <script>
-import { date, SessionStorage } from 'quasar'
-import Drug from '../../store/models/drug/Drug'
+import { SessionStorage } from 'quasar'
+import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
-import moment from 'moment'
-import PackagedDrug from '../../store/models/packagedDrug/PackagedDrug'
+import Clinic from '../../store/models/clinic/Clinic'
+import Drug from '../../store/models/drug/Drug'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
-  { name: 'drug', align: 'left', label: 'Medicamento', field: row => row.name, sortable: true },
-  { name: 'consumeAVG', align: 'center', label: 'Média de Consumo Mensal', sortable: false },
-  { name: 'currUnits', align: 'center', label: 'Saldo Actual', sortable: true },
-  { name: 'state', align: 'center', label: 'Estado', sortable: true },
+  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
+  { name: 'avgConsuption', required: true, label: 'Média de Consumo Mensal', align: 'left', field: row => row.avgConsuption, format: val => `${val}` },
+  { name: 'balance', required: true, label: 'Saldo actual', align: 'left', field: row => row.balance, format: val => `${val}` },
+  { name: 'state', required: true, label: 'Estado', align: 'left', field: row => row.state, format: val => `${val}` },
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
@@ -96,6 +96,7 @@ export default {
   data () {
     const filter = ref('')
     return {
+      rowData: [],
       columns,
       headerClass: '',
       title: '',
@@ -103,7 +104,9 @@ export default {
     }
   },
   methods: {
-    openDrugFile (drug) {
+    openDrugFile (drugInfo) {
+      const drug = Drug.find(drugInfo.id)
+      console.log(drug)
       SessionStorage.set('selectedDrug', drug)
       this.$router.push('/stock/drugFile')
     },
@@ -122,72 +125,40 @@ export default {
       } else {
          return ''
       }
-    }
-  },
-  computed: {
-    stockList () {
-      return []
     },
-    drugs: {
-      get () {
-        if (this.isCharts && this.dataLoaded && this.serviceCode != null) {
-          const drugsToShow = new Set()
-            const packagedDrugs = PackagedDrug.query()
-                                              .with('drug.stocks')
-                                              .with('drug.packaged_drugs')
-                                              .with('pack.patientVisitDetails.episode.patientServiceIdentifier.service')
-                                              .orderBy('name')
-                                              .get()
-              const packagedDrugss = packagedDrugs.filter((packagedDrug) => {
-                  return moment(packagedDrug.pack.pickupDate).isAfter(date.subtractFromDate(new Date(), { months: 3 })) && packagedDrug.pack.patientVisitDetails[0].episode.patientServiceIdentifier.service.code === this.serviceCode
-              })
-                packagedDrugss.forEach((packagedDrug) => {
-                      drugsToShow.add(packagedDrug.drug)
-                })
-            return [...drugsToShow.keys()]
-        } else {
-          return Drug.query()
-                    .with('stocks')
-                    .has('stocks')
-                    .with('packaged_drugs.pack', (query) => {
-                            query.where((pack) => {
-                              return pack.pickupDate >= date.subtractFromDate(new Date(), { months: 3 })
-                            })
-                          })
-                      .where('active', true)
-                    .orderBy('name')
-                    .get()
-        }
+    getStockAlert () {
+      Report.apiGetStockAlert(this.clinic.id, 'TARV').then(resp => {
+        this.rowData = resp.response.data
+      })
+    },
+    getConsuptionRelatedColor (state) {
+      if (state === 'Sem Consumo') {
+        return 'blue'
+      } else if (state === 'Ruptura de Stock') {
+        return 'red'
+      } else if (state === 'Acima do Consumo Máximo') {
+        return 'info'
+      } else {
+        return 'primary'
       }
     }
   },
-  created () {
-    /*  this.$q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall
-      // delay: 400 // ms
-    }) */
-    //  this.loadData()
-   //   console.log(this.allDispensePrescriptions)
-   //    console.log(this.quarterlyDispensePrescriptions)
-  //   this.getLastPatientPrescriptionByClinicalService()
-   //   this.updateChart()
-    this.getStickyHeaderClass()
+  computed: {
+    clinic () {
+      return Clinic.query()
+                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .first()
     },
-      watch: {
-   serviceCode: function (newVal, oldVal) {
-          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-      //   this.getDrugsByServiceCode()
-    //   this.updateChart()
-        },
-        dataLoaded: function (newVal, oldVal) {
-          console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-       //  this.getLastPatientPrescriptionByClinicalService()
-   //   this.updateChart()
-  // this.drugs = this.getDrugsByServiceCode()
-        }
-        }
+    rows () {
+      return this.rowData
+    },
+    stockList () {
+      return []
+    }
+  },
+  created () {
+    this.getStockAlert()
+    }
 }
 </script>
 <style lang="sass" scoped>
