@@ -38,13 +38,13 @@
             </q-td>
                   <q-td key="options" :props="props">
                   <div class="col">
-                    <q-btn flat round
+                    <!-- <q-btn flat round
                     color="amber-8"
                     icon="edit"
                     v-if="props.row.active === true"
                    @click="editTherapeuticRegimen(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                  </q-btn>
+                  </q-btn> -->
 
                   <q-btn flat round
                     class="q-ml-md"
@@ -69,7 +69,7 @@
         </div>
          <div class="absolute-bottomg">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
-                <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" />
+                <!-- <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" /> -->
              </q-page-sticky>
         </div>
           <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
@@ -150,7 +150,7 @@ export default {
             this.$q.dialog({ title: 'Confirm', message: therapeuticRegimen.active ? 'Deseja Inactivar o Regime?' : 'Deseja Activar o Regime?', cancel: true, persistent: true }).onOk(() => {
               if (therapeuticRegimen.active) {
                 therapeuticRegimen.active = false
-                  msg = 'Regime inactivada com sucesso.'
+                  msg = 'Regime inactivado com sucesso.'
               } else if (!therapeuticRegimen.active) {
                   therapeuticRegimen.active = true
                      msg = 'Regime activado com sucesso.'

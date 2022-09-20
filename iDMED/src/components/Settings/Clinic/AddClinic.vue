@@ -1,7 +1,7 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
         <q-card-section>
-            <div class="text-h6">Farmácia!</div>
+            <div class="text-h6">Farmácia</div>
         </q-card-section>
         <form @submit.prevent="validateClinic" >
             <q-card-section class="q-px-md">

@@ -102,8 +102,8 @@ tooltip: {
           })
         }
         this.series = []
-        this.series[0] = fm
-        this.series[1] = ms
+        this.series[0] = ms
+        this.series[1] = fm
         this.loading = false
       })
     }

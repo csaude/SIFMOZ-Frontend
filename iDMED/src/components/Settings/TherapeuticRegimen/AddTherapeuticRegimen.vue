@@ -1,7 +1,7 @@
 <template>
   <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
      <q-card-section>
-            <div class="text-h6">Regime Terapêutico!</div>
+            <div class="text-h6">Regime Terapêutico</div>
         </q-card-section>
         <form @submit.prevent="validateTherapeuticRegimen" >
             <q-card-section class="q-px-md">
@@ -121,7 +121,7 @@ export default {
          this.submitting = false
                 console.log(resp.response.data.id)
               TherapeuticRegimen.apiFetchById(resp.response.data.id)
-                this.displayAlert('info', 'Regime Terapeutico gravado com sucesso.')
+                this.displayAlert('info', 'Regime Terapêutico gravado com sucesso.')
             }).catch(error => {
               this.submitting = false
                 this.displayAlert('error', error)
