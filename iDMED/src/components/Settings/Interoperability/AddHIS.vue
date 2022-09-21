@@ -1,7 +1,7 @@
 <template>
 <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
         <q-card-section>
-            <div class="text-h6"> Sistema para Interoperabilidade!</div>
+            <div class="text-h6"> Sistema para Interoperabilidade</div>
         </q-card-section>
         <form @submit.prevent="validateHis" >
         <q-stepper
