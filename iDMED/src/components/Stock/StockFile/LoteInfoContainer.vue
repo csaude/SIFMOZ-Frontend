@@ -189,8 +189,6 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import { StockReferenceAdjustment } from '../../../store/models/stockadjustment/StockReferenceAdjustment'
 import ReferedStockMoviment from '../../../store/models/stockrefered/ReferedStockMoviment'
-import Inventory from '../../../store/models/stockinventory/Inventory'
-import PackagedDrugStock from '../../../store/models/packagedDrug/PackagedDrugStock'
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
   { name: 'moviment', align: 'center', label: 'Origem/Destino', sortable: true },
@@ -240,7 +238,7 @@ export default {
           })
         adjustment = new StockDestructionAdjustment({
           adjustedValue: this.curEvent.loses,
-          operation: StockOperationType.query().where('code', 'AJUSTE_NEGATIVO')
+          operation: StockOperationType.query().where('code', 'AJUSTE_NEGATIVO').first()
         })
         destruction.adjustments.push(adjustment)
       } else if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
@@ -364,138 +362,13 @@ export default {
             outcomes: '-',
             posetiveAdjustment: adjustmentType === 'POSETIVE' ? '' : '-',
             negativeAdjustment: adjustmentType === 'NEGATIVE' ? '' : '-',
-            loses: '-',
+            loses: adjustmentType === 'LOSS' ? '' : '-',
             balance: '',
             notes: ''
           }
       this.curEvent = event
       this.drugEventList.unshift(event)
       this.step = 'create'
-    },
-    generateDrugEventList () {
-      const lote = Stock.query()
-                        .with('adjustments.*')
-                        .with('drug.form')
-                        .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                        .with(['entrance.clinic.province', 'entrance.clinic.district.province', 'entrance.clinic.facilityType'])
-                        .with(['center.clinic.province', 'center.clinic.district.province', 'center.clinic.facilityType'])
-                        .where('id', this.stock.id)
-                        .first()
-      this.loadRelatedEntrance(lote.entrance, lote)
-
-      if (lote.adjustments.length > 0) {
-        Object.keys(lote.adjustments).forEach(function (k) {
-          this.loadRelatedAdjustments(lote.adjustments[k], lote)
-        }.bind(this))
-      }
-      this.drugEventList.sort((a, b) => {
-        const d1 = new Date(a.eventDate)
-        const d2 = new Date(b.eventDate)
-        return d2 - d1
-      })
-      this.loadOutcomes()
-    },
-    loadOutcomes () {
-      if (this.drugEventList.length > 0) {
-        Object.keys(this.drugEventList).forEach(function (k) {
-          const event = this.drugEventList[k]
-          const nextEvent = this.drugEventList[k + 1]
-          if (nextEvent !== null) {
-            const packStockList = PackagedDrugStock.query()
-                                                   .with('packagedDrug.pack')
-                                                   .where('stock_id', event.stock.id)
-                                                   .get()
-            if (packStockList.length > 0) {
-              packStockList.forEach((packStock) => {
-                if (new Date(packStock.PackagedDrug.pack.pickUpDate) >= new Date(event.eventDate) && new Date(packStock.PackagedDrug.pack.pickUpDate) < new Date(nextEvent.eventDate)) {
-                  event.outcomes = Number(event.outcomes + packStock.quantitySupplied)
-                }
-              })
-            }
-          } else {
-            const packStockList = PackagedDrugStock.query()
-                                                   .with('packagedDrug.pack')
-                                                   .where('stock_id', event.stock.id)
-                                                   .get()
-            if (packStockList.length > 0) {
-              packStockList.forEach((packStock) => {
-                if (new Date(packStock.PackagedDrug.pack.pickUpDate) >= new Date(event.eventDate)) {
-                  event.outcomes = Number(event.outcomes + packStock.quantitySupplied)
-                }
-              })
-            }
-          }
-        }.bind(this))
-      }
-    },
-    loadRelatedAdjustments (adjustment, stock) {
-      if (adjustment.finalised) {
-        const event = {
-              id: '',
-              eventDate: '',
-              moviment: '',
-              orderNumber: '-',
-              incomes: '-',
-              outcomes: '-',
-              posetiveAdjustment: '-',
-              negativeAdjustment: '-',
-              loses: '-',
-              balance: adjustment.balance,
-              notes: '-',
-              stock: stock
-            }
-        if (adjustment.type === 'STOCKDESTRUCTIONADJUSTMENT') {
-          adjustment.destruction = DestroyedStock.find(adjustment.destruction_id)
-          event.id = adjustment.destruction.id
-          event.eventDate = adjustment.captureDate
-          event.moviment = adjustment.destruction.notes
-          event.loses = adjustment.adjustedValue
-        } else if (adjustment.type === 'STOCKREFERENCEADJUSTMENT') {
-          adjustment.reference = ReferedStockMoviment.find(adjustment.reference_id)
-          event.id = adjustment.reference.id
-          event.eventDate = adjustment.reference.date
-          event.moviment = adjustment.reference.origin
-          event.orderNumber = adjustment.reference.orderNumber
-          if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
-            event.posetiveAdjustment = adjustment.adjustedValue
-          } else {
-            event.negativeAdjustment = adjustment.adjustedValue
-          }
-        } else if (adjustment.type === 'INVENTORYSTOCKADJUSTMENT' && (adjustment.operation.code === 'AJUSTE_POSETIVO' || adjustment.operation.code === 'AJUSTE_NEGATIVO')) {
-          adjustment.inventory = Inventory.find(adjustment.inventory_id)
-          event.id = adjustment.inventory.id
-          event.eventDate = adjustment.inventory.startDate
-          event.moviment = 'Inventário'
-          if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
-            event.posetiveAdjustment = adjustment.adjustedValue
-          } else if (adjustment.operation.code === 'AJUSTE_NEGATIVO') {
-            event.negativeAdjustment = adjustment.adjustedValue
-            event.outcomes = adjustment.adjustedValue
-          } else {
-            event.negativeAdjustment = 0
-            event.posetiveAdjustment = 0
-          }
-        }
-        event.notes = adjustment.notes
-        this.drugEventList.push(event)
-      }
-    },
-    loadRelatedEntrance (entrance, stock) {
-      const event = {
-            id: entrance.id,
-            eventDate: entrance.dateReceived,
-            moviment: stock.center.name,
-            orderNumber: entrance.orderNumber,
-            incomes: stock.unitsReceived,
-            outcomes: '-',
-            posetiveAdjustment: '-',
-            negativeAdjustment: '-',
-            loses: '-',
-            balance: stock.unitsReceived,
-            notes: '-',
-            stock: stock
-          }
-      this.drugEventList.push(event)
     },
     determineValidade () {
       const expireDate = new Date(this.stock.expireDate)
@@ -508,7 +381,7 @@ export default {
       } else if (date.addToDate(new Date(), { months: 2 }) >= expireDate) {
         this.stockExpiteStatus = 'Expiring'
         const diff = date.getDateDiff(expireDate, new Date(), 'days')
-        return 'Faltam ' + diff + 'dias para expirar'
+        return 'Faltam ' + diff + ' dias para expirar'
       } else {
         this.stockExpiteStatus = 'valid'
         return this.formatDate(this.stock.expireDate)
@@ -521,6 +394,18 @@ export default {
     },
     closeDialog () {
       this.alert.visible = false
+    },
+    generateDrugBatchEventSummary () {
+      Stock.apiGetDrugBatchSummary(this.currClinic.id, this.stock.id).then(resp => {
+        console.log(resp.response.data)
+        const t = resp.response.data
+        t.sort((a, b) => {
+          const d1 = new Date(a.eventDate)
+          const d2 = new Date(b.eventDate)
+          return d2 - d1
+        })
+        this.drugEventList = t
+      })
     }
   },
   computed: {
@@ -559,7 +444,7 @@ export default {
     }
   },
   mounted () {
-    this.generateDrugEventList()
+    this.generateDrugBatchEventSummary()
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,

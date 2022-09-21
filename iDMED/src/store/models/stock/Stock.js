@@ -66,4 +66,12 @@ export default class Stock extends Model {
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
     }
+
+    static async apiGetDrugSummary (clinicId, drugId) {
+      return await this.api().get(`/drugStockFile/sumary/${clinicId}/${drugId}`)
+    }
+
+    static async apiGetDrugBatchSummary (clinicId, stockId) {
+      return await this.api().get(`/drugStockFile/batchsumary/${clinicId}/${stockId}`)
+    }
 }
