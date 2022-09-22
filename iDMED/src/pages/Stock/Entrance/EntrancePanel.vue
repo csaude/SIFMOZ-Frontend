@@ -266,13 +266,6 @@ export default {
     },
     doSaveGuia () {
       this.currStockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
-      const bdEntrance = StockEntrance.query().where((entrance) => {
-        return entrance.orderNumber === this.currStockEntrance.orderNumber && entrance.id !== this.currStockEntrance.id
-      }).first()
-      console.log(bdEntrance)
-      if (bdEntrance !== null) {
-        this.displayAlert('error', 'Já existe registada uma guia com o número indicado.')
-      } else {
           console.log(this.currStockEntrance)
           this.currStockEntrance.clinic = this.currClinic
           StockEntrance.apiSave(this.currStockEntrance).then(resp => {
@@ -293,7 +286,6 @@ export default {
             }
             this.displayAlert('error', listErrors)
           })
-      }
     },
     initGuiaEdition () {
       if (this.currStockEntrance.stocks.length > 0 || this.stockList.length > 0) {
@@ -371,18 +363,6 @@ export default {
       }
     },
     validateStock (stock) {
-      console.log(stock)
-      const stockToCheck = Stock.all()
-      let bacthNumberExists = false
-      if (this.isCreationStep) {
-        bacthNumberExists = stockToCheck.some((stockToCheck) => {
-          return (stockToCheck.batchNumber === stock.batchNumber) && stockToCheck.id !== null
-        })
-      } else if (this.isEditionStep) {
-        bacthNumberExists = stockToCheck.some((stockToCheck) => {
-          return (stockToCheck.batchNumber === stock.batchNumber) && stockToCheck.id !== stock.id
-        })
-      }
       this.submitting = true
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.id === null) {
@@ -394,9 +374,6 @@ export default {
       } else if (stock.batchNumber === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o lote!')
-      } else if (bacthNumberExists) {
-        this.displayAlert('error', 'Ja existe uma entrada para o número do lote indicado!')
-        this.submitting = false
       } else if (!date.isValid(stock.expireDate)) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma data de validade válida!')

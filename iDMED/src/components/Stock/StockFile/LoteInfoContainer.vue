@@ -291,6 +291,7 @@ export default {
     doSave (reference, destruction) {
       if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
         ReferedStockMoviment.apiSave(reference).then(resp => {
+          this.curEvent.id = resp.response.data.adjustments[0].id
           this.updateRelatedStock(reference.adjustments[0].adjustedStock)
         }).catch(error => {
           const listErrors = []
@@ -308,6 +309,7 @@ export default {
         })
       } else {
         DestroyedStock.apiSave(destruction).then(resp => {
+          this.curEvent.id = resp.response.data.adjustments[0].id
           this.updateRelatedStock(destruction.adjustments[0].adjustedStock)
         }).catch(error => {
           const listErrors = []

@@ -18,9 +18,11 @@
             :rows="prescribedDrugs"
             :columns="columns"
             row-key="id"
+            hide-bottom
+            flat
             >
             <template #header="props">
-              <q-tr class="text-left"  :props="props">
+              <q-tr class="text-left bg-green-2"  :props="props">
                 <q-th >{{columns[0].label}}</q-th>
                 <q-th >{{columns[1].label}}</q-th>
                 <q-th v-if="!visitDetails.createPackLater">{{columns[2].label}}</q-th>

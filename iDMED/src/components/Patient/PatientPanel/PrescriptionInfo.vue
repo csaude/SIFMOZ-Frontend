@@ -69,11 +69,9 @@ export default {
         this.identifiers.forEach(identifier => {
           Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
             if (resp.response.data.length > 0) {
-              console.log(resp.response.data)
               this.identifiers.episodes = resp.response.data
               this.identifiers.episodes.forEach(episode => {
                 PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                  console.log(resp.response.data)
                   if (resp.response.data) {
                     episode.patientVisitDetails[0] = resp.response.data
                     this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
@@ -90,11 +88,9 @@ export default {
     loadVisitDetailsInfo (visitDetails, i) {
       if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
         Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
-          console.log(resp.response.data)
           visitDetails[i].prescription = resp.response.data
           if (visitDetails[i].pack !== null) {
             Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-              console.log(resp.response.data)
               visitDetails[i].pack = resp.response.data
               this.flagGoReady = true
             })
@@ -142,7 +138,6 @@ export default {
   watch: {
     flagGoReady: function (newVal, oldVal) {
       if (newVal) {
-        console.log(newVal)
         this.hideLoading()
       }
     }

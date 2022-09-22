@@ -19,11 +19,9 @@
       </div>
       <div class="row">
           <identifierInput
-            @blur="search()"
             v-model="patientId"
             :rules="[]"/>
           <nameInput
-            @blur="search()"
             class="q-ml-md"
             label="Nome"
             :rules="[]"
@@ -34,7 +32,6 @@
             </template>
           </nameInput>
           <TextField
-            @blur="search()"
             label="Outros Nomes"
             v-model="currPatient.middleNames"
             dense
@@ -45,10 +42,14 @@
             label="Apelido"
             :rules="[]"
             :readonly="this.selectedDataSources.id.length > 4"
-            @blur="search()"
             v-model="currPatient.lastNames"
             class="q-ml-md"/>
-            <q-btn v-if="canClear" @click="clearSearchParams" class="q-ml-md q-mb-xs" square color="amber" icon="clear" />
+            <q-btn v-if="canClear" @click="search()" class="q-ml-md q-mb-xs" square color="primary" icon="search" >
+                    <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
+                  </q-btn>
+            <q-btn v-if="canClear" @click="clearSearchParams" class="q-ml-md q-mb-xs" square color="amber" icon="clear" >
+                    <q-tooltip class="bg-amber-5">Limpar</q-tooltip>
+                  </q-btn>
       </div>
       <div class="q-mt-lg q-mb-md">
           <div class="row items-center q-mb-md">
@@ -205,14 +206,15 @@ export default {
   },
     methods: {
       clearSearchParams () {
+        Patient.deleteAll()
         this.currPatient = new Patient({
             identifiers: [
               new PatientServiceIdentifier({})
             ]
           })
+          this.patients = []
       },
       showloading () {
-      console.log('loaging')
        this.$q.loading.show({
           spinner: QSpinnerBall,
           spinnerColor: 'gray',
