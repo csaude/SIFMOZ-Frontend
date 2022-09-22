@@ -256,22 +256,12 @@ export default {
                                       .where('id', this.identifier.id).first()
         }
       },
-    /*
-    curIdentifier () {
-      return PatientServiceIdentifier.query().withAllRecursive().where('id', this.identifier.id).first()
-    }, */
     prescriptionDetails: {
       get () {
         if (this.prescription === null) return null
         return PrescriptionDetail.query().withAll().where('prescription_id', this.prescription.id).first()
       }
     },
-    /*
-    prescriptionDetails () {
-      if (this.prescription === null) return null
-      return PrescriptionDetail.query().withAll().where('prescription_id', this.prescription.id).first()
-    }, */
-
     patientVisitDetais: {
       get () {
         if (this.prescription === null) return null
@@ -308,15 +298,6 @@ export default {
                  .first()
       }
     },
-    /*
-    lastPack () {
-      return Pack.query()
-                 .with('packagedDrugs.*')
-                 .with('patientVisitDetails')
-                 .where('patientVisitDetails_id', this.patientVisitDetais.id)
-                 .orderBy('pickupDate', 'desc')
-                 .first()
-    }, */
     lastEpisode: {
       get () {
         return Episode.query()
@@ -326,14 +307,6 @@ export default {
                     .first()
       }
     },
-    /*
-    lastEpisode () {
-      return Episode.query()
-                    .withAll()
-                    .where('patientServiceIdentifier_id', this.identifier.id)
-                    .orderBy('creationDate', 'desc')
-                    .first()
-    }, */
     showEndDetails () {
       return this.lastEpisode !== null && this.lastEpisode.isCloseEpisode() && !this.lastEpisode.isDCReferenceEpisode()
     },
@@ -345,7 +318,7 @@ export default {
       }
     },
     isClosed () {
-      return this.showEndDetails || this.prescription.remainigDuration() <= 0
+      return this.showEndDetails || this.prescription.leftDuration <= 0
     }
   },
   created () {

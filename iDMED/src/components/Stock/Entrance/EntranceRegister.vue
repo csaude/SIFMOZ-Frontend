@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { date, SessionStorage } from 'quasar'
+import { QSpinnerBall, useQuasar, date, SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
@@ -66,6 +66,7 @@ export default {
         visible: false,
         msg: ''
       }),
+      $q: useQuasar(),
       stockEntrance: new StockEntrance({
         dateReceived: new Date()
       }),
@@ -87,6 +88,18 @@ export default {
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
     },
+    showloading () {
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Processando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
     displayAlert (type, msg) {
       this.alert.type = type
       this.alert.msg = msg
@@ -98,17 +111,16 @@ export default {
     async submitForm () {
       this.submitting = true
       this.stockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
-      const dbEntrance = StockEntrance.query().where('orderNumber', this.stockEntrance.orderNumber).first()
       if (this.stockEntrance.dateReceived > new Date()) {
         this.displayAlert('error', 'A data de criação da guia não pode ser superior a data corrente.')
-      } else if (dbEntrance !== null) {
-        this.displayAlert('error', 'Já existe registada uma guia com o número indicado.')
       } else {
         this.$refs.orderNumber.$refs.ref.validate()
         if (!this.$refs.orderNumber.$refs.ref.hasError) {
+          this.showloading()
           this.stockEntrance.clinic = this.currClinic
           await StockEntrance.apiSave(this.stockEntrance).then(resp => {
           SessionStorage.set('currStockEntrance', resp.response.data)
+          this.hideLoading()
           this.$router.push('/stock/entrance')
           this.$emit('close')
         }).catch(error => {

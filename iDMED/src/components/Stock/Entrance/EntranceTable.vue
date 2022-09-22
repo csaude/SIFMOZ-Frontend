@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { date, SessionStorage } from 'quasar'
+import { QSpinnerBall, useQuasar, date, SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import { ref } from 'vue'
 const columns = [
@@ -77,10 +77,23 @@ export default {
   data () {
     return {
       filter: ref(''),
+      $q: useQuasar(),
       columns
     }
   },
   methods: {
+    showloading () {
+       this.$q.loading.show({
+          spinner: QSpinnerBall,
+          spinnerColor: 'gray',
+          spinnerSize: 140,
+          message: 'Processando, aguarde por favor...',
+          messageColor: 'white'
+        })
+    },
+    hideLoading () {
+      this.$q.loading.hide()
+    },
     formatDate (dateString) {
       return date.formatDate(dateString, 'DD-MM-YYYY')
     },

@@ -39,7 +39,6 @@
                 :disable="mustBeSpetial || isNewPackStep || isEditPackStep"
                 label="Prescrição especial"
                 class="col q-mb-sm" />
-
               <q-select
                   class="col"
                   dense outlined
@@ -100,6 +99,7 @@
                   class="col"
                   dense outlined
                   v-model="curPrescription.duration"
+                  @blur="updateLeftDuration()"
                   :options="durations"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="duration"
@@ -326,6 +326,9 @@ export default {
     }
   },
   methods: {
+    updateLeftDuration () {
+      this.curPrescription.leftDuration = this.curPrescription.duration.weeks
+    },
     alterPatientStatus () {
       if (String(this.curPrescriptionDetails.dispenseType.description).includes('Mensal')) {
         this.curPrescription.patientStatus = 'N/A'
@@ -384,7 +387,7 @@ export default {
                                                                    .with('pack')
                                                                    .where('prescription_id', prescription.id)
                                                                    .get()
-          if (prescription.remainigDurationInWeeks() > 0) {
+          if (prescription.leftDuration > 0) {
             this.lastVisitPrescription = prescription
             this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
           }
@@ -540,7 +543,6 @@ export default {
                                     .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
                                     .orderBy('episodeDate', 'desc')
                                     .first()
-                                    console.log(episode)
             if (episode !== null && (!episode.closed() || episode.isDCReferenceEpisode())) {
               this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
               this.initPatientVisitDetails(episode)
@@ -599,6 +601,7 @@ export default {
     },
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
       if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.pack !== null) {
+        this.curPatientVisitDetail.prescription.prescribedDrugs = prescribedDrugs
         if (pickupDate !== null && pickupDate !== undefined) this.curPatientVisitDetail.pack.packDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (pickupDate !== undefined) this.curPatientVisitDetail.pack.pickupDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (nextPDate !== undefined) this.curPatientVisitDetail.pack.nextPickUpDate = this.getJSDateFromDDMMYYY(nextPDate)
@@ -659,11 +662,11 @@ export default {
             hasError = true
             const errorMsg = 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
-          } else if (prescriptionCopy !== null && (Number(visitDetails.pack.weeksSupply) > Number(prescriptionCopy.remainigDurationInWeeks()))) {
+          } else if (prescriptionCopy !== null && (Number((visitDetails.pack.weeksSupply / 4)) > Number(prescriptionCopy.leftDuration))) {
             hasError = true
             const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente na prescrição de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
-          } else if (prescriptionCopy === null && (Number(visitDetails.pack.weeksSupply) > Number(visitDetails.prescription.remainigDurationInWeeks()))) {
+          } else if (prescriptionCopy === null && (Number((visitDetails.pack.weeksSupply / 4)) > Number(visitDetails.prescription.leftDuration))) {
             hasError = true
             const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período de validade da prescrição de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
@@ -679,7 +682,6 @@ export default {
               visitDetails.patientVisit = null
             }
             error = this.generatePacks(visitDetails)
-            console.log(error)
             if (error !== undefined && error !== null && error.length > 0) {
               hasError = true
             }
@@ -745,7 +747,6 @@ export default {
                 const packagedDrugStock = new PackagedDrugStock()
                 packagedDrugStock.drug = prescribedDrug.drug
                 packagedDrugStock.stock = validStock[i]
-                console.log('stock', packagedDrugStock.stock)
                 packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
                 packagedDrugStock.creationDate = new Date()
                 packagedDrugStocks.push(packagedDrugStock)
@@ -818,15 +819,12 @@ export default {
                                                                                                         .where('active', true)
                                                                                                         .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                                                                                         .first()
-          console.log(memberPrescription.prescription)
           Prescription.apiSave(memberPrescription.prescription).then(resp => {
             memberPrescription.prescription.id = resp.response.data.id
             memberPrescription.prescription.$id = resp.response.data.id
             memberPrescription.prescription.prescribedDrugs = []
             memberPrescription.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
-            console.log(memberPrescription)
             GroupMemberPrescription.apiSave(memberPrescription).then(resp1 => {
-              console.log(resp1.response.data)
               GroupMemberPrescription.apiFetchByMemberId(this.member.id).then(respd => {
                 if (respd.response.status === 200) {
                   Prescription.apiFetchById(respd.response.data.prescription.id)
@@ -867,14 +865,12 @@ export default {
                                     .first()
         patientVDetails.episode.patientVisitDetails = []
         if (patientVDetails.prescription.id === null) {
-            console.log('Prescription', patientVDetails.prescription)
           Prescription.apiSave(patientVDetails.prescription).then(resp => {
             patientVDetails.prescription.id = resp.response.data.id
             patientVDetails.prescription.$id = resp.response.data.id
             patientVDetails.prescription.prescribedDrugs = []
             patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
             if (patientVDetails.pack !== null) {
-                console.log('Pack', patientVDetails.pack)
                 Pack.apiSave(patientVDetails.pack).then(resp => {
                   patientVDetails.pack.id = resp.response.data.id
                   patientVDetails.pack.$id = resp.response.data.id
@@ -889,7 +885,6 @@ export default {
           })
         } else {
           const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(patientVDetails.pack.pickupDate), 'days')
-          console.log(pickUpDiferrence)
           if (pickUpDiferrence > 0) {
             this.msgObject.patientVDetails = patientVDetails
             this.msgObject.patientVisit = patientVisit
@@ -911,12 +906,10 @@ export default {
           pvd.prescription.prescriptionDetails = []
           pvd.prescription.prescribedDrugs = []
         })
-        console.log('patientVDetails', patientVisitCopy)
         this.savePatientVisit(patientVisitCopy)
       }
     },
     savePack (patientVisit, patientVisitDetails, i) {
-      console.log('pack', patientVisitDetails.pack)
       Pack.apiSave(patientVisitDetails.pack).then(resp => {
         patientVisitDetails.pack.id = resp.response.data.id
         patientVisitDetails.pack.$id = resp.response.data.id
