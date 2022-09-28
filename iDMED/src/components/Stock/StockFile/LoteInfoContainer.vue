@@ -8,7 +8,7 @@
             @addNewAdjustment="addNewAdjustment"
             @done="saveAjustment"
             @cancel="cancel"
-            bgColor="bg-grey-4"><span class="text-blue-grey-8">Nr. do Lote: {{stock.batchNumber}} - [Saldo Actual: {{stock.stockMoviment}}] - [Validade: <span :class="getValidadeLabelColor">{{getValidade}}</span>]</span>
+            :bgColor="headerColor"><span class="text-blue-grey-8">Nr. do Lote: {{stock.batchNumber}} - [Saldo Actual: {{stock.stockMoviment}}] - [Validade: <span :class="getValidadeLabelColor">{{getValidade}}</span>]</span>
           </ListHeader>
           <q-table
             class="col"
@@ -443,6 +443,13 @@ export default {
                   .with('district.province')
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
+    },
+    headerColor () {
+      if (this.doneVisible) {
+        return 'bg-orange-5'
+      } else {
+        return 'bg-grey-4'
+      }
     }
   },
   mounted () {
