@@ -1,6 +1,13 @@
 <template>
   <div>
     <TitleBar>Ficha do Medicamento</TitleBar>
+    <q-scroll-area
+            :thumb-style="thumbStyle"
+            :content-style="contentStyle"
+            :content-active-style="contentActiveStyle"
+            style="height: 780px;"
+            class="q-pr-md"
+          >
     <div class="q-pa-lg">
       <ListHeader
         :addVisible="false"
@@ -94,6 +101,7 @@
         </span>
       </div>
     </div>
+    </q-scroll-area>
       <q-dialog v-model="alert.visible" persistent>
         <Dialog :type="alert.type" @closeDialog="closeDialog">
           <template v-slot:title> Informação</template>
@@ -133,7 +141,24 @@ export default {
       $q: useQuasar(),
       drugEventList: [],
       inventoryList: [],
-      entranceList: []
+      entranceList: [],
+      contentStyle: {
+        backgroundColor: '#ffffff',
+        color: '#555'
+      },
+
+      contentActiveStyle: {
+        backgroundColor: '#eee',
+        color: 'black'
+      },
+
+      thumbStyle: {
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#0ba58b',
+        width: '5px',
+        opacity: 0.75
+      }
     }
   },
   methods: {
