@@ -1,6 +1,59 @@
 <template>
   <div class="q-pa-md">
+    <div class="q-pa-md" v-if="mobile">
+      <q-layout view="hHh Lpr lff" container style="height: 680px" class="shadow-2 rounded-borders">
+        <q-header elevated>
+          <q-toolbar>
+            <q-btn flat @click="drawer = !drawer" round dense icon="menu"></q-btn>
+            <q-toolbar-title>Administração</q-toolbar-title>
+          </q-toolbar>
+        </q-header>
+
+        <q-drawer
+        v-model="drawer"
+        :width="300"
+        :breakpoint="500"
+        overlay
+        bordered
+        class="bg-grey-3"
+      >
+          <q-scroll-area class="fit">
+
+            <q-list padding>
+              <template v-for="(menuItem, index) in tabs" :key="index">
+                <q-item clickable :active="menuItem.label === activeMenu"  @click="changeMenu(menuItem.label)" v-ripple>
+                  <q-item-section avatar>
+                    <q-icon :name="menuItem.icon"></q-icon>
+                  </q-item-section>
+                  <q-item-section>
+                    {{ menuItem.label }}
+                  </q-item-section>
+                </q-item>
+                <q-separator :key="'sep' + index" v-if="menuItem.separator"></q-separator>
+              </template>
+            </q-list>
+
+          </q-scroll-area>
+        </q-drawer>
+
+        <q-page-container>
+          <q-page padding>
+            <clinics v-if="activeMenu === 'Farmácias'"> </clinics>
+            <clinicSectors v-if="activeMenu === 'Sector Clínico'"> </clinicSectors>
+            <doctor v-if="activeMenu === 'Clínicos'"> </doctor>
+            <drug v-if="activeMenu === 'Medicamentos'"> </drug>
+            <therapeuticRegimen v-if="activeMenu === 'Regime Terapêutico'"> </therapeuticRegimen>
+            <clinicalServices v-if="activeMenu === 'Serviço Clínico'"> </clinicalServices>
+            <identifierType v-if="activeMenu === 'Tipo de Identificador'"> </identifierType>
+            <interoperability v-if="activeMenu === 'Interoperabilidade'"> </interoperability>
+            <users v-if="activeMenu === 'Utilizadores'"> </users>
+            <roles v-if="activeMenu === 'Perfis'"> </roles>
+          </q-page>
+        </q-page-container>
+      </q-layout>
+    </div>
     <q-splitter
+      v-if="website"
       v-model="splitterModel">
       <template v-slot:before>
        <q-tabs
@@ -74,25 +127,29 @@
 </template>
 <script>
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 
 const tabs = [
   // { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
-  { name: 'clinic', icon: 'local_hospital', label: 'Farmácias' },
-  { name: 'clinic_sector', icon: 'local_pharmacy', label: 'Sector Clínico' },
-  { name: 'doctor', icon: 'psychology', label: 'Clínicos' },
-  { name: 'drugs', icon: 'medication', label: 'Medicamentos' },
-  { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapêutico' },
-  { name: 'clinical_service', icon: 'local_pharmacy', label: 'Serviço Clínico' },
-  { name: 'identifier_type', icon: 'pin', label: 'Tipo de Identificador' },
-  { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade' },
-  { name: 'users', icon: 'people', label: 'Utilizadores' },
-   { name: 'roles', icon: 'manage_accounts', label: 'Perfis' }
+  { name: 'clinic', icon: 'local_hospital', label: 'Farmácias', separator: true },
+  { name: 'clinic_sector', icon: 'local_pharmacy', label: 'Sector Clínico', separator: true },
+  { name: 'doctor', icon: 'psychology', label: 'Clínicos', separator: true },
+  { name: 'drugs', icon: 'medication', label: 'Medicamentos', separator: true },
+  { name: 'therapeutic_regimen', icon: 'healing', label: 'Regime Terapêutico', separator: true },
+  { name: 'clinical_service', icon: 'local_pharmacy', label: 'Serviço Clínico', separator: true },
+  { name: 'identifier_type', icon: 'pin', label: 'Tipo de Identificador', separator: true },
+  { name: 'interoperability', icon: 'online_prediction', label: 'Interoperabilidade', separator: true },
+  { name: 'users', icon: 'people', label: 'Utilizadores', separator: true },
+  { name: 'roles', icon: 'manage_accounts', label: 'Perfis', separator: true }
 ]
 export default {
+  mixins: [mixinplatform],
   setup () {
     return {
     //  tabs: ref('national_clinic'),
+      activeMenu: 'Farmácias',
       selectedTab: ref('clinic'),
+      drawer: ref(false),
       tabs,
       splitterModel: ref(15)
     }
@@ -110,6 +167,12 @@ export default {
       identifierType: require('components/Settings/IdentifierType/IdentifierTypeList.vue').default,
        users: require('components/Settings/User/Users.vue').default,
         roles: require('components/Settings/User/Roles.vue').default
+    },
+    methods: {
+      changeMenu (label) {
+        this.activeMenu = label
+        this.drawer = false
+      }
     }
 }
 </script>
