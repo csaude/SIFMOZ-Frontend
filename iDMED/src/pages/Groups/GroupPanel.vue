@@ -18,6 +18,7 @@
             :breakpoint="500"
             overlay
             bordered
+            behavior="mobile"
           >
             <q-scroll-area class="fit">
                 <!-- <template> -->
