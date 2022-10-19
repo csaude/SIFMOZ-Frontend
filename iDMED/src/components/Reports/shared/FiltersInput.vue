@@ -110,6 +110,11 @@
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===5"
                       @setSelectedYearAnnual="setSelectedYear" />
 
+<div class="col q-ml-md"  tabindex="0">
+                      <q-radio keep-color v-model="reportParams.online" color="primary"  v-bind:val="true" label="Relatório local" />
+                      <q-radio keep-color v-model="reportParams.online" color="primary"  v-bind:val="false" label="Relatório online"/>
+                    </div>
+
                     <div class="">
                       <q-btn class="gt-xs"
                         :color="!processingTerminated ? 'green-6' : 'grey-6'"
@@ -173,7 +178,8 @@ export default {
           period: null,
           periodTypeView: null,
           reportType: null,
-          progress: 0
+          progress: 0,
+          online: true
         },
         periodTypeList: ref([
           { id: 1, description: 'Especifico', code: 'SPECIFIC' },

@@ -1,11 +1,12 @@
 <template>
   <div>
-      <div class="text-center">
+      <div class="text-center q-mb-md">
             <q-icon class="profile" :name="selectedPatient.gender == 'Feminino' ? 'female' : 'male'" size="120px" color="primary"/>
         </div>
-      <div class="q-mt-md">
+      <div class="">
           <div class="row items-center q-mb-sm">
-              <span class="text-subtitle2">Dados Pessoais</span>
+              <q-icon name="person_outline" size="sm"/>
+              <span class="q-pl-sm text-subtitle2">Dados Pessoais</span>
           </div>
           <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
       </div>
@@ -24,8 +25,9 @@
 
       <div class="q-mt-md">
             <div class="row items-center q-mb-sm">
-                <span class="text-subtitle2">Endereço</span>
-            </div>
+                        <q-icon name="house" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Endereço</span>
+                    </div>
             <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
         </div>
         <div class="row q-mb-sm">
@@ -55,8 +57,9 @@
 
         <div class="q-mt-md">
             <div class="row items-center q-mb-sm">
-                <span class="text-subtitle2">Contacto</span>
-            </div>
+                        <q-icon name="call" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Contacto</span>
+                    </div>
             <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
         </div>
         <div class="row q-mb-sm">
@@ -79,13 +82,17 @@
             :clinic="currClinic"
             @close="showPatientRegister = false" />
         </q-dialog>
+        <span >
+        </span>
 </div>
 </template>
 
 <script>
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+   mixins: [mixinplatform],
   data () {
     return {
       showPatientRegister: false,

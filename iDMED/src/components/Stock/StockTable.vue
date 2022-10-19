@@ -83,6 +83,8 @@ import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
 import Clinic from '../../store/models/clinic/Clinic'
 import Drug from '../../store/models/drug/Drug'
+import mixincrypt from 'src/mixins/mixin-encryption'
+// import CryptoJS from 'crypto-js'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
   { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
@@ -93,6 +95,7 @@ const columns = [
 ]
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
+   mixins: [mixincrypt],
   data () {
     const filter = ref('')
     return {

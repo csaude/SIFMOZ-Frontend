@@ -2,14 +2,14 @@
   <div>
       <PrescriptionDrugsLestHeader
           :addVisible="true"
-          :mainContainer="true"
-          bgColor="bg-primary"
+          :mainContainer="false"
+          bgColor="bg-grey-6"
           :duration="duration"
           :newPickUpDate="newPickUpDate"
           @updateQtyPrescribed="updateQtyPrescribed"
           :visitDetails="visitDetails"
           @showAdd="addEditDrugs">
-        Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.description}}
+        Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.code}}
       </PrescriptionDrugsLestHeader>
       <div class="col prescription-box q-pa-md q-mb-md">
         <q-table
@@ -88,7 +88,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'step'],
+  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'step', 'visitClone'],
   data () {
     return {
       alert: ref({
@@ -186,10 +186,13 @@ export default {
     init () {
       this.pickupDate = this.newPickUpDate
       if (this.isNewPrescriptionStep) {
-        this.prescribedDrugs = this.visitDetails.prescription.prescribedDrugs
+        console.log(this.visitDetails.prescription.prescribedDrugs)
+        const pvd = new PatientVisitDetails(this.visitClone)
+        this.prescribedDrugs = pvd.prescription.prescribedDrugs
       } else
       if (this.oldPrescribedDrugs !== null && this.oldPrescribedDrugs.length > 0) {
         this.prescribedDrugs = this.oldPrescribedDrugs
+        console.log('prescribedD: ', this.prescribedDrugs)
         this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
       }
     },
