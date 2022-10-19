@@ -82,13 +82,13 @@
           :step="groupAddEditStep"
           @close="showRegisterRegister = false" />
       </q-dialog>
-      <q-dialog persistent v-model="showNewPackingForm" full-width>
+      <q-dialog persistent v-model="showNewPackingForm" >
         <groupPack
           :group="group"
           :defaultPickUpDate="defaultPickUpDate"
           @close="showNewPackingForm = false" />
       </q-dialog>
-      <q-dialog persistent v-model="showAddPrescription" full-width>
+      <q-dialog persistent v-model="showAddPrescription" >
           <addEditPrescription
             :selectedVisitDetails="patientVisitDetails"
             :service="group.service"
@@ -294,7 +294,7 @@ export default {
                                           .with('startStopReason')
                                           .with('episodeType')
                                           .with('clinicSector')
-                                          .with('patientServiceIdentifier')
+                                          .with('patientServiceIdentifier.service')
                                           .where('id', identifier.episodes[0].id)
                                           .first()
                         })

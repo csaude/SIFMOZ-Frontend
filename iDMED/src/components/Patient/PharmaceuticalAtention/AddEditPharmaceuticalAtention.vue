@@ -17,7 +17,7 @@
               :thumb-style="thumbStyle"
               :content-style="contentStyle"
               :content-active-style="contentActiveStyle"
-              style="height: 500px; width: 1200px"
+              style="height: 410px; width: 1200px"
               class="q-pr-md"
             >
             <div class="text-left text-h7 bold q-ml-sm q-pa-md q-my-lg">

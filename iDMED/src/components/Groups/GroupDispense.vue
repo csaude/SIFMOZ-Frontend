@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw;">
+   <q-card style="width: 1250px; max-width: 100vw;">
             <q-card-section class="q-pa-none bg-green-2">
               <div class="row items-center text-subtitle1 q-pa-md">
                 <q-icon  name="groups" size="md" color="primary"/>
