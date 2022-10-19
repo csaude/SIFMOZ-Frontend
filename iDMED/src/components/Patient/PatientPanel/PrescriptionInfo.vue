@@ -19,7 +19,7 @@
     </span>
   </div>
 
-  <q-dialog persistent v-model="showAddPrescription" full-width>
+  <q-dialog persistent v-model="showAddPrescription" >
       <AddEditPrescription
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"

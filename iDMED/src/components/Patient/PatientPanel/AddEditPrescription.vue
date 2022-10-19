@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+  <q-card style="width: 1200px; max-width: 90vw;">
       <q-card-section class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
@@ -9,48 +9,37 @@
         </div>
         <q-separator/>
       </q-card-section>
-
       <q-card-section>
-        <div class="text-center text-subtitle1">Prescrição</div>
-        <div class="row q-mt-md">
-          <div class="col-3 panel">
-            <ListHeader
-              :addVisible="false"
-              :mainContainer="true"
-              bgColor="bg-primary"
-              @showAdd="showAddEpisode = true">Adicionar Prescrição
-            </ListHeader>
-            <div class="q-ma-md">
-              <q-select
-                  class="col"
-                  dense outlined
-                  :disable="isNewPackStep || isEditPackStep"
-                  options-dense
-                  :options="clinicalServices"
-                  ref="clinicalService"
-                  :rules="[ val => !!val || 'Por favor indicar o serviço clínico']"
-                  v-model="selectedClinicalService"
-                  @blur="setCurVisitDetails"
-                  option-value="id"
-                  option-label="code"
-                  label="Serviço de Saúde e Sector Associado" />
-              <q-checkbox
-                v-model="spetialPrescription"
-                :disable="mustBeSpetial || isNewPackStep || isEditPackStep"
-                label="Prescrição especial"
-                class="col q-mb-sm" />
-              <q-select
-                  class="col"
-                  dense outlined
-                  v-if="spetialPrescription || curPrescriptionDetails.spetialPrescriptionMotive !== null"
-                  v-model="curPrescriptionDetails.spetialPrescriptionMotive"
-                  :options="spetialPrescriptionMotives"
-                  :disable="isNewPackStep || isEditPackStep"
-                  ref="spetialMotive"
-                  :rules="[ val => !!val || 'Por favor indicar o motivo da prescrição especial']"
-                  option-value="id"
-                  option-label="description"
-                  label="Motivo da prescrição especial" />
+      <q-scroll-area
+          :thumb-style="thumbStyle"
+          :content-style="contentStyle"
+          :content-active-style="contentActiveStyle"
+          style="height: 500px;"
+          class="q-pr-md"
+        >
+        <span>
+      <span v-for="clinicalService in clinicalServices" :key="clinicalService.id">
+        <ListHeader
+          :editVisible="!(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id)"
+          :doneVisible="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id)"
+          :closeVisible="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id)"
+          :mainContainer="false"
+          @initEdition="initEdition(clinicalService)"
+          @done="saveCurPatientVisitDetails"
+          @expandLess="expandLess"
+          @closeSection="cancelEdition"
+          class="q-mt-xs"
+          :bgColor="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id) ? 'bg-amber-9' : 'bg-primary'">Prescrição {{clinicalService.code}}
+        </ListHeader>
+        <div class="box-border q-pa-sm" v-if="selectedClinicalService !== null && (clinicalService.id === selectedClinicalService.id)">
+        <ListHeader
+          :editVisible="false"
+          :mainContainer="false"
+          bgColor="bg-grey-6">Informação da Prescrição
+        </ListHeader>
+        <div class="box-border">
+          <div class="q-ma-md">
+            <div class="row">
               <q-input
                 dense
                 outlined
@@ -71,9 +60,32 @@
                     </q-icon>
                 </template>
               </q-input>
+              <div class="col">
+                <div class="row">
+                  <q-checkbox
+                v-model="spetialPrescription"
+                :disable="mustBeSpetial || isNewPackStep || isEditPackStep"
+                label="Prescrição especial"
+                class="col-4 q-mb-sm" />
+              <q-select
+                  class="col"
+                  dense outlined
+                  v-if="spetialPrescription || curPrescriptionDetails.spetialPrescriptionMotive !== null"
+                  v-model="curPrescriptionDetails.spetialPrescriptionMotive"
+                  :options="spetialPrescriptionMotives"
+                  :disable="isNewPackStep || isEditPackStep"
+                  ref="spetialMotive"
+                  :rules="[ val => !!val || 'Por favor indicar o motivo da prescrição especial']"
+                  option-value="id"
+                  option-label="description"
+                  label="Motivo da prescrição especial" />
+                </div>
+              </div>
+            </div>
+            <div class="row">
               <q-select
                   v-if="hasTherapeuticalRegimen"
-                  class="col"
+                  class="col q-mr-sm"
                   :disable="isNewPackStep || isEditPackStep"
                   dense outlined
                   ref="therapeuticRegimen"
@@ -85,7 +97,7 @@
                   label="Regime Terapêutico" />
               <q-select
                   v-if="hasTherapeuticalLine"
-                  class="col"
+                  class="col q-mr-sm"
                   dense outlined
                   :disable="isNewPackStep || isEditPackStep"
                   ref="therapeuticLine"
@@ -96,7 +108,7 @@
                   option-label="description"
                   label="Linha Terapêutica" />
               <q-select
-                  class="col"
+                  class="col q-mr-sm"
                   dense outlined
                   v-model="curPrescription.duration"
                   @blur="updateLeftDuration()"
@@ -118,24 +130,24 @@
                   option-value="id"
                   option-label="fullName"
                   label="Clínico" />
-              <div>
-                <div class="row items-center q-mb-xs">
-                    <span class="text-subtitle2">Informação Adicional</span>
-                </div>
-                <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
+            </div>
+            <div>
+              <div class="row items-center q-mb-xs">
+                  <span class="text-subtitle2">Informação Adicional</span>
               </div>
-              <div class="row">
+              <q-separator color="grey-13" size="1px" class="q-mb-sm"/>
+            </div>
+            <div class="row">
               <div class="col">
+              <div class="row items-center">
                 <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
+              <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="N/A" label="Não" />
+              <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="Alterar" label="Sim" />
               </div>
-                <div class="col">
-                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="N/A" label="Não" />
-                <q-radio :disable="isNewPackStep || isEditPackStep" v-model="curPrescription.patientType" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="Alterar" label="Sim" />
-                </div>
               </div>
-                <q-select
+              <q-select
                   v-if="hasPrescriptionChangeMotive && String(curPrescription.patientType).includes('Alterar')"
-                  class="col q-mb-sm"
+                  class="col q-mr-sm"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="reasonForUpdate"
                   dense outlined
@@ -145,7 +157,7 @@
                   option-label="description"
                   label="Motivo Alteração" />
                 <q-select
-                  class="col"
+                  class="col q-mr-sm"
                   dense outlined
                   ref="dispenseType"
                   :disable="isNewPackStep || isEditPackStep"
@@ -164,29 +176,23 @@
                   :options="patientStatus"
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
-                <!--q-toggle
-                  v-model="curPatientVisitDetail.createPackLater"
-                  :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
-                  label="Para Dispensar à Posterior" /-->
-                <div class="row q-mb-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
-                    label="Adicionar Medicamentos"
-                    class="col all-pointer-events"
-                    @click="validateForm()"/>
-                </div>
+            </div>
+            <div class="row reverse q-mb-sm">
+              <q-btn
+                unelevated
+                color="primary"
+                :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
+                label="Adicionar Medicamentos"
+                class="all-pointer-events"
+                @click="validateForm()"/>
             </div>
           </div>
-          <div class="col q-mx-md">
+          </div>
           <div
-            class="q-pa-md box-border"
+            class=""
             v-if="showServiceDrugsManagement">
-              <div
-                v-for="visitDetails in curPatientVisitDetails" :key="visitDetails.id" >
+            <div>
                 <ServiceDrugsManagement
-                  v-if="selectedClinicalService.code === visitDetails.episode.patientServiceIdentifier.service.code"
                   :selectedClinicalService="selectedClinicalService"
                   :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
                   :lastPack="lastPack"
@@ -194,44 +200,44 @@
                   :prescription="curPatientVisitDetail.prescription"
                   :oldPrescribedDrugs="prescribedDrugs"
                   @updatePrescribedDrugs="updatePrescribedDrugs"
-                  :visitDetails="visitDetails"/>
+                  :visitDetails="curPatientVisitDetail"
+                  :visitClone="visitClone"/>
               </div>
           </div>
-          <div v-else class="vertical-middle">
-            <q-banner rounded class="bg-orange-1 text-left text-orange-10">
-              Nenhum Medicamneto foi Adicionado!
-            </q-banner>
-          </div>
-              <div class="row" v-if="showServiceDrugsManagement && hasVisitsToPackNow">
-                <q-banner
-                  dense
-                  inline-actions
-                  class="col text-white q-pa-none bg-orange-4">
-                   <div class="q-pa-md">
-                        <div class="q-gutter-sm">
-                          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="US_" label="Farmácia Pública" />
-                          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DD_" label="Dipensa Descentralizada" />
-                          <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DC_" label="Dispensa Comunitária" />
-                        </div>
-                   </div>
-                    <template v-slot:action class="items-center">
-                       <q-select
-                            style="width: 320px"
-                            class="col q-ma-sm"
-                            bg-color="white"
-                            dense outlined
-                            ref="dispenseMode"
-                            v-model="dispenseMode"
-                            :options="dispenseModes"
-                            option-value="id"
-                            option-label="description"
-                            label="Modo de dispensa" />
-                    </template>
-                </q-banner>
-              </div>
-         <div class="row">
+        </div>
+      </span>
+      <div class="row q-mt-xs"  v-if="!inFormEdition">
+        <q-banner
+          dense
+          inline-actions
+          class="col text-white q-pa-none bg-orange-4">
+            <div class="q-pa-md">
+                <div class="q-gutter-sm">
+                  <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="US_" label="Farmácia Pública" />
+                  <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DD_" label="Dipensa Descentralizada" />
+                  <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DC_" label="Dispensa Comunitária" />
+                </div>
+            </div>
+            <template v-slot:action class="items-center">
+                <q-select
+                    style="width: 320px"
+                    class="col q-ma-sm"
+                    bg-color="white"
+                    dense outlined
+                    ref="dispenseMode"
+                    v-model="dispenseMode"
+                    :options="dispenseModes"
+                    option-value="id"
+                    option-label="description"
+                    label="Modo de dispensa" />
+            </template>
+        </q-banner>
+      </div>
+      </span>
+      </q-scroll-area>
+      <div class="row q-mt-xl q-pt-md">
            <span
-            class="text-right absolute-bottom q-mb-lg q-mr-lg q-mt-md no-pointer-events">
+            class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events">
 
               <q-btn
                 label="Cancelar"
@@ -239,15 +245,13 @@
                 class="all-pointer-events"
                 @click="$emit('close')"/>
               <q-btn
-                v-if="selectedClinicalService.id !== null"
+                v-if="!inFormEdition"
                 :label="dispenseLabel"
-                @click="generatePacksAndDispense()"
+                @click="doValidationToDispense()"
                 color="primary"
                 class="q-ml-md all-pointer-events" />
             </span>
          </div>
-          </div>
-        </div>
       </q-card-section>
       <q-dialog persistent v-model="alert.visible">
         <Dialog
@@ -268,7 +272,7 @@
 
 <script>
 import { ref } from 'vue'
-import { QSpinnerBall, SessionStorage } from 'quasar'
+import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
@@ -294,7 +298,9 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import GroupMember from '../../../store/models/groupMember/GroupMember'
 import GroupMemberPrescription from '../../../store/models/group/GroupMemberPrescription'
 import Group from '../../../store/models/group/Group'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+  mixins: [mixinplatform],
   props: ['selectedVisitDetails', 'step', 'service', 'member'],
   data () {
     return {
@@ -307,9 +313,9 @@ export default {
       identifiers: [],
       patientVisit: new PatientVisit(),
       curPatientVisitDetails: [],
-      curPatientVisitDetail: new PatientVisitDetails(),
+      curPatientVisitDetail: null,
       clinicalServices: [],
-      selectedClinicalService: new ClinicalService(),
+      selectedClinicalService: null,
       reasonsForUpdate: ['FT', 'Alergia'],
       patientStatus: ['Inicio', 'Manutenção'],
       patientTypes: ['Sim', 'Não'],
@@ -317,22 +323,134 @@ export default {
       prescriptionDate: '',
       showDispenseMode: false,
       prescribedDrugs: [],
-      dispenseMode: [],
+      dispenseMode: null,
       spetialPrescription: false,
       lastValidPrescription: null,
       originalPickUpDate: null,
       mustBeSpetial: false,
-      msgObject: {}
+      msgObject: {},
+      visitClone: {},
+      inFormEdition: false,
+      contentStyle: {
+        backgroundColor: '#ffffff',
+        color: '#555'
+      },
+      contentActiveStyle: {
+        backgroundColor: '#eee',
+        color: 'black'
+      },
+      thumbStyle: {
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#0ba58b',
+        width: '5px',
+        opacity: 0.75
+      }
     }
   },
   methods: {
-    updateLeftDuration () {
-      this.curPrescription.leftDuration = this.curPrescription.duration.weeks
-    },
-    alterPatientStatus () {
-      if (String(this.curPrescriptionDetails.dispenseType.description).includes('Mensal')) {
-        this.curPrescription.patientStatus = 'N/A'
+    init () {
+      this.clearPrescriptionSession()
+      if (this.isNewPackStep || this.isEditPackStep) {
+        this.initPatientVisitDetailsForDispense()
+      } else {
+        this.getPatientActiveClinicalServices()
       }
+      this.doDispenseModeGetAll(0)
+    },
+    initPatientVisitDetailsForDispense () {
+      this.inFormEdition = true
+      const pack = new Pack({
+        clinic: this.currClinic
+      })
+
+      this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
+                                                              .with('episode.patientServiceIdentifier.service')
+                                                              .with('patientVisit')
+                                                              .with('prescription.*')
+                                                              .where('id', this.selectedVisitDetails.id)
+                                                              .first()
+      this.curPatientVisitDetail.prescription.prescriptionDetails = PrescriptionDetail.query()
+                                                                                      .withAll()
+                                                                                      .where('id', this.curPatientVisitDetail.prescription.prescriptionDetails[0].id)
+                                                                                      .get()
+      this.prescriptionDate = this.getDDMMYYYFromJSDate(this.curPatientVisitDetail.prescription.prescriptionDate)
+
+      this.selectedClinicalService = ClinicalService.query()
+                                                    .with('attributes.*')
+                                                    .with('therapeuticRegimens')
+                                                    .with('identifierType')
+                                                    .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.service.id)
+                                                    .first()
+      this.curPatientVisitDetail.prescription.prescribedDrugs = PrescribedDrug.query()
+                                                                                  .with('drug.form')
+                                                                                  .where('prescription_id', this.curPatientVisitDetail.prescription.id)
+                                                                                  .get()
+
+      const prescribedDrugs = this.curPatientVisitDetail.prescription.prescribedDrugs
+
+const pb = JSON.parse(JSON.stringify(this.curPatientVisitDetail.prescription.prescribedDrugs))
+      let packagedDrugs = null
+        console.log(pb)
+
+      if (this.curPatientVisitDetail.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
+        this.spetialPrescription = true
+      }
+      if (!this.isFirstPack) {
+        this.curPatientVisitDetail.pack = this.lastPackFull
+        packagedDrugs = this.curPatientVisitDetail.pack.packagedDrugs
+      }
+      console.log(packagedDrugs)
+      if (this.isEditPackStep || this.isFirstPack) {
+        this.prescribedDrugs = prescribedDrugs
+      } else {
+        prescribedDrugs.forEach((prescribedDrug) => {
+          packagedDrugs.forEach((packagedDrug) => {
+            if (this.isNewPackStep && ((prescribedDrug.drug.id === packagedDrug.drug.id) && packagedDrug.toContinue)) {
+                this.prescribedDrugs.push(prescribedDrug)
+              }
+          })
+        })
+
+          this.curPatientVisitDetail.pack = null
+          if (this.isFirstPack) {
+            pack.pickupDate = this.curPatientVisitDetail.prescription.prescriptionDate
+          } else {
+            pack.pickupDate = this.lastPack.nextPickUpDate
+          }
+
+          this.curPatientVisitDetail.pack = pack
+          this.curPatientVisitDetail.id = null
+          this.curPatientVisitDetail.$id = null
+      }
+      if (this.isFirstPack) {
+        this.curPatientVisitDetail.pack = pack
+        this.curPatientVisitDetail.pack.patientVisitDetails = []
+        this.curPatientVisitDetail.pack.packagedDrugs = []
+        this.curPatientVisitDetail.pack.clinic = this.currClinic
+      }
+
+      if (this.isEditPackStep) {
+        this.curPatientVisitDetail.pack.patientVisitDetails = []
+        this.curPatientVisitDetail.pack.packagedDrugs = []
+        this.curPatientVisitDetail.pack.clinic = this.currClinic
+      }
+
+      if (this.selectedVisitDetails !== null) {
+        this.curPatientVisitDetail.createPackLater = this.selectedVisitDetails.createPackLater
+      }
+      SessionStorage.set(this.curPatientVisitDetail.episode.patientServiceIdentifier.service.code, this.curPatientVisitDetail)
+      this.clinicalServices.push(this.curPatientVisitDetail.episode.patientServiceIdentifier.service)
+      // this.selectedClinicalService = this.curPatientVisitDetail.episode.patientServiceIdentifier.service
+      this.setCurVisitDetails()
+      // this.showServiceDrugsManagement = true
+      this.initPatientVisit()
+    },
+    clearPrescriptionSession () {
+      const services = ClinicalService.all()
+      services.forEach((service) => {
+        SessionStorage.remove(service.code)
+      })
     },
     initPatientVisit () {
       if (this.isNewPackStep || !this.isEditPackStep) {
@@ -352,186 +470,7 @@ export default {
       this.patientVisit.clinic = this.currClinic
       this.patientVisit.patient = this.simplePatient
     },
-    setCurVisitDetails () {
-      this.$q.loading.show({
-        message: 'Carregando ...',
-        spinnerColor: 'grey-4',
-        spinner: QSpinnerBall
-      })
-
-      setTimeout(() => {
-        this.$q.loading.hide()
-      }, 400)
-      this.spetialPrescription = false
-      this.mustBeSpetial = false
-      this.showServiceDrugsManagement = false
-      Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-        const visitDetails = this.curPatientVisitDetails[k]
-        if (visitDetails.episode.patientServiceIdentifier.service.id === this.selectedClinicalService.id) {
-          this.curPatientVisitDetail = visitDetails
-          if (visitDetails.prescription.prescribedDrugs.length > 0) {
-            this.prescribedDrugs = visitDetails.prescription.prescribedDrugs
-            this.showServiceDrugsManagement = true
-          }
-        }
-      }.bind(this))
-      if (this.curPatientVisitDetail !== null) {
-        const identifier = PatientServiceIdentifier.query()
-                                                   .with(['episodes.patientVisitDetails.pack', 'episodes.patientVisitDetails.prescription.duration', 'episodes.patientVisitDetails.prescription.prescriptionDetails.*'])
-                                                   .with('service')
-                                                   .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.id)
-                                                   .first()
-        if (identifier.lastVisitPrescription() !== null) {
-          const prescription = identifier.lastVisitPrescription().prescription
-          prescription.patientVisitDetails = PatientVisitDetails.query()
-                                                                   .with('pack')
-                                                                   .where('prescription_id', prescription.id)
-                                                                   .get()
-          if (prescription.leftDuration > 0) {
-            this.lastVisitPrescription = prescription
-            this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
-          }
-        }
-      }
-    },
-    doOnContinue (object) {
-      this.spetialPrescription = true
-      this.mustBeSpetial = true
-    },
-    doOnYes (object) {
-      const patientVDetails = object.patientVDetails
-      patientVDetails.pack.nextPickUpDate = object.nextPickUpDate
-
-      patientVDetails.pack.packagedDrugs.forEach((pd) => {
-        pd.nextPickUpDate = object.nextPickUpDate
-      })
-
-      this.savePack(object.patientVisit, patientVDetails, 0)
-    },
-    doOnNo (object) {
-      const patientVDetails = object.patientVDetails
-
-      this.savePack(object.patientVisit, patientVDetails, 0)
-    },
-    doOnCancel () {
-      this.selectedClinicalService = new ClinicalService()
-    },
-    cancelYesNo () {
-      this.alert.visible = false
-    },
-    initCurrPatientVisitDetails () {
-      const pack = new Pack({
-        clinic: this.currClinic
-      })
-      if (this.selectedVisitDetails !== null) {
-        this.curPatientVisitDetail.createPackLater = this.selectedVisitDetails.createPackLater
-      }
-
-      if (!this.isNewPackStep && !this.isEditPackStep) {
-        let prescription = new Prescription({
-          prescriptionDate: new Date(),
-          clinic: this.currClinic
-        })
-
-        if (this.service !== null && this.service !== undefined) {
-          prescription = this.selectedVisitDetails.prescription
-          this.prescriptionDate = this.getDDMMYYYFromJSDate(new Date())
-          this.prescribedDrugs = prescription.prescribedDrugs
-          this.showServiceDrugsManagement = true
-          prescription.id = null
-          prescription.$id = null
-          prescription.clinic = this.currClinic
-          prescription.prescriptionDetails[0].id = null
-          prescription.prescriptionDetails[0].$id = null
-          prescription.prescribedDrugs.forEach((pd) => {
-            pd.id = null
-            pd.$id = null
-          })
-        } else {
-          const prescriptionDetail = new PrescriptionDetail()
-          prescription.prescriptionDetails.push(prescriptionDetail)
-        }
-
-        this.curPatientVisitDetail.pack = pack
-        this.curPatientVisitDetail.prescription = prescription
-      } else {
-        this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
-                                                                .with('episode.patientServiceIdentifier.service')
-                                                                .with('patientVisit')
-                                                                .with('prescription.*')
-                                                                .where('id', this.selectedVisitDetails.id)
-                                                                .first()
-        this.curPatientVisitDetail.prescription.prescriptionDetails = PrescriptionDetail.query()
-                                                                                            .withAll()
-                                                                                            .where('id', this.curPatientVisitDetail.prescription.prescriptionDetails[0].id)
-                                                                                            .get()
-        this.prescriptionDate = this.getDDMMYYYFromJSDate(this.curPatientVisitDetail.prescription.prescriptionDate)
-
-        this.selectedClinicalService = ClinicalService.query()
-                                                      .with('attributes.*')
-                                                      .with('therapeuticRegimens')
-                                                      .with('identifierType')
-                                                      .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.service.id)
-                                                      .first()
-        this.curPatientVisitDetail.prescription.prescribedDrugs = PrescribedDrug.query()
-                                                                                    .with('drug.form')
-                                                                                    .where('prescription_id', this.curPatientVisitDetail.prescription.id)
-                                                                                    .get()
-
-        const prescribedDrugs = this.curPatientVisitDetail.prescription.prescribedDrugs
-
-        let packagedDrugs = null
-
-        if (this.curPatientVisitDetail.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
-          this.spetialPrescription = true
-        }
-        if (!this.isFirstPack) {
-          this.curPatientVisitDetail.pack = this.lastPackFull
-          packagedDrugs = this.curPatientVisitDetail.pack.packagedDrugs
-        }
-        if (this.isEditPackStep || this.isFirstPack) {
-          this.prescribedDrugs = prescribedDrugs
-        } else {
-          Object.keys(prescribedDrugs).forEach(function (k) {
-            const prescribedDrug = prescribedDrugs[k]
-              Object.keys(packagedDrugs).forEach(function (k) {
-                const packagedDrug = packagedDrugs[k]
-                if (this.isNewPackStep && ((prescribedDrug.drug.id === packagedDrug.drug.id) && packagedDrug.toContinue)) {
-                  this.prescribedDrugs.push(prescribedDrug)
-                }
-              }.bind(this))
-          }.bind(this))
-
-            this.curPatientVisitDetail.pack = null
-            if (this.isFirstPack) {
-              pack.pickupDate = this.curPatientVisitDetail.prescription.prescriptionDate
-            } else {
-              pack.pickupDate = this.lastPack.nextPickUpDate
-            }
-
-            this.curPatientVisitDetail.pack = pack
-            this.curPatientVisitDetail.id = null
-            this.curPatientVisitDetail.$id = null
-        }
-        if (this.isFirstPack) {
-          this.curPatientVisitDetail.pack = pack
-          this.curPatientVisitDetail.pack.patientVisitDetails = []
-          this.curPatientVisitDetail.pack.packagedDrugs = []
-          this.curPatientVisitDetail.pack.clinic = this.currClinic
-        }
-
-        if (this.isEditPackStep) {
-          this.curPatientVisitDetail.pack.patientVisitDetails = []
-          this.curPatientVisitDetail.pack.packagedDrugs = []
-          this.curPatientVisitDetail.pack.clinic = this.currClinic
-        }
-
-        this.curPatientVisitDetails.push(this.curPatientVisitDetail)
-        this.showServiceDrugsManagement = true
-      }
-      this.initPatientVisit()
-    },
-    init () {
+    getPatientActiveClinicalServices () {
       if (this.service !== null && this.service !== undefined) {
         this.selectedClinicalService = this.service
       }
@@ -590,8 +529,99 @@ export default {
       curPatientVisitDetail.createPackLater = this.selectedVisitDetails.createPackLater
 
       episode.patientVisitDetails.push(curPatientVisitDetail)
+      SessionStorage.set(curPatientVisitDetail.episode.patientServiceIdentifier.service.code, curPatientVisitDetail)
+
       this.curPatientVisitDetails.push(curPatientVisitDetail)
     },
+    initEdition (clinicalService) {
+      this.inFormEdition = true
+      this.selectedClinicalService = clinicalService
+      this.setCurVisitDetails()
+    },
+    cancelEdition () {
+      this.selectedClinicalService = null
+      this.inFormEdition = false
+    },
+    isSelectedService (clinicalService) {
+        if (this.selectedClinicalService === null) return false
+      return this.selectedClinicalService.id === clinicalService.id
+    },
+    updateLeftDuration () {
+      this.curPrescription.leftDuration = this.curPrescription.duration.weeks
+    },
+    alterPatientStatus () {
+      if (String(this.curPrescriptionDetails.dispenseType.description).includes('Mensal')) {
+        this.curPrescription.patientStatus = 'N/A'
+      }
+    },
+    saveCurPatientVisitDetails () {
+      SessionStorage.set(this.curPatientVisitDetail.episode.patientServiceIdentifier.service.code, this.curPatientVisitDetail)
+      this.selectedClinicalService = null
+      this.inFormEdition = false
+      this.checkPrescribedDrugs()
+    },
+    setCurVisitDetails () {
+      this.spetialPrescription = false
+      this.mustBeSpetial = false
+      this.showServiceDrugsManagement = false
+      console.log(SessionStorage.getItem(this.selectedClinicalService.code).prescription.prescribedDrugs)
+      this.curPatientVisitDetail = new PatientVisitDetails(SessionStorage.getItem(this.selectedClinicalService.code))
+      this.visitClone = new PatientVisitDetails(JSON.parse(JSON.stringify(this.curPatientVisitDetail)))
+      this.spetialPrescription = this.curPatientVisitDetail.prescription.special
+      this.mustBeSpetial = this.curPatientVisitDetail.prescription.special
+      if (this.curPatientVisitDetail.prescription.prescribedDrugs.length > 0) {
+        console.log('has prescribed drugs')
+        this.prescribedDrugs = this.curPatientVisitDetail.prescription.prescribedDrugs
+        this.showServiceDrugsManagement = true
+      }
+      if (!this.visitClone.prescription.special) {
+      if (!(this.isNewPackStep || this.isEditPackStep)) {
+        const identifier = PatientServiceIdentifier.query()
+                                                   .with(['episodes.patientVisitDetails.pack', 'episodes.patientVisitDetails.prescription.duration', 'episodes.patientVisitDetails.prescription.prescriptionDetails.*'])
+                                                   .with('service')
+                                                   .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.id)
+                                                   .first()
+        if (identifier.lastVisitPrescription() !== null) {
+          const prescription = identifier.lastVisitPrescription().prescription
+          prescription.patientVisitDetails = PatientVisitDetails.query()
+                                                                   .with('pack')
+                                                                   .where('prescription_id', prescription.id)
+                                                                   .get()
+          if (prescription.leftDuration > 0) {
+            this.lastVisitPrescription = prescription
+            this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
+          }
+        }
+      }
+      }
+    },
+    doOnContinue (object) {
+      this.spetialPrescription = true
+      this.mustBeSpetial = true
+      this.curPatientVisitDetail.prescription.special = true
+    },
+    doOnYes (object) {
+      const patientVDetails = object.patientVDetails
+      patientVDetails.pack.nextPickUpDate = object.nextPickUpDate
+
+      patientVDetails.pack.packagedDrugs.forEach((pd) => {
+        pd.nextPickUpDate = object.nextPickUpDate
+      })
+
+      this.savePack(object.patientVisit, patientVDetails, 0)
+    },
+    doOnNo (object) {
+      const patientVDetails = object.patientVDetails
+
+      this.savePack(object.patientVisit, patientVDetails, 0)
+    },
+    doOnCancel () {
+      this.selectedClinicalService = new ClinicalService()
+    },
+    cancelYesNo () {
+      this.alert.visible = false
+    },
+
     checkClinicalServiceAttr (attr) {
       if (this.selectedClinicalService === '' || this.selectedClinicalService === null || this.selectedClinicalService === undefined) return false
       const has = this.selectedClinicalService.attributes.some((attribute) => {
@@ -601,26 +631,27 @@ export default {
     },
     updatePrescribedDrugs (prescribedDrugs, pickupDate, nextPDate, duration) {
       if (!this.curPatientVisitDetail.createPackLater && this.curPatientVisitDetail.pack !== null) {
-        this.curPatientVisitDetail.prescription.prescribedDrugs = prescribedDrugs
+        this.curPatientVisitDetail.prescription.prescribedDrugs = JSON.parse(JSON.stringify(prescribedDrugs))
         if (pickupDate !== null && pickupDate !== undefined) this.curPatientVisitDetail.pack.packDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (pickupDate !== undefined) this.curPatientVisitDetail.pack.pickupDate = this.getJSDateFromDDMMYYY(pickupDate)
         if (nextPDate !== undefined) this.curPatientVisitDetail.pack.nextPickUpDate = this.getJSDateFromDDMMYYY(nextPDate)
         if (duration !== undefined) this.curPatientVisitDetail.pack.weeksSupply = duration.weeks
       }
     },
+
     validateForm () {
-      this.$refs.patientStatus.validate()
-      this.$refs.clinicalService.validate()
+      // this.$refs.clinicalService.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
       if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
       if (this.spetialPrescription) this.$refs.spetialMotive.validate()
       this.$refs.duration.validate()
       this.$refs.doctor.validate()
+      this.$refs.patientStatus.validate()
       // if (this.hasPatientType) this.$refs.patientType.validate()
       this.$refs.dispenseType.validate()
 
       if (!this.$refs.patientStatus.hasError &&
-          !this.$refs.clinicalService.hasError &&
+          // !this.$refs.clinicalService.hasError &&
           // (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
           // (this.hasTherapeuticalLine && !this.$refs.therapeuticLine.hasError) &&
           !this.$refs.duration.hasError &&
@@ -639,10 +670,19 @@ export default {
             }
       }
     },
-    generatePacksAndDispense () {
+    doValidationToDispense () {
+      this.curPatientVisitDetails = []
+      this.clinicalServices.forEach((service) => {
+        if (SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0) {
+          this.curPatientVisitDetails.push(SessionStorage.getItem(service.code))
+        }
+      })
+      console.log(this.curPatientVisitDetails)
+      let hasSomePrescribed = true
+      if (this.curPatientVisitDetails.length <= 0) hasSomePrescribed = false
       let hasError = false
       let error = ''
-      let hasSomePrescribed = false
+      if (hasSomePrescribed) {
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
         let prescriptionCopy = null
@@ -673,7 +713,7 @@ export default {
           } else if (new Date(visitDetails.pack.pickupDate) > new Date()) {
             hasError = true
             error = 'A data de levantamento indicada é maior que a data corrente'
-          } else if (this.dispenseMode === '') {
+          } else if (this.dispenseMode === null || this.dispenseMode === undefined || this.dispenseMode === '') {
             hasError = true
             error = 'Por favor indicar o modo da dispensa.'
           } else if (visitDetails.prescription.prescribedDrugs.length > 0) {
@@ -695,14 +735,15 @@ export default {
           }
         }
       }.bind(this))
+      } else {
+        this.displayAlert('error', 'Por favor indicar os medicamentos a dispensar.')
+      }
       if (hasSomePrescribed) {
         if (!hasError) {
           this.proccedToDispense()
         } else {
           this.displayAlert('error', error)
         }
-      } else {
-        this.displayAlert('error', 'Por favor indicar os medicamentos a dispensar.')
       }
     },
     initPackageStock (stock, drug, quantitySupplied) {
@@ -864,6 +905,7 @@ export default {
                                     .where('id', patientVDetails.episode.id)
                                     .first()
         patientVDetails.episode.patientVisitDetails = []
+        console.log(patientVDetails)
         if (patientVDetails.prescription.id === null) {
           Prescription.apiSave(patientVDetails.prescription).then(resp => {
             patientVDetails.prescription.id = resp.response.data.id
@@ -871,6 +913,7 @@ export default {
             patientVDetails.prescription.prescribedDrugs = []
             patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
             if (patientVDetails.pack !== null) {
+              console.log(patientVDetails.pack)
                 Pack.apiSave(patientVDetails.pack).then(resp => {
                   patientVDetails.pack.id = resp.response.data.id
                   patientVDetails.pack.$id = resp.response.data.id
@@ -919,6 +962,9 @@ export default {
       })
     },
     savePatientVisit (patientVisit) {
+      patientVisit.patient = this.simplePatient
+      patientVisit.clinic = this.currClinic
+      console.log(patientVisit)
       PatientVisit.apiSave(patientVisit).then(resp => {
         this.patientVisit.id = resp.response.data.id
         this.patientVisit.$id = resp.response.data.id
@@ -989,9 +1035,19 @@ export default {
     },
     getDDMMYYYFromJSDate (jsDate) {
       return moment(jsDate).format('DD-MM-YYYY')
+    },
+    checkPrescribedDrugs () {
+      const somePrescribed = this.clinicalServices.some((service) => {
+        console.log(SessionStorage.getItem(service.code).prescription.prescribedDrugs)
+        return SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0
+      })
+      return somePrescribed
     }
   },
   computed: {
+    hasPrescribdDrugs () {
+      return this.checkPrescribedDrugs()
+    },
     dispenseModes: {
         get () {
           return DispenseMode.query().where((dispenseMode) => {
@@ -1020,30 +1076,26 @@ export default {
     },
     hasVisitsToPackLater: {
       get () {
-        let createPackLater = false
-        if (this.curPatientVisitDetails.length <= 0) return false
-
-        Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-          const visitDetails = this.curPatientVisitDetails[k]
-          if (createPackLater === false) {
-            createPackLater = visitDetails.createPackLater
-          }
-        }.bind(this))
-        return createPackLater
+        const pvds = []
+        this.clinicalServices.forEach((cls) => {
+          pvds.push(new PatientVisitDetails(SessionStorage.getItem(cls.code)))
+        })
+        const packLater = pvds.some((pvd) => {
+          return pvd.createPackLater
+        })
+        return packLater
       }
     },
     hasVisitsToPackNow: {
       get () {
-        let createPackLater = true
-        if (this.curPatientVisitDetails.length <= 0) return false
-
-        Object.keys(this.curPatientVisitDetails).forEach(function (k) {
-          const visitDetails = this.curPatientVisitDetails[k]
-          if (createPackLater === true) {
-            createPackLater = visitDetails.createPackLater
-          }
-        }.bind(this))
-      return !createPackLater
+        const pvds = []
+        this.clinicalServices.forEach((cls) => {
+          pvds.push(new PatientVisitDetails(SessionStorage.getItem(cls.code)))
+        })
+        const packLater = pvds.some((pvd) => {
+          return pvd.createPackLater === false
+        })
+        return packLater
       }
     },
     isNewPackStep: {
@@ -1178,11 +1230,7 @@ export default {
     }
   },
   created () {
-    this.initCurrPatientVisitDetails()
-  },
-  mounted () {
     this.init()
-    this.doDispenseModeGetAll(0)
   },
   components: {
     ServiceDrugsManagement: require('components/Patient/PatientPanel/ServiceDrugsManagement.vue').default,
@@ -1193,7 +1241,7 @@ export default {
 </script>
 
 <style lang="scss">
-.prescription-box {
+  .prescription-box {
     border: 1px solid $grey-4;
   }
   .box-border {

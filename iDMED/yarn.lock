@@ -2639,6 +2639,11 @@
     "shebang-command" "^2.0.0"
     "which" "^2.0.1"
 
+"crypto-js@^4.0.0", "crypto-js@^4.1.1":
+  "integrity" "sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw=="
+  "resolved" "https://registry.npmjs.org/crypto-js/-/crypto-js-4.1.1.tgz"
+  "version" "4.1.1"
+
 "css-color-names@^0.0.4":
   "integrity" "sha1-gIrcLnnPhHOAabZGyyDsJ762KeA="
   "resolved" "https://registry.npmjs.org/css-color-names/-/css-color-names-0.0.4.tgz"
@@ -3784,11 +3789,6 @@
   "integrity" "sha1-FQStJSMVjKpA20onh8sBQRmU6k8="
   "resolved" "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   "version" "1.0.0"
-
-"fsevents@~2.3.2":
-  "integrity" "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz"
-  "version" "2.3.2"
 
 "fstream@^1.0.12":
   "integrity" "sha512-WvJ193OHa0GHPEL+AycEJgxvBEwyfRkN1vhjca23OaPVMCaLCXTd5qAu82AjTcgP1UJmytkOKb63Ypde7raDIg=="
@@ -7385,6 +7385,13 @@
   "resolved" "https://registry.npmjs.org/vue-awesome/-/vue-awesome-4.5.0.tgz"
   "version" "4.5.0"
 
+"vue-cryptojs@^2.3.0":
+  "integrity" "sha512-jOoAFij6nfWEK5thphHfGGKiA5xvxywCdta7/erdGNNy8p5LF9MKxKhWduV6UMaGxrhldFkSZan+bhiPO/Lrkg=="
+  "resolved" "https://registry.npmjs.org/vue-cryptojs/-/vue-cryptojs-2.3.0.tgz"
+  "version" "2.3.0"
+  dependencies:
+    "crypto-js" "^4.0.0"
+
 "vue-eslint-parser@^7.9.0":
   "integrity" "sha512-QBlhZ5LteDRVy2dISfQhNEmmcqph+GTaD4SH41bYzXcVHFPJ9p34zCG6QAqOZVa8PKaVgbomFnoZpGJRZi14vg=="
   "resolved" "https://registry.npmjs.org/vue-eslint-parser/-/vue-eslint-parser-7.9.0.tgz"
@@ -7442,7 +7449,7 @@
   "resolved" "https://registry.npmjs.org/vue/-/vue-2.6.14.tgz"
   "version" "2.6.14"
 
-"vue@^2.4.0", "vue@^3.0.0", "vue@^3.0.2", "vue@> 3.0.0", "vue@3.1.5":
+"vue@^2.4.0", "vue@^3.0.0", "vue@^3.0.2", "vue@> 3.0.0", "vue@>= 2.0.0", "vue@3.1.5":
   "integrity" "sha512-Ho7HNb1nfDoO+HVb6qYZgeaobt1XbY6KXFe4HGs1b9X6RhkWG/113n4/SrtM1LUclM6OrP/Se5aPHHvAPG1iVQ=="
   "resolved" "https://registry.npmjs.org/vue/-/vue-3.1.5.tgz"
   "version" "3.1.5"
