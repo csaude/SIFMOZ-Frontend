@@ -4,6 +4,7 @@
             <div class="text-h6">Farmácia</div>
         </q-card-section>
         <form @submit.prevent="validateClinic" >
+          <q-scroll-area style="height: 600px;">
             <q-card-section class="q-px-md">
                <div class="row q-mt-md">
                 <nameInput
@@ -84,6 +85,8 @@
        :disable="onlyView"  />
                  </div>
             </q-card-section>
+            <q-scroll-observer @scroll="scrollHandler" />
+      </q-scroll-area>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" :loading="submitting" label="Submeter" color="primary"  v-if="!onlyView"/>

@@ -4,6 +4,7 @@
             <div class="text-h6"> Serviço Clínico</div>
         </q-card-section>
         <form  >
+        <q-scroll-area style="height: 600px;">
         <q-stepper
           v-model="step"
           ref="stepper"
@@ -152,6 +153,8 @@
         </q-card-section>
          </q-step>
             </q-stepper>
+            <q-scroll-observer @scroll="scrollHandler" />
+      </q-scroll-area>
            <q-card-actions align="right" class="q-mb-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />

@@ -4,6 +4,7 @@
             <div class="text-h6">Cadastrar Perfil</div>
         </q-card-section>
               <form @submit.prevent="validateRole" >
+              <q-scroll-area style="height: 600px;">
             <q-card-section class="q-px-md">
                <div class="row q-mt-md">
                   <nameInput
@@ -49,11 +50,13 @@
       v-if="onlyView"
         />
               </div>
+              </q-card-section>
+              <q-scroll-observer @scroll="scrollHandler" />
+      </q-scroll-area>
                 <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
                 <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
-              </q-card-section>
              <q-dialog v-model="alert.visible">
              <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>

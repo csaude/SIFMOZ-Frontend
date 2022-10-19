@@ -1,77 +1,80 @@
 <template>
-<q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <q-card-section>
-            <div class="text-h6"> Sistema para Interoperabilidade</div>
-        </q-card-section>
-        <form @submit.prevent="validateHis" >
+  <q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
+    <q-card-section>
+        <div class="text-h6"> Sistema para Interoperabilidade</div>
+    </q-card-section>
+    <form @submit.prevent="validateHis" >
+      <q-scroll-area style="height: 600px;">
         <q-stepper
             v-model="step"
             ref="stepper"
             animated
-          >
-      <q-step
-        :name="1"
-        title="Selecção de Atributos"
         >
-        <div class="row q-mt-md">
-        <nameInput
-            ref="nome"
-            v-model="his.description"
-            label="Nome do Sistema de Informação *" />
-        </div>
-        <div class="row q-mt-md">
-          <codeInput
-              ref="code"
-              v-model="his.abbreviation"
-              :rules="[val => codeRules (val)]"
-              lazy-rules
-              label="Abreviatura *" />
+          <q-step
+            :name="1"
+            title="Selecção de Atributos"
+            >
+            <div class="row q-mt-md">
+            <nameInput
+                ref="nome"
+                v-model="his.description"
+                label="Nome do Sistema de Informação *" />
             </div>
-      <div class="row q-mt-md">
-       <q-table
-      class="col my-sticky-header-table"
-      title="Atributos"
-      :rows="interoperabilityAttributes"
-      :columns="columnsAttributes"
-      row-key="code"
-      selection="multiple"
-      v-model:selected="selectedAttributes"
-        >
-         <template v-slot:no-data="{ icon, filter }">
-              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
-                <span>
-                  Sem resultados para visualizar
-                </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+            <div class="row q-mt-md">
+              <codeInput
+                  ref="code"
+                  v-model="his.abbreviation"
+                  :rules="[val => codeRules (val)]"
+                  lazy-rules
+                  label="Abreviatura *" />
+            </div>
+            <div class="row q-mt-md">
+                <q-table
+                class="col my-sticky-header-table"
+                title="Atributos"
+                :rows="interoperabilityAttributes"
+                :columns="columnsAttributes"
+                row-key="code"
+                selection="multiple"
+                v-model:selected="selectedAttributes"
+                  >
+                    <template v-slot:no-data="{ icon, filter }">
+                          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                            <span>
+                              Sem resultados para visualizar
+                            </span>
+                            <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+                          </div>
+                        </template>
+                </q-table>
+            </div>
+          </q-step>
+          <q-step
+              :name="2"
+              title="Adicionar valor do atributo"
+            >
+              <div class="">
+                        <selectedAttributesTable  :rows="healthInformationAttributeTypes" :columns="columnsSelectedAttributes"/>
               </div>
-            </template>
-       </q-table>
-      </div>
-      </q-step>
-       <q-step
-          :name="2"
-          title="Adicionar valor do atributo"
-      >
-         <div class="">
-                  <selectedAttributesTable  :rows="healthInformationAttributeTypes" :columns="columnsSelectedAttributes"/>
-        </div>
-       </q-step>
-            </q-stepper>
-           <q-card-actions align="right" class="q-mb-md">
-                <q-stepper-navigation >
-                <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                 <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+          </q-step>
+        </q-stepper>
+        <q-scroll-observer @scroll="scrollHandler" />
+      </q-scroll-area>
+      <q-card-actions align="right" class="q-mb-md">
+        <q-stepper-navigation >
+          <q-btn label="Cancelar" color="red" @click="$emit('close')" />
+          <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
           <q-btn @click="goToNextStep" color="primary" :label="step === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
         </q-stepper-navigation>
-         </q-card-actions>
-          <q-dialog v-model="alert.visible">
-             <Dialog :type="alert.type" @closeDialog="closeDialog">
-            <template v-slot:title> Informação</template>
-            <template v-slot:msg> {{alert.msg}} </template>
-          </Dialog>
-             </q-dialog>
-        </form>
-    </q-card>
+      </q-card-actions>
+      <q-dialog v-model="alert.visible">
+        <Dialog :type="alert.type" @closeDialog="closeDialog">
+          <template v-slot:title> Informação</template>
+          <template v-slot:msg> {{alert.msg}} </template>
+        </Dialog>
+      </q-dialog>
+    </form>
+  </q-card>
 </template>
 
 <script>
