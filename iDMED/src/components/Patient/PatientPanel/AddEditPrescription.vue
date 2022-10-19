@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 1200px; max-width: 90vw;">
+  <q-card style="width: 1250px; max-width: 100vw;">
       <q-card-section class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
@@ -26,7 +26,6 @@
           :mainContainer="false"
           @initEdition="initEdition(clinicalService)"
           @done="saveCurPatientVisitDetails"
-          @expandLess="expandLess"
           @closeSection="cancelEdition"
           class="q-mt-xs"
           :bgColor="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id) ? 'bg-amber-9' : 'bg-primary'">Prescrição {{clinicalService.code}}
@@ -206,7 +205,7 @@
           </div>
         </div>
       </span>
-      <div class="row q-mt-xs"  v-if="!inFormEdition">
+      <div class="row q-mt-xs"  v-if="!inFormEdition && member !== null">
         <q-banner
           dense
           inline-actions
@@ -389,9 +388,7 @@ export default {
 
       const prescribedDrugs = this.curPatientVisitDetail.prescription.prescribedDrugs
 
-const pb = JSON.parse(JSON.stringify(this.curPatientVisitDetail.prescription.prescribedDrugs))
       let packagedDrugs = null
-        console.log(pb)
 
       if (this.curPatientVisitDetail.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
         this.spetialPrescription = true
@@ -400,7 +397,6 @@ const pb = JSON.parse(JSON.stringify(this.curPatientVisitDetail.prescription.pre
         this.curPatientVisitDetail.pack = this.lastPackFull
         packagedDrugs = this.curPatientVisitDetail.pack.packagedDrugs
       }
-      console.log(packagedDrugs)
       if (this.isEditPackStep || this.isFirstPack) {
         this.prescribedDrugs = prescribedDrugs
       } else {
@@ -471,23 +467,22 @@ const pb = JSON.parse(JSON.stringify(this.curPatientVisitDetail.prescription.pre
       this.patientVisit.patient = this.simplePatient
     },
     getPatientActiveClinicalServices () {
-      if (this.service !== null && this.service !== undefined) {
-        this.selectedClinicalService = this.service
-      }
       if (!this.isNewPackStep && !this.isEditPackStep) {
-        Object.keys(this.patient.identifiers).forEach(function (key) {
-          if (this.patient.identifiers[key].endDate === '' || this.patient.identifiers[key].endDate === null) {
-            const episode = Episode.query()
-                                    .withAll()
-                                    .where('patientServiceIdentifier_id', this.patient.identifiers[key].id)
-                                    .orderBy('episodeDate', 'desc')
-                                    .first()
-            if (episode !== null && (!episode.closed() || episode.isDCReferenceEpisode())) {
-              this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', this.patient.identifiers[key].service.id).first())
-              this.initPatientVisitDetails(episode)
-            }
+        const identifiers = this.patient.identifiers.filter((identifier) => {
+          if (this.service !== null && this.service !== undefined) return identifier.service.code === this.service.code
+          return (identifier.endDate === '' || identifier.endDate === null)
+        })
+        identifiers.forEach((identifier) => {
+          const episode = Episode.query()
+                                .withAll()
+                                .where('patientServiceIdentifier_id', identifier.id)
+                                .orderBy('episodeDate', 'desc')
+                                .first()
+          if (episode !== null && (!episode.closed() || episode.isDCReferenceEpisode())) {
+            this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', identifier.service.id).first())
+            this.initPatientVisitDetails(episode)
           }
-        }.bind(this))
+        })
       }
     },
     initPatientVisitDetails (episode) {
