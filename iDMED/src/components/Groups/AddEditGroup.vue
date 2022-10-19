@@ -10,6 +10,7 @@
                 </div>
                 <q-separator color="grey-13" size="1px"/>
             </q-card-section>
+          <q-scroll-area style="height: 630px;">
           <q-card-section class="q-px-md">
                 <div class="q-mt-md">
                     <div class="row">
@@ -191,6 +192,8 @@
                 </div>
                 </div>
             </q-card-section>
+            <q-scroll-observer @scroll="scrollHandler" />
+      </q-scroll-area>
            <q-card-actions align="right" class="q-my-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
                 <q-btn type="submit" label="Submeter" color="primary" />
