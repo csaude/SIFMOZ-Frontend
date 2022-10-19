@@ -1,9 +1,16 @@
 <template>
-<q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <q-card-section>
-            <div class="text-h6">Cadastrar Utilizador</div>
-        </q-card-section>
+  <q-card style="width: 900px; max-width: 90vw;">
+        <q-card-section class="q-pa-none bg-green-2">
+                <div class="q-pa-md">
+                    <div class="row items-center">
+                        <q-icon name="people" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Cadastrar Utilizador</span>
+                    </div>
+                </div>
+                <q-separator color="grey-13" size="1px"/>
+            </q-card-section>
         <form>
+        <q-scroll-area style="height: 600px;">
           <q-stepper
           v-model="step"
           ref="stepper"
@@ -191,6 +198,8 @@
             </div>
               </q-step>
               </q-stepper>
+              <q-scroll-observer @scroll="scrollHandler" />
+      </q-scroll-area>
              <q-card-actions align="right" class="q-mb-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />

@@ -1,29 +1,76 @@
 <template>
   <div>
     <TitleBar>Detalhe do Grupo</TitleBar>
-    <div class="row q-mt-md">
-      <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
-        <groupInfo @editGroup="editGroup" @desintagrateGroup="desintagrateGroup"/>
+    <span v-if="mobile">
+      <div class="q-pa-md">
+        <q-layout view="hHh Lpr lff" container style="height: 638px" class="shadow-2 rounded-borders">
+          <q-header elevated>
+            <q-toolbar>
+              <q-btn flat @click="drawer = !drawer" round dense icon="groups">
+              </q-btn>
+              <q-toolbar-title>{{ group.name }} | {{ group.groupType.description }}</q-toolbar-title>
+            </q-toolbar>
+          </q-header>
+
+          <q-drawer
+            v-model="drawer"
+            :width="350"
+            :breakpoint="500"
+            overlay
+            bordered
+            behavior="mobile"
+          >
+            <q-scroll-area class="fit">
+                <!-- <template> -->
+                  <div class="row q-mt-md">
+                    <div class="col q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
+                      <groupInfo @editGroup="editGroup" @desintagrateGroup="desintagrateGroup"/>
+                    </div>
+                  </div>
+                <!-- </template> -->
+            </q-scroll-area>
+          </q-drawer>
+
+          <q-page-container>
+            <q-page padding>
+              <group-members
+                v-if="dataFetchDone"
+                @addNewMember="addNewMember"
+                @newPrescription="newPrescription"
+                @desintagrateGroup="desintagrateGroup"/>
+              <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
+            </q-page>
+          </q-page-container>
+        </q-layout>
       </div>
-      <div class="col q-mr-lg">
-        <q-scroll-area
-          :thumb-style="thumbStyle"
-          :content-style="contentStyle"
-          :content-active-style="contentActiveStyle"
-          style="height: 700px;"
-          class="q-pr-md"
-        >
-          <span>
-            <group-members
-              v-if="dataFetchDone"
-              @addNewMember="addNewMember"
-              @newPrescription="newPrescription"
-              @desintagrateGroup="desintagrateGroup"/>
-            <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
-          </span>
-        </q-scroll-area>
+    </span>
+
+   <span v-if="website">
+      <div class="row q-mt-md">
+        <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
+          <groupInfo @editGroup="editGroup" @desintagrateGroup="desintagrateGroup"/>
+        </div>
+        <div class="col q-mr-lg">
+          <q-scroll-area
+            :thumb-style="thumbStyle"
+            :content-style="contentStyle"
+            :content-active-style="contentActiveStyle"
+            style="height: 700px"
+            class="q-pa-md"
+          >
+            <span>
+              <group-members
+                v-if="dataFetchDone"
+                @addNewMember="addNewMember"
+                @newPrescription="newPrescription"
+                @desintagrateGroup="desintagrateGroup"/>
+              <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
+            </span>
+          </q-scroll-area>
+        </div>
       </div>
-    </div>
+    </span>
+
       <q-dialog v-model="alert.visible" persistent>
         <Dialog :type="alert.type" @cancelOperation="cancelOperation" @closeDialog="closeDialog" @commitOperation="doOnConfirm">
           <template v-slot:title> {{dialogTitle}}</template>
@@ -69,9 +116,12 @@ import PatientServiceIdentifier from '../../store/models/patientServiceIdentifie
 import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
 import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
+      drawer: ref(false),
       alert: ref({
         type: '',
         visible: false,
