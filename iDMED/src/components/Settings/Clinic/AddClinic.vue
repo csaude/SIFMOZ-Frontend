@@ -1,8 +1,14 @@
 <template>
-<q-card style="width: 900px; max-width: 90vw;" class="q-pt-lg">
-        <q-card-section>
-            <div class="text-h6">Farmácia</div>
-        </q-card-section>
+<q-card style="width: 900px; max-width: 90vw;">
+        <q-card-section class="q-pa-none bg-green-2">
+                <div class="q-pa-md">
+                    <div class="row items-center">
+                        <q-icon name="local_hospital" size="sm"/>
+                        <span class="q-pl-sm text-subtitle2">Farmácia</span>
+                    </div>
+                </div>
+                <q-separator color="grey-13" size="1px"/>
+            </q-card-section>
         <form @submit.prevent="validateClinic" >
           <q-scroll-area style="height: 600px;">
             <q-card-section class="q-px-md">
