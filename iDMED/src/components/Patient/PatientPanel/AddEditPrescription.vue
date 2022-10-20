@@ -205,7 +205,7 @@
           </div>
         </div>
       </span>
-      <div class="row q-mt-xs"  v-if="!inFormEdition && member !== null">
+      <div class="row q-mt-xs"  v-if="showDispenseMd">
         <q-banner
           dense
           inline-actions
@@ -1042,6 +1042,9 @@ export default {
   computed: {
     hasPrescribdDrugs () {
       return this.checkPrescribedDrugs()
+    },
+    showDispenseMd () {
+      return !this.inFormEdition && (this.member === null || this.member === undefined)
     },
     dispenseModes: {
         get () {
