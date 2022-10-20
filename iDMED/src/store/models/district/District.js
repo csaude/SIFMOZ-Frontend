@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Province from 'src/store/models/province/Province'
 import Localidade from '../Localidade/Localidade'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
+import db from 'src/store/localbase'
 
 export default class District extends Model {
   static entity = 'districts'
@@ -22,5 +23,33 @@ export default class District extends Model {
 
   static async apiGetAll (offset, max) {
     return await this.api().get('/district')
+  }
+
+  static localDbAdd (district) {
+    return db.newDb().collection('districts').add(district)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('districts').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('districts').get()
+  }
+
+  static localDbUpdate (district) {
+    return db.newDb().collection('districts').doc({ id: district.id }).set(district)
+  }
+
+  static localDbUpdateAll (districts) {
+    return db.newDb().collection('districts').set(districts)
+  }
+
+  static localDbDelete (district) {
+    return db.newDb().collection('districts').doc({ id: district.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('districts').delete()
   }
 }
