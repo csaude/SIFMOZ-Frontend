@@ -4,6 +4,7 @@ import IdentifierType from '../identifierType/IdentifierType'
 import Patient from '../patient/Patient'
 import ClinicalService from '../ClinicalService/ClinicalService'
 import Clinic from '../clinic/Clinic'
+import db from 'src/store/localbase'
 
 export default class PatientServiceIdentifier extends Model {
   static entity = 'identifiers'
@@ -129,6 +130,34 @@ export default class PatientServiceIdentifier extends Model {
 
   static async apiGetAllByPatientId (patientId, offset, max) {
     return await this.api().get('/patientServiceIdentifier/patient/' + patientId + '?offset=' + offset + '&max=' + max)
+  }
+
+  static localDbAdd (identifier) {
+    return db.newDb().collection('identifiers').add(identifier)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('identifiers').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('identifiers').get()
+  }
+
+  static localDbUpdate (identifier) {
+    return db.newDb().collection('identifiers').doc({ id: identifier.id }).set(identifier)
+  }
+
+  static localDbUpdateAll (identifiers) {
+    return db.newDb().collection('identifiers').set(identifiers)
+  }
+
+  static localDbDelete (identifier) {
+    return db.newDb().collection('identifiers').doc({ id: identifier.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('identifiers').delete()
   }
 
   // static async apiGetAllIdentifiersByClinicalService (serviveId) {

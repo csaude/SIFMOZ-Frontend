@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import { date } from 'quasar'
 import Clinic from '../clinic/Clinic'
 import { InventoryStockAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
+import db from 'src/store/localbase'
 
 export default class Inventory extends Model {
     static entity = 'inventorys'
@@ -84,5 +85,33 @@ export default class Inventory extends Model {
 
     static async apiFetchById (id) {
       return await this.api().get(`/inventory/${id}`)
+    }
+
+    static localDbAdd (inventory) {
+      return db.newDb().collection('inventorys').add(inventory)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('inventorys').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('inventorys').get()
+    }
+
+    static localDbUpdate (inventory) {
+      return db.newDb().collection('inventorys').doc({ id: inventory.id }).set(inventory)
+    }
+
+    static localDbUpdateAll (inventorys) {
+      return db.newDb().collection('inventorys').set(inventorys)
+    }
+
+    static localDbDelete (inventory) {
+      return db.newDb().collection('inventorys').doc({ id: inventory.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('inventorys').delete()
     }
 }

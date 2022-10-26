@@ -23,6 +23,7 @@
     "file-saver": "^2.0.5",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.25",
+    "localbase": "^0.7.5",
     "moment": "^2.29.1",
     "quasar": "^2.0.0",
     "randomcolor": "^0.6.2",

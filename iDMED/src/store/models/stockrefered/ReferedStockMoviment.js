@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import { StockReferenceAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
+import db from 'src/store/localbase'
 
 export default class ReferedStockMoviment extends Model {
     static entity = 'referedStockMoviments'
@@ -34,5 +35,33 @@ export default class ReferedStockMoviment extends Model {
 
     static async apiGetAll (offset, max) {
       return await this.api().get('/referedStockMoviment?offset=' + offset + '&max=' + max)
+    }
+
+    static localDbAdd (referedStockMoviment) {
+      return db.newDb().collection('referedStockMoviments').add(referedStockMoviment)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('referedStockMoviments').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('referedStockMoviments').get()
+    }
+
+    static localDbUpdate (referedStockMoviment) {
+      return db.newDb().collection('referedStockMoviments').doc({ id: referedStockMoviment.id }).set(referedStockMoviment)
+    }
+
+    static localDbUpdateAll (referedStockMoviments) {
+      return db.newDb().collection('referedStockMoviments').set(referedStockMoviments)
+    }
+
+    static localDbDelete (referedStockMoviment) {
+      return db.newDb().collection('referedStockMoviments').doc({ id: referedStockMoviment.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('referedStockMoviments').delete()
     }
 }

@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import db from 'src/store/localbase'
 
 export default class DispenseType extends Model {
   static entity = 'dispenseTypes'
@@ -46,5 +47,33 @@ export default class DispenseType extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/dispenseType/${id}`)
+  }
+
+  static localDbAdd (dispenseType) {
+    return db.newDb().collection('dispenseTypes').add(dispenseType)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('dispenseTypes').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('dispenseTypes').get()
+  }
+
+  static localDbUpdate (dispenseType) {
+    return db.newDb().collection('dispenseTypes').doc({ id: dispenseType.id }).set(dispenseType)
+  }
+
+  static localDbUpdateAll (dispenseTypes) {
+    return db.newDb().collection('dispenseTypes').set(dispenseTypes)
+  }
+
+  static localDbDelete (dispenseType) {
+    return db.newDb().collection('dispenseTypes').doc({ id: dispenseType.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('dispenseTypes').delete()
   }
 }

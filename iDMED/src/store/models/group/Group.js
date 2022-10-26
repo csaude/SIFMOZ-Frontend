@@ -4,6 +4,7 @@ import GroupType from '../groupType/GroupType'
 import ClinicalService from '../ClinicalService/ClinicalService'
 import Clinic from '../clinic/Clinic'
 import GroupPackHeader from './GroupPackHeader'
+import db from 'src/store/localbase'
 
 export default class Group extends Model {
   static entity = 'groups'
@@ -50,5 +51,33 @@ export default class Group extends Model {
 
   static async apiValidateBeforeAdd (patientId, code) {
     return await this.api().get(`/groupInfo/validadePatient/${patientId}/${code}`)
+  }
+
+  static localDbAdd (group) {
+    return db.newDb().collection('groups').add(group)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('groups').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('groups').get()
+  }
+
+  static localDbUpdate (group) {
+    return db.newDb().collection('groups').doc({ id: group.id }).set(group)
+  }
+
+  static localDbUpdateAll (groups) {
+    return db.newDb().collection('groups').set(groups)
+  }
+
+  static localDbDelete (group) {
+    return db.newDb().collection('groups').doc({ id: group.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('groups').delete()
   }
 }

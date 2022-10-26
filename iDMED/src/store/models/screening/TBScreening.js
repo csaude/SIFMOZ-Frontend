@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import PatientVisit from '../patientVisit/PatientVisit'
+import db from 'src/store/localbase'
 
 export default class TBScreening extends Model {
     static entity = 'TBScreenings'
@@ -25,5 +26,33 @@ export default class TBScreening extends Model {
 
     static async apiGetAll (offset, max) {
       return await this.api().get('/TBScreening?offset=' + offset + '&max=' + max)
+    }
+
+    static localDbAdd (TBScreening) {
+      return db.newDb().collection('TBScreenings').add(TBScreening)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('TBScreenings').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('TBScreenings').get()
+    }
+
+    static localDbUpdate (TBScreening) {
+      return db.newDb().collection('TBScreenings').doc({ id: TBScreening.id }).set(TBScreening)
+    }
+
+    static localDbUpdateAll (TBScreenings) {
+      return db.newDb().collection('TBScreenings').set(TBScreenings)
+    }
+
+    static localDbDelete (TBScreening) {
+      return db.newDb().collection('TBScreenings').doc({ id: TBScreening.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('TBScreenings').delete()
     }
 }

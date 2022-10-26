@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Duration from '../Duration/Duration'
 import Group from './Group'
 import GroupPack from './GroupPack'
+import db from 'src/store/localbase'
 
 export default class GroupPackHeader extends Model {
   static entity = 'groupPackHeaders'
@@ -32,5 +33,33 @@ export default class GroupPackHeader extends Model {
 
   static async apiUpdate (groupPackHeader) {
     return await this.api().post('/groupPackHeader', groupPackHeader)
+  }
+
+  static localDbAdd (groupPackHeader) {
+    return db.newDb().collection('groupPackHeaders').add(groupPackHeader)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('groupPackHeaders').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('groupPackHeaders').get()
+  }
+
+  static localDbUpdate (groupPackHeader) {
+    return db.newDb().collection('groupPackHeaders').doc({ id: groupPackHeader.id }).set(groupPackHeader)
+  }
+
+  static localDbUpdateAll (groupPackHeaders) {
+    return db.newDb().collection('groupPackHeaders').set(groupPackHeaders)
+  }
+
+  static localDbDelete (groupPackHeader) {
+    return db.newDb().collection('groupPackHeaders').doc({ id: groupPackHeader.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('groupPackHeaders').delete()
   }
 }

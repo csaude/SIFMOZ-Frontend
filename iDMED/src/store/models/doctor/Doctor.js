@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import Prescription from '../prescription/Prescription'
+import db from 'src/store/localbase'
 
 export default class Doctor extends Model {
     static entity = 'doctors'
@@ -42,5 +43,33 @@ export default class Doctor extends Model {
 
     static async apiSave (doctor) {
       return await this.api().post('/doctor', doctor)
+    }
+
+    static localDbAdd (doctor) {
+      return db.newDb().collection('doctors').add(doctor)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('doctors').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('doctors').get()
+    }
+
+    static localDbUpdate (doctor) {
+      return db.newDb().collection('doctors').doc({ id: doctor.id }).set(doctor)
+    }
+
+    static localDbUpdateAll (doctors) {
+      return db.newDb().collection('doctors').set(doctors)
+    }
+
+    static localDbDelete (doctor) {
+      return db.newDb().collection('doctors').doc({ id: doctor.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('doctors').delete()
     }
 }

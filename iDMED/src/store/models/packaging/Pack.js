@@ -4,6 +4,7 @@ import DispenseMode from '../dispenseMode/DispenseMode'
 import GroupPack from '../group/GroupPack'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
+import db from 'src/store/localbase'
 
 export default class Pack extends Model {
     static entity = 'packs'
@@ -61,5 +62,33 @@ export default class Pack extends Model {
         drugsString = drugsString + presDrug.drug.name
       }.bind(this))
       return drugsString
+    }
+
+    static localDbAdd (pack) {
+      return db.newDb().collection('packs').add(pack)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('packs').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('packs').get()
+    }
+
+    static localDbUpdate (pack) {
+      return db.newDb().collection('packs').doc({ id: pack.id }).set(pack)
+    }
+
+    static localDbUpdateAll (packs) {
+      return db.newDb().collection('packs').set(packs)
+    }
+
+    static localDbDelete (pack) {
+      return db.newDb().collection('packs').doc({ id: pack.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('packs').delete()
     }
 }

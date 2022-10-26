@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import db from 'src/store/localbase'
 
 export default class ProvincialServer extends Model {
   static entity = 'provincialServers'
@@ -21,5 +22,33 @@ export default class ProvincialServer extends Model {
 
   static async apiGetAll () {
     return await this.api().get('/provincialServer')
+  }
+
+  static localDbAdd (provincialServer) {
+    return db.newDb().collection('provincialServers').add(provincialServer)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('provincialServers').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('provincialServers').get()
+  }
+
+  static localDbUpdate (provincialServer) {
+    return db.newDb().collection('provincialServers').doc({ id: provincialServer.id }).set(provincialServer)
+  }
+
+  static localDbUpdateAll (provincialServers) {
+    return db.newDb().collection('provincialServers').set(provincialServers)
+  }
+
+  static localDbDelete (provincialServer) {
+    return db.newDb().collection('provincialServers').doc({ id: provincialServer.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('provincialServers').delete()
   }
 }

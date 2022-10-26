@@ -1,6 +1,7 @@
 
 import { Model } from '@vuex-orm/core'
 import InteroperabilityAttribute from '../interoperabilityAttribute/InteroperabilityAttribute'
+import db from 'src/store/localbase'
 
 export default class HealthInformationSystem extends Model {
   static entity = 'healthInformationSystems'
@@ -27,5 +28,33 @@ export default class HealthInformationSystem extends Model {
 
   static async apiSave (his) {
     return await this.api().post('/healthInformationSystem', his)
+  }
+
+  static localDbAdd (healthInformationSystem) {
+    return db.newDb().collection('healthInformationSystems').add(healthInformationSystem)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('healthInformationSystems').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('healthInformationSystems').get()
+  }
+
+  static localDbUpdate (healthInformationSystem) {
+    return db.newDb().collection('healthInformationSystems').doc({ id: healthInformationSystem.id }).set(healthInformationSystem)
+  }
+
+  static localDbUpdateAll (healthInformationSystems) {
+    return db.newDb().collection('healthInformationSystems').set(healthInformationSystems)
+  }
+
+  static localDbDelete (healthInformationSystem) {
+    return db.newDb().collection('healthInformationSystems').doc({ id: healthInformationSystem.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('healthInformationSystems').delete()
   }
 }

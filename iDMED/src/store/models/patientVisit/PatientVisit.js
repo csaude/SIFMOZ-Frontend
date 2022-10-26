@@ -7,6 +7,7 @@ import AdherenceScreening from '../screening/AdherenceScreening'
 import VitalSignsScreening from '../screening/VitalSignsScreening'
 import Patient from '../patient/Patient'
 import Clinic from '../clinic/Clinic'
+import db from 'src/store/localbase'
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits'
@@ -64,5 +65,33 @@ export default class PatientVisit extends Model {
 
   static async apiGetLastVisitOfPatient (patientId) {
     return await this.api().get('/patientVisit/getLastVisitOfPatient/' + patientId)
+  }
+
+  static localDbAdd (patientVisit) {
+    return db.newDb().collection('patientVisits').add(patientVisit)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('patientVisits').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('patientVisits').get()
+  }
+
+  static localDbUpdate (patientVisit) {
+    return db.newDb().collection('patientVisits').doc({ id: patientVisit.id }).set(patientVisit)
+  }
+
+  static localDbUpdateAll (patientVisits) {
+    return db.newDb().collection('patientVisits').set(patientVisits)
+  }
+
+  static localDbDelete (patientVisit) {
+    return db.newDb().collection('patientVisits').doc({ id: patientVisit.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('patientVisits').delete()
   }
 }

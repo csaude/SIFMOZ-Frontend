@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
 import Prescription from '../prescription/Prescription'
+import db from 'src/store/localbase'
 
 export default class PrescribedDrug extends Model {
     static entity = 'prescribedDrugs'
@@ -61,5 +62,33 @@ export default class PrescribedDrug extends Model {
 
       this.qtyPrescribed = qty
       return qty
+    }
+
+    static localDbAdd (prescribedDrug) {
+      return db.newDb().collection('prescribedDrugs').add(prescribedDrug)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('prescribedDrugs').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('prescribedDrugs').get()
+    }
+
+    static localDbUpdate (prescribedDrug) {
+      return db.newDb().collection('prescribedDrugs').doc({ id: prescribedDrug.id }).set(prescribedDrug)
+    }
+
+    static localDbUpdateAll (prescribedDrugs) {
+      return db.newDb().collection('prescribedDrugs').set(prescribedDrugs)
+    }
+
+    static localDbDelete (prescribedDrug) {
+      return db.newDb().collection('prescribedDrugs').doc({ id: prescribedDrug.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('prescribedDrugs').delete()
     }
 }

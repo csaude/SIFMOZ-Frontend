@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import ClinicalService from '../ClinicalService/ClinicalService'
 import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType'
+import db from 'src/store/localbase'
 
 export default class ClinicalServiceAttribute extends Model {
   static entity = 'clinicalServiceAttributes'
@@ -22,5 +23,33 @@ export default class ClinicalServiceAttribute extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/clinicalServiceAttribute/${id}`)
+  }
+
+  static localDbAdd (clinicalServiceAttribute) {
+    return db.newDb().collection('clinicalServiceAttributes').add(clinicalServiceAttribute)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('clinicalServiceAttributes').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('clinicalServiceAttributes').get()
+  }
+
+  static localDbUpdate (clinicalServiceAttribute) {
+    return db.newDb().collection('clinicalServiceAttributes').doc({ id: clinicalServiceAttribute.id }).set(clinicalServiceAttribute)
+  }
+
+  static localDbUpdateAll (clinicalServiceAttributes) {
+    return db.newDb().collection('clinicalServiceAttributes').set(clinicalServiceAttributes)
+  }
+
+  static localDbDelete (clinicalServiceAttribute) {
+    return db.newDb().collection('clinicalServiceAttributes').doc({ id: clinicalServiceAttribute.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('clinicalServiceAttributes').delete()
   }
 }

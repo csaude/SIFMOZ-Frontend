@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Pack from '../packaging/Pack'
 import GroupPackHeader from './GroupPackHeader'
+import db from 'src/store/localbase'
 
 export default class GroupPack extends Model {
   static entity = 'groupPacks'
@@ -27,5 +28,33 @@ export default class GroupPack extends Model {
 
   static async apiUpdate (groupPack) {
     return await this.api().post('/groupPack', groupPack)
+  }
+
+  static localDbAdd (groupPack) {
+    return db.newDb().collection('groupPacks').add(groupPack)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('groupPacks').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('groupPacks').get()
+  }
+
+  static localDbUpdate (groupPack) {
+    return db.newDb().collection('groupPacks').doc({ id: groupPack.id }).set(groupPack)
+  }
+
+  static localDbUpdateAll (groupPacks) {
+    return db.newDb().collection('groupPacks').set(groupPacks)
+  }
+
+  static localDbDelete (groupPack) {
+    return db.newDb().collection('groupPacks').doc({ id: groupPack.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('groupPacks').delete()
   }
 }

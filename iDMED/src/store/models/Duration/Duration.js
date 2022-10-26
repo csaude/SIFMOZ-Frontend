@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Prescription from '../prescription/Prescription'
+import db from 'src/store/localbase'
 
 export default class Duration extends Model {
   static entity = 'durations'
@@ -19,5 +20,33 @@ export default class Duration extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/duration/${id}`)
+  }
+
+  static localDbAdd (duration) {
+    return db.newDb().collection('durations').add(duration)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('durations').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('durations').get()
+  }
+
+  static localDbUpdate (duration) {
+    return db.newDb().collection('durations').doc({ id: duration.id }).set(duration)
+  }
+
+  static localDbUpdateAll (durations) {
+    return db.newDb().collection('durations').set(durations)
+  }
+
+  static localDbDelete (duration) {
+    return db.newDb().collection('durations').doc({ id: duration.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('durations').delete()
   }
 }

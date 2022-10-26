@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import ClinicSectorType from '../clinicSectorType/ClinicSectorType'
+import db from 'src/store/localbase'
 
 export default class ClinicSector extends Model {
   static entity = 'clinicSectors'
@@ -35,5 +36,33 @@ export default class ClinicSector extends Model {
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/clinicSector/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+  }
+
+  static localDbAdd (clinicSector) {
+    return db.newDb().collection('clinicSectors').add(clinicSector)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('clinicSectors').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('clinicSectors').get()
+  }
+
+  static localDbUpdate (clinicSector) {
+    return db.newDb().collection('clinicSectors').doc({ id: clinicSector.id }).set(clinicSector)
+  }
+
+  static localDbUpdateAll (clinicSectors) {
+    return db.newDb().collection('clinicSectors').set(clinicSectors)
+  }
+
+  static localDbDelete (clinicSector) {
+    return db.newDb().collection('clinicSectors').doc({ id: clinicSector.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('clinicSectors').delete()
   }
 }
