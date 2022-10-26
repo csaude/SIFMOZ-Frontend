@@ -5,6 +5,7 @@ import EpisodeType from '../episodeType/EpisodeType'
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import StartStopReason from '../startStopReason/StartStopReason'
+import db from 'src/store/localbase'
 
 export default class Episode extends Model {
   static entity = 'episodes'
@@ -104,5 +105,33 @@ export default class Episode extends Model {
 
   static async apiGetAllByIdentifierId (identifierId, offset, max) {
     return await this.api().get('/episode/identifier/' + identifierId + '?offset=0&max=100')
+  }
+
+  static localDbAdd (episode) {
+    return db.newDb().collection('episodes').add(episode)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('episodes').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('episodes').get()
+  }
+
+  static localDbUpdate (episode) {
+    return db.newDb().collection('episodes').doc({ id: episode.id }).set(episode)
+  }
+
+  static localDbUpdateAll (episodes) {
+    return db.newDb().collection('episodes').set(episodes)
+  }
+
+  static localDbDelete (episode) {
+    return db.newDb().collection('episodes').doc({ id: episode.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('episodes').delete()
   }
 }

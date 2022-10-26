@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
+import db from 'src/store/localbase'
 
 export default class TherapeuticLine extends Model {
   static entity = 'therapeuticLines'
@@ -18,5 +19,33 @@ export default class TherapeuticLine extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/therapeuticLine/${id}`)
+  }
+
+  static localDbAdd (therapeuticLine) {
+    return db.newDb().collection('therapeuticLines').add(therapeuticLine)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('therapeuticLines').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('therapeuticLines').get()
+  }
+
+  static localDbUpdate (therapeuticLine) {
+    return db.newDb().collection('therapeuticLines').doc({ id: therapeuticLine.id }).set(therapeuticLine)
+  }
+
+  static localDbUpdateAll (therapeuticLines) {
+    return db.newDb().collection('therapeuticLines').set(therapeuticLines)
+  }
+
+  static localDbDelete (therapeuticLine) {
+    return db.newDb().collection('therapeuticLines').doc({ id: therapeuticLine.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('therapeuticLines').delete()
   }
 }

@@ -4,6 +4,7 @@ import Pack from '../packaging/Pack'
 import Prescription from '../prescription/Prescription'
 import PatientVisit from '../patientVisit/PatientVisit'
 import Clinic from '../clinic/Clinic'
+import db from 'src/store/localbase'
 
 export default class PatientVisitDetails extends Model {
   static entity = 'patientVisitDetails'
@@ -56,5 +57,33 @@ export default class PatientVisitDetails extends Model {
 
   static async apiGetAllofPrecription (prescriptionId) {
     return await this.api().get('/patientVisitDetails/getAllofPrecription/' + prescriptionId)
+  }
+
+  static localDbAdd (patientVisitDetail) {
+    return db.newDb().collection('patientVisitDetails').add(patientVisitDetail)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('patientVisitDetails').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('patientVisitDetails').get()
+  }
+
+  static localDbUpdate (patientVisitDetail) {
+    return db.newDb().collection('patientVisitDetails').doc({ id: patientVisitDetail.id }).set(patientVisitDetail)
+  }
+
+  static localDbUpdateAll (patientVisitDetails) {
+    return db.newDb().collection('patientVisitDetails').set(patientVisitDetails)
+  }
+
+  static localDbDelete (patientVisitDetail) {
+    return db.newDb().collection('patientVisitDetails').doc({ id: patientVisitDetail.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('patientVisitDetails').delete()
   }
 }

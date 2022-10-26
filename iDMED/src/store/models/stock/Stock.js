@@ -7,6 +7,7 @@ import Drug from '../drug/Drug'
 import Clinic from '../clinic/Clinic'
 import { date } from 'quasar'
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
+import db from 'src/store/localbase'
 
 export default class Stock extends Model {
     static entity = 'stocks'
@@ -73,5 +74,33 @@ export default class Stock extends Model {
 
     static async apiGetDrugBatchSummary (clinicId, stockId) {
       return await this.api().get(`/drugStockFile/batchsumary/${clinicId}/${stockId}`)
+    }
+
+    static localDbAdd (stock) {
+      return db.newDb().collection('stocks').add(stock)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('stocks').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('stocks').get()
+    }
+
+    static localDbUpdate (stock) {
+      return db.newDb().collection('stocks').doc({ id: stock.id }).set(stock)
+    }
+
+    static localDbUpdateAll (stocks) {
+      return db.newDb().collection('stocks').set(stocks)
+    }
+
+    static localDbDelete (stock) {
+      return db.newDb().collection('stocks').doc({ id: stock.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('stocks').delete()
     }
 }

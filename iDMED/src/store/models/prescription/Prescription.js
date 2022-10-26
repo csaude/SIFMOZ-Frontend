@@ -6,6 +6,7 @@ import GroupMemberPrescription from '../group/GroupMemberPrescription'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug'
+import db from 'src/store/localbase'
 
 export default class Prescription extends Model {
     static entity = 'prescriptions'
@@ -92,5 +93,33 @@ export default class Prescription extends Model {
 
     static async apiGetByClinicId (clinicId) {
       return await this.api().get('/prescription/clinic/' + clinicId)
+    }
+
+    static localDbAdd (prescription) {
+      return db.newDb().collection('prescriptions').add(prescription)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('prescriptions').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('prescriptions').get()
+    }
+
+    static localDbUpdate (prescription) {
+      return db.newDb().collection('prescriptions').doc({ id: prescription.id }).set(prescription)
+    }
+
+    static localDbUpdateAll (prescriptions) {
+      return db.newDb().collection('prescriptions').set(prescriptions)
+    }
+
+    static localDbDelete (prescription) {
+      return db.newDb().collection('prescriptions').doc({ id: prescription.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('prescriptions').delete()
     }
 }

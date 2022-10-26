@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import db from 'src/store/localbase'
 
 export default class SystemConfigs extends Model {
   static entity = 'systemConfigs'
@@ -22,5 +23,33 @@ export default class SystemConfigs extends Model {
 
   static async apiSave (systemConfigs) {
     return await this.api().post('/systemConfigs', systemConfigs)
+  }
+
+  static localDbAdd (systemConfig) {
+    return db.newDb().collection('systemConfigs').add(systemConfig)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('systemConfigs').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('systemConfigs').get()
+  }
+
+  static localDbUpdate (systemConfig) {
+    return db.newDb().collection('systemConfigs').doc({ id: systemConfig.id }).set(systemConfig)
+  }
+
+  static localDbUpdateAll (systemConfigs) {
+    return db.newDb().collection('systemConfigs').set(systemConfigs)
+  }
+
+  static localDbDelete (systemConfig) {
+    return db.newDb().collection('systemConfigs').doc({ id: systemConfig.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('systemConfigs').delete()
   }
 }

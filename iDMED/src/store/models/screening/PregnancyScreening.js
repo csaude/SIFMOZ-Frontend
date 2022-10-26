@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import PatientVisit from '../patientVisit/PatientVisit'
+import db from 'src/store/localbase'
 
 export default class PregnancyScreening extends Model {
     static entity = 'pregnancyScreenings'
@@ -22,5 +23,33 @@ export default class PregnancyScreening extends Model {
 
     static async apiGetAllByPatientVisitId (patientVisitId, offset, max) {
         return await this.api().get('/pregnancyScreening/patientVisit/' + patientVisitId + '?offset=' + offset + '&max=' + max)
+    }
+
+    static localDbAdd (pregnancyScreening) {
+      return db.newDb().collection('pregnancyScreenings').add(pregnancyScreening)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('pregnancyScreenings').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('pregnancyScreenings').get()
+    }
+
+    static localDbUpdate (pregnancyScreening) {
+      return db.newDb().collection('pregnancyScreenings').doc({ id: pregnancyScreening.id }).set(pregnancyScreening)
+    }
+
+    static localDbUpdateAll (pregnancyScreenings) {
+      return db.newDb().collection('pregnancyScreenings').set(pregnancyScreenings)
+    }
+
+    static localDbDelete (pregnancyScreening) {
+      return db.newDb().collection('pregnancyScreenings').doc({ id: pregnancyScreening.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('pregnancyScreenings').delete()
     }
 }

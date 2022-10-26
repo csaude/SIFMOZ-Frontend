@@ -11,6 +11,7 @@ import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
 import Localidade from '../Localidade/Localidade'
 import PatientVisit from '../patientVisit/PatientVisit'
 import HealthInformationSystem from '../healthInformationSystem/HealthInformationSystem'
+import db from 'src/store/localbase'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -155,5 +156,33 @@ export default class Patient extends Model {
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+  }
+
+  static localDbAdd (patient) {
+    return db.newDb().collection('patients').add(patient)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('patients').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('patients').get()
+  }
+
+  static localDbUpdate (patient) {
+    return db.newDb().collection('patients').doc({ id: patient.id }).set(patient)
+  }
+
+  static localDbUpdateAll (patients) {
+    return db.newDb().collection('patients').set(patients)
+  }
+
+  static localDbDelete (patient) {
+    return db.newDb().collection('patients').doc({ id: patient.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('patients').delete()
   }
 }

@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import PatientVisit from '../patientVisit/PatientVisit'
+import db from 'src/store/localbase'
 
 export default class VitalSignsScreening extends Model {
     static entity = 'vitalSignsScreenings'
@@ -20,5 +21,33 @@ export default class VitalSignsScreening extends Model {
 
     static async apiGetAll (offset, max) {
       return await this.api().get('/vitalSignsScreening?offset=' + offset + '&max=' + max)
+    }
+
+    static localDbAdd (vitalSignsScreening) {
+      return db.newDb().collection('vitalSignsScreenings').add(vitalSignsScreening)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('vitalSignsScreenings').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('vitalSignsScreenings').get()
+    }
+
+    static localDbUpdate (vitalSignsScreening) {
+      return db.newDb().collection('vitalSignsScreenings').doc({ id: vitalSignsScreening.id }).set(vitalSignsScreening)
+    }
+
+    static localDbUpdateAll (vitalSignsScreenings) {
+      return db.newDb().collection('vitalSignsScreenings').set(vitalSignsScreenings)
+    }
+
+    static localDbDelete (vitalSignsScreening) {
+      return db.newDb().collection('vitalSignsScreenings').doc({ id: vitalSignsScreening.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('vitalSignsScreenings').delete()
     }
 }

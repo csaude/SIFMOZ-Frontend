@@ -5,6 +5,7 @@ import NationalClinic from '../nationalClinic/NationalClinic'
 import Patient from '../patient/Patient'
 import Province from '../province/Province'
 import FacilityType from '../facilityType/FacilityType'
+import db from 'src/store/localbase'
 
 export default class Clinic extends Model {
   static entity = 'clinics'
@@ -16,7 +17,7 @@ export default class Clinic extends Model {
       notes: this.attr(''),
       telephone: this.attr(''),
       clinicName: this.attr(''),
-      mainClinic: this.attr(''),
+      mainClinic: this.boolean(false),
       uuid: this.attr(null),
       province_id: this.attr(''),
       district_id: this.attr(''),
@@ -48,5 +49,33 @@ export default class Clinic extends Model {
 
   static async apiSave (clinic) {
     return await this.api().post('/clinic', clinic)
+  }
+
+  static localDbAdd (clinic) {
+    return db.newDb().collection('clinics').add(clinic)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('clinics').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('clinics').get()
+  }
+
+  static localDbUpdate (clinic) {
+    return db.newDb().collection('clinics').doc({ id: clinic.id }).set(clinic)
+  }
+
+  static localDbUpdateAll (clinics) {
+    return db.newDb().collection('clinics').set(clinics)
+  }
+
+  static localDbDelete (clinic) {
+    return db.newDb().collection('clinics').doc({ id: clinic.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('clinics').delete()
   }
 }

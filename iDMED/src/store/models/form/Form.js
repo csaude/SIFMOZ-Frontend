@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
+import db from 'src/store/localbase'
 
 export default class Form extends Model {
   static entity = 'forms'
@@ -21,5 +22,33 @@ export default class Form extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/form/${id}`)
+  }
+
+  static localDbAdd (form) {
+    return db.newDb().collection('forms').add(form)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('forms').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('forms').get()
+  }
+
+  static localDbUpdate (form) {
+    return db.newDb().collection('forms').doc({ id: form.id }).set(form)
+  }
+
+  static localDbUpdateAll (forms) {
+    return db.newDb().collection('forms').set(forms)
+  }
+
+  static localDbDelete (form) {
+    return db.newDb().collection('forms').doc({ id: form.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('forms').delete()
   }
 }

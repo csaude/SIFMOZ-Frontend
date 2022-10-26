@@ -3,6 +3,7 @@ import PatientTransReferenceType from './PatientTransReferenceType'
 import Clinic from '../clinic/Clinic'
 import Patient from '../patient/Patient'
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
+import db from 'src/store/localbase'
 
 export default class PatientTransReference extends Model {
   static entity = 'patientTransReferences'
@@ -42,5 +43,33 @@ export default class PatientTransReference extends Model {
 
   static async apiFetchById (id) {
     return await this.api().get(`/patientTransReference/${id}`)
+  }
+
+  static localDbAdd (patientTransReference) {
+    return db.newDb().collection('patientTransReferences').add(patientTransReference)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('patientTransReferences').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('patientTransReferences').get()
+  }
+
+  static localDbUpdate (patientTransReference) {
+    return db.newDb().collection('patientTransReferences').doc({ id: patientTransReference.id }).set(patientTransReference)
+  }
+
+  static localDbUpdateAll (patientTransReferences) {
+    return db.newDb().collection('patientTransReferences').set(patientTransReferences)
+  }
+
+  static localDbDelete (patientTransReference) {
+    return db.newDb().collection('patientTransReferences').doc({ id: patientTransReference.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('patientTransReferences').delete()
   }
 }

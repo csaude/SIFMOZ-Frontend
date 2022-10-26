@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
 import Stock from '../stock/Stock'
 import PackagedDrug from './PackagedDrug'
+import db from 'src/store/localbase'
 
 export default class PackagedDrugStock extends Model {
     static entity = 'packagedDrugStocks'
@@ -26,5 +27,33 @@ export default class PackagedDrugStock extends Model {
 
     static async apiGetAll () {
       return await this.api().get('/packagedDrugStock?offset=' + 0 + '&max=' + 200)
+    }
+
+    static localDbAdd (packagedDrugStock) {
+      return db.newDb().collection('packagedDrugStocks').add(packagedDrugStock)
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('packagedDrugStocks').doc({ id: id }).get()
+    }
+
+    static localDbGetAll () {
+      return db.newDb().collection('packagedDrugStocks').get()
+    }
+
+    static localDbUpdate (packagedDrugStock) {
+      return db.newDb().collection('packagedDrugStocks').doc({ id: packagedDrugStock.id }).set(packagedDrugStock)
+    }
+
+    static localDbUpdateAll (packagedDrugStocks) {
+      return db.newDb().collection('packagedDrugStocks').set(packagedDrugStocks)
+    }
+
+    static localDbDelete (packagedDrugStock) {
+      return db.newDb().collection('packagedDrugStocks').doc({ id: packagedDrugStock.id }).delete()
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('packagedDrugStocks').delete()
     }
 }

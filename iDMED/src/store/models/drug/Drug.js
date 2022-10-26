@@ -6,6 +6,7 @@ import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
 import Stock from '../stock/Stock'
 import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegimensDrug'
+import db from 'src/store/localbase'
 // import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 
 export default class Drug extends Model {
@@ -104,5 +105,33 @@ export default class Drug extends Model {
 
   static async apiSave (drug) {
     return await this.api().post('/drug', drug)
+  }
+
+  static localDbAdd (drug) {
+    return db.newDb().collection('drugs').add(drug)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('drugs').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('drugs').get()
+  }
+
+  static localDbUpdate (drug) {
+    return db.newDb().collection('drugs').doc({ id: drug.id }).set(drug)
+  }
+
+  static localDbUpdateAll (drugs) {
+    return db.newDb().collection('drugs').set(drugs)
+  }
+
+  static localDbDelete (drug) {
+    return db.newDb().collection('drugs').doc({ id: drug.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('drugs').delete()
   }
 }

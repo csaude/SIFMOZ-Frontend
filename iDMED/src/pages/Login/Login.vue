@@ -17,20 +17,24 @@
           enter-active-class="animated fadeIn"
           leave-active-class="animated fadeOut"
         >
-          <q-card v-bind:style="this.$q.screen.lt.sm?{'width': '80%'}:{'width':'50%','height':'950px','border-radius': '50%'}">
+          <q-card v-bind:style="this.$q.screen.lt.sm?{'width': '80%'}:{'width':'50%','height':'65%','border-radius': '50%'}">
             <q-card-section>
            <div class="col-auto text-grey text-caption q-pt-sm row no-wrap items-center justify-center">
-            <q-avatar size="250px">
+            <q-avatar :size="website ? '240px' : '100px'">
             <q-img src="~assets/LogoiDMED.png"/>
             </q-avatar>
             </div>
               <div class="row q-pa-sm text-center q-mt-md column">
-                  <div style="font-family: 'line-awesome';font-size: 40px;" class="row text-center column q-pa-md text-gray text-subtitle1 ellipsis">Sistema Inteligente para Dispensa</div>
-                  <div style="font-family: 'line-awesome';font-size: 40px;" class="row text-center column text-gray text-subtitle1 ellipsis"> de Medicamentos </div>
+                <p
+                  style="font-family: 'line-awesome';"
+                  class=" text-gray ellipsis text-weight-bold"
+                  :class="website ? 'text-h4' : 'text-h5'">
+                  Sistema Inteligente para Dispensa <br/> de Medicamentos
+                </p>
               </div>
             </q-card-section>
             <q-card-section align="center">
-              <q-form class="q-gutter-md" @submit.prevent="authUser" v-if="configs !== null">
+            <q-form class="q-gutter-md" @submit.prevent="authUser" v-if="configs !== null">
             <div class="q-pa-sm text-center justify-center" style="max-width: 50%">
             <div class="row q-mb-sm">
                 <q-input
@@ -75,10 +79,10 @@
             </div>
             </div>
               </q-form>
-                         <q-form class="q-gutter-md" @submit.prevent="doSave" v-if="configs === null">
-            <div class="q-pa-sm text-center justify-center" style="max-width: 50%">
-            <div class="q-pa-md">
-    <div class="q-gutter-sm">
+              <q-form class="q-gutter-md q-pa-none" @submit.prevent="doSave" v-if="configs === null">
+            <div class="text-center justify-center" style="max-width: 50%">
+            <div class="q-pa-sm">
+    <div class="q-gutter-sm q-pa-none">
       <q-radio v-model="instalation_type" val="PROVINCIAL" label="Provincial" />
       <q-radio v-model="instalation_type" val="LOCAL" label="Local" />
     </div>
@@ -141,14 +145,14 @@
               </q-form>
             </q-card-section>
             <q-card-section align="center">
-              <div class="row justify-center q-pt-xl q-py-xl q-gutter-xl">
-              <div class="justify-left q-pt-md q-py-md">
-                <q-avatar round size="130px" style="opacity: 40%">
+              <div class="row justify-center q-pt-md q-gutter-xl">
+              <div class="justify-left q-pt-lg">
+                <q-avatar round :size="website ? '130px' : '60px'" style="opacity: 40%">
                   <q-img src="~assets/MoHLogo.png"/>
                 </q-avatar>
               </div>
-               <div class="q-pb-md">
-                <q-avatar square size="190px" style="opacity: 40%">
+               <div class="q-pb-lg">
+                <q-avatar square :size="website ? '190px' : '90px'" style="opacity: 40%">
                   <q-img src="~assets/pepfar-new-logo.jpeg"/>
                 </q-avatar>
               </div>
@@ -162,19 +166,22 @@
 </template>
 
 <script>
-import { QSpinnerBall, useQuasar } from 'quasar'
+import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar'
 import Province from '../../store/models/province/Province'
 import District from '../../store/models/district/District'
 import Clinic from 'src/store/models/clinic/Clinic'
 import { ref } from 'vue'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
 import UsersService from '../../services/UsersService'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default ({
+   mixins: [mixinplatform, mixinutils],
   data () {
      const $q = useQuasar()
     return {
-       instalation_type: ref(null),
-        province: null,
+      instalation_type: ref(null),
+      province: null,
       district: null,
       clinic: null,
       systemConfigs: new SystemConfigs(),
@@ -190,77 +197,7 @@ export default ({
         fetchUser: true
       },
       error: null,
-      initialDistrict: 0,
-      users: [
-        {
-          utilizador: 'IDMED.FHI',
-          senha: 'Fhi761'
-        },
-        {
-          utilizador: 'IDMED.EPIC',
-          senha: 'Epic007'
-        },
-        {
-          utilizador: 'IDMED.I-TECH',
-          senha: 'I-tech881'
-        },
-        {
-          utilizador: 'IDMED.ICAP',
-          senha: 'Icap123'
-        },
-        {
-          utilizador: 'IDMED.CCS',
-          senha: 'Ccs452'
-        },
-        {
-          utilizador: 'IDMED.ARIEL',
-          senha: 'Ariel872'
-        },
-        {
-          utilizador: 'IDMED.ECHO',
-          senha: 'Echo827'
-        },
-        {
-          utilizador: 'IDMED.EGPAF',
-          senha: 'Egpaf897'
-        },
-        {
-          utilizador: 'IDMED.JHPIEGO',
-          senha: 'Jhpiego562'
-        },
-        {
-          utilizador: 'IDMED.FGH',
-          senha: 'Fgh542'
-        },
-        {
-          utilizador: 'IDMED.USAID',
-          senha: 'Usaid098'
-        },
-        {
-          utilizador: 'IDMED.CDC',
-          senha: 'Cdc622'
-        },
-        {
-          utilizador: 'IDMED.CMAM',
-          senha: 'Cmam252'
-        },
-        {
-          utilizador: 'IDMED.PHIV',
-          senha: 'Phiv545'
-        },
-        {
-          utilizador: 'iDMED',
-          senha: 'iDMED123'
-        },
-        {
-          utilizador: 'IDMED.JEMBI',
-          senha: 'Jembi123'
-        },
-        {
-          utilizador: 'domingos.bernardo',
-          senha: 'dBernardo1'
-        }
-      ]
+      initialDistrict: 0
     }
   },
   created () {
@@ -270,24 +207,23 @@ export default ({
       spinner: QSpinnerBall
       // delay: 400 // ms
     })
- this.loadProvinceAndDistrict()
-    setTimeout(() => {
+    this.loadProvinceAndDistrict()
+    this.setCurrClinic()
+      setTimeout(() => {
       this.$q.loading.hide()
     }, 600)
   },
-   mounted () {
-},
   computed: {
      provinces () {
-            return Province.query().with('districts').has('code').get()
-        },
-        districts () {
-        if (this.province !== null) {
-            return District.query().with('province').where('province_id', this.province.id).get()
-        } else {
-            return null
-        }
-  },
+      return Province.query().with('districts').has('code').get()
+    },
+    districts () {
+      if (this.province !== null) {
+          return District.query().with('province').where('province_id', this.province.id).get()
+      } else {
+          return null
+      }
+    },
    clinics () {
         if (this.district !== null) {
            return this.getClinicsByDistrictId()
@@ -300,13 +236,38 @@ export default ({
       }
   },
   methods: {
-      loadProvinceAndDistrict () {
-         const offset = 0
-        const max = 100
-         SystemConfigs.apiGetAll()
-        Province.apiGetAll(offset, max)
-        District.apiGetAll(offset, max)
-        // Clinic.apiGetAll(offset, max)
+    loadProvinceAndDistrict () {
+      const offset = 0
+      const max = 100
+      if (!this.hasInstalationTypeConfigured && !this.hasProvinciesOnLocalDB) {
+        SystemConfigs.apiGetAll().then(resp => {
+          resp.response.data.forEach((sysConfig) => {
+            SystemConfigs.localDbAdd(sysConfig)
+          })
+        })
+        Province.apiGetAll(offset, max).then(resp => {
+          resp.response.data.forEach((province) => {
+            Province.localDbAdd(province)
+          })
+        })
+        District.apiGetAll(offset, max).then(resp => {
+          resp.response.data.forEach((district) => {
+            District.localDbAdd(district)
+          })
+        })
+      }
+    },
+    setCurrClinic () {
+      if (this.isAppSyncDone) {
+        Clinic.localDbGetAll().then(clinics => {
+          clinics.forEach((clinic) => {
+            if (clinic.mainClinic) {
+              console.log(clinic)
+              SessionStorage.set('currClinic', clinic)
+            }
+          })
+        })
+      }
     },
       async getAllClinicsByDistrictId (districtId) {
            await Clinic.api().get('/clinic/district/' + districtId).then(resp => {
@@ -329,29 +290,6 @@ export default ({
               return Clinic.query().with('province').with('district')
                    .with('district.province').where('district_id', this.district.id).get()
         },
-    processForm: function () {
-      console.log({ username: this.username, password: this.password })
-      this.submitting = true
-      setTimeout(() => {
-        this.submitting = false
-      }, 500)
-
-      if (this.users.filter(user => user.utilizador === this.username && user.senha === this.password).length > 0) {
-        this.$router.push({ path: '/' })
-      } else {
-         this.$q.notify({
-            icon: 'announcement',
-            message: 'Utilizador ou Senha inválida',
-            type: 'negative',
-            progress: true,
-            timeout: 3000,
-            position: 'top',
-            color: 'negative',
-            textColor: 'white',
-            classes: 'glossy'
-         })
-      }
-    },
      async doSave () {
        this.systemConfigs.value = this.instalation_type
        this.systemConfigs.key = 'INSTALATION_TYPE'
@@ -371,6 +309,11 @@ export default ({
             }
           }
           })
+      },
+      saveCurrClinic () {
+        if (this.instalation_type === 'LOCAL') {
+          SessionStorage.set('currClinic', this.clinic)
+        }
       },
        authUser () {
             const encodedStringBtoA = btoa(String(this.username).concat(':').concat(this.password))

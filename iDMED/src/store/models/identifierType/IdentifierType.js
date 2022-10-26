@@ -1,4 +1,5 @@
 import { Model } from '@vuex-orm/core'
+import db from 'src/store/localbase'
 
 export default class IdentifierType extends Model {
   static entity = 'identifierTypes'
@@ -22,5 +23,33 @@ export default class IdentifierType extends Model {
 
   static async apiSave (identifierType) {
     return await this.api().post('/identifierType', identifierType)
+  }
+
+  static localDbAdd (identifierType) {
+    return db.newDb().collection('identifierTypes').add(identifierType)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('identifierTypes').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('identifierTypes').get()
+  }
+
+  static localDbUpdate (identifierType) {
+    return db.newDb().collection('identifierTypes').doc({ id: identifierType.id }).set(identifierType)
+  }
+
+  static localDbUpdateAll (identifierTypes) {
+    return db.newDb().collection('identifierTypes').set(identifierTypes)
+  }
+
+  static localDbDelete (identifierType) {
+    return db.newDb().collection('identifierTypes').doc({ id: identifierType.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('identifierTypes').delete()
   }
 }
