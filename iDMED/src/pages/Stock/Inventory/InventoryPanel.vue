@@ -1,7 +1,7 @@
 <template>
   <div>
     <TitleBar>Detalhes do Inventário</TitleBar>
-    <div class="row">
+    <div class="row" v-if="website">
       <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg" style="max-width: 500px;">
         <div>
           <ListHeader
@@ -68,6 +68,75 @@
         </q-scroll-area>
       </div>
     </div>
+
+        <div class="row" v-if="mobile">
+      <div class="col q-mx-md q-mt-md" >
+        <div>
+          <ListHeader
+            :addVisible="false"
+            :mainContainer="true"
+            bgColor="bg-primary">Notas do Inventário
+          </ListHeader>
+          <div class="box-border row q-pt-md">
+            <TextInput
+              v-model="inventoryType"
+              label="Tipo de Inventário"
+              disable
+              dense
+              class="col q-ma-sm" />
+            <q-input
+                dense
+                outlined
+                disable
+                class="col q-ma-sm"
+                v-model="startDate"
+                ref="dateReceived"
+                label="Data de Abertura">
+                <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                        <q-date v-model="startDate" mask="DD-MM-YYYY">
+                        <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                        </div>
+                        </q-date>
+                    </q-popup-proxy>
+                    </q-icon>
+                </template>
+            </q-input>
+            <q-separator class="q-mx-sm"/>
+            <div class="row q-pa-sm" >
+              <q-btn unelevated color="blue" class="col"  size="10px" label="Voltar" @click="goBack"/>
+              <q-space v-if="currInventory.open"/>
+              <q-btn
+                v-if="currInventory.open"
+                unelevated
+                color="red"
+                class="q-ml-md col"
+                @click="initInventoryClosure()"
+                size="10px"
+                label="Fechar Inventário" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 q-px-md">
+        <q-scroll-area
+            :thumb-style="thumbStyle"
+            :content-style="contentStyle"
+            :content-active-style="contentActiveStyle"
+            style="height: 750px;"
+          >
+          <span
+            v-for="drug in drugs" :key="drug.id" >
+            <AdjustmentTable
+              :drug="drug"
+              :inventory="currInventory" />
+          </span>
+        </q-scroll-area>
+      </div>
+    </div>
+
     <q-dialog v-model="alert.visible" persistent>
       <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="closeInventory">
         <template v-slot:title> {{dialogTitle}}</template>
@@ -87,8 +156,10 @@ import { InventoryStockAdjustment } from '../../../store/models/stockadjustment/
 import Stock from '../../../store/models/stock/Stock'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import moment from 'moment'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       alert: ref({

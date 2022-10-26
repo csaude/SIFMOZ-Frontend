@@ -30,16 +30,16 @@
             </template>
             <template #header="props">
               <q-tr class="text-left bg-grey-3" style="text-align: center"  :props="props">
-                <q-th style="width: 200px" >{{columns[0].label}}</q-th>
-                <q-th style="width: 350px;" >{{columns[1].label}}</q-th>
-                <q-th style="width: 190px" >{{columns[2].label}}</q-th>
+                <q-th style="width: 140px" >{{columns[0].label}}</q-th>
+                <q-th style="width: 200px" >{{columns[1].label}}</q-th>
+                <q-th style="width: 180px" >{{columns[2].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[3].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[4].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[5].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[6].label}}</q-th>
                 <q-th style="width: 120px" >{{columns[7].label}}</q-th>
                 <q-th style="width: 100px" >{{columns[8].label}}</q-th>
-                <q-th class="col" >{{columns[9].label}}</q-th>
+                <q-th class="col" style="width: 400px" >{{columns[9].label}}</q-th>
               </q-tr>
 
             </template>
@@ -355,17 +355,17 @@ export default {
     },
     addNewAdjustment (adjustmentType) {
       this.adjustmentType = adjustmentType
-      const event = {
+        const event = {
             id: null,
-            eventDate: '',
-            moviment: '',
-            orderNumber: adjustmentType === 'POSETIVE' ? '' : '-',
+            eventDate: ' ',
+            moviment: ' ',
+            orderNumber: adjustmentType === 'POSETIVE' ? ' ' : '-',
             incomes: '-',
             outcomes: '-',
-            posetiveAdjustment: adjustmentType === 'POSETIVE' ? '' : '-',
-            negativeAdjustment: adjustmentType === 'NEGATIVE' ? '' : '-',
-            loses: adjustmentType === 'LOSS' ? '' : '-',
-            balance: '',
+            posetiveAdjustment: adjustmentType === 'POSETIVE' ? ' ' : '-',
+            negativeAdjustment: adjustmentType === 'NEGATIVE' ? ' ' : '-',
+            loses: adjustmentType === 'LOSS' ? ' ' : '-',
+            balance: ' ',
             notes: ''
           }
       this.curEvent = event
