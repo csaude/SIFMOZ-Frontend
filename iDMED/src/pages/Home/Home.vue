@@ -135,20 +135,23 @@ export default {
       },
       hideLoading () {
         this.$q.loading.hide()
+      },
+      loadClinics () {
+        Clinic.localDbGetAll().then(clinics => {
+          console.log(clinics)
+        })
       }
     },
     mounted () {
      setTimeout(() => {
        if (this.mobile) {
          if (!this.isAppSyncDone) {
-          SynchronizationService.loadAndSaveAppParameters(this.$q)
-          SynchronizationService.doPatientGet(this.clinic.id, 0, 100)
-          SynchronizationService.doStockEntranceGet(this.clinic.id, 0, 100)
+          SynchronizationService.start(this.$q, this.clinic.id)
          } else {
            this.hideLoading()
          }
        } else {
-         SynchronizationService.loadAndSaveAppParameters(this.$q)
+          SynchronizationService.start(this.$q, this.clinic.id)
        }
      }, 3000)
     },
@@ -157,12 +160,14 @@ export default {
     },
     computed: {
       clinic () {
-        return Clinic.query()
-                   .with('province')
-                   .with('facilityType')
-                   .with('district.province')
-                   .where('id', SessionStorage.getItem('currClinic').id)
-                   .first()
+        const clinic = Clinic.query()
+                              .with('province')
+                              .with('facilityType')
+                              .with('district.province')
+                              .where('id', SessionStorage.getItem('currClinic').id)
+                              .first()
+        if (clinic !== null) return clinic
+        return new Clinic(SessionStorage.getItem('currClinic'))
       }
     }
 }

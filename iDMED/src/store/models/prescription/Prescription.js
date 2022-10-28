@@ -79,6 +79,10 @@ export default class Prescription extends Model {
       return await this.api().get('/prescription/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
     }
 
+    static async apiGetAllLastOfClinic (clinicId, offset, max) {
+      return await this.api().get('/prescription/AllLastOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+    }
+
     static async apiFetchById (id) {
       return await this.api().get(`/prescription/${id}`)
     }
