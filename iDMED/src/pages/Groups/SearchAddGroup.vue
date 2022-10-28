@@ -31,51 +31,53 @@
           <q-separator color="grey-13" size="1px"/>
       </div>
       <div>
-        <q-table
-            class="col"
-            dense
-            :rows="searchResults"
-            :columns="columns"
-            row-key="id"
-            >
-            <template v-slot:no-data="{ icon, filter }">
-              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
-                <span>
-                  Sem resultados para visualizar
-                </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
-              </div>
-            </template>
-            <template #body="props">
-              <q-tr :props="props">
-                <!--q-td key="order" :props="props">
-                </q-td-->
-                <q-td key="code" :props="props">
-                  {{props.row.code}}
-                </q-td>
-                <q-td key="name" :props="props">
-                  {{props.row.name}}
-                </q-td>
-                <q-td key="groupType" :props="props">
-                  {{props.row.groupType.description}}
-                </q-td>
-                <q-td key="service" :props="props">
-                  {{props.row.service.code}}
-                </q-td>
-                <q-td key="options" :props="props">
-                  <div class="col">
-                    <q-btn flat round
-                    color="primary"
-                    icon="groups"
-                    @click="openGroup(props.row)">
-                    <q-tooltip class="bg-primary">Visualizar</q-tooltip>
-                  </q-btn>
+        <q-scroll-area style="height: 460px">
+          <q-table
+              class="col"
+              dense
+              :rows="searchResults"
+              :columns="columns"
+              row-key="id"
+              >
+              <template v-slot:no-data="{ icon, filter }">
+                <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+                  <span>
+                    Sem resultados para visualizar
+                  </span>
+                  <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+                </div>
+              </template>
+              <template #body="props">
+                <q-tr :props="props">
+                  <!--q-td key="order" :props="props">
+                  </q-td-->
+                  <q-td key="code" :props="props">
+                    {{props.row.code}}
+                  </q-td>
+                  <q-td key="name" :props="props">
+                    {{props.row.name}}
+                  </q-td>
+                  <q-td key="groupType" :props="props">
+                    {{props.row.groupType.description}}
+                  </q-td>
+                  <q-td key="service" :props="props">
+                    {{props.row.service.code}}
+                  </q-td>
+                  <q-td key="options" :props="props">
+                    <div class="col">
+                      <q-btn flat round
+                      color="primary"
+                      icon="groups"
+                      @click="openGroup(props.row)">
+                      <q-tooltip class="bg-primary">Visualizar</q-tooltip>
+                    </q-btn>
 
-                  </div>
-                </q-td>
-              </q-tr>
-            </template>
-        </q-table>
+                    </div>
+                  </q-td>
+                </q-tr>
+              </template>
+          </q-table>
+        </q-scroll-area>
       </div>
       <q-page-sticky position="bottom-right" :offset="[18, 18]">
           <q-btn class="q-mb-xl q-mr-xl" fab color="primary" icon="add" @click="showGroupRegister = true"/>

@@ -1,15 +1,16 @@
 <template>
   <div class="q-pa-md">
-    <div class="q-pa-md" v-if="mobile">
-      <q-layout view="hHh Lpr lff" container style="height: 680px" class="shadow-2 rounded-borders">
-        <q-header elevated>
-          <q-toolbar>
-            <q-btn flat @click="drawer = !drawer" round dense icon="menu"></q-btn>
-            <q-toolbar-title>Administração</q-toolbar-title>
-          </q-toolbar>
-        </q-header>
+    <div class="q-mt-lg" v-if="mobile">
 
-        <q-drawer
+      <!-- <TitleBar>Administração</TitleBar> -->
+      <div class="text-left">
+        <div class="q-my-md text-subtitle1 text-grey-14">
+          <q-btn flat @click="drawer = !drawer" round dense icon="menu"></q-btn>Administração
+        </div>
+        <q-separator color="grey-13" size="1px"/>
+      </div>
+
+      <q-drawer
         v-model="drawer"
         :width="300"
         :breakpoint="500"
@@ -20,7 +21,7 @@
           <q-scroll-area class="fit">
 
             <q-list padding>
-              <template v-for="(menuItem, index) in tabs" :key="index">
+              <div v-for="(menuItem, index) in tabs" :key="index">
                 <q-item clickable :active="menuItem.label === activeMenu"  @click="changeMenu(menuItem.label)" v-ripple>
                   <q-item-section avatar>
                     <q-icon :name="menuItem.icon"></q-icon>
@@ -30,28 +31,28 @@
                   </q-item-section>
                 </q-item>
                 <q-separator :key="'sep' + index" v-if="menuItem.separator"></q-separator>
-              </template>
+              </div>
             </q-list>
 
           </q-scroll-area>
-        </q-drawer>
+      </q-drawer>
 
-        <q-page-container>
-          <q-page padding>
-            <clinics v-if="activeMenu === 'Farmácias'"> </clinics>
-            <clinicSectors v-if="activeMenu === 'Sector Clínico'"> </clinicSectors>
-            <doctor v-if="activeMenu === 'Clínicos'"> </doctor>
-            <drug v-if="activeMenu === 'Medicamentos'"> </drug>
-            <therapeuticRegimen v-if="activeMenu === 'Regime Terapêutico'"> </therapeuticRegimen>
-            <clinicalServices v-if="activeMenu === 'Serviço Clínico'"> </clinicalServices>
-            <identifierType v-if="activeMenu === 'Tipo de Identificador'"> </identifierType>
-            <interoperability v-if="activeMenu === 'Interoperabilidade'"> </interoperability>
-            <users v-if="activeMenu === 'Utilizadores'"> </users>
-            <roles v-if="activeMenu === 'Perfis'"> </roles>
-          </q-page>
-        </q-page-container>
-      </q-layout>
+      <div>
+        <q-scroll-area style="height: 565px">
+          <clinics v-if="activeMenu === 'Farmácias'"> </clinics>
+          <clinicSectors v-if="activeMenu === 'Sector Clínico'"> </clinicSectors>
+          <doctor v-if="activeMenu === 'Clínicos'"> </doctor>
+          <drug v-if="activeMenu === 'Medicamentos'"> </drug>
+          <therapeuticRegimen v-if="activeMenu === 'Regime Terapêutico'"> </therapeuticRegimen>
+          <clinicalServices v-if="activeMenu === 'Serviço Clínico'"> </clinicalServices>
+          <identifierType v-if="activeMenu === 'Tipo de Identificador'"> </identifierType>
+          <interoperability v-if="activeMenu === 'Interoperabilidade'"> </interoperability>
+          <users v-if="activeMenu === 'Utilizadores'"> </users>
+          <roles v-if="activeMenu === 'Perfis'"> </roles>
+        </q-scroll-area>
+      </div>
     </div>
+
     <q-splitter
       v-if="website"
       v-model="splitterModel">
@@ -147,7 +148,7 @@ export default {
   setup () {
     return {
     //  tabs: ref('national_clinic'),
-      activeMenu: 'Farmácias',
+      activeMenu: ref('Farmácias'),
       selectedTab: ref('clinic'),
       drawer: ref(false),
       tabs,
@@ -155,6 +156,7 @@ export default {
     }
   },
    components: {
+      // TitleBar: require('components/Shared/TitleBar.vue').default,
        doctor: require('components/Settings/Doctor/Doctors.vue').default,
     // AddClinic: require('components/Settings/AddClinic.vue').default
        drug: require('components/Settings/Drug/Drugs.vue').default,

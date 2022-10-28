@@ -1,49 +1,42 @@
 <template>
   <div>
-    <TitleBar>Detalhe do Grupo</TitleBar>
-    <span v-if="mobile">
-      <div class="q-pa-md">
-        <q-layout view="hHh Lpr lff" container style="height: 638px" class="shadow-2 rounded-borders">
-          <q-header elevated>
-            <q-toolbar>
-              <q-btn flat @click="drawer = !drawer" round dense icon="groups">
-              </q-btn>
-              <q-toolbar-title>{{ group.name }} | {{ group.groupType.description }}</q-toolbar-title>
-            </q-toolbar>
-          </q-header>
-
-          <q-drawer
-            v-model="drawer"
-            :width="350"
-            :breakpoint="500"
-            overlay
-            bordered
-            behavior="mobile"
-          >
-            <q-scroll-area class="fit">
-                <!-- <template> -->
-                  <div class="row q-mt-md">
-                    <div class="col q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
-                      <groupInfo @editGroup="editGroup" @desintagrateGroup="desintagrateGroup"/>
-                    </div>
+    <PanelTitleBar
+      v-if="mobile"
+      :name="group.name"
+      :groupType="group.groupType.description"
+      @showGroupDetails="showGroupDetails"
+    >
+    Detalhe do Grupo
+    </PanelTitleBar>
+    <TitleBar v-else >Detalhe do Grupo</TitleBar>
+    <div class="q-pa-md" v-if="mobile">
+      <div class="q-pa-md q-gutter-sm">
+        <q-drawer
+          v-model="showGroupInfo"
+          :width="500"
+          :breakpoint="500"
+          overlay
+          bordered
+          behavior="mobile"
+        >
+          <q-scroll-area class="fit">
+                <div class="row q-mt-md">
+                  <div class="col q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
+                    <groupInfo @editGroup="editGroup" @desintagrateGroup="desintagrateGroup"/>
                   </div>
-                <!-- </template> -->
-            </q-scroll-area>
-          </q-drawer>
-
-          <q-page-container>
-            <q-page padding>
-              <group-members
-                v-if="dataFetchDone"
-                @addNewMember="addNewMember"
-                @newPrescription="newPrescription"
-                @desintagrateGroup="desintagrateGroup"/>
-              <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
-            </q-page>
-          </q-page-container>
-        </q-layout>
+                </div>
+          </q-scroll-area>
+        </q-drawer>
+        <q-scroll-area style="height: 565px">
+        <group-members
+              v-if="dataFetchDone"
+              @addNewMember="addNewMember"
+              @newPrescription="newPrescription"
+              @desintagrateGroup="desintagrateGroup"/>
+            <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
+        </q-scroll-area>
       </div>
-    </span>
+    </div>
 
    <span v-if="website">
       <div class="row q-mt-md">
@@ -121,7 +114,7 @@ export default {
   mixins: [mixinplatform],
   data () {
     return {
-      drawer: ref(false),
+      showGroupInfo: ref(false),
       alert: ref({
         type: '',
         visible: false,
@@ -165,6 +158,9 @@ export default {
     }
   },
   methods: {
+    showGroupDetails () {
+      this.showGroupInfo = !this.showGroupInfo
+    },
     showloading () {
       console.log('loaging')
        this.$q.loading.show({
@@ -359,7 +355,8 @@ export default {
     groupMembers: require('components/Groups/Panel/GroupMembers.vue').default,
     groupPacks: require('components/Groups/Panel/GroupDispenses.vue').default,
     addEditPrescription: require('components/Patient/PatientPanel/AddEditPrescription.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
+    PanelTitleBar: require('components/Groups/Panel/PanelTitleBar.vue').default
   }
 }
 </script>
