@@ -63,6 +63,10 @@ export default class PatientVisit extends Model {
     return await this.api().get('/patientVisit/clinic/' + clinicId + '?offset=0&max=100')
   }
 
+  static async apiGetAllLastWithScreeningOfClinic (clinicId, offset, max) {
+    return await this.api().get('/patientVisit/AllLastWithScreeningOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+  }
+
   static async apiGetLastVisitOfPatient (patientId) {
     return await this.api().get('/patientVisit/getLastVisitOfPatient/' + patientId)
   }

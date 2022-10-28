@@ -30,9 +30,14 @@ import StockOperationType from 'src/store/models/stockoperation/StockOperationTy
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
 import { LocalStorage } from 'quasar'
+import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
+import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
+import Pack from 'src/store/models/packaging/Pack'
+import Prescription from 'src/store/models/prescription/Prescription'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 
 export default {
-  loadAndSaveAppParameters ($q) {
+  loadAndSaveAppParameters (clinicId) {
     const offset = 0
     const max = 100
     Duration.apiGetAll(offset, max).then(resp => {
@@ -176,8 +181,6 @@ export default {
           ProvincialServer.localDbAdd(item)
         })
       })
-      LocalStorage.set('system-sync-status', 'done')
-      $q.loading.hide()
     },
     doStockEntranceGet (clinicId, offset, max) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -206,7 +209,6 @@ export default {
         })
     },
     doPatientGet (clinicId, offset, max) {
-      console.log('DoGetPatiens of: ', clinicId)
       Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
           if (resp.response.data.length > 0 && offset < 1800) {
             resp.response.data.forEach((item) => {
@@ -222,15 +224,79 @@ export default {
     doClinicGet (offset, max) {
       Clinic.apiGetAll(offset, max).then(resp => {
         if (resp.response.data.length > 0) {
-          console.log(resp.response.data)
           resp.response.data.forEach((item) => {
             Clinic.localDbAdd(item)
           })
           offset = offset + max
           setTimeout(this.doClinicGet(offset, max), 2)
         }
-      }).catch(error => {
-          console.log(error)
       })
+    },
+    doPatientLastVisitDetailsGet (clinicId, offset, max) {
+      PatientVisitDetails.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            PatientVisitDetails.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doPatientLastVisitDetailsGet(offset, max), 2)
+        }
+      })
+    },
+    doPatientVisitGet (clinicId, offset, max) {
+      PatientVisit.apiGetAllLastWithScreeningOfClinic(clinicId, offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            PatientVisit.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doPatientVisitGet(offset, max), 2)
+        }
+      })
+    },
+    doPackGet (clinicId, offset, max) {
+      Pack.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            Pack.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doPackGet(offset, max), 2)
+        }
+      })
+    },
+    doPrescriptionGet (clinicId, offset, max) {
+      Prescription.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            Prescription.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doPrescriptionGet(offset, max), 2)
+        }
+      })
+    },
+    doIdentifiersGet (clinicId, offset, max) {
+      PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            PatientServiceIdentifier.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doIdentifiersGet(offset, max), 2)
+        }
+      })
+    },
+    start ($q, clinicId) {
+      this.loadAndSaveAppParameters(clinicId)
+      this.doPatientGet(clinicId, 0, 100)
+      this.doStockEntranceGet(clinicId, 0, 100)
+      this.doIdentifiersGet(clinicId, 0, 100)
+      this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
+      this.doPatientVisitGet(clinicId, 0, 100)
+      this.doPackGet(clinicId, 0, 100)
+      this.doPrescriptionGet(clinicId, 0, 100)
+      LocalStorage.set('system-sync-status', 'done')
+      $q.loading.hide()
     }
 }

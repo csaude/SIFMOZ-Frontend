@@ -201,6 +201,7 @@ export default ({
     }
   },
   created () {
+    this.loadClinics()
     this.$q.loading.show({
       message: 'Carregando ...',
       spinnerColor: 'grey-4',
@@ -208,7 +209,6 @@ export default ({
       // delay: 400 // ms
     })
     this.loadProvinceAndDistrict()
-    this.setCurrClinic()
       setTimeout(() => {
       this.$q.loading.hide()
     }, 600)
@@ -257,17 +257,18 @@ export default ({
         })
       }
     },
-    setCurrClinic () {
-      if (this.isAppSyncDone) {
-        Clinic.localDbGetAll().then(clinics => {
-          clinics.forEach((clinic) => {
-            if (clinic.mainClinic) {
-              console.log(clinic)
-              SessionStorage.set('currClinic', clinic)
-            }
-          })
-        })
-      }
+    loadClinics () {
+      Clinic.localDbGetAll().then(clinics => {
+        if (clinics !== null && clinics.length > 0) {
+          Clinic.insert({ data: clinics })
+          this.saveCurrClinic(Clinic.query()
+                              .with('province')
+                              .with('facilityType')
+                              .with('district.province')
+                              .where('mainClinic', true)
+                              .first())
+        }
+      })
     },
       async getAllClinicsByDistrictId (districtId) {
            await Clinic.api().get('/clinic/district/' + districtId).then(resp => {
@@ -310,10 +311,8 @@ export default ({
           }
           })
       },
-      saveCurrClinic () {
-        if (this.instalation_type === 'LOCAL') {
-          SessionStorage.set('currClinic', this.clinic)
-        }
+      saveCurrClinic (clinic) {
+        SessionStorage.set('currClinic', clinic)
       },
        authUser () {
             const encodedStringBtoA = btoa(String(this.username).concat(':').concat(this.password))
