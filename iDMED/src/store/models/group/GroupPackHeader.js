@@ -15,6 +15,7 @@ export default class GroupPackHeader extends Model {
       isLast: this.boolean(false),
       duration_id: this.attr(''),
       group_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       duration: this.belongsTo(Duration, 'duration_id'),
       group: this.belongsTo(Group, 'group_id'),

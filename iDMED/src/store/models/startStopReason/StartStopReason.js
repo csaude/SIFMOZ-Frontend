@@ -10,6 +10,7 @@ export default class StartStopReason extends Model {
       isStartReason: this.boolean(false),
       reason: this.attr(''),
       episode: this.hasMany(Episode, 'startStopReason_id'),
+      syncStatus: this.attr(''),
       code: this.attr('')
     }
   }

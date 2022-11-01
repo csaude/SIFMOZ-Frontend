@@ -10,6 +10,7 @@ export default class StockOperationType extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
       // relationships
       adjustments: this.hasMany(StockAdjustment, 'operation_id')
     }

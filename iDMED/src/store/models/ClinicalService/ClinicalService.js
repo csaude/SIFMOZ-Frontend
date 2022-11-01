@@ -18,6 +18,7 @@ export default class ClinicalService extends Model {
       description: this.attr(''),
       identifier_type_id: this.attr(''),
       active: this.attr(''),
+      syncStatus: this.attr(''),
 
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
       attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),

@@ -15,6 +15,7 @@ export default class NationalClinic extends Model {
       province_id: this.attr(''),
       facilityType_id: this.attr(''),
       active: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       province: this.belongsTo(Province, 'province_id'),
       facilityType: this.belongsTo(FacilityType, 'facilityType_id'),

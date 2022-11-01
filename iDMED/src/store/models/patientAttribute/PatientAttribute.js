@@ -11,6 +11,7 @@ export default class PatientAttribute extends Model {
       attributeType_id: this.attr(''),
       value: this.attr(''),
       patient_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       patient: this.belongsTo(Patient, 'patient_id'),
       attributeType: this.belongsTo(AttributeType, 'attributeType_id')

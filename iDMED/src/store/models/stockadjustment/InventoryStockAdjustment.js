@@ -11,6 +11,7 @@ export class InventoryStockAdjustment extends StockAdjustment {
             ...super.fields(),
             id: this.attr(null),
             inventory_id: this.attr(null),
+            syncStatus: this.attr(''),
             // relationships
             inventory: this.belongsTo(Inventory, 'inventory_id')
         }

@@ -17,6 +17,7 @@ export default class TherapeuticRegimen extends Model {
      // pedhiatric: this.attr(''),
       description: this.attr(''),
       clinical_service_id: this.attr(''),
+      syncStatus: this.attr(''),
 
       // Relationships
       prescriptionDetails: this.hasMany(PrescriptionDetail, 'therapeutic_regimen_id'),

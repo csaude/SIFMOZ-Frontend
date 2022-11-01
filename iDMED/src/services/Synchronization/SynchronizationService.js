@@ -37,153 +37,153 @@ import Prescription from 'src/store/models/prescription/Prescription'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 
 export default {
-  loadAndSaveAppParameters (clinicId) {
+  async loadAndSaveAppParameters (clinicId) {
     const offset = 0
     const max = 100
-    Duration.apiGetAll(offset, max).then(resp => {
+    await Duration.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Duration.localDbAdd(item)
       })
     })
-    ClinicalServiceAttributeType.apiGetAll(offset, max).then(resp => {
+    await ClinicalServiceAttributeType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         ClinicalServiceAttributeType.localDbAdd(item)
       })
     })
-    ClinicalService.apiGetAll(offset, max).then(resp => {
+    await ClinicalService.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         ClinicalService.localDbAdd(item)
       })
     })
-    ClinicSector.apiGetAll(offset, max).then(resp => {
+    await ClinicSector.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         ClinicSector.localDbAdd(item)
       })
     })
-    IdentifierType.apiGetAll(offset, max).then(resp => {
+    await IdentifierType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         IdentifierType.localDbAdd(item)
       })
     })
-    EpisodeType.apiGetAll(offset, max).then(resp => {
+    await EpisodeType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         EpisodeType.localDbAdd(item)
       })
     })
-    FacilityType.apiGetAll(offset, max).then(resp => {
+    await FacilityType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         FacilityType.localDbAdd(item)
       })
     })
-    StartStopReason.apiGetAll(offset, max).then(resp => {
+    await StartStopReason.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         StartStopReason.localDbAdd(item)
       })
     })
-    ClinicalServiceAttribute.apiGetAll(offset, max).then(resp => {
+    await ClinicalServiceAttribute.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         ClinicalServiceAttribute.localDbAdd(item)
       })
     })
-    Drug.apiGetAll(offset, max).then(resp => {
+    await Drug.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Drug.localDbAdd(item)
       })
     })
-    TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
+    await TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         TherapeuticRegimen.localDbAdd(item)
       })
     })
-    TherapeuticLine.apiGetAll(offset, max).then(resp => {
+    await TherapeuticLine.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         TherapeuticLine.localDbAdd(item)
       })
     })
-    Form.apiGetAll(offset, max).then(resp => {
+    await Form.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Form.localDbAdd(item)
       })
     })
-    DispenseType.apiGetAll(offset, max).then(resp => {
+    await DispenseType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         DispenseType.localDbAdd(item)
       })
     })
     this.doClinicGet(0, 100)
-    InteroperabilityType.apiGetAll(offset, max).then(resp => {
+    await InteroperabilityType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         InteroperabilityType.localDbAdd(item)
       })
     })
-    InteroperabilityAttribute.apiGetAll(offset, max).then(resp => {
+    await InteroperabilityAttribute.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         InteroperabilityAttribute.localDbAdd(item)
       })
     })
-    HealthInformationSystem.apiGetAll(offset, max).then(resp => {
+    await HealthInformationSystem.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         HealthInformationSystem.localDbAdd(item)
       })
     })
-    StockCenter.apiGetAll(offset, max).then(resp => {
+    await StockCenter.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         StockCenter.localDbAdd(item)
       })
     })
-    Stock.apiGetAll(offset, max).then(resp => {
+    await Stock.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Stock.localDbAdd(item)
       })
     })
-    InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
+    await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         InventoryStockAdjustment.localDbAdd(item)
       })
     })
-    StockOperationType.apiGetAll(offset, max).then(resp => {
+    await StockOperationType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         StockOperationType.localDbAdd(item)
       })
     })
-    ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
+    await ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         ReferedStockMoviment.localDbAdd(item)
       })
     })
-    DestroyedStock.apiGetAll(offset, max).then(resp => {
+    await DestroyedStock.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         DestroyedStock.localDbAdd(item)
       })
     })
-    FacilityType.apiGetAll(offset, max).then(resp => {
+    await FacilityType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         FacilityType.localDbAdd(item)
       })
     })
-   ClinicSectorType.apiGetAll(offset, max).then(resp => {
+    await ClinicSectorType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         ClinicSectorType.localDbAdd(item)
       })
     })
-      PatientTransReferenceType.apiGetAll(offset, max).then(resp => {
+    await PatientTransReferenceType.apiGetAll(offset, max).then(resp => {
         resp.response.data.forEach((item) => {
           PatientTransReferenceType.localDbAdd(item)
         })
       })
-      SpetialPrescriptionMotive.apiGetAll(offset, max).then(resp => {
+      await SpetialPrescriptionMotive.apiGetAll(offset, max).then(resp => {
         resp.response.data.forEach((item) => {
           SpetialPrescriptionMotive.localDbAdd(item)
         })
       })
-      ProvincialServer.apiGetAll().then(resp => {
+      await ProvincialServer.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
           ProvincialServer.localDbAdd(item)
         })
       })
     },
-    doStockEntranceGet (clinicId, offset, max) {
-      StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+    async doStockEntranceGet (clinicId, offset, max) {
+      await StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
                 StockEntrance.localDbAdd(item)
@@ -195,8 +195,8 @@ export default {
             console.log(error)
         })
     },
-    doInventoryGet (clinicId, offset, max) {
-      Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+    async doInventoryGet (clinicId, offset, max) {
+      await Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
                 Inventory.localDbAdd(item)
@@ -208,8 +208,8 @@ export default {
             console.log(error)
         })
     },
-    doPatientGet (clinicId, offset, max) {
-      Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+    async doPatientGet (clinicId, offset, max) {
+      await Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
           if (resp.response.data.length > 0 && offset < 1800) {
             resp.response.data.forEach((item) => {
               Patient.localDbAdd(item)
@@ -221,8 +221,8 @@ export default {
             console.log(error)
         })
     },
-    doClinicGet (offset, max) {
-      Clinic.apiGetAll(offset, max).then(resp => {
+    async doClinicGet (offset, max) {
+      await Clinic.apiGetAll(offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
             Clinic.localDbAdd(item)
@@ -232,8 +232,8 @@ export default {
         }
       })
     },
-    doPatientLastVisitDetailsGet (clinicId, offset, max) {
-      PatientVisitDetails.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+    async doPatientLastVisitDetailsGet (clinicId, offset, max) {
+      await PatientVisitDetails.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
             PatientVisitDetails.localDbAdd(item)
@@ -243,8 +243,8 @@ export default {
         }
       })
     },
-    doPatientVisitGet (clinicId, offset, max) {
-      PatientVisit.apiGetAllLastWithScreeningOfClinic(clinicId, offset, max).then(resp => {
+    async doPatientVisitGet (clinicId, offset, max) {
+      await PatientVisit.apiGetAllLastWithScreeningOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
             PatientVisit.localDbAdd(item)
@@ -254,8 +254,8 @@ export default {
         }
       })
     },
-    doPackGet (clinicId, offset, max) {
-      Pack.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+    async doPackGet (clinicId, offset, max) {
+      await Pack.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
             Pack.localDbAdd(item)
@@ -265,8 +265,8 @@ export default {
         }
       })
     },
-    doPrescriptionGet (clinicId, offset, max) {
-      Prescription.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+    async doPrescriptionGet (clinicId, offset, max) {
+      await Prescription.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
             Prescription.localDbAdd(item)
@@ -276,8 +276,8 @@ export default {
         }
       })
     },
-    doIdentifiersGet (clinicId, offset, max) {
-      PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+    async doIdentifiersGet (clinicId, offset, max) {
+      await PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
             PatientServiceIdentifier.localDbAdd(item)
@@ -287,16 +287,20 @@ export default {
         }
       })
     },
-    start ($q, clinicId) {
-      this.loadAndSaveAppParameters(clinicId)
-      this.doPatientGet(clinicId, 0, 100)
-      this.doStockEntranceGet(clinicId, 0, 100)
-      this.doIdentifiersGet(clinicId, 0, 100)
-      this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
-      this.doPatientVisitGet(clinicId, 0, 100)
-      this.doPackGet(clinicId, 0, 100)
-      this.doPrescriptionGet(clinicId, 0, 100)
-      LocalStorage.set('system-sync-status', 'done')
+    async start ($q, clinicId) {
+      await this.loadAndSaveAppParameters(clinicId)
+      await this.doPatientGet(clinicId, 0, 100)
+      await this.doStockEntranceGet(clinicId, 0, 100)
+      await this.doIdentifiersGet(clinicId, 0, 100)
+      await this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
+      await this.doPatientVisitGet(clinicId, 0, 100)
+      await this.doPackGet(clinicId, 0, 100)
+      await this.doPrescriptionGet(clinicId, 0, 100)
+      await LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()
+    },
+    async send () {
+      const patientVisitList = await PatientVisitDetails.localDbGetAll().then()
+      console.log(patientVisitList)
     }
 }

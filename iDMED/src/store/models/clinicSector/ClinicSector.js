@@ -15,6 +15,7 @@ export default class ClinicSector extends Model {
       uuid: this.attr(null),
       clinic_id: this.attr(''),
       clinic_sector_type_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       clinicSectorType: this.belongsTo(ClinicSectorType, 'clinic_sector_type_id')

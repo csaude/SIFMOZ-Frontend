@@ -26,6 +26,7 @@ export default class Drug extends Model {
       active: this.boolean(true),
       form_id: this.attr(''),
       clinicalService_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       form: this.belongsTo(Form, 'form_id'),
       clinicalService: this.belongsTo(ClinicalService, 'clinicalService_id'),

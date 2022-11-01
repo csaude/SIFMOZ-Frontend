@@ -18,6 +18,7 @@ export default class Role extends Model {
      description: this.attr(''),
      name: this.attr(''),
      active: this.attr(''),
+     syncStatus: this.attr(''),
     // menus: this.hasMany(Menu, 'role_id'),
      menus: this.belongsToMany(Menu, RoleMenu, 'role_id', 'menu_id')
     }

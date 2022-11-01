@@ -11,7 +11,6 @@ export default class PatientTransReference extends Model {
   static fields () {
     return {
       id: this.attr(null),
-      syncStatus: this.attr(''),
       operationDate: this.attr(''),
       creationDate: this.attr(''),
       patientTransReferenceTypeId: this.attr(''),
@@ -20,6 +19,7 @@ export default class PatientTransReference extends Model {
       identifierId: this.attr(''),
       patientId: this.attr(''),
       matchId: this.attr(''),
+      syncStatus: this.attr(''),
 
       // Relationshiops
       operationType: this.belongsTo(PatientTransReferenceType, 'patientTransReferenceTypeId'),
