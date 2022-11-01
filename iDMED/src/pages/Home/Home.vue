@@ -138,7 +138,8 @@ export default {
       }
     },
     mounted () {
-     setTimeout(() => {
+       SynchronizationService.doGetDrugFileMobile('DBA59C40-2A5C-4404-9D65-5FE0B32059EE', 0, 100)
+   setTimeout(() => {
        if (this.mobile) {
          if (!this.isAppSyncDone) {
           SynchronizationService.loadAndSaveAppParameters(this.$q)
@@ -149,7 +150,7 @@ export default {
          }
        } else {
          SynchronizationService.loadAndSaveAppParameters(this.$q)
-       }
+      }
      }, 3000)
     },
     created () {

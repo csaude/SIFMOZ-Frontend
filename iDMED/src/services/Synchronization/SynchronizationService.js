@@ -29,6 +29,8 @@ import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/Inven
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
+import DrugStockFileEvent from 'src/store/models/DrugStockFileEvent/DrugStockFileEvent'
+import db from 'src/store/localbase'
 import { LocalStorage } from 'quasar'
 
 export default {
@@ -187,6 +189,18 @@ export default {
               })
               offset = offset + max
               setTimeout(this.doStockEntranceGet(clinicId, offset, max), 2)
+            }
+        }).catch(error => {
+            console.log(error)
+        })
+    },
+    doGetDrugFileMobile (clinicId, offset, max) {
+      console.log('Iniciando a sincronizacao DRUG FILE MOBILE...')
+      DrugStockFileEvent.apiGetDrugFileMobile(clinicId, offset, max).then(resp => {
+            if (resp.response.data.length > 0) {
+              db.newDb().collection('drugFile').set(
+                resp.response.data
+          )
             }
         }).catch(error => {
             console.log(error)

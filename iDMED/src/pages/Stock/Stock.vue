@@ -16,7 +16,11 @@ import ReferedStockMoviment from '../../store/models/stockrefered/ReferedStockMo
 import DestroyedStock from '../../store/models/stockdestruction/DestroyedStock'
 import Province from '../../store/models/province/Province'
 import Drug from '../../store/models/drug/Drug'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import db from 'src/store/localbase'
+
 export default {
+   mixins: [mixinplatform],
   components: {
     Index: require('components/Stock/Index.vue').default
   },
@@ -53,6 +57,21 @@ export default {
   },
   mounted () {
     this.init()
+    // copoia o stock do localbase para o VueX
+    if (this.mobile) {
+        db.newDb().collection('stocks').get().then(stock => {
+                    Stock.insert(
+                      {
+                        data: stock
+                      })
+                      })
+        db.newDb().collection('stockOperationTypes').get().then(stockOperationType => {
+                    StockOperationType.insert(
+                      {
+                        data: stockOperationType
+                      })
+                      })
+    }
   },
   created () {
     this.$q.loading.show({
