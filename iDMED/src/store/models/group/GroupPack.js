@@ -11,6 +11,7 @@ export default class GroupPack extends Model {
       id: this.attr(null),
       pack_id: this.attr(''),
       header_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       pack: this.belongsTo(Pack, 'pack_id'),
       header: this.belongsTo(GroupPackHeader, 'header_id')

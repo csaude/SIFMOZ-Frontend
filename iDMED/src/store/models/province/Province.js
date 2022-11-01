@@ -14,6 +14,7 @@ export default class Province extends Model {
       description: this.attr(''),
       code: this.attr(''),
       country_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       country: this.belongsTo(Country, 'country_id'),
       districts: this.hasMany(District, 'province_id'),

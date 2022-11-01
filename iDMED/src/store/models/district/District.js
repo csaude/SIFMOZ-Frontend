@@ -13,6 +13,7 @@ export default class District extends Model {
       code: this.attr(''),
       description: this.attr(''),
       province_id: this.attr(''),
+      syncStatus: this.attr(''),
 
       // Relationshiops
       province: this.belongsTo(Province, 'province_id'),

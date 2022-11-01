@@ -22,6 +22,7 @@ export default class Doctor extends Model {
         category: this.attr(''),
         active: this.attr(''),
         clinic_id: this.attr(''),
+        syncStatus: this.attr(''),
 
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),

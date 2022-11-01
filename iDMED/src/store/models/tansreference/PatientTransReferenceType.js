@@ -10,6 +10,7 @@ export default class PatientTransReferenceType extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
       // relationships
       patientTransReferences: this.hasMany(PatientTransReference, 'patientTransReferenceTypeId')
     }

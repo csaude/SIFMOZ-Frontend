@@ -10,6 +10,7 @@ export default class GroupType extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
       groups: this.hasMany(Group, 'groupType_id')
     }
   }

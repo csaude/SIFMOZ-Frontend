@@ -13,6 +13,7 @@ export default class DestroyedStock extends Model {
             date: this.attr(null),
             updateStatus: this.attr('P'),
             clinic_id: this.attr(''),
+            syncStatus: this.attr(''),
             // relationships
             clinic: this.belongsTo(Clinic, 'clinic_id'),
             adjustments: this.hasMany(StockDestructionAdjustment, 'destruction_id')

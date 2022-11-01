@@ -11,6 +11,7 @@ export default class ClinicalServiceAttribute extends Model {
       id: this.attr(null),
       service_id: this.attr(null),
       service_attr_type_id: this.attr(null),
+      syncStatus: this.attr(''),
       // Relationships
       clinicalService: this.belongsTo(ClinicalService, 'service_id'),
       clinicalServiceAttributeType: this.belongsTo(ClinicalServiceAttributeType, 'service_attr_type_id')

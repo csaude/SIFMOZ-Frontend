@@ -29,6 +29,7 @@ export default class Stock extends Model {
             drug_id: this.attr(null),
             enabled: this.boolean(false),
             clinic_id: this.attr(''),
+            syncStatus: this.attr(''),
             // relationships
             clinic: this.belongsTo(Clinic, 'clinic_id'),
             adjustments: this.hasMany(StockAdjustment, 'adjusted_stock_id'),

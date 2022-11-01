@@ -17,6 +17,7 @@ export default class PrescribedDrug extends Model {
         prescription_id: this.attr(''),
         drug_id: this.attr(''),
         form: this.attr(''),
+        syncStatus: this.attr(''),
         // Relationships
         prescription: this.belongsTo(Prescription, 'prescription_id'),
         drug: this.belongsTo(Drug, 'drug_id')

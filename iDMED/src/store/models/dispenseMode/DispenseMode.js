@@ -9,6 +9,7 @@ export default class DispenseMode extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
       openmrsUuid: this.attr('')
     }
   }

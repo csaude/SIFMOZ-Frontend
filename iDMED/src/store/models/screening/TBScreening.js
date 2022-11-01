@@ -19,6 +19,7 @@ export default class TBScreening extends Model {
             fatigueOrTirednessLastTwoWeeks: this.attr(''),
             sweating: this.attr(''),
             patient_visit_id: this.attr(''),
+            syncStatus: this.attr(''),
             // Relationships
             visit: this.belongsTo(PatientVisit, 'patient_visit_id')
         }

@@ -16,6 +16,7 @@ export default class Inventory extends Model {
             generic: this.boolean(true),
             sequence: this.number(0),
             drugs: this.attr([]),
+            syncStatus: this.attr(''),
             clinic_id: this.attr(''),
             // relationships
             clinic: this.belongsTo(Clinic, 'clinic_id'),

@@ -12,6 +12,7 @@ export default class ProvincialServer extends Model {
       destination: this.attr(''),
       port: this.attr(''),
       username: this.attr(''),
+      syncStatus: this.attr(''),
       password: this.attr('')
     }
   }

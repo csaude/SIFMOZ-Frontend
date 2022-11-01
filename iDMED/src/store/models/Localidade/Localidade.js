@@ -13,6 +13,7 @@ export default class Localidade extends Model {
       description: this.attr(''),
       postoAdministrativo_id: this.attr(''),
       district_id: this.attr(''),
+      syncStatus: this.attr(''),
 
       // Relationshiops
       postoAdministrativo: this.belongsTo(PostoAdministrativo, 'postoAdministrativo_id'),

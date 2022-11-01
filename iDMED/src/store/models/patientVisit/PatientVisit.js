@@ -19,6 +19,7 @@ export default class PatientVisit extends Model {
       clinic_id: this.attr(''),
       patient_id: this.attr(''),
       isLast: this.boolean(false),
+      syncStatus: this.attr(''),
       // Relationships
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'patient_visit_id'),
       vitalSigns: this.hasMany(VitalSignsScreening, 'patient_visit_id'),

@@ -12,6 +12,7 @@ export default class GroupMemberPrescription extends Model {
       prescription_id: this.attr(''),
       member_id: this.attr(''),
       used: this.boolean(false),
+      syncStatus: this.attr(''),
       // Relationships
       member: this.belongsTo(GroupMember, 'member_id'),
       prescription: this.belongsTo(Prescription, 'prescription_id')

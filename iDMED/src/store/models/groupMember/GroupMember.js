@@ -16,6 +16,7 @@ export default class GroupMember extends Model {
       group_id: this.attr(''),
       patient_id: this.attr(''),
       clinic_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       group: this.belongsTo(Group, 'group_id'),
       patient: this.belongsTo(Patient, 'patient_id'),

@@ -18,6 +18,7 @@ export default class PatientVisitDetails extends Model {
       createPackLater: this.boolean(false),
       prescription_id: this.attr(''),
       pack_id: this.attr(''),
+      syncStatus: this.attr(''),
         // Relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       pack: this.belongsTo(Pack, 'pack_id'),

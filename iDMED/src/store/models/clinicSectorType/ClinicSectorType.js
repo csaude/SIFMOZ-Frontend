@@ -10,6 +10,7 @@ export default class ClinicSectorType extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
       clinicSectorList: this.hasMany(ClinicSector, 'clinic_sector_type_id')
 
     }

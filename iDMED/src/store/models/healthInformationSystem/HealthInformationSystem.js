@@ -10,6 +10,7 @@ export default class HealthInformationSystem extends Model {
     return {
       id: this.attr(null),
       abbreviation: this.attr(''),
+      syncStatus: this.attr(''),
       description: this.attr(''),
       active: this.attr(''),
 
