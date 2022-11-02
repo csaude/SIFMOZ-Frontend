@@ -9,6 +9,7 @@ export default class SystemConfigs extends Model {
       id: this.attr(null),
       key: this.attr(''),
       value: this.attr(''),
+      syncStatus: this.attr(''),
       description: this.attr('')
     }
   }

@@ -11,6 +11,7 @@ export default class StockLevel extends Model {
             fullContainerRemaining: this.attr(null),
             loosePillsRemaining: this.attr(null),
             stock_id: this.attr(null),
+            syncStatus: this.attr(''),
             // relationships
             stock: this.belongsTo(Stock, 'stock_id')
         }

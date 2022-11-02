@@ -7,6 +7,7 @@ export default class IdentifierType extends Model {
   static fields () {
     return {
       id: this.attr(null),
+      syncStatus: this.attr(''),
       code: this.attr(''),
       description: this.attr(''),
       pattern: this.attr('')

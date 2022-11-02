@@ -12,6 +12,7 @@ export default class PostoAdministrativo extends Model {
       code: this.attr(''),
       description: this.attr(''),
       district_id: this.attr(''),
+      syncStatus: this.attr(''),
 
       // Relationshiops
       district: this.belongsTo(District, 'district_id'),

@@ -12,6 +12,7 @@ export default class RAMScreening extends Model {
             adverseReactionMedicine: this.attr(''),
           //  referedToUSRam: this.attr(''),
             patient_visit_id: this.attr(''),
+            syncStatus: this.attr(''),
             // Relationships
             visit: this.belongsTo(PatientVisit, 'patient_visit_id')
         }

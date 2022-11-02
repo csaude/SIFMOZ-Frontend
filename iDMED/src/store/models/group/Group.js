@@ -19,6 +19,7 @@ export default class Group extends Model {
       groupType_id: this.attr(''),
       clinical_service_id: this.attr(''),
       clinic_id: this.attr(''),
+      syncStatus: this.attr(''),
       // Relationships
       groupType: this.belongsTo(GroupType, 'groupType_id'),
       members: this.hasMany(GroupMember, 'group_id'),

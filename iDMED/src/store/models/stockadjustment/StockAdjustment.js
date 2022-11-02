@@ -28,6 +28,7 @@ export class StockAdjustment extends Model {
             adjusted_stock_id: this.attr(null),
             operation_id: this.attr(null),
             clinic_id: this.attr(''),
+            syncStatus: this.attr(''),
             type: this.attr('INVENTORYSTOCKADJUSTMENT'),
             // relationships
             clinic: this.belongsTo(Clinic, 'clinic_id'),

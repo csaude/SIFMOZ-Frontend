@@ -26,6 +26,7 @@ export default class Prescription extends Model {
         doctor_id: this.attr(''),
         clinic_id: this.attr(''),
         special: this.boolean(false),
+        syncStatus: this.attr(''),
         // Relationships
         clinic: this.belongsTo(Clinic, 'clinic_id'),
         doctor: this.belongsTo(Doctor, 'doctor_id'),
@@ -77,6 +78,10 @@ export default class Prescription extends Model {
 
     static async apiGetAllByClinicId (clinicId, offset, max) {
       return await this.api().get('/prescription/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+    }
+
+    static async apiGetAllLastOfClinic (clinicId, offset, max) {
+      return await this.api().get('/prescription/AllLastOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max)
     }
 
     static async apiFetchById (id) {

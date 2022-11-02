@@ -19,6 +19,7 @@ export default class PatientVisit extends Model {
       clinic_id: this.attr(''),
       patient_id: this.attr(''),
       isLast: this.boolean(false),
+      syncStatus: this.attr(''),
       // Relationships
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'patient_visit_id'),
       vitalSigns: this.hasMany(VitalSignsScreening, 'patient_visit_id'),
@@ -61,6 +62,10 @@ export default class PatientVisit extends Model {
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patientVisit/clinic/' + clinicId + '?offset=0&max=100')
+  }
+
+  static async apiGetAllLastWithScreeningOfClinic (clinicId, offset, max) {
+    return await this.api().get('/patientVisit/AllLastWithScreeningOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 
   static async apiGetLastVisitOfPatient (patientId) {

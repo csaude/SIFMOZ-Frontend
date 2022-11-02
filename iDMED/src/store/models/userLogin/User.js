@@ -30,6 +30,7 @@ export default class User extends Model {
       contact: this.attr(''),
       email: this.attr(''),
       roles: this.attr(''),
+      syncStatus: this.attr(''),
       authorities: this.attr(''),
         clinics: this.belongsToMany(Clinic, UserClinics, 'user_id', 'clinic_id'),
       clinicSectors: this.belongsToMany(ClinicSector, UserClinicSectors, 'user_id', 'clinic_sector_id')

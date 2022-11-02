@@ -11,6 +11,7 @@ export default class StockCenter extends Model {
             name: this.attr(''),
             prefered: this.boolean(false),
             code: this.attr(''),
+            syncStatus: this.attr(''),
             clinic_id: this.attr(''),
             // relationships
             clinic: this.belongsTo(Clinic, 'clinic_id')

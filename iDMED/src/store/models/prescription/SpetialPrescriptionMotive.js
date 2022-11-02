@@ -8,6 +8,7 @@ export default class SpetialPrescriptionMotive extends Model {
     return {
       id: this.attr(null),
       code: this.attr(''),
+      syncStatus: this.attr(''),
       description: this.attr('')
 
     }

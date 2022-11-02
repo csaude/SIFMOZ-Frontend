@@ -10,6 +10,7 @@ export default class ClinicalServiceAttributeType extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
 
       clinicalServiceAttributes: this.hasMany(ClinicalServiceAttribute, 'service_attr_type_id')
     }

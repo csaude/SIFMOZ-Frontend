@@ -9,6 +9,7 @@ export default class TherapeuticLine extends Model {
       id: this.attr(null),
       code: this.attr(''),
       description: this.attr(''),
+      syncStatus: this.attr(''),
       prescriptionDetails: this.hasMany(PrescriptionDetail, 'therapeutic_line_id')
     }
   }
