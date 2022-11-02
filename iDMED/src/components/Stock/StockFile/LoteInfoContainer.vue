@@ -189,6 +189,10 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import { StockReferenceAdjustment } from '../../../store/models/stockadjustment/StockReferenceAdjustment'
 import ReferedStockMoviment from '../../../store/models/stockrefered/ReferedStockMoviment'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import db from 'src/store/localbase'
+// import DrugFile from '../../../store/models/drugFile/DrugFile'
+
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
   { name: 'moviment', align: 'center', label: 'Origem/Destino', sortable: true },
@@ -202,7 +206,8 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Notas', sortable: false }
 ]
 export default {
-  props: ['stock'],
+   mixins: [mixinplatform],
+  props: ['stockInfo', 'batchS'],
   data () {
     return {
       alert: ref({
@@ -249,7 +254,7 @@ export default {
             orderNumber: this.curEvent.orderNumber,
             clinic: this.currClinic
           })
-        adjustment = new StockReferenceAdjustment({
+          adjustment = new StockReferenceAdjustment({
           adjustedValue: this.isPosetiveAdjustment ? this.curEvent.posetiveAdjustment : this.curEvent.negativeAdjustment,
           operation: StockOperationType.query().where('code', this.isPosetiveAdjustment ? 'AJUSTE_POSETIVO' : 'AJUSTE_NEGATIVO').first()
         })
@@ -285,7 +290,37 @@ export default {
         }
         adjustment.balance = adjustment.adjustedStock.stockMoviment
         this.curEvent.balance = adjustment.balance
+        if (this.website) {
+          reference.syncStatus = 'R'
+           if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
+            ReferedStockMoviment.localDbAdd(reference).then(resp => {
+              reference.adjustments[0].adjustedStock.syncStatus = 'U'
+              Stock.localDbUpdate(reference.adjustments[0].adjustedStock)
+              this.step = 'display'
+              this.adjustmentType = ''
+              this.displayAlert('info', 'Operação efectuada com sucesso.')
+              this.$emit('updateDrugFileAdjustment', reference.adjustments[0])
+            }).catch(error => {
+              this.displayAlert('error', error)
+            })
+           } else {
+            destruction.syncStatus = 'R'
+             DestroyedStock.localDbAdd(destruction).then(resp => {
+              destruction.adjustments[0].adjustedStock = 'U'
+              Stock.localDbUpdate(destruction.adjustments[0].adjustedStock)
+              this.$emit('updateDrugFileAdjustment', destruction.adjustments[0])
+              this.step = 'display'
+              this.adjustmentType = ''
+              this.displayAlert('info', 'Operação efectuada com sucesso.')
+            }).catch(error => {
+              this.displayAlert('error', error)
+            })
+            db.newDb().collection('destruction').set(destruction)
+           }
+           this.drugEventList.shift()
+        } else {
         this.doSave(reference, destruction)
+        }
       }
     },
     doSave (reference, destruction) {
@@ -411,6 +446,10 @@ export default {
     }
   },
   computed: {
+    stock () {
+      if (this.website) return this.stockInfo
+      return Stock.query().where('id', this.batchS.stockId).first()
+    },
     getValidade () {
       return this.determineValidade()
     },
@@ -453,7 +492,11 @@ export default {
     }
   },
   mounted () {
+    if (this.website) {
     this.generateDrugBatchEventSummary()
+    } else if (this.mobile) {
+       this.drugEventList.push(this.batchS)
+    }
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,

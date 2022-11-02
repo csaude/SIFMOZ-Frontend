@@ -29,6 +29,8 @@ import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/Inven
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
+import DrugStockFileEvent from 'src/store/models/DrugStockFileEvent/DrugStockFileEvent'
+import db from 'src/store/localbase'
 import { LocalStorage } from 'quasar'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
@@ -195,8 +197,20 @@ export default {
             console.log(error)
         })
     },
-    async doInventoryGet (clinicId, offset, max) {
-      await Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+    doGetDrugFileMobile (clinicId, offset, max) {
+      console.log('Iniciando a sincronizacao DRUG FILE MOBILE...')
+      DrugStockFileEvent.apiGetDrugFileMobile(clinicId, offset, max).then(resp => {
+            if (resp.response.data.length > 0) {
+              db.newDb().collection('drugFile').set(
+                resp.response.data
+          )
+            }
+        }).catch(error => {
+            console.log(error)
+        })
+    },
+    doInventoryGet (clinicId, offset, max) {
+      Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
                 Inventory.localDbAdd(item)
