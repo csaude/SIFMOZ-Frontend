@@ -226,8 +226,6 @@ export default {
           }
     },
      updateDrugFileAdjustment (adjustment) {
-         console.log('adjustment: ', adjustment)
-         console.log('drugFile::', this.drugFile)
          console.log(' this.drugFile.drugFileSummary[0]::', this.drugFile.drugFileSummary[0])
         // Actualiza o resumo por Drug
       if (adjustment.constructor.name === 'StockReferenceAdjustment' && adjustment.operation.code === 'AJUSTE_POSETIVO') {

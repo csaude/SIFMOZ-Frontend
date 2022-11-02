@@ -58,7 +58,7 @@ export default {
   mounted () {
     this.init()
     // copoia o stock do localbase para o VueX
-    if (this.mobile) {
+    if (this.website) {
         db.newDb().collection('stocks').get().then(stock => {
                     Stock.insert(
                       {
