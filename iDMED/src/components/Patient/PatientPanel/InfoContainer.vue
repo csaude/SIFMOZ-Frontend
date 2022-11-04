@@ -74,14 +74,16 @@
 
 <script>
 import { ref } from 'vue'
-import { SessionStorage, date } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from '../../../store/models/episode/Episode'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
   props: ['identifier', 'selectedPatient'],
+   mixins: [mixinplatform, mixinutils],
   data () {
     return {
       alert: ref({
@@ -106,8 +108,10 @@ export default {
   },
   methods: {
     init () {
-      PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
-      Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+      if (this.mobile) {
+        PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
+        Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+      }
     },
     expandLess (value) {
       this.serviceInfoVisible = !value
@@ -171,23 +175,12 @@ export default {
     cancelOperation () {
       this.alert.visible = false
     },
-    formatDate (dateString) {
-      return date.formatDate(dateString, 'DD-MM-YYYY')
-    },
     canEditIdentifier () {
       const identifier = PatientServiceIdentifier.query()
                                                 .with('episodes.patientVisitDetails')
                                                 .where('id', this.identifier.id)
                                                 .first()
       return identifier.canBeEdited()
-    },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
     }
   },
   mounted () {
@@ -242,7 +235,6 @@ export default {
     },
     patient: {
       get () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
                             .with('attributes')
@@ -250,7 +242,7 @@ export default {
                             .with('district')
                             .with('postoAdministrativo')
                             .with('bairro')
-                            .with('clinic').where('id', selectedP.id).first()
+                            .with('clinic').where('id', this.selectedPatient.id).first()
       }
     },
     episodeTypes: {
@@ -279,7 +271,7 @@ export default {
     }
   },
   created () {
-    PatientServiceIdentifier.apiGetAllByPatientId(SessionStorage.getItem('selectedPatient').id)
+    PatientServiceIdentifier.apiGetAllByPatientId(this.selectedPatient.id)
   }
 }
 </script>

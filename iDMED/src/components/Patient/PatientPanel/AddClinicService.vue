@@ -283,24 +283,21 @@ import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import Episode from '../../../store/models/episode/Episode'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
-import moment from 'moment'
 import Province from '../../../store/models/province/Province'
 import District from '../../../store/models/district/District'
 import PatientTransReference from '../../../store/models/tansreference/PatientTransReference'
 import PatientTransReferenceType from '../../../store/models/tansreference/PatientTransReferenceType'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 import Prescription from '../../../store/models/prescription/Prescription'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'step'],
+   mixins: [mixinplatform, mixinutils],
     data () {
       const submitting = ref(false)
         return {
           submitting,
-            alert: ref({
-                type: '',
-                visible: false,
-                msg: ''
-              }),
             identifierstartDate: '',
             identifier: new PatientServiceIdentifier(),
             closureEpisode: new Episode(),
@@ -448,10 +445,6 @@ export default {
         }
         this.submitting = false
       },
-      stringContains (stringToCheck, stringText) {
-          if (stringText === '') return false
-          return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
-      },
       lastStartEpisodeWithPrescription () {
         let episode = null
         const episodes = Episode.query()
@@ -521,66 +514,110 @@ export default {
         if (this.isEditStep) {
           this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
         }
-        await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
-          this.identifier.id = resp.response.data.id
-          if (this.isReOpenStep || this.isCloseStep) {
-            this.fetchUpdatedIdentifier(resp.response.data.id)
+        if (this.website) {
+          this.identifier.id = this.getUUID
+          this.identifier.identifier_type_id = this.identifier.identifierType.id
+          this.identifier.service_id = this.identifier.service.id
+          this.identifier.patient_id = this.identifier.patient.id
+          this.identifier.clinic_id = this.identifier.clinic.id
+          this.identifier.syncStatus = 'R'
+          if (this.identifier.episodes.length > 0) {
+            this.identifier.episodes[0].episodeType_id = this.identifier.episodes[0].episodeType.id
+            this.identifier.episodes[0].clinicSector_id = this.identifier.episodes[0].clinicSector.id
+            this.identifier.episodes[0].patientServiceIdentifier_id = this.identifier.episodes[0].patientServiceIdentifier.id
+            this.identifier.episodes[0].startStopReason_id = this.identifier.episodes[0].startStopReason.id
+            this.identifier.episodes[0].referralClinic_id = this.identifier.episodes[0].referralClinic !== null ? this.identifier.episodes[0].referralClinic.id : null
+            this.identifier.episodes[0].syncStatus = 'R'
           }
-          if (this.isTransferenceEpisode || this.isReferenceEpisode) {
-            const transReference = new PatientTransReference({
-              syncStatus: 'P',
-              operationDate: this.closureEpisode.episodeDate,
-              creationDate: new Date(),
-              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
-              origin: this.currClinic,
-              destination: this.closureEpisode.referralClinic.uuid,
-              identifier: Object.assign({}, this.identifier),
-              patient: Object.assign({}, this.patient)
-            })
-            transReference.identifier.episodes = []
-            transReference.patient.identifiers = []
-            setTimeout(this.doTransReference(transReference), 2)
-          } else if (this.isDCReferenceEpisode) {
-            const transReference = new PatientTransReference({
-              syncStatus: 'P',
-              operationDate: this.closureEpisode.episodeDate,
-              creationDate: new Date(),
-              operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
-              origin: this.currClinic,
-              destination: this.selectedClinicSector.uuid,
-              identifier: Object.assign({}, this.identifier),
-              patient: Object.assign({}, this.patient)
-            })
-            transReference.identifier.episodes = []
-            transReference.patient.identifiers = []
-            setTimeout(this.doTransReference(transReference), 2)
+          // this.identifier = new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier)))
+          console.log(new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier))))
+          const identifierCopy = new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier)))
+          await PatientServiceIdentifier.localDbAdd(identifierCopy)
+          PatientServiceIdentifier.insert({ data: identifierCopy })
+          if (identifierCopy.episodes.length > 0) {
+            await Episode.localDbAdd(identifierCopy.episodes[0])
+            Episode.insert({ data: identifierCopy.episodes[0] })
           }
-          let msg = ''
-          if (this.isCloseStep) {
-            msg = 'Serviço de saúde fechado com sucesso.'
-          } else if (this.isCreateStep) {
-            msg = 'Serviço de saúde adicionado com sucesso.'
-          } else if (this.isEditStep) {
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        } else {
+          await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
             this.identifier.id = resp.response.data.id
-            msg = 'Serviço de saúde actualizado com sucesso.'
-          } else if (this.isReOpenStep) {
-            msg = 'Serviço de saúde reaberto com sucesso.'
-          }
-          this.displayAlert('info', msg)
-        }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
+            if (this.isReOpenStep || this.isCloseStep) {
+              this.fetchUpdatedIdentifier(resp.response.data.id)
             }
+            this.initPatientTransReference()
+            let msg = ''
+            if (this.isCloseStep) {
+              msg = 'Serviço de saúde fechado com sucesso.'
+            } else if (this.isCreateStep) {
+              msg = 'Serviço de saúde adicionado com sucesso.'
+            } else if (this.isEditStep) {
+              this.identifier.id = resp.response.data.id
+              msg = 'Serviço de saúde actualizado com sucesso.'
+            } else if (this.isReOpenStep) {
+              msg = 'Serviço de saúde reaberto com sucesso.'
+            }
+            this.displayAlert('info', msg)
+          }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', listErrors)
+          })
+        }
+      },
+      initPatientTransReference () {
+        if (this.isTransferenceEpisode || this.isReferenceEpisode) {
+          const transReference = new PatientTransReference({
+            syncStatus: 'P',
+            operationDate: this.closureEpisode.episodeDate,
+            creationDate: new Date(),
+            operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
+            origin: this.currClinic,
+            destination: this.closureEpisode.referralClinic.uuid,
+            identifier: Object.assign({}, this.identifier),
+            patient: Object.assign({}, this.patient)
+          })
+          transReference.identifier.episodes = []
+          transReference.patient.identifiers = []
+          if (this.website) {
+            transReference.originId = transReference.origin.id
+            transReference.identifierId = transReference.identifier.id
+            transReference.patientId = transReference.patient.id
+            transReference.patientTransReferenceTypeId = transReference.operationType.id
+          } else {
+            setTimeout(this.doTransReference(transReference), 2)
           }
-          this.displayAlert('error', listErrors)
-        })
+        } else if (this.isDCReferenceEpisode) {
+          const transReference = new PatientTransReference({
+            syncStatus: 'P',
+            operationDate: this.closureEpisode.episodeDate,
+            creationDate: new Date(),
+            operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
+            origin: this.currClinic,
+            destination: this.selectedClinicSector.uuid,
+            identifier: Object.assign({}, this.identifier),
+            patient: Object.assign({}, this.patient)
+          })
+          transReference.identifier.episodes = []
+          transReference.patient.identifiers = []
+          if (this.website) {
+            transReference.originId = transReference.origin.id
+            transReference.identifierId = transReference.identifier.id
+            transReference.patientId = transReference.patient.id
+            transReference.patientTransReferenceTypeId = transReference.operationType.id
+          } else {
+            setTimeout(this.doTransReference(transReference), 2)
+          }
+        }
       },
       doTransReference (transReference) {
         PatientTransReference.apiSave(transReference)
@@ -589,26 +626,8 @@ export default {
         await PatientServiceIdentifier.apiFetchById(id).then(resp => {
         })
       },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-        if (this.alert.type === 'info') {
-          this.$emit('close')
-        }
-      },
       commitOperation () {
         this.doSave()
-      },
-      getJSDateFromDDMMYYY (dateString) {
-        const dateParts = dateString.split('-')
-        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-      },
-      getDDMMYYYFromJSDate (jsDate) {
-        return moment(jsDate).format('DD-MM-YYYY')
       }
     },
     created () {
@@ -733,14 +752,6 @@ export default {
       },
       clinicSerctors () {
         return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
-      },
-      currClinic () {
-        return Clinic.query()
-                    .with('province')
-                    .with('district.province')
-                    .with('facilityType')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
       },
       identifierTypes () {
         return IdentifierType.all()

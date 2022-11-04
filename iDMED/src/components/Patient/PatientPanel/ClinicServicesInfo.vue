@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { LocalStorage, SessionStorage } from 'quasar'
+import { LocalStorage } from 'quasar'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Patient from '../../../store/models/patient/Patient'
 export default {
@@ -101,7 +101,6 @@ export default {
     },
     patient: {
       get () {
-      const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with(['identifiers.episodes.startStopReason', 'identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
                             .with('attributes')
@@ -109,7 +108,7 @@ export default {
                             .with('district')
                             .with('postoAdministrativo')
                             .with('bairro')
-                            .with('clinic').where('id', selectedP.id).first()
+                            .with('clinic').where('id', this.selectedPatient.id).first()
       }
     }
   },

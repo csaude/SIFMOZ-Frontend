@@ -71,9 +71,6 @@
 </template>
 
 <script>
-import { SessionStorage } from 'quasar'
-import { ref } from 'vue'
-import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from '../../../store/models/episode/Episode'
 import Prescription from '../../../store/models/prescription/Prescription'
@@ -87,15 +84,13 @@ import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
 import Drug from '../../../store/models/drug/Drug'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import mixinutils from 'src/mixins/mixin-utils'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
   props: ['identifier'],
+  mixins: [mixinplatform, mixinutils],
   data () {
     return {
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
       infoVisible: true,
       isPatientActive: false,
       selectedPack: new Pack(),
@@ -105,20 +100,21 @@ export default {
   components: {
     ListHeader: require('components/Shared/ListHeader.vue').default,
     EmptyList: require('components/Shared/ListEmpty.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     PackInfo: require('components/Patient/Prescription/PackInfo.vue').default
   },
   methods: {
      init () {
-      if (this.identifier !== null) {
-        PatientServiceIdentifier.apiFetchById(this.identifier.id)
-        if (this.identifier.service !== null) {
-           ClinicalService.apiFetchById(this.identifier.service.id)
-        }
-      }
-      if (this.prescriptionDetails !== null) {
-      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
-      }
+       if (this.mobile) {
+          if (this.identifier !== null) {
+            PatientServiceIdentifier.apiFetchById(this.identifier.id)
+            if (this.identifier.service !== null) {
+              ClinicalService.apiFetchById(this.identifier.service.id)
+            }
+          }
+          if (this.prescriptionDetails !== null) {
+          PrescriptionDetail.apiFetchById(this.prescriptionDetails.id)
+          }
+       }
     },
     expandLess (value) {
       this.infoVisible = !value
@@ -143,14 +139,6 @@ export default {
         // remotion code
       }
     },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
-    },
     lastStartEpisodeWithPrescription () {
       let episode = null
       const episodes = Episode.query()
@@ -173,12 +161,16 @@ export default {
       return episode
     },
     reloadParams () {
-      TherapeuticRegimen.apiGetAll()
-      TherapeuticLine.apiGetAll()
-      Doctor.apiGetAll()
-      Duration.apiGetAll()
-      DispenseType.apiGetAll()
-      Drug.apiGetAll(0, 200)
+      if (this.website) {
+        this.loadParamsToVueX()
+      } else {
+        TherapeuticRegimen.apiGetAll()
+        TherapeuticLine.apiGetAll()
+        Doctor.apiGetAll()
+        Duration.apiGetAll()
+        DispenseType.apiGetAll()
+        Drug.apiGetAll(0, 200)
+      }
     },
     async reloadPrescriptionDetails (id) {
       await PrescriptionDetail.apiFetchById(id)
@@ -235,7 +227,7 @@ export default {
     },
     patient: {
       get () {
-        return new Patient(SessionStorage.getItem('selectedPatient'))
+        return this.selectedPatient
       }
     },
     validadeColor () {

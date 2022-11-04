@@ -80,6 +80,8 @@ import Duration from '../../../store/models/Duration/Duration'
 import Prescription from '../../../store/models/prescription/Prescription'
 import Stock from '../../../store/models/stock/Stock'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import mixinutils from 'src/mixins/mixin-utils'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
@@ -89,13 +91,9 @@ const columns = [
 ]
 export default {
   props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'step', 'visitClone'],
+  mixins: [mixinplatform, mixinutils],
   data () {
     return {
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
       columns,
       showAddEditDrug: false,
       curVisitDetails: '',
@@ -174,14 +172,6 @@ export default {
           return true
         }
       }
-    },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
     },
     init () {
       this.pickupDate = this.newPickUpDate
