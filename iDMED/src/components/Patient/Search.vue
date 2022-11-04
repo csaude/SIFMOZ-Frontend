@@ -140,31 +140,14 @@
 import { ref } from 'vue'
 // import axios from 'axios'
 import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
-import Duration from 'src/store/models/Duration/Duration'
-import Province from 'src/store/models/province/Province'
 import District from 'src/store/models/district/District'
-import ClinicalServiceAttributeType from 'src/store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
-import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
-import IdentifierType from 'src/store/models/identifierType/IdentifierType'
-import EpisodeType from 'src/store/models/episodeType/EpisodeType'
-import FacilityType from 'src/store/models/facilityType/FacilityType'
-import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
-import ClinicalServiceAttribute from 'src/store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
-import Drug from 'src/store/models/drug/Drug'
-import TherapeuticRegimen from 'src/store/models/therapeuticRegimen/TherapeuticRegimen'
-import TherapeuticLine from 'src/store/models/therapeuticLine/TherapeuticLine'
-import Form from 'src/store/models/form/Form'
-import Doctor from 'src/store/models/doctor/Doctor'
-import DispenseType from 'src/store/models/dispenseType/DispenseType'
-import InteroperabilityType from 'src/store/models/interoperabilityType/InteroperabilityType'
-import InteroperabilityAttribute from 'src/store/models/interoperabilityAttribute/InteroperabilityAttribute'
 import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
 import TransferenceService from 'src/services/Transferences/TransferenceService'
-import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 const columns = [
  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   { name: 'identifier', align: 'left', label: 'Identificador', sortable: false },
@@ -174,6 +157,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+   mixins: [mixinplatform],
     data () {
       return {
         searchField: '',
@@ -226,7 +210,14 @@ export default {
     hideLoading () {
       this.$q.loading.hide()
     },
-      init () {},
+      init () {
+        if (this.website) {
+          Patient.localDbGetAll().then(patients => {
+            console.log(patients)
+            Patient.insert({ data: patients })
+          })
+        }
+      },
       createPatient () {
         this.currPatient = new Patient({
           identifiers: [
@@ -277,6 +268,7 @@ export default {
         this.$router.push('/patientpanel')
       },
       filterPatient (patient) {
+        console.log(patient.firstNames)
         return this.hasIdentifierLike(patient, this.currPatient) || this.stringContains(patient.firstNames, this.currPatient.firstNames) || this.stringContains(patient.middleNames, this.currPatient.middleNames) || this.stringContains(patient.lastNames, this.currPatient.lastNames)
       },
       hasIdentifierLike (patientToCheck, inputPatient) {
@@ -291,34 +283,6 @@ export default {
         if (stringToCheck === '' || stringToCheck === null || stringToCheck === undefined) return false
         if (stringText === '' || stringText === null || stringText === undefined) return false
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
-      },
-      loadAppParameters () {
-        if (Duration.query().count() <= 0) {
-          const offset = 0
-          const max = 100
-          Duration.apiGetAll(offset, max)
-          Province.apiGetAll(offset, max)
-          District.apiGetAll(offset, max)
-          ClinicalServiceAttributeType.apiGetAll(offset, max)
-          ClinicalService.apiGetAll(offset, max)
-          ClinicSector.apiGetAll(offset, max)
-          IdentifierType.apiGetAll(offset, max)
-          EpisodeType.apiGetAll(offset, max)
-          FacilityType.apiGetAll(offset, max)
-          StartStopReason.apiGetAll(offset, max)
-          ClinicalServiceAttribute.apiGetAll(offset, max)
-          Drug.apiGetAll(offset, max)
-          TherapeuticRegimen.apiGetAll(offset, max)
-          TherapeuticLine.apiGetAll(offset, max)
-          Form.apiGetAll(offset, max)
-          Doctor.apiFetchByClinicId(this.clinic.id)
-          DispenseType.apiGetAll(offset, max)
-          Clinic.apiGetAll(offset, max)
-          InteroperabilityType.apiGetAll(offset, max)
-          InteroperabilityAttribute.apiGetAll(offset, max)
-          HealthInformationSystem.apiGetAll(offset, max)
-          DispenseMode.apiGetAll()
-        }
       },
       getAllPatientsOfClinic () {
         if (Patient.query().count() <= 0) {
@@ -377,25 +341,44 @@ export default {
       },
       localSearch () {
         this.showloading()
-        Patient.deleteAll()
-        this.currPatient.clinic = this.clinic
-        Patient.apiSearch(this.currPatient).then(resp => {
-          // this.patientList = resp.response.data
+        if (this.mobile) {
+          console.log('Performing website search')
+          Patient.deleteAll()
+          this.currPatient.clinic = this.clinic
+          Patient.apiSearch(this.currPatient).then(resp => {
+            // this.patientList = resp.response.data
 
-        if (resp.response.data.length >= 0) {
-          this.patients = Patient.query()
-                                    .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                                    .with('province')
-                                    .with('attributes')
-                                    .with('appointments')
-                                    .with('district.*')
-                                    .with('postoAdministrativo')
-                                    .with('bairro')
-                                    .with(['clinic.province', 'clinic.district.province'])
-                                    .where('clinic_id', this.clinic.id)
-                                    .get()
-          }
-         })
+          if (resp.response.data.length >= 0) {
+            this.patients = Patient.query()
+                                      .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                      .with('province')
+                                      .with('attributes')
+                                      .with('appointments')
+                                      .with('district.*')
+                                      .with('postoAdministrativo')
+                                      .with('bairro')
+                                      .with(['clinic.province', 'clinic.district.province'])
+                                      .where('clinic_id', this.clinic.id)
+                                      .get()
+            }
+          })
+        } else {
+          console.log('Performing local search')
+          const patients = Patient.query()
+                                .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                .with('province')
+                                .with('attributes')
+                                .with('appointments')
+                                .with('district.*')
+                                .with('postoAdministrativo')
+                                .with('bairro')
+                                .with(['clinic.province', 'clinic.district.province'])
+                                .where('clinic_id', this.clinic.id)
+                                .get()
+          this.patients = patients.filter((patient) => {
+            return this.filterPatient(patient)
+          })
+        }
       },
       openMRSSerach (his) {
         const nid = this.currPatient.identifiers[0].value.replaceAll('/', '-')

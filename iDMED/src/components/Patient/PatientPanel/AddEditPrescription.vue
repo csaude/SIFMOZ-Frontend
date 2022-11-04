@@ -298,16 +298,13 @@ import GroupMember from '../../../store/models/groupMember/GroupMember'
 import GroupMemberPrescription from '../../../store/models/group/GroupMemberPrescription'
 import Group from '../../../store/models/group/Group'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
+import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinutils],
   props: ['selectedVisitDetails', 'step', 'service', 'member'],
   data () {
     return {
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
       mds: ref('US_'),
       identifiers: [],
       patientVisit: new PatientVisit(),
@@ -348,14 +345,17 @@ export default {
     }
   },
   methods: {
-    init () {
+    async init () {
       this.clearPrescriptionSession()
+      await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
+        ClinicalServiceAttribute.insert({ data: regimens })
+      })
       if (this.isNewPackStep || this.isEditPackStep) {
         this.initPatientVisitDetailsForDispense()
       } else {
         this.getPatientActiveClinicalServices()
       }
-      this.doDispenseModeGetAll(0)
+      if (this.mobile) this.doDispenseModeGetAll(0)
     },
     initPatientVisitDetailsForDispense () {
       this.inFormEdition = true
@@ -479,6 +479,7 @@ export default {
                                 .orderBy('episodeDate', 'desc')
                                 .first()
           if (episode !== null && (!episode.closed() || episode.isDCReferenceEpisode())) {
+            console.log(ClinicalService.query().with(['attributes.clinicalServiceAttributeType', 'attributes.clinicalService']).where('id', identifier.service.id).first())
             this.clinicalServices.push(ClinicalService.query().with('attributes.*').where('id', identifier.service.id).first())
             this.initPatientVisitDetails(episode)
           }
@@ -980,17 +981,6 @@ export default {
           this.displayAlert('error', listErrors)
         })
     },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
-      if (this.alert.type === 'info') {
-        this.$emit('close')
-      }
-    },
     fecthVisit (id) {
       PatientVisit.apiFetchById(id).then(resp => {
         this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
@@ -1167,7 +1157,6 @@ export default {
     },
     patient: {
       get () {
-        const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
         return Patient.query().with('identifiers.*')
                               .with('province')
                               .with('attributes')
@@ -1176,13 +1165,13 @@ export default {
                               .with('postoAdministrativo')
                               .with('bairro')
                               .with('clinic.*')
-                              .where('id', selectedP.id)
+                              .where('id', this.selectedPatient.id)
                               .first()
       }
     },
     simplePatient: {
       get () {
-        return Patient.query().where('id', this.patient.id).first()
+        return Patient.query().where('id', this.selectedPatient.id).first()
       }
     },
     therapeuticRegimens: {
@@ -1215,16 +1204,6 @@ export default {
       get () {
         return Duration.query().orderBy('weeks', 'asc').get()
       }
-    },
-    currClinic: {
-      get () {
-        return Clinic.query()
-                      .with('province')
-                      .with('district.province')
-                      .with('facilityType')
-                      .where('id', SessionStorage.getItem('currClinic').id)
-                      .first()
-      }
     }
   },
   created () {
@@ -1232,8 +1211,7 @@ export default {
   },
   components: {
     ServiceDrugsManagement: require('components/Patient/PatientPanel/ServiceDrugsManagement.vue').default,
-    ListHeader: require('components/Shared/ListHeader.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default
+    ListHeader: require('components/Shared/ListHeader.vue').default
   }
 }
 </script>

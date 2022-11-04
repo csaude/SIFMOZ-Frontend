@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
+import { QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from '../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
@@ -144,31 +144,19 @@ export default {
     },
     mounted () {
      setTimeout(() => {
-       if (this.mobile) {
+       if (this.website) {
          if (!this.isAppSyncDone) {
-          SynchronizationService.start(this.$q, this.clinic.id)
+          SynchronizationService.start(this.$q, this.currClinic.id)
          } else {
            this.hideLoading()
          }
        } else {
-          SynchronizationService.start(this.$q, this.clinic.id)
+          SynchronizationService.start(this.$q, this.currClinic.id)
        }
      }, 3000)
     },
     created () {
       this.showloading()
-    },
-    computed: {
-      clinic () {
-        const clinic = Clinic.query()
-                              .with('province')
-                              .with('facilityType')
-                              .with('district.province')
-                              .where('id', SessionStorage.getItem('currClinic').id)
-                              .first()
-        if (clinic !== null) return clinic
-        return new Clinic(SessionStorage.getItem('currClinic'))
-      }
     }
 }
 </script>

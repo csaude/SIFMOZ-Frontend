@@ -339,16 +339,21 @@ export default {
                                 .where('id', this.patient.clinic.id)
                                 .first()
         this.patient.clinic = clinicAux
-        if (this.mobile) {
+        if (this.website) {
           this.patient.id = uuidv4()
-          this.patient.$id = this.patient.id
           this.patient.syncStatus = 'R'
-          const targetCopy = (JSON.parse(JSON.stringify(this.patient)))
+          this.patient.province_id = this.patient.province.id
+          this.patient.district_id = this.patient.district.id
+          this.patient.postoAdministrativo_id = this.patient.postoAdministrativo !== null ? this.patient.postoAdministrativo.id : ''
+          this.patient.bairro_id = this.patient.bairro !== null ? this.patient.bairro.id : null
+          this.patient.clinic_id = this.patient.clinic.id
+          const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patient)))
+            console.log(targetCopy)
           await Patient.localDbAdd(targetCopy).then(patient => {
             console.log(patient)
           })
           await Patient.insert({ data: targetCopy })
-          SessionStorage.set('selectedPatient', new Patient(targetCopy))
+          SessionStorage.set('selectedPatient', targetCopy)
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false
         } else {

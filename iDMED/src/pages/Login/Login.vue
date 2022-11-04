@@ -257,7 +257,7 @@ export default ({
         })
       }
     },
-    loadClinics () {
+    async loadClinics () {
       Clinic.localDbGetAll().then(clinics => {
         if (clinics !== null && clinics.length > 0) {
           Clinic.insert({ data: clinics })
@@ -269,6 +269,13 @@ export default ({
                               .first())
         }
       })
+      if (SessionStorage.getItem('currClinic') === null) {
+        await SystemConfigs.apiGetAll()
+        const sysconfig = SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
+        await Clinic.apiGetByUUID(sysconfig.description).then(resp => {
+          this.saveCurrClinic(resp.response.data)
+        })
+      }
     },
       async getAllClinicsByDistrictId (districtId) {
            await Clinic.api().get('/clinic/district/' + districtId).then(resp => {

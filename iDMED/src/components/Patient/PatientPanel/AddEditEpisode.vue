@@ -225,16 +225,12 @@
 </template>
 
 <script>
-import { ref } from 'vue'
-import { SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import Episode from '../../../store/models/episode/Episode'
-import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
-import moment from 'moment'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Province from '../../../store/models/province/Province'
 import District from '../../../store/models/district/District'
@@ -244,15 +240,13 @@ import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSecto
 import FacilityType from '../../../store/models/facilityType/FacilityType'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import Prescription from '../../../store/models/prescription/Prescription'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
+    mixins: [mixinplatform, mixinutils],
     data () {
         return {
-          alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
             identifier: new PatientServiceIdentifier(),
             episode: new Episode(),
             closureEpisode: new Episode(),
@@ -317,7 +311,7 @@ export default {
           }
         }
       },
-      doSave () {
+      async doSave () {
         if (this.episode.id === null) {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
@@ -377,43 +371,29 @@ export default {
                                                                           .first()
                         }
                         console.log(this.closureEpisode)
-                        Episode.apiSave(this.closureEpisode).then(resp => {
+                        if (this.website) {
+                          this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
+                          this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
+                          this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
+                          this.closureEpisode.clinicSector_id = this.closureEpisode.clinicSector.id
+                          this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
+                          this.closureEpisode.syncStatus = 'R'
+                          await Episode.localDbAdd(JSON.parse(JSON.stringify(this.closureEpisode)))
+                          Episode.insert({ data: this.closureEpisode })
+                          this.displayAlert('info', 'Operação efectuada com sucesso.')
+                        } else {
+                          Episode.apiSave(this.closureEpisode).then(resp => {
                             this.closureEpisode.patientServiceIdentifier.patient = this.patient
                             this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityTypeId)
                             this.closureEpisode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.clinic.facilityTypeId)
                             this.closureEpisode.patientServiceIdentifier.service.identifierType = IdentifierType.find(this.closureEpisode.patientServiceIdentifier.service.identifier_type_id)
 
-                          if (this.isTransferenceEpisode || this.isReferenceEpisode) {
-                            const transReference = new PatientTransReference({
-                              syncStatus: 'P',
-                              operationDate: this.closureEpisode.episodeDate,
-                              creationDate: new Date(),
-                              operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
-                              origin: this.currClinic,
-                              destination: this.closureEpisode.referralClinic.uuid,
-                              identifier: this.closureEpisode.patientServiceIdentifier,
-                              patient: this.patient
-                            })
-                            console.log(transReference)
-                            setTimeout(this.doTransReference(transReference), 2)
-                          } else if (this.isDCReferenceEpisode) {
-                            const transReference = new PatientTransReference({
-                              syncStatus: 'P',
-                              operationDate: this.closureEpisode.episodeDate,
-                              creationDate: new Date(),
-                              operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
-                              origin: this.currClinic,
-                              destination: this.selectedClinicSector.uuid,
-                              identifier: this.closureEpisode.patientServiceIdentifier,
-                              patient: this.patient
-                            })
-                            console.log(transReference)
-                            setTimeout(this.doTransReference(transReference), 2)
-                          }
+                            this.initPatientTransReference()
                           this.displayAlert('info', 'Operação efectuada com sucesso.')
                         }).catch(error => {
                           console.log(error)
                           })
+                        }
                       }
                     }
               }
@@ -423,14 +403,25 @@ export default {
 
         if (!this.isCloseStep) {
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
-          // this.episode.clinic.facilityType = FacilityType.find(this.episode.clinic.facilityTypeId)
           this.episode.clinicSector.clinicSectorType = ClinicSectorType.find(this.episode.clinicSector.clinic_sector_type_id)
           this.episode.patientServiceIdentifier.clinic.district = District.query().with('province').where('id', this.episode.patientServiceIdentifier.clinic.district_id).first()
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
           this.episode.patientServiceIdentifier.episodes = []
           console.log(this.episode)
-          const lastEpisodeCopy = JSON.parse(JSON.stringify(this.lastEpisode))
-          Episode.apiSave(this.episode).then(resp => {
+          const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
+          if (this.website) {
+            lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
+            lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
+            lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
+            lastEpisodeCopy.clinicSector_id = lastEpisodeCopy.clinicSector.id
+            lastEpisodeCopy.episodeType_id = lastEpisodeCopy.episodeType.id
+            lastEpisodeCopy.syncStatus = 'R'
+            console.log(lastEpisodeCopy)
+            await Episode.localDbAdd(lastEpisodeCopy)
+            Episode.insert({ data: lastEpisodeCopy })
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          } else {
+            Episode.apiSave(this.episode).then(resp => {
             if (new Episode(this.episode).isBackReferenceEpisode()) {
               const transReference = new PatientTransReference({
                 syncStatus: 'P',
@@ -448,9 +439,51 @@ export default {
               setTimeout(this.doTransReference(transReference), 2)
             }
             this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
-          }).catch(error => {
-            console.log(error)
+            }).catch(error => {
+              console.log(error)
             })
+          }
+        }
+      },
+      initPatientTransReference () {
+        if (this.isTransferenceEpisode || this.isReferenceEpisode) {
+          const transReference = new PatientTransReference({
+            syncStatus: 'P',
+            operationDate: this.closureEpisode.episodeDate,
+            creationDate: new Date(),
+            operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
+            origin: this.currClinic,
+            destination: this.closureEpisode.referralClinic.uuid,
+            identifier: this.closureEpisode.patientServiceIdentifier,
+            patient: this.patient
+          })
+          if (this.website) {
+            transReference.originId = transReference.origin.id
+            transReference.identifierId = transReference.identifier.id
+            transReference.patientId = transReference.patient.id
+            transReference.patientTransReferenceTypeId = transReference.operationType.id
+          } else {
+            setTimeout(this.doTransReference(transReference), 2)
+          }
+        } else if (this.isDCReferenceEpisode) {
+          const transReference = new PatientTransReference({
+            syncStatus: 'P',
+            operationDate: this.closureEpisode.episodeDate,
+            creationDate: new Date(),
+            operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
+            origin: this.currClinic,
+            destination: this.selectedClinicSector.uuid,
+            identifier: this.closureEpisode.patientServiceIdentifier,
+            patient: this.patient
+          })
+          if (this.website) {
+            transReference.originId = transReference.origin.id
+            transReference.identifierId = transReference.identifier.id
+            transReference.patientId = transReference.patient.id
+            transReference.patientTransReferenceTypeId = transReference.operationType.id
+          } else {
+            setTimeout(this.doTransReference(transReference), 2)
+          }
         }
       },
       identifierHasValidPrescription (episode) {
@@ -476,24 +509,6 @@ export default {
         PatientTransReference.apiSave(transReference).then(resp => {
             console.log(resp.response.data)
         })
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-        if (this.alert.type === 'info') {
-          this.$emit('close')
-        }
-      },
-      getJSDateFromDDMMYYY (dateString) {
-        const dateParts = dateString.split('-')
-        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-      },
-      getDDMMYYYFromJSDate (jsDate) {
-        return moment(jsDate).format('DD-MM-YYYY')
       },
       loadProvince () {
         this.selectedProvince = Province.query().with('districts.*').where('id', this.currClinic.province.id).first()
@@ -612,16 +627,8 @@ export default {
         }
         return []
       },
-      currClinic () {
-        return Clinic.query()
-                    .with('province')
-                    .with('district.province')
-                    .with('facilityType')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
-      },
       patient () {
-        return new Patient(SessionStorage.getItem('selectedPatient'))
+        return this.selectedPatient
       },
       lastEpisode: {
         get () {

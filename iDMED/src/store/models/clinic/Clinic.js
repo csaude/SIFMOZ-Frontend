@@ -48,6 +48,10 @@ export default class Clinic extends Model {
     return await this.api().get('/clinic?offset=' + offset + '&max=' + max)
   }
 
+  static async apiGetByUUID (uuid) {
+    return await this.api().get('/clinic/uuid/' + uuid)
+  }
+
   static async apiSave (clinic) {
     return await this.api().post('/clinic', clinic)
   }

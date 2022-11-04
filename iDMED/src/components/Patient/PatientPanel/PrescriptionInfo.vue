@@ -31,57 +31,75 @@
 </template>
 
 <script>
-import { SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Pack from '../../../store/models/packaging/Pack'
 import Prescription from '../../../store/models/prescription/Prescription'
+import mixinutils from 'src/mixins/mixin-utils'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
   props: ['selectedPatient'],
+  mixins: [mixinplatform, mixinutils],
   data () {
     return {
       showAddPrescription: false,
       infoVisible: true,
       selectedVisitDetails: '',
       step: '',
-      flagGoReady: false,
-      $q: useQuasar()
+      flagGoReady: false
     }
   },
   methods: {
-    showloading () {
-       this.$q.loading.show({
-          spinner: QSpinnerBall,
-          spinnerColor: 'gray',
-          spinnerSize: 140,
-          message: 'Carregando, aguarde por favor...',
-          messageColor: 'white'
-        })
-    },
-    hideLoading () {
-      this.$q.loading.hide()
-    },
-    init () {
+    async init () {
       if (this.identifiers.length <= 0) {
             this.flagGoReady = true
       } else {
         this.identifiers.forEach(identifier => {
-          Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-            if (resp.response.data.length > 0) {
-              this.identifiers.episodes = resp.response.data
-              this.identifiers.episodes.forEach(episode => {
-                PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                  if (resp.response.data) {
-                    episode.patientVisitDetails[0] = resp.response.data
-                    this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-                  } else this.flagGoReady = true
+          if (this.website) {
+            const episodeList = Episode.query()
+                                        .with('startStopReason')
+                                        .with('patientServiceIdentifier')
+                                        .with('patientVisitDetails.*')
+                                        .where('patientServiceIdentifier_id', identifier.id)
+                                        .get()
+           episodeList.forEach((episode) => {
+               PatientVisitDetails.localDbGetAll().then(pvds => {
+                pvds.forEach((pvd) => {
+                  if (pvd.episode_id === episode.id) {
+                    PatientVisitDetails.insert({ data: pvd })
+                  }
+                })
+                Prescription.localDbGetAll().then(prescriptionList => {
+                  prescriptionList.forEach((prescription) => {
+                    Prescription.insert({ data: prescription })
+                  })
+                })
+                Pack.localDbGetAll().then(packList => {
+                  packList.forEach((pack) => {
+                    Pack.insert({ data: pack })
+                  })
                 })
               })
-            } else {
-              this.flagGoReady = true
-            }
-          })
+            })
+            this.flagGoReady = true
+          } else {
+            Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+              if (resp.response.data.length > 0) {
+                this.identifiers.episodes = resp.response.data
+                this.identifiers.episodes.forEach(episode => {
+                  PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                    if (resp.response.data) {
+                      episode.patientVisitDetails[0] = resp.response.data
+                      this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                    } else this.flagGoReady = true
+                  })
+                })
+              } else {
+                this.flagGoReady = true
+              }
+            })
+          }
         })
       }
     },
@@ -169,7 +187,6 @@ export default {
     },
     patient: {
       get () {
-        const selectedP = new Patient(SessionStorage.getItem('selectedPatient'))
       return Patient.query().with('identifiers.*')
                             .with('province')
                             .with('attributes')
@@ -178,7 +195,7 @@ export default {
                             .with('postoAdministrativo')
                             .with('bairro')
                             .with('clinic')
-                            .where('id', selectedP.id).first()
+                            .where('id', this.selectedPatient.id).first()
       }
     }
   },
