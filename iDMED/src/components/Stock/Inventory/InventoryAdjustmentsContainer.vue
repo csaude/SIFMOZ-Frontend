@@ -129,6 +129,12 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
 import moment from 'moment'
+import { v4 as uuidv4 } from 'uuid'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import Inventory from 'src/store/models/stockinventory/Inventory'
+// import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustment'
+// import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustment'
+
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
   { name: 'batchNumber', align: 'center', label: 'Lote', sortable: true },
@@ -138,6 +144,7 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Notas', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform],
   props: ['drug', 'inventory'],
   data () {
     return {
@@ -160,13 +167,38 @@ export default {
       this.infoContainerVisible = !value
     },
     init () {
-      let i = 1
-       if (this.drug.stocks.length > 0) {
-          Object.keys(this.drug.stocks).forEach(function (k) {
-            this.initNewAdjustment(this.drug.stocks[k], this.drug, i)
-            i = i + 1
-          }.bind(this))
-       }
+        if (this.mobile) {
+         // StockAdjustment.deleteAll()
+
+         Inventory.localDbGetAll().then(item => {
+              console.log('LISTA Inventarios: ', item)
+              if (item.syncStatus !== '') {
+                  Inventory.insert({
+                    data: item
+                  })
+              }
+            })
+       InventoryStockAdjustment.localDbGetAll().then(item => {
+              console.log('LISTA AJustes: ', item)
+              if (item.syncStatus !== '') {
+                  InventoryStockAdjustment.insert({
+                    data: item
+                  })
+              }
+            this.prepareInit()
+            })
+        } else {
+          this.prepareInit()
+        }
+    },
+    prepareInit () {
+          let i = 1
+                if (this.drug.stocks.length > 0) {
+                    Object.keys(this.drug.stocks).forEach(function (k) {
+                      this.initNewAdjustment(this.drug.stocks[k], this.drug, i)
+                      i = i + 1
+                    }.bind(this))
+                }
     },
     initNewAdjustment (stock, drug, i) {
       let newAdjustment = null
@@ -197,6 +229,7 @@ export default {
       newAdjustment.adjustedStock.auxExpireDate = this.getDDMMYYYFromJSDate(newAdjustment.adjustedStock.expireDate)
       newAdjustment.adjustedStock.drug = drug
       this.adjustments.push(newAdjustment)
+      console.log('AJUSTEEEEEEE: ' + i, newAdjustment)
     },
     saveAdjustments () {
       Object.keys(this.adjustments).forEach(function (k) {
@@ -224,26 +257,67 @@ export default {
     },
     doSave (i) {
       if (this.adjustments[i] !== undefined) {
-        console.log(this.adjustments[i])
-        InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
-          this.adjustments[i].id = resp.response.data.id
-          i = i + 1
-          setTimeout(this.doSave(i), 2)
-          this.displayAlert('info', 'Operação efectuada com sucesso.')
-        }).catch(error => {
-            const listErrors = []
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response)
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message)
-              } else {
-                arrayErrors._embedded.errors.forEach(element => {
-                  listErrors.push(element.message)
-                })
-              }
-            }
-            this.displayAlert('error', listErrors)
-          })
+        console.log(this.adjustments[i]) // devolver ajustes ao salvar
+
+          if (this.website) {
+                  InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
+                    this.adjustments[i].id = resp.response.data.id
+                    i = i + 1
+                    setTimeout(this.doSave(i), 2)
+                    this.displayAlert('info', 'Operação efectuada com sucesso.')
+                  }).catch(error => {
+                      const listErrors = []
+                      if (error.request.response != null) {
+                        const arrayErrors = JSON.parse(error.request.response)
+                        if (arrayErrors.total == null) {
+                          listErrors.push(arrayErrors.message)
+                        } else {
+                          arrayErrors._embedded.errors.forEach(element => {
+                            listErrors.push(element.message)
+                          })
+                        }
+                      }
+                      this.displayAlert('error', listErrors)
+                    })
+            } else {
+                    const targetCopy = new InventoryStockAdjustment(JSON.parse(JSON.stringify(this.adjustments[i])))
+                    targetCopy.syncStatus = 'R'
+                    let adjustmentToPreview = null
+                    const id = targetCopy.id === null ? uuidv4() : targetCopy.id
+                     InventoryStockAdjustment.localDbGetById(id).then(item => {
+                      adjustmentToPreview = item
+                        })
+                          if (adjustmentToPreview !== null && adjustmentToPreview !== undefined) {
+                          adjustmentToPreview.balance = targetCopy.balance
+                          adjustmentToPreview.notes = targetCopy.notes
+                          adjustmentToPreview.syncStatus = targetCopy.syncStatus
+                          adjustmentToPreview.adjustedStock = targetCopy.adjustedStock
+                          adjustmentToPreview.adjustedValue = targetCopy.adjustedValue
+                          adjustmentToPreview.operation = targetCopy.operation
+                          adjustmentToPreview.inventory_id = targetCopy.inventory.id
+                          InventoryStockAdjustment.localDbUpdate(targetCopy).then(resp => {
+                            InventoryStockAdjustment.update(
+                              {
+                                  data: targetCopy
+                                }
+                            )
+                        i = i + 1
+                        setTimeout(this.doSave(i), 2)
+                        this.displayAlert('info', 'Operação efectuada com sucesso.')
+                        })
+                        } else {
+                          targetCopy.inventory_id = targetCopy.inventory.id
+                          targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id
+                          InventoryStockAdjustment.localDbAdd(targetCopy).then(resp => {
+                                InventoryStockAdjustment.insert({
+                                  data: targetCopy
+                                })
+                            i = i + 1
+                            setTimeout(this.doSave(i), 2)
+                            this.displayAlert('info', 'Operação efectuada com sucesso.')
+                        })
+                        }
+                    }
       }
     },
     changeStepToEdition () {

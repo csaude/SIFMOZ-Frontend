@@ -99,11 +99,15 @@ import { InventoryStockAdjustment } from '../../../store/models/stockadjustment/
 import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
 import moment from 'moment'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import { v4 as uuidv4 } from 'uuid'
+
 const columns = [
   { name: 'code', required: true, label: 'Código FNM', field: 'fnmCode', align: 'left', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', field: 'name', sortable: true }
 ]
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       filter: ref(''),
@@ -162,7 +166,9 @@ export default {
       if (!this.currInventory.generic) {
         this.doBeforeSave()
       }
-      this.currInventory.clinic = this.currClinic
+      this.currInventory.clinic = SessionStorage.getItem('currClinic') // this.currClinic
+
+      if (this.website) {
       await Inventory.apiSave(this.currInventory).then(resp => {
         SessionStorage.set('currInventory', resp.response.data)
       console.log(resp.response)
@@ -183,6 +189,29 @@ export default {
           }
           this.displayAlert('error', listErrors)
         })
+        } else {
+          this.currInventory.syncStatus = 'R'
+          this.currInventory.id = uuidv4()
+          this.currInventory.clinic = this.currClinic
+          this.currInventory.clinic_id = this.currClinic.id
+
+        Object.keys(this.currInventory.adjustments).forEach(function (k) {
+            const item = this.currInventory.adjustments[k]
+            item.inventory_id = this.currInventory.id
+            item.adjusted_stock_id = item.adjustedStock.id
+            item.id = uuidv4()
+        }.bind(this))
+
+          const targetCopy = new Inventory(JSON.parse(JSON.stringify(this.currInventory)))
+          Inventory.localDbAdd(targetCopy).then(inv => {
+            Inventory.insert(
+              {
+                data: targetCopy
+              })
+            SessionStorage.set('currInventory', this.currInventory)
+            this.$router.push('/stock/inventory')
+        })
+        }
     },
     doBeforeSave () {
       Object.keys(this.selected).forEach(function (k) {

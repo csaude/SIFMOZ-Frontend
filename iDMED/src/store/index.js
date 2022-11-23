@@ -83,6 +83,9 @@ import UserClinic from './models/userLogin/UserClinic'
 import UserClinicSector from './models/userLogin/UserClinicSector'
 import SecUserRole from './models/userLogin/SecUserRole'
 import GroupMemberPrescription from './models/group/GroupMemberPrescription'
+import DrugStockFileEvent from './models/drugStockFileEvent/DrugStockFileEvent'
+import DrugFile from './models/drugFile/DrugFile'
+import StockAlert from './models/stockAlert/StockAlert'
 
 // Vue.use(Vuex)
 
@@ -91,8 +94,8 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  baseURL: 'http://localhost:8884/api'
-     // baseURL: 'http://10.10.2.173:8884/api'
+  // baseURL: 'http://localhost:8884/api'
+    baseURL: 'http://10.10.2.230:8884/api'
 })
 let numTries = 0
 // Request interceptor for API calls
@@ -237,6 +240,9 @@ database.register(UserClinic)
 database.register(UserClinicSector)
 database.register(SecUserRole)
 database.register(GroupMemberPrescription)
+database.register(DrugStockFileEvent)
+database.register(DrugFile)
+database.register(StockAlert)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
