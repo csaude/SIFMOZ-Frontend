@@ -7,7 +7,7 @@ export default class AuditSyncronization extends Model {
 
   static fields () {
     return {
-      id: uuidv4(),
+      id: this.uid(() => uuidv4()),
       operationType: this.attr(''),
       username: this.attr(''),
       class: this.attr(''),

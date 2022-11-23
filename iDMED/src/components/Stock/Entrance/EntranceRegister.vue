@@ -58,7 +58,6 @@ import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
 import { ref } from 'vue'
-import { v4 as uuidv4 } from 'uuid'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 
 export default {
@@ -144,7 +143,7 @@ export default {
                     })
           } else {
                   this.stockEntrance.syncStatus = 'R'
-                  this.stockEntrance.id = uuidv4()
+                //  this.stockEntrance.id = uuidv4()
                    const targetCopy = new StockEntrance(JSON.parse(JSON.stringify(this.stockEntrance)))
                     console.log(targetCopy)
                   await StockEntrance.localDbAdd(targetCopy).then(stockEntrance2 => {
