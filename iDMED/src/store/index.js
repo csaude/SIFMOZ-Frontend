@@ -86,6 +86,7 @@ import GroupMemberPrescription from './models/group/GroupMemberPrescription'
 import DrugStockFileEvent from './models/drugStockFileEvent/DrugStockFileEvent'
 import DrugFile from './models/drugFile/DrugFile'
 import StockAlert from './models/stockAlert/StockAlert'
+import AuditSyncronization from './models/auditSyncronization/AuditSyncronization'
 
 // Vue.use(Vuex)
 
@@ -243,6 +244,7 @@ database.register(GroupMemberPrescription)
 database.register(DrugStockFileEvent)
 database.register(DrugFile)
 database.register(StockAlert)
+database.register(AuditSyncronization)
 
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
