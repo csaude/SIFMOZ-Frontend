@@ -34,6 +34,10 @@ export default class GroupMember extends Model {
     return await this.api().post('/groupMember', member)
   }
 
+  static async apiGetAllOfClinic (clinicId, offset, max) {
+    return await this.api().get('/groupMember/AllOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+  }
+
   static localDbAdd (member) {
     return db.newDb().collection('members').add(member)
   }

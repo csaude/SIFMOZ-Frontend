@@ -19,6 +19,12 @@ export default class GroupMemberPrescription extends Model {
     }
   }
 
+  groupMemberPrescription
+
+  static async apiGetAll () {
+    return await this.api().get('/groupMemberPrescription')
+  }
+
   static async apiFetchById (id) {
     return await this.api().get(`/groupMemberPrescription/${id}`)
   }

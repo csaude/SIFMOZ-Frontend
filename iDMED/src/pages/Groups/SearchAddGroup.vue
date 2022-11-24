@@ -98,11 +98,22 @@ import Clinic from '../../store/models/clinic/Clinic'
 import { SessionStorage } from 'quasar'
 import Patient from '../../store/models/patient/Patient'
 import GroupType from '../../store/models/groupType/GroupType'
-import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+// import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import Episode from '../../store/models/episode/Episode'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
+// import Province from 'src/store/models/province/Province'
+// import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+// import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
+// import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
+// import EpisodeType from 'src/store/models/episodeType/EpisodeType'
+// import IdentifierType from 'src/store/models/identifierType/IdentifierType'
+// import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
+// import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
+// import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -111,6 +122,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       selected: ref([]),
@@ -123,10 +135,17 @@ export default {
   },
   methods: {
     init () {
-      GroupType.apiGetAll()
-      ClinicalService.apiGetAll()
-      // this.getAllPatientsOfClinic()
-      this.getAllGroupsOfClinic()
+      if (this.website) { // Depois mudar para mobile
+        Group.localDbGetAll().then(groups => {
+          Group.insert({ data: groups })
+          // Group.insert({ data: JSON.parse(JSON.stringify(groups)) })
+        })
+      } else {
+        GroupType.apiGetAll()
+        ClinicalService.apiGetAll()
+      // // this.getAllPatientsOfClinic()
+        this.getAllGroupsOfClinic()
+      }
     },
     search () {
       const groups = Group.query()
@@ -204,9 +223,16 @@ export default {
     groupRegister: require('components/Groups/AddEditGroup.vue').default
   },
   computed: {
-    clinic () {
-      return new Clinic(SessionStorage.getItem('currClinic'))
-    }
+    // clinic () {
+    //   return new Clinic(SessionStorage.getItem('currClinic'))
+    // }
+    clinic: {
+        get () {
+          return Clinic.query()
+                    .where('id', SessionStorage.getItem('currClinic').id)
+                    .first()
+        }
+      }
   }
 }
 </script>

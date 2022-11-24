@@ -219,13 +219,18 @@ import Clinic from '../../store/models/clinic/Clinic'
 import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar'
 import GroupMember from '../../store/models/groupMember/GroupMember'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
-import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+// import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import { v4 as uuidv4 } from 'uuid'
+import mixinutils from 'src/mixins/mixin-utils'
+
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform, mixinutils],
   props: ['step'],
   data () {
     return {
@@ -275,6 +280,16 @@ export default {
         this.startDate = this.formatDate(this.curGroup.startDate)
       }
     },
+    getIdentifier (identifiers) {
+      let identificadorAux = ''
+      for (const identifier of identifiers) {
+        if (identifier.prefered) {
+          identificadorAux = identifier.value
+          return identificadorAux
+        }
+      }
+      return identificadorAux
+    },
     showloading () {
       console.log('loaging')
        this.$q.loading.show({
@@ -290,7 +305,7 @@ export default {
     },
     doIdentifiersGetAllByPatient (patientId, offset, max) {
       this.showloading()
-      PatientServiceIdentifier.apiGetAllByPatientId(patientId, offset, max)
+    //  PatientServiceIdentifier.apiGetAllByPatientId(patientId, offset, max)
     },
     addPatient (patient) {
       this.showloading()
@@ -307,7 +322,7 @@ export default {
             this.curGroup.members.push(this.initNewMember(patient))
           } else {
             this.displayAlert('error', resp.response.data)
-            console.log(resp.response)
+            // console.log(resp.response)
           }
           this.hideLoading()
         })
@@ -335,9 +350,23 @@ export default {
     },
     search () {
       this.showloading()
-      Patient.delete((patient) => {
-        return this.notMember(patient)
-      })
+      if (this.website) { // Depois mudar para mobile
+        const patients = Patient.query()
+                                  .has('identifiers')
+                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                  .with('province')
+                                  .with('members.group.service')
+                                  .with('district.province')
+                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                  .where('clinic_id', this.clinic.id)
+                                  .get()
+        this.searchResults = patients.filter((patient) => {
+          return this.stringContains(patient.firstNames, this.searchParam) || this.stringContains(patient.middleNames, this.searchParam) || this.stringContains(patient.lastNames, this.searchParam) || this.stringContains(this.getIdentifier(patient.identifiers), this.searchParam)
+        })
+      } else {
+         Patient.delete((patient) => {
+           return this.notMember(patient)
+         })
         Patient.apisearchByParam(this.searchParam, this.clinic.id).then(resp => {
             if (resp.response.data.length >= 0) {
               this.searchResults = Patient.query()
@@ -351,6 +380,7 @@ export default {
                                   .get()
             }
          })
+      }
     },
     isAssociatedToSelectedService (patient) {
       if (patient.identifiers.length <= 0) return false
@@ -403,35 +433,60 @@ export default {
         member.startDate = group.startDate
         member.patient.identifiers = []
       })
-      console.log(group)
-      Group.apiSave(group).then(resp => {
-        Group.apiFetchById(resp.response.data.id).then(resp => {
-          this.loadMembersData()
-          this.curGroup = Group.query()
-                               .with('groupType')
-                               .with('members.patient.*')
-                               .with('service.*')
-                               .with('packHeaders.*')
-                               .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                               .where('id', resp.response.data.id)
-                               .first()
-          console.log(this.curGroup)
-          this.displayAlert('info', 'Operação efectuada com sucesso.')
+      if (this.website) { // Depois mudar para mobile
+        this.curGroup.id = uuidv4()
+        this.curGroup.syncStatus = 'R'
+        this.curGroup.clinic_id = this.clinic.id
+        this.curGroup.clinical_service_id = this.curGroup.service.id
+        console.log('SERVICE: ', this.curGroup.service)
+        console.log('this.curGroup.groupType', JSON.parse(JSON.stringify(this.curGroup.groupType)).id)
+        this.curGroup.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
+        const groupAux = JSON.parse(JSON.stringify(this.curGroup))
+         groupAux.members.forEach((member) => {
+          member.startDate = group.startDate
+          member.patient.identifiers = []
         })
-      }).catch(error => {
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
+        // await Group.localDbAdd(groupAux).then(group => {
+        //     console.log('After_Save_On_LocalBase', group)
+        // })
+        Group.localDbAdd(groupAux).then(groupRes => {
+          console.log('After_Save_On_LocalBase', groupRes)
+          Group.insert({ data: groupRes })
+        })
+        // SessionStorage.set('selectedGroup', groupAux)
+        this.displayAlert('info', 'Dados do grupo gravados com sucesso.')
+        // await Group.insert({ data: groupAux })
+        SessionStorage.set('selectedGroup', groupAux)
+        // this.displayAlert('info', 'Dados do grupo gravados com sucesso.')
+      } else {
+        Group.apiSave(group).then(resp => {
+          Group.apiFetchById(resp.response.data.id).then(resp => {
+            this.loadMembersData()
+            this.curGroup = Group.query()
+                                .with('groupType')
+                                .with('members.patient.*')
+                                .with('service.*')
+                                .with('packHeaders.*')
+                                .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                .where('id', resp.response.data.id)
+                                .first()
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          })
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
             }
-          }
-          this.displayAlert('error', listErrors)
-        })
+            this.displayAlert('error', listErrors)
+          })
+      }
     },
     loadMembersData () {
       this.curGroup.members.forEach((member) => {
