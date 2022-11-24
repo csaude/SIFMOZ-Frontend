@@ -96,9 +96,16 @@
           :mainContainer="false"
           bgColor="bg-primary">Informação por Lote
         </list-header>
-        <span v-for="lote in drug.stocks" :key="lote.id" >
-          <lote-info-container :stock="lote" />
+        <div v-if = "mobile">
+          <span  v-for="batchS in drugEventListBatch" :key="batchS.id" >
+            <lote-info-container :batchS="batchS" @updateDrugFileAdjustment ="updateDrugFileAdjustment" />
+          </span>
+        </div>
+        <div v-else-if="website">
+          <span v-for="lote in drug.stocks" :key="lote.id" >
+          <lote-info-container :stockInfo="lote"  />
         </span>
+        </div>
       </div>
     </div>
     </q-scroll-area>
@@ -117,6 +124,10 @@ import Drug from '../../../store/models/drug/Drug'
 import { QSpinnerBall, useQuasar, date, SessionStorage } from 'quasar'
 import Stock from '../../../store/models/stock/Stock'
 import Clinic from '../../../store/models/clinic/Clinic'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import DrugFile from '../../../store/models/drugFile/DrugFile'
+import db from 'src/store/localbase'
+
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
   { name: 'moviment', align: 'center', label: 'Movimento', sortable: true },
@@ -130,6 +141,7 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Resumo das Notas', sortable: false }
 ]
 export default {
+   mixins: [mixinplatform],
   data () {
     return {
       alert: ref({
@@ -140,6 +152,7 @@ export default {
       columns,
       $q: useQuasar(),
       drugEventList: [],
+      drugEventListBatch: [],
       inventoryList: [],
       entranceList: [],
       contentStyle: {
@@ -182,19 +195,70 @@ export default {
       this.$q.loading.hide()
     },
     generateDrugEventSummary () {
-      this.showloading()
-      Stock.apiGetDrugSummary(this.clinic.id, this.drug.id).then(resp => {
-        console.log(resp.response.data)
-        const t = resp.response.data
-        t.sort((a, b) => {
-          const d1 = new Date(a.eventDate)
-          const d2 = new Date(b.eventDate)
-          return d2 - d1
-        })
-        this.drugEventList = t
-        this.hideLoading()
-      })
-    }
+      if (this.mobile) {
+        console.log('SUMMARY DRU', DrugFile.query().where('drugId', this.drug.id).first())
+       this.drugFile = DrugFile.query().where('drugId', this.drug.id).first()
+       console.log('SUMMARY DRR', this.drugFile)
+               // busca do local base e faz insert no VueX ORM
+              db.newDb().collection('drugFile').get().then(drugFile => {
+                DrugFile.insert(
+                  {
+                    data: drugFile
+                  })
+              }).then(drugFile => {
+                // query().where('id', this.batchS.stockId).first()
+                 console.log('Drug ID: ', this.drug.id)
+                 console.log('VueX ORM: ', DrugFile.all())
+                 this.drugEventList = this.drugFile.drugFileSummary
+                 this.drugEventListBatch = this.drugFile.drugFileSummaryBatch // DrugFile.all()[1].drugFileSummaryBatch
+               })
+          } else {
+              this.showloading()
+              Stock.apiGetDrugSummary(this.clinic.id, this.drug.id).then(resp => {
+                console.log(resp.response.data)
+                const t = resp.response.data
+                t.sort((a, b) => {
+                  const d1 = new Date(a.eventDate)
+                  const d2 = new Date(b.eventDate)
+                  return d2 - d1
+                })
+                this.drugEventList = t
+                this.hideLoading()
+              })
+          }
+    },
+     updateDrugFileAdjustment (adjustment) {
+         console.log(' this.drugFile.drugFileSummary[0]::', this.drugFile.drugFileSummary[0])
+        // Actualiza o resumo por Drug
+      if (adjustment.constructor.name === 'StockReferenceAdjustment' && adjustment.operation.code === 'AJUSTE_POSETIVO') {
+          this.drugFile.drugFileSummary[0].posetiveAdjustment += adjustment.adjustedValue
+          this.drugFile.drugFileSummary[0].balance += adjustment.adjustedValue
+        } else if (adjustment.constructor.name === 'StockReferenceAdjustment' && adjustment.operation.code === 'AJUSTE_NEGATIVO') {
+          this.drugFile.drugFileSummary[0].posetiveAdjustment -= adjustment.adjustedValue
+          this.drugFile.drugFileSummary[0].balance -= adjustment.adjustedValue
+        } else if (adjustment.constructor.name === 'StockDestructionAdjustment') {
+          this.drugFile.drugFileSummary[0].posetiveAdjustment -= adjustment.adjustedValue
+          this.drugFile.drugFileSummary[0].balance -= adjustment.adjustedValue
+        }
+      // Actualiza o resumo por lote
+        for (let i = 0; i < this.drugFile.drugFileSummaryBatch.length; i++) {
+           if (this.drugFile.drugFileSummaryBatch[i].stockId === adjustment.adjustedStock.id) {
+            if (adjustment.constructor.name === 'StockReferenceAdjustment' && adjustment.operation.code === 'AJUSTE_POSETIVO') {
+              this.drugFile.drugFileSummaryBatch[i].posetiveAdjustment += adjustment.adjustedValue
+              this.drugFile.drugFileSummaryBatch[i].balance += adjustment.adjustedValue
+              console.log('AJUSTE_POSETIVO: ')
+            } else if (adjustment.constructor.name === 'StockReferenceAdjustment' && adjustment.operation.code === 'AJUSTE_NEGATIVO') {
+              this.drugFile.drugFileSummaryBatch[i].posetiveAdjustment -= adjustment.adjustedValue
+              this.drugFile.drugFileSummaryBatch[i].balance -= adjustment.adjustedValue
+              console.log('AJUSTE_NEGATIVO: ')
+            } else if (adjustment.constructor.name === 'StockDestructionAdjustment') {
+              this.drugFile.drugFileSummaryBatch[i].posetiveAdjustment -= adjustment.adjustedValue
+              this.drugFile.drugFileSummaryBatch[i].balance -= adjustment.adjustedValue
+              console.log('DESTRUCTION: ')
+            }
+           }
+           }
+      }
   },
   mounted () {
     this.generateDrugEventSummary()
@@ -210,6 +274,9 @@ export default {
       return Clinic.query()
                   .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
+    },
+    drugFile () {
+      return DrugFile.query().where('drugId', this.drug.id).first()
     }
   },
   components: {

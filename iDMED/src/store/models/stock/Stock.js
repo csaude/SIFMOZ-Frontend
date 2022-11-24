@@ -8,6 +8,7 @@ import Clinic from '../clinic/Clinic'
 import { date } from 'quasar'
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Stock extends Model {
     static entity = 'stocks'
@@ -103,5 +104,15 @@ export default class Stock extends Model {
 
     static localDbDeleteAll () {
       return db.newDb().collection('stocks').delete()
+    }
+
+    static localDbAddOrUpdate (stock) {
+      if (stock.id === null) {
+        stock.id = uuidv4()
+       return this.localDbAdd(stock)
+      } else {
+        stock.syncStatus = 'U'
+        return this.localDbUpdate(stock)
+      }
     }
 }

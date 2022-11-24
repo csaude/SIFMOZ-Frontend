@@ -402,6 +402,7 @@ import { date, SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+// import { v4 as uuidv4 } from 'uuid'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'left', sortable: false },
@@ -458,27 +459,36 @@ export default {
       this.guiaStep = 'display'
     },
     doSaveGuia () {
-      this.currStockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
+          this.currStockEntrance.dateReceived = moment(this.dateReceived).format() // this.getJSDateFromDDMMYYY()
           console.log(this.currStockEntrance)
           this.currStockEntrance.clinic = this.currClinic
-          StockEntrance.apiSave(this.currStockEntrance).then(resp => {
-          SessionStorage.set('currStockEntrance', resp.response.data)
-          this.guiaStep = 'display'
-          this.displayAlert('info', 'Operação efectuada com sucesso.')
-        }).catch(error => {
-            const listErrors = []
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response)
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message)
-              } else {
-                arrayErrors._embedded.errors.forEach(element => {
-                  listErrors.push(element.message)
-                })
+          if (this.website) {
+            StockEntrance.apiSave(this.currStockEntrance).then(resp => {
+            SessionStorage.set('currStockEntrance', resp.response.data)
+            this.guiaStep = 'display'
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          }).catch(error => {
+              const listErrors = []
+              if (error.request.response != null) {
+                const arrayErrors = JSON.parse(error.request.response)
+                if (arrayErrors.total == null) {
+                  listErrors.push(arrayErrors.message)
+                } else {
+                  arrayErrors._embedded.errors.forEach(element => {
+                    listErrors.push(element.message)
+                  })
+                }
               }
-            }
-            this.displayAlert('error', listErrors)
-          })
+              this.displayAlert('error', listErrors)
+            })
+          } else {
+            this.currStockEntrance.syncStatus = 'U'
+            StockEntrance.localDbUpdate(this.currStockEntrance).then(stockEnt => {
+              StockEntrance.update(this.currStockEntrance)
+              this.guiaStep = 'display'
+              this.displayAlert('info', 'Operação efectuada com sucesso.')
+               })
+          }
     },
     initGuiaEdition () {
       if (this.currStockEntrance.stocks.length > 0 || this.stockList.length > 0) {
@@ -520,7 +530,8 @@ export default {
     },
     doRemoveStock () {
       this.step = 'delete'
-        Stock.apiRemove(this.selectedStock.id).then(resp => {
+      if (this.website) {
+          Stock.apiRemove(this.selectedStock.id).then(resp => {
           Stock.delete(this.selectedStock.id)
           this.removeFromList(this.selectedStock)
           this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -538,6 +549,20 @@ export default {
             }
             this.displayAlert('error', listErrors)
           })
+      } else {
+         const targetStock = this.selectedStock
+          this.removeFromList(targetStock)
+        if (this.selectedStock.syncStatus === 'S') {
+              targetStock.syncStatus = 'D'
+              Stock.localDbUpdate(targetStock).then(stock => {
+                Stock.update(targetStock)
+            })
+           } else {
+            Stock.localDbDelete(targetStock).then(stock => {
+                Stock.delete(targetStock.id)
+            })
+           }
+        }
         this.step = 'display'
     },
     initNewStock () {
@@ -582,6 +607,7 @@ export default {
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
+      if (this.website) {
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         this.submitting = false
@@ -603,6 +629,32 @@ export default {
           }
           this.displayAlert('error', listErrors)
         })
+      } else {
+                   stock.syncStatus = 'R'
+                 //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
+                   stock.entrance_id = stock.entrance.id
+                   stock.drug_id = stock.drug.id
+                   stock.clinic = this.currClinic
+                   stock.clinic_id = this.currClinic.id
+                   stock.enabled = false
+                  // const uuid = uuidv4
+                    const targetCopy = JSON.parse(JSON.stringify(stock))
+                    targetCopy.id = stock.id
+                   Stock.localDbAddOrUpdate(targetCopy).then(stock1 => {
+                     Stock.insert(
+                  {
+                    data: stock1.data.data
+                  })
+                  if (stock.id === null) {
+                  stock.id = stock1.data.data.id
+                  }
+                    this.submitting = false
+                    this.step = 'display'
+                    this.displayAlert('info', 'Operação efectuada com sucesso.')
+                  }).catch(error => {
+                this.displayAlert('error', error)
+              })
+      }
     },
     async fetchStockEntrance () {
       await StockEntrance.apiFetchById(this.currStockEntrance.id).then(resp => {
@@ -665,6 +717,7 @@ export default {
     },
     getCurrStockEntrance () {
       const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
+       if (this.mobile) return e
       return StockEntrance.query()
                           .with('stocks')
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])

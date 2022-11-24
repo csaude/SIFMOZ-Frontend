@@ -24,7 +24,7 @@ import TherapeuticRegimen from 'src/store/models/therapeuticRegimen/TherapeuticR
 import StockEntrance from 'src/store/models/stockentrance/StockEntrance'
 import Patient from 'src/store/models/patient/Patient'
 import StockCenter from 'src/store/models/stockcenter/StockCenter'
-import Stock from 'src/store/models/stock/Stock'
+// import Stock from 'src/store/models/stock/Stock'
 import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/InventoryStockAdjustment'
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
@@ -36,6 +36,9 @@ import Pack from 'src/store/models/packaging/Pack'
 import Prescription from 'src/store/models/prescription/Prescription'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from 'src/store/models/episode/Episode'
+import StockAlert from 'src/store/models/stockAlert/StockAlert'
+import db from 'src/store/localbase'
+import DrugStockFileEvent from 'src/store/models/drugStockFileEvent/DrugStockFileEvent'
 
 export default {
   async loadAndSaveAppParameters (clinicId) {
@@ -97,9 +100,9 @@ export default {
     await StockCenter.apiGetAll(offset, max).then(resp => {
         StockCenter.localDbUpdateAll(resp.response.data)
     })
-    await Stock.apiGetAll(offset, max).then(resp => {
+   /* await Stock.apiGetAll(offset, max).then(resp => {
         Stock.localDbUpdateAll(resp.response.data)
-    })
+    }) */
     await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
         InventoryStockAdjustment.localDbUpdateAll(resp.response.data)
     })
@@ -141,8 +144,32 @@ export default {
             console.log(error)
         })
     },
+    doGetDrugFileMobile (clinicId, offset, max) {
+      console.log('Iniciando a sincronizacao DRUG FILE MOBILE...')
+      DrugStockFileEvent.apiGetDrugFileMobile(clinicId, offset, max).then(resp => {
+            if (resp.response.data.length > 0) {
+              console.log('DadosDrug File : ', resp.response.data)
+              db.newDb().collection('drugFile').set(resp.response.data)
+            }
+        }).catch(error => {
+            console.log(error)
+        })
+    },
+    doGetAllStockAlert (clinicId, offset, max) {
+      console.log('Iniciando a sincronizacao STOCK ALERT...')
+      StockAlert.apiGetAlertStockMobile(clinicId, 'TARV', offset, 100).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            StockAlert.localDbAdd(item)
+          })
+        }
+    }).catch(error => {
+        console.log(error)
+    })
+       },
     doInventoryGet (clinicId, offset, max) {
       Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+        console.log('InventoryLog:', resp.response.data)
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
                 Inventory.localDbAdd(item)
@@ -243,16 +270,17 @@ export default {
       })
     },
     async start ($q, clinicId) {
-      this.doPatientGet(clinicId, 0, 100)
-      this.doStockEntranceGet(clinicId, 0, 100)
-      // this.doIdentifiersGet(clinicId, 0, 100)
-      this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
-      this.doPatientVisitGet(clinicId, 0, 100)
-      this.doPackGet(clinicId, 0, 100)
-      this.doPrescriptionGet(clinicId, 0, 100)
-      this.doInventoryGet(clinicId, 0, 100)
+    //  await this.doInventoryGet(clinicId, 0, 100)
+      await this.doGetAllStockAlert(clinicId, 0, 100)
       await this.loadAndSaveAppParameters(clinicId)
-      LocalStorage.set('system-sync-status', 'done')
+      await this.doPatientGet(clinicId, 0, 100)
+      await this.doStockEntranceGet(clinicId, 0, 100)
+      await this.doIdentifiersGet(clinicId, 0, 100)
+      await this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
+      await this.doPatientVisitGet(clinicId, 0, 100)
+      await this.doPackGet(clinicId, 0, 100)
+      await this.doPrescriptionGet(clinicId, 0, 100)
+      await LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()
     },
     async send () {}

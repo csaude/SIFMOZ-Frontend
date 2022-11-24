@@ -84,6 +84,10 @@ import { ref } from 'vue'
 import Clinic from '../../store/models/clinic/Clinic'
 import Drug from '../../store/models/drug/Drug'
 import mixincrypt from 'src/mixins/mixin-encryption'
+import db from 'src/store/localbase'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import StockAlert from '../../store/models/stockAlert/StockAlert'
+
 // import CryptoJS from 'crypto-js'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
@@ -95,7 +99,7 @@ const columns = [
 ]
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
-   mixins: [mixincrypt],
+   mixins: [mixincrypt, mixinplatform],
   data () {
     const filter = ref('')
     return {
@@ -130,9 +134,19 @@ export default {
       }
     },
     getStockAlert () {
-      Report.apiGetStockAlert(this.clinic.id, 'TARV').then(resp => {
+      if (this.website) {
+      Report.apiGetStockAlert(SessionStorage.getItem('currClinic').id, 'TARV').then(resp => {
         this.rowData = resp.response.data
       })
+      } else {
+          db.newDb().collection('stockAlert').get().then(stockAlert => {
+                StockAlert.insert(
+                  {
+                    data: stockAlert
+                  })
+              })
+              this.rowData = StockAlert.all()
+      }
     },
     getConsuptionRelatedColor (state) {
       if (state === 'Sem Consumo') {

@@ -99,7 +99,9 @@ export default {
     }
   },
   mounted () {
+   if (this.website) {
     Inventory.apiGetAll(0, 300)
+    }
   },
   computed: {
     inventories () {

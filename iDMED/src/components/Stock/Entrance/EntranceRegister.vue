@@ -58,7 +58,10 @@ import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+
 export default {
+     mixins: [mixinplatform],
   data () {
     return {
       alert: ref({
@@ -118,25 +121,41 @@ export default {
         if (!this.$refs.orderNumber.$refs.ref.hasError) {
           this.showloading()
           this.stockEntrance.clinic = this.currClinic
-          await StockEntrance.apiSave(this.stockEntrance).then(resp => {
-          SessionStorage.set('currStockEntrance', resp.response.data)
-          this.hideLoading()
-          this.$router.push('/stock/entrance')
-          this.$emit('close')
-        }).catch(error => {
-            const listErrors = []
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response)
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message)
-              } else {
-                arrayErrors._embedded.errors.forEach(element => {
-                  listErrors.push(element.message)
-                })
-              }
-            }
-            this.displayAlert('error', listErrors)
-          })
+          if (this.website) {
+                    await StockEntrance.apiSave(this.stockEntrance).then(resp => {
+                    SessionStorage.set('currStockEntrance', resp.response.data)
+                    this.hideLoading()
+                    this.$router.push('/stock/entrance')
+                    this.$emit('close')
+                  }).catch(error => {
+                      const listErrors = []
+                      if (error.request.response != null) {
+                        const arrayErrors = JSON.parse(error.request.response)
+                        if (arrayErrors.total == null) {
+                          listErrors.push(arrayErrors.message)
+                        } else {
+                          arrayErrors._embedded.errors.forEach(element => {
+                            listErrors.push(element.message)
+                          })
+                        }
+                      }
+                      this.displayAlert('error', listErrors)
+                    })
+          } else {
+                  this.stockEntrance.syncStatus = 'R'
+                //  this.stockEntrance.id = uuidv4()
+                   const targetCopy = new StockEntrance(JSON.parse(JSON.stringify(this.stockEntrance)))
+                    console.log(targetCopy)
+                  await StockEntrance.localDbAdd(targetCopy).then(stockEntrance2 => {
+                     console.log('stockEntrance: ', this.stockEntrance)
+                      SessionStorage.set('currStockEntrance', this.stockEntrance)
+                      this.hideLoading()
+                      this.$router.push('/stock/entrance')
+                      this.$emit('close')
+                  }).catch(error => {
+                this.displayAlert('error', error)
+              })
+             }
         }
       }
     }

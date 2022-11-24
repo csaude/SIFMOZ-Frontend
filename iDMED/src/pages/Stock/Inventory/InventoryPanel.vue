@@ -209,10 +209,19 @@ export default {
       setTimeout(() => {
         this.$q.loading.hide()
       }, 800)
-      console.log('close invenctory')
+      if (this.website) {
       Inventory.apiFetchById(this.currInventory.id).then(resp => {
         this.doProcessAndClose()
       })
+      } else {
+        this.currInventory = new Inventory(SessionStorage.getItem('currInventory'))
+        const targetCopy = JSON.parse(JSON.stringify(this.currInventory))
+        Inventory.insert({
+          data: targetCopy
+          }).then(inv => {
+            this.doProcessAndCloseMobile()
+        })
+      }
     },
     doProcessAndClose () {
       const offset = 0
@@ -240,12 +249,41 @@ export default {
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
     },
+    doProcessAndCloseMobile () {
+      const inventory = Inventory.query()
+                                 .with('adjustments.*')
+                                 .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                 .where('id', this.currInventory.id)
+                                 .first()
+      inventory.endDate = new Date()
+      inventory.open = false
+      inventory.adjustments.forEach((adjustment) => {
+        this.processAdjustment(adjustment, inventory)
+      })
+      this.doSaveAdjustmentMobile(0)
+      inventory.syncStatus = 'U'
+      inventory.clinic = this.currClinic
+       const targetCopy = JSON.parse(JSON.stringify(inventory))
+      Inventory.localDbUpdate(targetCopy).then(item => {
+        Inventory.update(targetCopy)
+        this.step = 'display'
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+      })
+    },
     doSaveAdjustment (i) {
       if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
         InventoryStockAdjustment.apiUpdate(this.processAdjustment[i]).then(resp => {
           i = i + 1
           setTimeout(this.doSaveAdjustment(i), 2)
         })
+      }
+    },
+     doSaveAdjustmentMobile (i) {
+      if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
+              InventoryStockAdjustment.localDbUpdate(this.processAdjustment[i]).then(invStkAdj => {
+              i = i + 1
+              setTimeout(this.doSaveAdjustment(i), 2)
+              })
       }
     },
     processAdjustment (adjustment, inventory) {
@@ -363,6 +401,7 @@ export default {
     },
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
+      if (this.mobile) return e
       return Inventory.query()
                       .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                       .with('adjustments.adjustedStock')

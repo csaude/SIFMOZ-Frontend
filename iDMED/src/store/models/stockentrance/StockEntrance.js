@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import Stock from '../stock/Stock'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class StockEntrance extends Model {
     static entity = 'stockEntrances'
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             orderNumber: this.attr(''),
             dateReceived: this.attr(''),
             clinic_id: this.attr(''),
