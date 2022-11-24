@@ -36,6 +36,11 @@ import Pack from 'src/store/models/packaging/Pack'
 import Prescription from 'src/store/models/prescription/Prescription'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from 'src/store/models/episode/Episode'
+import Group from 'src/store/models/group/Group'
+import GroupType from 'src/store/models/groupType/GroupType'
+import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
+import GroupMember from 'src/store/models/groupMember/GroupMember'
+import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
 
 export default {
   async loadAndSaveAppParameters (clinicId) {
@@ -127,6 +132,9 @@ export default {
       await ProvincialServer.apiGetAll().then(resp => {
           ProvincialServer.localDbUpdateAll(resp.response.data)
       })
+      await GroupType.apiGetAll().then(resp => {
+        GroupType.localDbUpdateAll(resp.response.data)
+      })
     },
     doStockEntranceGet (clinicId, offset, max) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -165,6 +173,66 @@ export default {
             console.log(error)
         })
     },
+    doGroupGet (clinicId, offset, max) {
+      Group.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+          resp.response.data.forEach((item) => {
+              item.members.forEach((member) => {
+              member.patient = Patient.query()
+              .with('identifiers.identifierType')
+              .with('identifiers.service.episodes')
+              .where('id', member.patient_id).get()
+              console.log('Member: ', Patient
+              .query()
+              .with('identifiers.identifierType')
+              .where('id', member.patient_id).get())
+              // member.patient.identifiers = PatientServiceIdentifier.query().withAll().where('patient_id', member.patient_id).get()
+              // console.log('Member_1: ', member)
+              member.patient.identifiers.forEach(identifier => {
+                // identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
+                // if (identifier.service.code === this.group.service.code) {
+                //   identifier.episodes = Episode.query().withAll().where('patientServiceIdentifier_id', identifier.id).get()
+                //   console.log(identifier.episodes.length)
+                //   identifier.episodes.forEach(episode => {
+                //     episode.patientVisitDetails[0] = PatientVisitDetails.query().withAll().where('episode_id', episode.id).first()
+                //     this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                //     console.log('OffLINE_MODE_END1')
+                //   })
+                // }
+              })
+            })
+
+            if (resp.response.data.length > 0) {
+              Group.localDbAdd(item)
+            }
+          })
+          offset = offset + max
+          setTimeout(this.doGroupGet(clinicId, offset, max), 2)
+        }).catch(error => {
+            console.log(error)
+        })
+    },
+    doClinicalServiceGet (offset, max) {
+      ClinicalService.apiGetAll(offset, max).then(resp => {
+          resp.response.data.forEach((item) => {
+            ClinicalService.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doClinicalServiceGet(offset, max), 2)
+        }).catch(error => {
+            console.log(error)
+        })
+    },
+    doGroupTypeGet () {
+      GroupType.apiGetAll().then(resp => {
+          resp.response.data.forEach((item) => {
+            GroupType.localDbAdd(item)
+          })
+          // offset = offset + max
+          // setTimeout(this.doClinicalServiceGet(offset, max), 2)
+        }).catch(error => {
+            console.log(error)
+        })
+    },
     doClinicGet (offset, max) {
       Clinic.apiGetAll(offset, max).then(resp => {
         if (resp.response.data.length > 0) {
@@ -198,6 +266,17 @@ export default {
         }
       })
     },
+    doGroupMemberOfClinicGet (clinicId, offset, max) {
+      GroupMember.apiGetAllOfClinic(clinicId, offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            GroupMember.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doGroupMemberOfClinicGet(clinicId, offset, max), 2)
+        }
+      })
+    },
     doPackGet (clinicId, offset, max) {
       Pack.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
@@ -223,6 +302,7 @@ export default {
     doIdentifiersGet (clinicId, offset, max) {
       PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
+          console.log('SIZE_IDENTIFIERS: ', resp.response.data.length)
           resp.response.data.forEach((item) => {
             PatientServiceIdentifier.localDbAdd(item)
           })
@@ -231,9 +311,24 @@ export default {
         }
       })
     },
+    doEpisodeTypeGet (offset, max) {
+      EpisodeType.apiGetAll(offset, max).then(resp => {
+        console.log('EPISODE_Type: ', resp.response.status)
+        if (resp.response.data.length > 0) {
+          console.log('EPISODE_Types: ', resp.response.data.length)
+          resp.response.data.forEach((item) => {
+            EpisodeType.localDbAdd(item)
+          })
+          offset = offset + max
+          setTimeout(this.doEpisodesGet(offset, max), 2)
+        }
+      })
+    },
     doEpisodesGet (clinicId, offset, max) {
       Episode.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+        console.log('EPISODES: ', resp.response.status)
         if (resp.response.data.length > 0) {
+          console.log('SIZE_Episodes: ', resp.response.data.length)
           resp.response.data.forEach((item) => {
             Episode.localDbAdd(item)
           })
@@ -242,15 +337,56 @@ export default {
         }
       })
     },
+    doDispenseModeGet () {
+      DispenseMode.apiGetAll().then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            DispenseMode.localDbAdd(item)
+          })
+        }
+      })
+    },
+    doGroupMemberPrescriptionGet () {
+      GroupMemberPrescription.apiGetAll().then(resp => {
+        console.log('STATUS: ', resp.response.status)
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            console.log('SIZE_GroupMemberPrescription: ', resp.response.data.length)
+            GroupMemberPrescription.localDbAdd(item)
+          })
+        }
+      })
+    },
+    doIdentifierTypeGet () {
+      IdentifierType.apiGetAll().then(resp => {
+        console.log('STATUS_IDENTIFIERTYPE: ', resp.response.status)
+        if (resp.response.data.length > 0) {
+          console.log('SIZE_IDENTIFIERTYPE: ', resp.response.data.length)
+          resp.response.data.forEach((item) => {
+            IdentifierType.localDbAdd(item)
+          })
+        }
+      })
+    },
+
     async start ($q, clinicId) {
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
-      // this.doIdentifiersGet(clinicId, 0, 100)
+      this.doIdentifierTypeGet()
+      this.doIdentifiersGet(clinicId, 0, 100)
       this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
       this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
       this.doPrescriptionGet(clinicId, 0, 100)
       this.doInventoryGet(clinicId, 0, 100)
+      this.doGroupTypeGet()
+      this.doGroupGet(clinicId, 0, 100)
+      this.doClinicalServiceGet(clinicId, 0, 100)
+      this.doDispenseModeGet()
+      this.doGroupMemberOfClinicGet(clinicId, 0, 100)
+      this.doGroupMemberPrescriptionGet()
+      this.doEpisodeTypeGet(0, 100)
+      this.doEpisodesGet(clinicId, 0, 100)
       await this.loadAndSaveAppParameters(clinicId)
       LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()

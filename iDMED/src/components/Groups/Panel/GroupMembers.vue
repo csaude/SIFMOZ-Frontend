@@ -101,6 +101,8 @@ import PatientVisitDetails from '../../../store/models/patientVisitDetails/Patie
 import GroupMember from '../../../store/models/groupMember/GroupMember'
 import Clinic from '../../../store/models/clinic/Clinic'
 import GroupMemberPrescription from '../../../store/models/group/GroupMemberPrescription'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -111,6 +113,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       alert: ref({
@@ -151,44 +154,76 @@ export default {
       this.$q.loading.hide()
     },
     loadMemberInfo () {
-      this.members.forEach((member) => {
-        member.patient.identifiers.forEach((identifier) => {
-          if (identifier.service.code === member.group.service.code) {
-            Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-            if (resp.response.data.length > 0) {
-              identifier.episodes = resp.response.data
+      if (this.website) { // Depois mudar para website
+        this.members.forEach((member) => {
+          member.patient.identifiers.forEach((identifier) => {
+            if (identifier.service.code === member.group.service.code) {
+              identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
+            if (identifier.service.code === this.group.service.code) {
+              identifier.episodes = Episode.query().withAll().where('patientServiceIdentifier_id', identifier.id).get()
               identifier.episodes.forEach(episode => {
-                PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                  console.log(resp.response.data)
-                  if (resp.response.data) {
-                    episode.patientVisitDetails[0] = resp.response.data
-                    this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-                  }
-                })
+                episode.patientVisitDetails[0] = PatientVisitDetails.query().withAll().where('episode_id', episode.id).first()
+                this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                console.log('OffLINE_MODE_END')
               })
             }
+            }
           })
-          }
-        })
-      })
-    },
-    loadVisitDetailsInfo (visitDetails, i) {
-      if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
-        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
-          console.log(resp.response.data)
-          visitDetails[i].prescription = resp.response.data
-          if (visitDetails[i].pack !== null) {
-            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-              console.log(resp.response.data)
-              visitDetails[i].pack = resp.response.data
-                this.membersInfoLoaded = true
-            })
-          } else {
-              this.membersInfoLoaded = true
-          }
         })
       } else {
-        this.membersInfoLoaded = true
+        this.members.forEach((member) => {
+          member.patient.identifiers.forEach((identifier) => {
+            if (identifier.service.code === member.group.service.code) {
+              Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+              if (resp.response.data.length > 0) {
+                identifier.episodes = resp.response.data
+                identifier.episodes.forEach(episode => {
+                  PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                    console.log(resp.response.data)
+                    if (resp.response.data) {
+                      episode.patientVisitDetails[0] = resp.response.data
+                      this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                    }
+                  })
+                })
+              }
+            })
+            }
+          })
+        })
+     }
+    },
+    loadVisitDetailsInfo (visitDetails, i) {
+      if (this.website) { // Depois mudar para mobile
+        if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
+          visitDetails[i].prescription = Prescription.query().withAll().where('id', visitDetails[i].prescription.id).first()
+          if (visitDetails[i].pack !== null) {
+            visitDetails[i].pack = Pack.query().withAll().where('id', visitDetails[i].pack.id).first()
+            this.membersInfoLoaded = true
+          } else {
+            this.membersInfoLoaded = true
+          }
+        } else {
+          this.membersInfoLoaded = true
+        }
+      } else {
+        if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
+          Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
+            console.log(resp.response.data)
+            visitDetails[i].prescription = resp.response.data
+            if (visitDetails[i].pack !== null) {
+              Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
+                console.log(resp.response.data)
+                visitDetails[i].pack = resp.response.data
+                  this.membersInfoLoaded = true
+              })
+            } else {
+                this.membersInfoLoaded = true
+            }
+          })
+        } else {
+          this.membersInfoLoaded = true
+        }
       }
     },
     addMember () {
@@ -236,10 +271,22 @@ export default {
                             .with('facilityType')
                             .where('id', member.clinic_id)
                             .first()
-      GroupMember.apiUpdate(member).then(resp => {
-        this.getGroupMembers()
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
-      })
+      if (this.website) { // Depois mudar para website
+        GroupMember.localDbUpdate(member).then(resp => {
+          console.log(resp)
+          this.getGroupMembers()
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
+      } else {
+        GroupMember.apiUpdate(member).then(resp => {
+          this.getGroupMembers()
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
+      }
+      // GroupMember.apiUpdate(member).then(resp => {
+      //   this.getGroupMembers()
+      //   this.displayAlert('info', 'Operação efectuada com sucesso.')
+      // })
     },
     newPrescription (patient, identifier) {
       this.$emit('newPrescription', patient, identifier)

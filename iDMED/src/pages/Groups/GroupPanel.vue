@@ -110,6 +110,7 @@ import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
 import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import GroupMember from 'src/store/models/groupMember/GroupMember'
 export default {
   mixins: [mixinplatform],
   data () {
@@ -158,6 +159,74 @@ export default {
     }
   },
   methods: {
+    init () {
+        // Province.localDbGetAll().then(provinces => {
+        //   Province.insert({ data: provinces })
+        // })
+        if (this.website) {
+          // Episode.localDbGetAll().then(episodes => {
+          //   Episode.insert({ data: episodes })
+          // })
+          // Pack.localDbGetAll().then(packs => {
+          //   Pack.insert({ data: JSON.parse(JSON.stringify(packs)) })
+          // })
+          // ClinicalService.localDbGetAll().then(services => {
+          //   ClinicalService.insert({ data: services })
+          // })
+          // Prescription.localDbGetAll().then(prescriptions => {
+          //   Prescription.insert({ data: JSON.parse(JSON.stringify(prescriptions)) })
+          // })
+          // PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
+          //   PatientVisitDetails.insert({ data: patientVisitDetails })
+          // })
+          // PatientServiceIdentifier.localDbGetAll().then(identifiers => {
+          //   PatientServiceIdentifier.insert({ data: identifiers })
+          // })
+          // EpisodeType.localDbGetAll().then(episodeTypes => {
+          //   EpisodeType.insert({ data: episodeTypes })
+          // })
+          // StartStopReason.localDbGetAll().then(startStopReasons => {
+          //   StartStopReason.insert({ data: startStopReasons })
+          // })
+          Patient.localDbGetAll().then(patients => {
+            console.log(patients)
+            Patient.insert({ data: JSON.parse(JSON.stringify(patients)) })
+          })
+        }
+        // await PatientServiceIdentifier.localDbGetAll().then(identifiers => {
+        //   PatientServiceIdentifier.insert({ data: identifiers })
+        // })
+        // await ClinicSectorType.localDbGetAll().then(setorTypes => {
+        //   ClinicSectorType.insert({ data: setorTypes })
+        // })
+        // await ClinicSector.localDbGetAll().then(sectors => {
+        //   ClinicSector.insert({ data: sectors })
+        // })
+        // await EpisodeType.localDbGetAll().then(episodeTypes => {
+        //   EpisodeType.insert({ data: episodeTypes })
+        // })
+        // await IdentifierType.localDbGetAll().then(idTypes => {
+        //   IdentifierType.insert({ data: idTypes })
+        // })
+        // await StartStopReason.localDbGetAll().then(startStopReasons => {
+        //   StartStopReason.insert({ data: startStopReasons })
+        // })
+        // GroupType.localDbGetAll().then(groupTypes => {
+        //   GroupType.insert({ data: JSON.parse(JSON.stringify(groupTypes)) })
+        // })
+        // DispenseMode.localDbGetAll().then(dispenseModes => {
+        //   DispenseMode.insert({ data: JSON.parse(JSON.stringify(dispenseModes)) })
+        // })
+        // Prescription.localDbGetAll().then(prescriptions => {
+        //   Prescription.insert({ data: JSON.parse(JSON.stringify(prescriptions)) })
+        // })
+        // Pack.localDbGetAll().then(packs => {
+        //   Pack.insert({ data: JSON.parse(JSON.stringify(packs)) })
+        // })
+        // GroupMember.localDbGetAll().then(members => {
+        //   GroupMember.insert({ data: JSON.parse(JSON.stringify(members)) })
+        // })
+    },
     showGroupDetails () {
       this.showGroupInfo = !this.showGroupInfo
     },
@@ -186,40 +255,73 @@ export default {
       })
     },
     loadMemberInfo () {
-      this.showloading()
-      DispenseMode.apiGetAll()
-      this.group.members.forEach((member) => {
-        GroupMemberPrescription.apiFetchByMemberId(member.id).then(respd => {
-          if (respd.response.status === 200) {
-            Prescription.apiFetchById(respd.response.data.prescription.id)
-          }
-        })
-        Patient.apiFetchById(member.patient.id).then(res0 => {
-          member.patient = res0.response.data
-          member.patient.identifiers.forEach((identifier) => {
+      if (this.website) { // Depois mudar para Mobile
+        // this.showloading()
+        console.log('MMMM: ', this.groupMembers)
+        this.group.members.forEach((member) => {
+          member.patient = Patient.query().where('id', member.patient_id).get()
+          console.log('Member: ', Patient.query().where('id', member.patient_id).get())
+          member.patient.identifiers = PatientServiceIdentifier.query().withAll().where('patient_id', member.patient_id).get()
+          console.log('Member_1: ', member)
+          member.patient.identifiers.forEach(identifier => {
             identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
             if (identifier.service.code === this.group.service.code) {
-              Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-                if (resp.response.data.length > 0) {
-                  identifier.episodes = resp.response.data
-                  identifier.episodes.forEach(episode => {
-                    PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                      if (resp.response.data) {
-                        episode.patientVisitDetails[0] = resp.response.data
-                        PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
-                        })
-                        this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-                      }
-                    })
-                  })
-                }
+              identifier.episodes = Episode.query().withAll().where('patientServiceIdentifier_id', identifier.id).get()
+              console.log(identifier.episodes.length)
+              identifier.episodes.forEach(episode => {
+                episode.patientVisitDetails[0] = PatientVisitDetails.query().withAll().where('episode_id', episode.id).first()
+                this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                console.log('OffLINE_MODE_END1')
               })
             }
           })
         })
-      })
+      } else {
+        this.showloading()
+        DispenseMode.apiGetAll()
+        this.group.members.forEach((member) => {
+          GroupMemberPrescription.apiFetchByMemberId(member.id).then(respd => {
+            console.log('STATUS: ', respd.response.status)
+            if (respd.response.status === 200) {
+              console.log('GROUPMEMBERPRESCRIPTION: ', respd.response.data)
+              Prescription.apiFetchById(respd.response.data.prescription.id)
+            }
+          })
+          Patient.apiFetchById(member.patient.id).then(res0 => {
+            console.log('STATUS_1: ', res0.response.status)
+            member.patient = res0.response.data
+            member.patient.identifiers.forEach((identifier) => {
+              identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
+              if (identifier.service.code === this.group.service.code) {
+                Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+                  if (resp.response.data.length > 0) {
+                    identifier.episodes = resp.response.data
+                    identifier.episodes.forEach(episode => {
+                      PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                        if (resp.response.data) {
+                          episode.patientVisitDetails[0] = resp.response.data
+                          PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
+                          })
+                          this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                          console.log('OnLINE_MODE_END')
+                        }
+                      })
+                    })
+                  }
+                })
+              }
+            })
+          })
+        })
+      }
     },
     loadVisitDetailsInfo (visitDetails, i) {
+      if (this.website) { // Depois mudar para mobile
+          console.log('VISIT_DETAILS: ', visitDetails[i].prescription)
+          visitDetails[i].prescription = Prescription.query().withAll().where('id', visitDetails[i].prescription.id).first()
+          visitDetails[i].pack = Pack.query().withAll().where('id', visitDetails[i].pack.id).first()
+          this.membersInfoLoaded = true
+      } else {
         Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
           visitDetails[i].prescription = resp.response.data
             Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
@@ -227,6 +329,7 @@ export default {
               this.membersInfoLoaded = true
             })
         })
+      }
     },
     desintagrateGroup () {
       this.group.members = this.group.members.filter((member) => { return member.isActive() })
@@ -320,6 +423,7 @@ export default {
     }
   },
   mounted () {
+    this.init()
     this.loadMemberInfo()
   },
   computed: {
@@ -332,6 +436,16 @@ export default {
                     .with('groupType')
                     .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                     .where('id', SessionStorage.getItem('selectedGroup').id)
+                    .first()
+      }
+    },
+    groupMembers: {
+      get () {
+        return GroupMember.query()
+                    .with('group')
+                    .with(['packHeaders.groupPacks.pack', 'packHeaders.duration'])
+                   .with('patient.identifiers.identifierType')
+                    .where('group_id', SessionStorage.getItem('selectedGroup').id)
                     .first()
       }
     },
