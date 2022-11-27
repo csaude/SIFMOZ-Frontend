@@ -3,13 +3,14 @@ import Province from 'src/store/models/province/Province'
 import Localidade from '../Localidade/Localidade'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class District extends Model {
   static entity = 'districts'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
       province_id: this.attr(''),

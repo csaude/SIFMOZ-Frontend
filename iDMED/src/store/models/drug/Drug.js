@@ -8,13 +8,14 @@ import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegimensDrug'
 import db from 'src/store/localbase'
 // import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Drug extends Model {
   static entity = 'drugs'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       name: this.attr(''),
       fnmCode: this.attr(''),
       // sideTreatment: this.attr(''),

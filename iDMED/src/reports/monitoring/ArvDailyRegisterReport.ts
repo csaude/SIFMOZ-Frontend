@@ -4,6 +4,8 @@ import autoTable from 'jspdf-autotable'
  import * as ExcelJS from 'exceljs'
  import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/store/models/report/Report'
+import ArvDailyRegisterTempReport from 'src/store/models/report/monitoring/ArvDailyRegisterTempReport'
+import SystemPlatform from '../SystemPlatform'
 
 const img = new Image()
 img.src = require('src/assets/MoHLogo.png')
@@ -15,12 +17,23 @@ const reportName = 'ArvDailyListReport'
 
 export default {
   async downloadPDF (id, fileType, params) {
-   const rowsAux = await Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType}`)
+
+    let rowsAux = [];
+    let data = [];
+    if(SystemPlatform.isWebsite()) {
+    rowsAux = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType}`)
    if (rowsAux.response.status === 204) return rowsAux.response.status
    const firstReg = rowsAux.response.data[0]
    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-   const data = this.createArrayOfArrayRow(rowsAux.response.data)
+    data = this.createArrayOfArrayRow(rowsAux.response.data)
+    } else  {
+       rowsAux = await this.getDataLocalReport(id)
+      if(rowsAux.length === 0) return 204
+      params.startDateParam = Report.getFormatDDMMYYYY(rowsAux[0].startDate)
+      params.endDateParam = Report.getFormatDDMMYYYY(rowsAux[0].endDate)
+      data = this.createArrayOfArrayRow(rowsAux)
+    }
 
     const doc = new JsPDF({
       orientation: 'l',
@@ -173,7 +186,8 @@ export default {
  },
  didDrawCell: function (data) {
  if (data.row.section === 'body' && data.column.dataKey === 10) {
-      const dataRow = (rowsAux.response.data)[data.row.index]
+      console.log(rowsAux)
+      const dataRow = (rowsAux)[data.row.index]
       if (dataRow !== undefined) {
         const dataAux2 = (dataRow.drugQuantityTemps) //  cell.row.index
         const datax = []
@@ -210,13 +224,20 @@ export default {
   },
 
   async downloadExcel (id, fileType2, params) {
-    const rows = await Report.api().get(`/arvDailyRegisterReport/printReport/${id}/${fileType2}`) 
-    if (rows.response.status === 204) return rows.response.status
-    const firstReg = rows.response.data[0]
-    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
- 
-    const data = this.createArrayOfArrayRow(rows.response.data)
+   
+    let rowsAux = [];
+    let data = [];
+    if(!SystemPlatform.isWebsite()) {
+      const rows = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType2}`) 
+      if (rows.response.status === 204) return rows.response.status
+      data = this.createArrayOfArrayRow(rows.response.data)
+    } else  {
+       rowsAux = await this.getDataLocalReport(id)
+      if(rowsAux.length === 0) return 204
+      data = this.createArrayOfArrayRow(rowsAux)
+    }
+    params.startDateParam = Report.getFormatDDMMYYYY(rowsAux[0].startDate)
+    params.endDateParam = Report.getFormatDDMMYYYY(rowsAux[0].endDate)
     console.log('DADOS: ', data)
     const workbook = new ExcelJS.Workbook()
     workbook.creator = 'FGH'
@@ -610,12 +631,12 @@ export default {
       })
     }
     let p = 15
-    console.log('(rows.response.data).length: ', (rows.response.data).length)
+    console.log('(rows.response.data).length: ', (rowsAux).length)
      // Loop through all table's row
-     for (let j = 0; j <= (rows.response.data).length; j++) {
+     for (let j = 0; j <= (rowsAux).length; j++) {
      // const row = worksheet.getRow(i)
       // Now loop through every row's cell and finally set alignment
-       const reportData = (rows.response.data)[j]
+       const reportData = (rowsAux)[j]
       //  console.log('ReportDataLenght: ', (rows.response.data).length)
        if (reportData !== undefined) {
      // const subReport = this.createArraySubReport(reportData.drugQuantityTemps)
@@ -681,5 +702,22 @@ export default {
           data.push(createRow)
       }
       return data
+    },
+
+
+
+    async getDataLocalReport(reportId) {
+      const reportData = []
+      await ArvDailyRegisterTempReport.localDbGetAll().then(reports => {
+          reports.forEach(report => {
+                  if (report.reportId === reportId) {
+                   reportData.push(report)
+                  }
+             })
+             //console.log(data)
+         })
+         if(reportData.length === 0) return '204'
+         return reportData
+       //  return reportData
     }
   }

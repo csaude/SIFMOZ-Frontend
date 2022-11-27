@@ -8,7 +8,7 @@ export default {
   methods: {
    encrypt (obj) {
     Object.keys(obj).forEach(key => {
-      if (key === 'value' || key === 'name' || key === 'description' || key === 'code') {
+      if (key === 'value' || key === 'name' || key === 'description' || key === 'code' || key === 'password') {
         obj[key] = CryptoJS.AES.encrypt(JSON.stringify(obj[key]), this.passKey).toString()
       }
     })
@@ -16,11 +16,29 @@ export default {
    },
    decrypt (obj) {
     Object.keys(obj).forEach(key => {
-      if (key === 'value' || key === 'name' || key === 'description' || key === 'code') {
-        obj[key] = CryptoJS.AES.decrypt(JSON.stringify(obj[key]), this.passKey).toString()
+      if (key === 'value' || key === 'name' || key === 'description' || key === 'code' || key === 'password') {
+        console.log(JSON.stringify(obj[key]))
+        console.log(obj[key])
+        console.log(CryptoJS.AES.decrypt(JSON.stringify(obj[key]), this.passKey).toString())
+        console.log(CryptoJS.AES.decrypt(JSON.stringify(obj[key]), this.passKey).toString(CryptoJS.enc.Utf8))
+        obj[key] = CryptoJS.AES.decrypt(JSON.stringify(obj[key]), this.passKey).toString(CryptoJS.enc.Utf8)
       }
     })
     return obj
-   }
+   },
+   encryptPlainText (text) {
+    console.log(text)
+   // console.log(CryptoJS.AES.encrypt(text, this.passKey).toString())
+    text = CryptoJS.AES.encrypt(text, this.passKey).toString()
+   // text = CryptoJS.AES.decrypt(text, this.passKey).toString(CryptoJS.enc.Utf8)
+    return text
+  },
+  decryptPlainText (text) {
+    console.log(text)
+   // console.log(CryptoJS.AES.encrypt(text, this.passKey).toString())
+   // text = CryptoJS.AES.encrypt(text, this.passKey).toString()
+    text = CryptoJS.AES.decrypt(text, this.passKey).toString(CryptoJS.enc.Utf8).replace('"', '').replace('"', '')
+    return text
   }
+ }
 }

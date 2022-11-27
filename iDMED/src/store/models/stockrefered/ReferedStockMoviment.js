@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import { StockReferenceAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class ReferedStockMoviment extends Model {
     static entity = 'referedStockMoviments'
 
     static fields () {
         return {
-            id: this.attr(null),
+          id: this.uid(() => uuidv4()),
             date: this.attr(null),
             orderNumber: this.attr(''),
             origin: this.attr(''),
@@ -46,8 +47,8 @@ export default class ReferedStockMoviment extends Model {
       return db.newDb().collection('referedStockMoviments').doc({ id: id }).get()
     }
 
-    static localDbGetAll () {
-      return db.newDb().collection('referedStockMoviments').get()
+    static async localDbGetAll () {
+      return await db.newDb().collection('referedStockMoviments').get()
     }
 
     static localDbUpdate (referedStockMoviment) {

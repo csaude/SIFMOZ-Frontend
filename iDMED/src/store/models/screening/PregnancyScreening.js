@@ -1,13 +1,14 @@
 import { Model } from '@vuex-orm/core'
 import PatientVisit from '../patientVisit/PatientVisit'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PregnancyScreening extends Model {
     static entity = 'pregnancyScreenings'
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             pregnant: this.attr(''),
             menstruationLastTwoMonths: this.attr(''),
             lastMenstruation: this.attr(''),

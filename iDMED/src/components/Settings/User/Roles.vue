@@ -84,12 +84,13 @@
 import { useQuasar } from 'quasar'
 import Role from '../../../store/models/userLogin/Role'
 import { ref } from 'vue'
-
+import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
 const columns = [
   { name: 'description', required: true, label: 'Descricao', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinSystemPlatform],
   data () {
     const $q = useQuasar()
 
@@ -162,11 +163,21 @@ export default {
                   role.active = true
                 msg = 'Perfil activado com sucesso.'
               }
-             Role.apiSave(role).then(resp => {
+              if (this.website) {
+                Role.apiSave(role).then(resp => {
                   this.displayAlert('info', msg)
             }).catch(error => {
                    this.displayAlert('error', error)
             })
+          } else {
+            const roleLocalBase = JSON.parse(JSON.stringify(role))
+              Role.localDbAddOrUpdate(roleLocalBase).then(resp => {
+                Role.insert({
+                    data: roleLocalBase
+                })
+                 this.displayAlert('info', msg)
+              })
+          }
         })
       },
        displayAlert (type, msg) {
@@ -178,10 +189,19 @@ export default {
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
-        }
+        },
+        getRolesToVuex () {
+       Role.localDbGetAll().then(roles => {
+        Role.insert({ data: roles })
+       })
+      }
   },
   mounted () {
-    Role.apiGetAll()
+    if (this.website) {
+      Role.apiGetAll()
+    } else {
+      this.getRolesToVuex()
+    }
   },
   components: {
      addUser: require('components/Settings/User/AddRole.vue').default,

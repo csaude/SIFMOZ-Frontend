@@ -33,14 +33,21 @@
   </q-dialog>
   </div>
 </template>
-
 <script>
 import moment from 'moment'
 import Report from 'src/store/models/report/Report'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
 import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.ts'
-
+// import { v4 as uuidv4 } from 'uuid'
+import reportDatesParams from '../../../reports/ReportDatesParams'
+// import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
+// import Pack from 'src/store/models/packaging/Pack'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
+import Patient from '../../../store/models/patient/Patient'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+// import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
   export default {
     name: 'AbsentPatients',
     props: ['selectedService', 'menuSelected', 'id', 'params'],
@@ -75,9 +82,12 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
         LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
+        /*
          Report.api().post('/absentPatientsReport/initReportProcess', params).then((response) => {
          setTimeout(this.getProcessingStatus(params), 2)
       })
+      */
+        this.getDataLocalDb(params)
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
@@ -113,6 +123,40 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
               }
             }
             })
+      },
+      getDataLocalDb (params) {
+        const reportParams = reportDatesParams.determineStartEndDate(params)
+        console.log(reportParams)
+        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
+          console.log(patientVisitDetails)
+       const result = patientVisitDetails.filter(patientVisitDetail => patientVisitDetail.pack.nextPickUpDate >= reportParams.startDate && moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() <= reportParams.endDate)
+          console.log(result)
+          return result
+        }).then(reportDatas => {
+          reportDatas.forEach(reportData => {
+          PatientServiceIdentifier.localDbGetById(reportData.episode.patientServiceIdentifier.id).then(identifier => {
+          if (identifier.service.id === reportParams.clinicalService) {
+           // console.log(reportData.pack.nextPickUpDate)
+            console.log(moment(reportData.pack.nextPickUpDate, 'YYYY-MM-DD').add(3, 'days'))
+          //  const newDate = moment(reportData.pack.nextPickUpDate).add(3, 'd')
+          //  console.log(newDate.format())
+            const absentPatientReport = new AbsentPatientReport()
+            Patient.localDbGetById(reportData.patientVisit.patient.id).then(patient => {
+              absentPatientReport.nid = identifier.value
+              absentPatientReport.firstNames = patient.firstNames + ' ' + patient.lastNames
+              absentPatientReport.cellphone = patient.cellphone
+              absentPatientReport.dateBackUs = ''
+              absentPatientReport.dateMissedPickUp = reportData.pack.nextPickUpDate
+              absentPatientReport.dateIdentifiedAbandonment = ''
+              absentPatientReport.returnedPickUp = ''
+              console.log(absentPatientReport)
+            })
+          }
+        })
+          })
+        })
+          this.progress = 100
+          params.progress = 100
       },
         displayAlert (type, msg) {
         this.alert.type = type

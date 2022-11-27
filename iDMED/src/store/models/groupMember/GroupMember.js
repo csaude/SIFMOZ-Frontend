@@ -4,13 +4,14 @@ import Group from '../group/Group'
 import GroupMemberPrescription from '../group/GroupMemberPrescription'
 import Patient from '../patient/Patient'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class GroupMember extends Model {
   static entity = 'members'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       startDate: this.attr(''),
       endDate: this.attr(null),
       group_id: this.attr(''),

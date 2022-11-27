@@ -5,12 +5,13 @@ import DispenseType from '../dispenseType/DispenseType'
 import TherapeuticLine from '../therapeuticLine/TherapeuticLine'
 import SpetialPrescriptionMotive from '../prescription/SpetialPrescriptionMotive'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PrescriptionDetail extends Model {
     static entity = 'prescriptionsDetails'
     static fields () {
       return {
-        id: this.attr(null),
+        id: this.uid(() => uuidv4()),
         reasonForUpdate: this.attr(''),
         prescription_id: this.attr(''),
         therapeutic_line_id: this.attr(''),

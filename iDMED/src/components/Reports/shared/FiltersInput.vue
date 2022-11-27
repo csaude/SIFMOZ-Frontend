@@ -53,7 +53,7 @@
                           dense
                           outlined
                           :disable="false"
-                          class="col q-mr-md"
+                          class="col q-mr-sm"
                           v-model="reportParams.startDateParam"
                           label="Data Início">
                           <template v-slot:append>
@@ -69,10 +69,11 @@
                           </template>
                         </q-input>
                         <q-input
+                         style="width: 100px"
                           dense
                           outlined
                           :disable="false"
-                          class="col q-mr-md"
+                          class="col q-mr-sm"
                           v-model="reportParams.endDateParam"
                           label="Data Fim">
                           <template v-slot:append>
@@ -110,15 +111,17 @@
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===5"
                       @setSelectedYearAnnual="setSelectedYear" />
 
-<div class="col q-ml-md"  tabindex="0">
-                      <q-radio keep-color v-model="reportParams.online" color="primary"  v-bind:val="true" label="Relatório local" />
-                      <q-radio keep-color v-model="reportParams.online" color="primary"  v-bind:val="false" label="Relatório online"/>
-                    </div>
+                      <div v-if="mobile" class="row q-ml-md">
+                        <div class="col">
+                          <q-radio dense v-model="reportParams.localOrOnline" val="local" label="Local" class="col q-mr-md"/>
+                          <q-radio dense v-model="reportParams.localOrOnline" val="online" label="Online"  class="col q-mr-md" />
+                        </div>
+                      </div>
 
                     <div class="">
                       <q-btn class="gt-xs"
                         :color="!processingTerminated ? 'green-6' : 'grey-6'"
-                        :disable="processingTerminated"
+                        :disable="initProcessing"
                         dense
                         rounded
                         icon="chevron_right"
@@ -157,9 +160,12 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import { LocalStorage, SessionStorage, date } from 'quasar'
 import moment from 'moment'
+import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+// import ReportDatesParams from '../../../reports/ReportDatesParams'
 // import moment from 'moment'
 export default {
     props: ['clinicalService', 'menuSelected', 'id', 'progress', 'reportType', 'progressValue', 'applicablePeriods', 'tabName', 'params'],
+    mixins: [mixinSystemPlatform],
     data () {
       const progress1 = ref(0)
       return {
@@ -179,6 +185,9 @@ export default {
           periodTypeView: null,
           reportType: null,
           progress: 0,
+          localOrOnline: '',
+          startDate: null,
+          endDate: null,
           online: true
         },
         periodTypeList: ref([
@@ -188,7 +197,8 @@ export default {
           { id: 4, description: 'Semestral', code: 'SEMESTER' },
           { id: 5, description: 'Anual', code: 'ANNUAL' }
         ]),
-        progress1
+        progress1,
+        initProcessing: false
       }
     },
     created () {
@@ -196,6 +206,8 @@ export default {
       this.initParams()
     },
       mounted () {
+        console.log(this.mobile)
+        console.log(this.website)
         if (this.params) {
           this.reportParams = this.params
        //   this.progress = this.params.progress
@@ -269,12 +281,18 @@ export default {
       },
       initParams () {
         if (this.isClinicLevel) {
+          console.log('trsteee' + this.currClinic.id)
           this.reportParams.clinicId = this.currClinic.id
           this.reportParams.clinic = this.currClinic
         } else {
           this.reportParams.provinceId = this.currProvince.id
         }
-        console.log(this.reportParams.clinic)
+        if (this.mobile) {
+        this.reportParams.localOrOnline = 'local'
+        } else {
+          this.reportParams.localOrOnline = 'online'
+        }
+        console.log(this.reportParams)
       },
       setSelectedYear (year) {
         this.reportParams.year = year
@@ -294,15 +312,19 @@ export default {
           if (this.reportParams.district !== null) {
              this.reportParams.districtId = this.reportParams.district.id
            }
+        //   this.reportParams.clinicId = this.currClinic.id
+     //     this.reportParams.clinic = this.currClinic
           this.saveParams()
           console.log(this.reportParams)
+          this.initProcessing = true
           this.$emit('initReportProcessing', this.reportParams)
           this.$emit('updateProgressBar', this.progress1)
+          // ReportDatesParams.determineStartEndDate(this.reportParams)
          // this.updateProgressBar()
       },
       saveParams () {
         this.reportParams.tabName = this.tabName
-      //  this.reportParams.id = 'report' + this.reportParams.id
+       // this.reportParams.id = 'report' + this.reportParams.id
         LocalStorage.set(this.reportParams.id, this.reportParams)
       },
       generateReport (fileType) {
@@ -313,6 +335,13 @@ export default {
       },
       updateProgressBar () {
         this.progress1 = this.progressValue
+      },
+      getWidthDateByPlatform () {
+        if (this.website) {
+         return 'width: 20%'
+        } else {
+        return 'width: 100px'
+        }
       }
     },
     components: {

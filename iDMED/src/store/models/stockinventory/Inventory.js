@@ -3,13 +3,14 @@ import { date } from 'quasar'
 import Clinic from '../clinic/Clinic'
 import { InventoryStockAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Inventory extends Model {
     static entity = 'inventorys'
 
     static fields () {
         return {
-            id: this.attr(null),
+          id: this.uid(() => uuidv4()),
             startDate: this.attr(null),
             endDate: this.attr(null),
             open: this.boolean(true),

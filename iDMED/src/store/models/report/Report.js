@@ -31,20 +31,20 @@ export default class Report extends Model {
 
     // Used Stock Report
     static async apiInitUsedStockProcessing (params) {
-      return await this.api().post('/usedStockReport/initReportProcess', params)
+      return await this.api().post('/usedStockReportTemp/initReportProcess', params)
     }
 
     static async apiUsedStockReport (reportId, fileType) {
-      return await this.api().get(`/usedStockReport/printReport/${reportId}/${fileType}`)
+      return await this.api().get(`/usedStockReportTemp/printReport/${reportId}/${fileType}`)
     }
 
     // Arv Daily Regster
     static async apiInitArvDailyRegisterProcessing (params) {
-      return await this.api().post('/arvDailyRegisterReport/initReportProcess', params)
+      return await this.api().post('/arvDailyRegisterReportTemp/initReportProcess', params)
     }
 
     static async apiArvDailyRegisterReport (reportId, fileType) {
-      return await this.api().get(`/arvDailyRegisterReport/printReport/${reportId}/${fileType}`)
+      return await this.api().get(`/arvDailyRegisterReportTemp/printReport/${reportId}/${fileType}`)
     }
 
     static async apiInitActiveInDrugStoreProcessing (params) {

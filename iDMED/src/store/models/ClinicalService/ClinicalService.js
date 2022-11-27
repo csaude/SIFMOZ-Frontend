@@ -7,13 +7,14 @@ import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServic
 import Group from '../group/Group'
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class ClinicalService extends Model {
   static entity = 'clinicalServices'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
       identifier_type_id: this.attr(''),

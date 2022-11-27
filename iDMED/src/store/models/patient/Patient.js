@@ -12,6 +12,7 @@ import Localidade from '../Localidade/Localidade'
 import PatientVisit from '../patientVisit/PatientVisit'
 import HealthInformationSystem from '../healthInformationSystem/HealthInformationSystem'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -22,7 +23,7 @@ export default class Patient extends Model {
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       firstNames: this.attr(''),
       middleNames: this.attr(''),
       lastNames: this.attr(''),

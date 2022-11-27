@@ -6,13 +6,14 @@ import PatientServiceIdentifier from '../patientServiceIdentifier/PatientService
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import StartStopReason from '../startStopReason/StartStopReason'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Episode extends Model {
   static entity = 'episodes'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       episodeDate: this.attr(''),
       notes: this.attr(''),
       creationDate: this.attr(''),
@@ -97,7 +98,7 @@ export default class Episode extends Model {
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {
-    return await this.api().get('/episode/clinic/' + clinicId + '?offset=0&max=100')
+    return await this.api().get('/episode/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 
   static async apiFetchById (id) {

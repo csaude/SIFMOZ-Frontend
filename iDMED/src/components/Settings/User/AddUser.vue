@@ -227,6 +227,9 @@ import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
 // import SecUserRole from 'src/store/models/userLogin/SecUserRole'
 import { SessionStorage } from 'quasar'
+import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+import mixinEncryption from 'src/mixins/mixin-encryption'
+import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 const columns = [
   { name: 'descricao', required: true, label: 'Descrição', align: 'left', field: row => row.authority, format: val => `${val}`, sortable: true }
 ]
@@ -241,6 +244,7 @@ const columnsClinicSectors = [
 
 export default {
       props: ['selectedUser', 'onlyView', 'editMode'],
+      mixins: [mixinSystemPlatform, mixinEncryption],
     data () {
         return {
             databaseCodes: [],
@@ -289,10 +293,11 @@ export default {
     } else {
          this.isProvincial = false
     }
+    this.getClinicSectorTypeToVue()
     },
     computed: {
          userRoles () {
-             return Role.all()
+             return Role.query().with('menus').where('active', true).get()
         },
         clinics () {
             return Clinic.query()
@@ -336,6 +341,12 @@ export default {
            }
            }
         },
+        getClinicSectorTypeToVue () {
+        ClinicSectorType.localDbGetAll().then(clinicSectorTypes => {
+          console.log(clinicSectorTypes)
+          ClinicSectorType.insert({ data: clinicSectorTypes })
+      })
+    },
     validateUser () {
         this.$refs.role.validate()
         this.$refs.nome.$refs.ref.validate()
@@ -361,6 +372,7 @@ export default {
             this.user.clinics = this.selectedClinics
             this.user.clinicSectors = this.selectedClinicSectors
             this.user.accountLocked = false
+            if (!this.website) {
            UserLogin.apiSave(this.user).then(resp => {
                this.submitting = false
                  this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
@@ -368,6 +380,22 @@ export default {
                this.submitting = false
                   this.displayAlert('error', error)
             })
+          } else {
+            this.user.syncStatus = 'S'
+            this.user.authorities = this.selectedRoles
+              let userLocalBase = JSON.parse(JSON.stringify(this.user))
+              console.log(this.userLocalBase)
+              console.log(userLocalBase)
+              userLocalBase = this.encrypt(userLocalBase)
+              console.log(userLocalBase)
+              UserLogin.localDbAddOrUpdate(userLocalBase).then(resp => {
+                this.submitting = false
+                UserLogin.insert({
+                    data: userLocalBase
+                })
+                 this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
+              })
+          }
             },
      displayAlert (type, msg) {
           this.alert.type = type

@@ -15,7 +15,7 @@ export default class Stock extends Model {
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             expireDate: this.attr(''),
             auxExpireDate: this.attr(''),
             modified: this.boolean(false),
@@ -86,8 +86,8 @@ export default class Stock extends Model {
       return db.newDb().collection('stocks').doc({ id: id }).get()
     }
 
-    static localDbGetAll () {
-      return db.newDb().collection('stocks').get()
+    static async localDbGetAll () {
+      return await db.newDb().collection('stocks').get()
     }
 
     static localDbUpdate (stock) {

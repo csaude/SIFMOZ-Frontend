@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import { StockDestructionAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class DestroyedStock extends Model {
     static entity = 'destroyedStocks'
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             notes: this.attr(''),
             date: this.attr(null),
             updateStatus: this.attr('P'),
