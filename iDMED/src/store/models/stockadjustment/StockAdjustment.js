@@ -4,6 +4,7 @@ import Stock from '../stock/Stock'
 import StockOperationType from '../stockoperation/StockOperationType'
 import { InventoryStockAdjustment, StockDestructionAdjustment, StockReferenceAdjustment } from './StockAdjustmentHierarchy'
 import { v4 as uuidv4 } from 'uuid'
+import db from 'src/store/localbase'
 
 export class StockAdjustment extends Model {
     static entity = 'stockAdjustments'
@@ -44,5 +45,13 @@ export class StockAdjustment extends Model {
 
     isNegativeAdjustment () {
       return this.operation.code === 'AJUSTE_NEGATIVO'
+    }
+
+    static localDbDeleteAll () {
+      return db.newDb().collection('stockAdjustments').delete()
+    }
+
+    static localDbGetById (id) {
+      return db.newDb().collection('stockAdjustments').doc({ id: id }).get()
     }
 }
