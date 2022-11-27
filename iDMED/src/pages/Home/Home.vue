@@ -147,6 +147,7 @@ export default {
     },
     hideLoading () {
       this.$q.loading.hide()
+    },
     mounted () {
        SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
         SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)

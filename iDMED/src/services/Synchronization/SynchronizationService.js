@@ -43,7 +43,6 @@ import StockAlert from 'src/store/models/stockAlert/StockAlert'
 import db from 'src/store/localbase'
 import DrugStockFileEvent from 'src/store/models/drugStockFileEvent/DrugStockFileEvent'
 
-
 export default {
   async loadAndSaveAppParameters (clinicId) {
     const offset = 0
