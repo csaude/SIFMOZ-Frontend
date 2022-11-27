@@ -3,12 +3,13 @@ import Drug from '../drug/Drug'
 import Pack from '../packaging/Pack'
 import PackagedDrugStock from './PackagedDrugStock'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PackagedDrug extends Model {
     static entity = 'packagedDrugs'
     static fields () {
       return {
-        id: this.attr(null),
+        id: this.uid(() => uuidv4()),
         quantitySupplied: this.attr(''),
         nextPickUpDate: this.attr(''),
         toContinue: this.boolean(false),

@@ -5,12 +5,13 @@ import GroupPack from '../group/GroupPack'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Pack extends Model {
     static entity = 'packs'
     static fields () {
       return {
-        id: this.attr(null),
+        id: this.uid(() => uuidv4()),
         dateLeft: this.attr(''),
         dateReceived: this.attr(''),
         modified: this.boolean(false),
@@ -76,8 +77,8 @@ export default class Pack extends Model {
       return db.newDb().collection('packs').doc({ id: id }).get()
     }
 
-    static localDbGetAll () {
-      return db.newDb().collection('packs').get()
+    static async localDbGetAll () {
+      return await db.newDb().collection('packs').get()
     }
 
     static localDbUpdate (pack) {

@@ -1,13 +1,14 @@
 import { Model } from '@vuex-orm/core'
 import PatientTransReference from './PatientTransReference'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PatientTransReferenceType extends Model {
   static entity = 'patientTransReferenceTypes'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
       syncStatus: this.attr(''),

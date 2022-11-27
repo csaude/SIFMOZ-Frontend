@@ -1,13 +1,14 @@
 import { Model } from '@vuex-orm/core'
 import PatientVisit from '../patientVisit/PatientVisit'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class TBScreening extends Model {
     static entity = 'TBScreenings'
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             parentTBTreatment: this.attr(''),
             cough: this.attr(''),
             fever: this.attr(''),

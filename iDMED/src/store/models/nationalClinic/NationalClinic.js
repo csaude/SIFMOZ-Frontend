@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import FacilityType from '../facilityType/FacilityType'
 import Province from '../province/Province'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class NationalClinic extends Model {
   static entity = 'nationalClinics'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       telephone: this.attr(''),
       facilityName: this.attr(''),

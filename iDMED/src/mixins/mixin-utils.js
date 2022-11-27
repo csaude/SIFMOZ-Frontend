@@ -1,4 +1,4 @@
-import moment from 'moment'
+ import moment from 'moment'
 import { date, LocalStorage, SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
@@ -13,6 +13,7 @@ import Drug from 'src/store/models/drug/Drug'
 import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 import ClinicalServiceAttributeType from 'src/store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from 'src/store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
 
 export default {
   data () {
@@ -85,13 +86,25 @@ export default {
     DispenseMode.localDbGetAll().then(regimens => {
       DispenseMode.insert({ data: regimens })
     })
+    ClinicalService.localDbGetAll().then(services => {
+      ClinicalService.insert({ data: services })
+    })
     ClinicalServiceAttributeType.localDbGetAll().then(regimens => {
       ClinicalServiceAttributeType.insert({ data: regimens })
     })
     ClinicalServiceAttribute.localDbGetAll().then(regimens => {
       ClinicalServiceAttribute.insert({ data: regimens })
     })
-  }
+  },
+  idadeCalculator (birthDate) {
+    if (moment(birthDate, 'YYYY/MM/DDDD').isValid()) {
+       const utentBirthDate = moment(birthDate, 'YYYY/MM/DDDD')
+       const todayDate = moment(new Date())
+       const idade = todayDate.diff(utentBirthDate, 'years')
+       console.log(idade)
+      return idade
+    }
+}
  },
   computed: {
     isAppSyncDone () {
@@ -101,12 +114,14 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     currClinic () {
+      console.log('Clinica:' + SessionStorage.getItem('currClinic'))
       const clinic = Clinic.query()
                                 .with('province')
                                 .with('facilityType')
                                 .with('district.province')
-                                .where('id', SessionStorage.getItem('currClinic').id)
+                                .where('id', '087B9202-722D-47C2-A3D2-1145DB64A860')
                                 .first()
+       console.log('Clinica22:' + clinic)
           if (clinic !== null) return clinic
           return new Clinic(SessionStorage.getItem('currClinic'))
     },

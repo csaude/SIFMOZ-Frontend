@@ -1,13 +1,14 @@
 import { Model } from '@vuex-orm/core'
 import Prescription from '../prescription/Prescription'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Duration extends Model {
   static entity = 'durations'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       weeks: this.attr(''),
       description: this.attr(''),
       prescriptions: this.hasMany(Prescription, 'duration_id')

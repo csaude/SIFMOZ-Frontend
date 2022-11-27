@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import District from '../district/District'
 import Localidade from '../Localidade/Localidade'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PostoAdministrativo extends Model {
   static entity = 'postoAdministrativos'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
       district_id: this.attr(''),

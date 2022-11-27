@@ -5,7 +5,8 @@ import { Model } from '@vuex-orm/core'
  import UserClinicSectors from './UserClinicSector'
 // import Role from './Role'
 // import UserRole from './UserRole'
-
+import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 export default class User extends Model {
   static entity = 'users'
 
@@ -17,7 +18,7 @@ export default class User extends Model {
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       username: this.attr(''),
       password: this.attr(''),
       role: this.attr(null),
@@ -43,5 +44,43 @@ export default class User extends Model {
 
   static async apiSave (userLogin) {
     return await this.api().post('/secUser', userLogin)
+  }
+
+  static localDbAdd (secUser) {
+    return db.newDb().collection('secUsers').add(secUser)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('secUsers').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('secUsers').get()
+  }
+
+  static localDbUpdate (secUser) {
+    return db.newDb().collection('secUsers').doc({ id: secUser.id }).set(secUser)
+  }
+
+  static localDbUpdateAll (secUsers) {
+    return db.newDb().collection('secUsers').set(secUsers)
+  }
+
+  static localDbDelete (secUser) {
+    return db.newDb().collection('secUsers').doc({ id: secUser.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('secUsers').delete()
+  }
+
+  static localDbAddOrUpdate (user) {
+    if (user.id === null) {
+      user.id = uuidv4()
+     return this.localDbAdd(user)
+    } else {
+      user.syncStatus = 'U'
+      return this.localDbUpdate(user)
+    }
   }
 }

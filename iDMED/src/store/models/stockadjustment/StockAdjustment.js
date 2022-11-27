@@ -3,6 +3,7 @@ import Clinic from '../clinic/Clinic'
 import Stock from '../stock/Stock'
 import StockOperationType from '../stockoperation/StockOperationType'
 import { InventoryStockAdjustment, StockDestructionAdjustment, StockReferenceAdjustment } from './StockAdjustmentHierarchy'
+import { v4 as uuidv4 } from 'uuid'
 
 export class StockAdjustment extends Model {
     static entity = 'stockAdjustments'
@@ -17,7 +18,7 @@ export class StockAdjustment extends Model {
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             index: this.number(0),
             notes: this.attr(''),
             stockTake: this.number(0),

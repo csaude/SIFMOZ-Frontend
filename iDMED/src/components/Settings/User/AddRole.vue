@@ -77,7 +77,8 @@
 import Role from 'src/store/models/userLogin/Role'
 import { ref } from 'vue'
 import Menu from 'src/store/models/userLogin/Menu'
-
+import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+// import { v4 as uuidv4 } from 'uuid'
 const columns = [
   { name: 'descricao', required: true, label: 'Seleccionar Todas', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
 ]
@@ -88,6 +89,7 @@ const columns1 = [
 
 export default {
       props: ['selectedRole', 'onlyView'],
+      mixins: [mixinSystemPlatform],
     data () {
         return {
             databaseCodes: [],
@@ -139,13 +141,28 @@ export default {
             console.log(this.role)
             this.role.active = true
             this.role.authority = 'ROLE_' + this.role.name
-           Role.apiSave(this.role).then(resp => {
+            if (this.website) {
+              Role.apiSave(this.role).then(resp => {
               this.submitting = false
                  this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                   this.displayAlert('error', error)
             })
+            } else {
+             // this.role.id = uuidv4()
+              this.role.syncStatus = 'S'
+              const roleLocalBase = JSON.parse(JSON.stringify(this.role))
+              console.log(this.role)
+              console.log(roleLocalBase)
+              Role.localDbAddOrUpdate(roleLocalBase).then(resp => {
+                this.submitting = false
+                Role.insert({
+                    data: roleLocalBase
+                })
+                 this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
+              })
+            }
     },
      displayAlert (type, msg) {
           this.alert.type = type

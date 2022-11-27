@@ -7,12 +7,13 @@ import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Prescription extends Model {
     static entity = 'prescriptions'
     static fields () {
       return {
-        id: this.attr(null),
+        id: this.uid(() => uuidv4()),
         duration_id: this.attr(''),
         prescriptionDate: this.attr(''),
         expiryDate: this.attr(''),
@@ -104,8 +105,8 @@ export default class Prescription extends Model {
       return db.newDb().collection('prescriptions').add(prescription)
     }
 
-    static localDbGetById (id) {
-      return db.newDb().collection('prescriptions').doc({ id: id }).get()
+    static async localDbGetById (id) {
+     return await db.newDb().collection('prescriptions').doc({ id: id }).get()
     }
 
     static localDbGetAll () {

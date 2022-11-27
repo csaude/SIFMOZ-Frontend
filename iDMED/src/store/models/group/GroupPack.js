@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import Pack from '../packaging/Pack'
 import GroupPackHeader from './GroupPackHeader'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class GroupPack extends Model {
   static entity = 'groupPacks'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       pack_id: this.attr(''),
       header_id: this.attr(''),
       syncStatus: this.attr(''),

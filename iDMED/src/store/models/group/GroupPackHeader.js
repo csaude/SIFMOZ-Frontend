@@ -3,13 +3,14 @@ import Duration from '../Duration/Duration'
 import Group from './Group'
 import GroupPack from './GroupPack'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class GroupPackHeader extends Model {
   static entity = 'groupPackHeaders'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       packDate: this.attr(''),
       nextPickUpDate: this.attr(''),
       isLast: this.boolean(false),

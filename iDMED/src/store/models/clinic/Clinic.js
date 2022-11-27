@@ -6,13 +6,14 @@ import Patient from '../patient/Patient'
 import Province from '../province/Province'
 import FacilityType from '../facilityType/FacilityType'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Clinic extends Model {
   static entity = 'clinics'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       notes: this.attr(''),
       telephone: this.attr(''),

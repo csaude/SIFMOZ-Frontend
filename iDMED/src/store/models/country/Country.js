@@ -1,13 +1,14 @@
 import { Model } from '@vuex-orm/core'
 import Province from 'src/store/models/province/Province'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Country extends Model {
   static entity = 'countries'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       description: this.attr(''),
       nacionality: this.attr(''),
       code: this.attr(''),

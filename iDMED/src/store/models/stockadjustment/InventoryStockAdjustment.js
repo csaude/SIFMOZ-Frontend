@@ -1,6 +1,7 @@
 import { StockAdjustment } from './StockAdjustmentHierarchy'
 import Inventory from '../stockinventory/Inventory'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export class InventoryStockAdjustment extends StockAdjustment {
     static entity = 'inventoryStockAdjustments'
@@ -9,7 +10,7 @@ export class InventoryStockAdjustment extends StockAdjustment {
     static fields () {
         return {
             ...super.fields(),
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             inventory_id: this.attr(null),
             syncStatus: this.attr(''),
             // relationships

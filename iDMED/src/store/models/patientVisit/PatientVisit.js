@@ -8,13 +8,14 @@ import VitalSignsScreening from '../screening/VitalSignsScreening'
 import Patient from '../patient/Patient'
 import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       visitDate: this.attr(''),
       clinic_id: this.attr(''),
       patient_id: this.attr(''),

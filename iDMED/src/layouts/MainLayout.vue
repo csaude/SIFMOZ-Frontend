@@ -49,6 +49,9 @@
                       </q-item-label>
                     </q-item-section>
                   </q-item>
+                  <q-item clickable>
+                    <q-item-section clickable @click="sync()">Sincronizar</q-item-section>
+                </q-item>
                   <q-separator spaced />
                   <!--q-item clickable v-close-popup @click="onItemClick">
                     <q-item-section avatar>
@@ -104,8 +107,11 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
 export default defineComponent({
   name: 'MainLayout',
+  mixins: [mixinplatform],
   setup () {
     return {
       leftDrawerOpen: false,
@@ -119,7 +125,10 @@ export default defineComponent({
     }
   },
   mounted () {
-    SystemConfigs.apiGetAll()
+    console.log(this.website)
+    if (this.website) {
+    //  SystemConfigs.apiGetAll()
+    }
    // this.getRolesToMenu()
   },
   computed: {
@@ -142,6 +151,9 @@ export default defineComponent({
           return true
         }
         }
+      },
+      async sync () {
+        SynchronizationService.send()
       }
   }
 })

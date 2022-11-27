@@ -36,12 +36,15 @@ import Pack from 'src/store/models/packaging/Pack'
 import Prescription from 'src/store/models/prescription/Prescription'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from 'src/store/models/episode/Episode'
+import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
+import Role from 'src/store/models/userLogin/Role'
+import User from 'src/store/models/userLogin/User'
 
 export default {
   async loadAndSaveAppParameters (clinicId) {
     const offset = 0
     const max = 100
-    this.doClinicGet(0, 100)
+  //  this.doClinicGet(0, 100)
 
     await Duration.apiGetAll(offset, max).then(resp => {
       Duration.localDbUpdateAll(resp.response.data)
@@ -127,6 +130,25 @@ export default {
       await ProvincialServer.apiGetAll().then(resp => {
           ProvincialServer.localDbUpdateAll(resp.response.data)
       })
+      DispenseMode.apiGetAll().then(resp => {
+        resp.response.data.forEach((item) => {
+          DispenseMode.localDbAdd(item)
+        })
+      })
+    },
+    async loadAndSaveRolesAndUsers () {
+      const offset = 0
+     const max = 100
+     if (Role.all().length > 0) {
+      await Role.apiGetAll().then(resp => {
+          Role.localDbUpdateAll(resp.response.data)
+      })
+     }
+     if (User.all().length > 0) {
+    await User.apiGetAll(offset, max).then(resp => {
+    User.localDbUpdateAll(resp.response.data)
+  })
+}
     },
     doStockEntranceGet (clinicId, offset, max) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
@@ -142,6 +164,23 @@ export default {
         })
     },
     doInventoryGet (clinicId, offset, max) {
+      /*
+      ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
+        resp.response.data.forEach((item) => {
+          ReferedStockMoviment.localDbAdd(item)
+        })
+      })
+      InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
+        resp.response.data.forEach((item) => {
+          InventoryStockAdjustment.localDbAdd(item)
+        })
+      })
+      DestroyedStock.apiGetAll(offset, max).then(resp => {
+        resp.response.data.forEach((item) => {
+          DestroyedStock.localDbAdd(item)
+        })
+      })
+      */
       Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
@@ -243,17 +282,54 @@ export default {
       })
     },
     async start ($q, clinicId) {
-      this.doPatientGet(clinicId, 0, 100)
-      this.doStockEntranceGet(clinicId, 0, 100)
-      // this.doIdentifiersGet(clinicId, 0, 100)
-      this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
-      this.doPatientVisitGet(clinicId, 0, 100)
+      console.log('Clinica:' + clinicId)
+     this.doPatientGet(clinicId, 0, 100)
+     this.doStockEntranceGet(clinicId, 0, 100)
+      this.doIdentifiersGet(clinicId, 0, 100)
+     this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
+     this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
-      this.doPrescriptionGet(clinicId, 0, 100)
-      this.doInventoryGet(clinicId, 0, 100)
-      await this.loadAndSaveAppParameters(clinicId)
+     this.doPrescriptionGet(clinicId, 0, 100)
+    this.doInventoryGet(clinicId, 0, 100)
+    await this.loadAndSaveAppParameters(clinicId)
+     this.loadAndSaveRolesAndUsers(clinicId)
       LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()
     },
-    async send () {}
+
+    async send () {
+     await this.sendUsers()
+    },
+
+    async sendUsers () {
+        // const usersToSync = await this.getUsersToSync()
+        User.localDbGetAll().then((users) => {
+          const usersToSync = users.filter((user) =>
+          (user.syncStatus === 'S' || user.syncStatus === 'U'))
+          return usersToSync
+        }).then(usersToSync => {
+        //  for (let i = 0; i < usersToSync.length; i++) {
+            console.log(usersToSync[0])
+            this.apiSendUsers(usersToSync, 0)
+     // }
+   //  this.apiSendUsers(usersToSync)
+  })
+},
+    apiSendUsers (usersToSync, i) {
+     // for (let i = 0; i < usersToSync.length; i++) {
+        const user = usersToSync[i]
+      if (user !== undefined) {
+        user.id = null
+        User.apiSave(user).then(resp => {
+          // apiSendUsers(usersToSync , i)
+          i = i + 1
+          user.syncStatus = 'S'
+          User.localDbUpdate(user)
+           setTimeout(this.apiSendUsers(usersToSync, i), 2)
+     }).catch(error => {
+       console.log(error)
+   })
+ // }
+}
+    }
 }

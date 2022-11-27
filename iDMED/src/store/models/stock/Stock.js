@@ -8,13 +8,14 @@ import Clinic from '../clinic/Clinic'
 import { date } from 'quasar'
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Stock extends Model {
     static entity = 'stocks'
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             expireDate: this.attr(''),
             auxExpireDate: this.attr(''),
             modified: this.boolean(false),
@@ -85,8 +86,8 @@ export default class Stock extends Model {
       return db.newDb().collection('stocks').doc({ id: id }).get()
     }
 
-    static localDbGetAll () {
-      return db.newDb().collection('stocks').get()
+    static async localDbGetAll () {
+      return await db.newDb().collection('stocks').get()
     }
 
     static localDbUpdate (stock) {
