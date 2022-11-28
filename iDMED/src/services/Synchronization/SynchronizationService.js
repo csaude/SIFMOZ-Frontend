@@ -169,7 +169,6 @@ export default {
        },
     doInventoryGet (clinicId, offset, max) {
       Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-        console.log('InventoryLog:', resp.response.data)
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
                 Inventory.localDbAdd(item)
