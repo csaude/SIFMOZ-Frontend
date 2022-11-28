@@ -23,6 +23,7 @@ export default {
         visible: false,
         msg: ''
       }),
+      step: '',
       $q: useQuasar()
     }
   },
@@ -104,7 +105,25 @@ export default {
        console.log(idade)
       return idade
     }
-}
+  },
+  setStep (value) {
+    this.step = Object.assign({}, value)
+  },
+  changeToEditStep () {
+    this.step = 'edit'
+  },
+  changeToCreateStep () {
+    this.step = 'create'
+  },
+  changeToCloseStep () {
+    this.step = 'close'
+  },
+  changeToRemotionStep () {
+    this.step = 'delete'
+  },
+  changeToDisplayStep () {
+    this.step = 'display'
+  }
  },
   computed: {
     isAppSyncDone () {
@@ -119,7 +138,7 @@ export default {
                                 .with('province')
                                 .with('facilityType')
                                 .with('district.province')
-                                .where('id', '087B9202-722D-47C2-A3D2-1145DB64A860')
+                                .where('mainClinic', true)
                                 .first()
        console.log('Clinica22:' + clinic)
           if (clinic !== null) return clinic
@@ -127,6 +146,21 @@ export default {
     },
     getUUID () {
       return uuidv4()
+    },
+    isEditStep () {
+      return this.step === 'edit'
+    },
+    isCreateStep () {
+      return this.step === 'create'
+    },
+    isCloseStep () {
+      return this.step === 'close'
+    },
+    isRemotionStep () {
+      return this.step === 'delete'
+    },
+    isDisplayStep () {
+      return this.step === 'display'
     }
   },
   components: {
