@@ -1,12 +1,13 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class SpetialPrescriptionMotive extends Model {
   static entity = 'spetialPrescriptionMotives'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       syncStatus: this.attr(''),
       description: this.attr('')

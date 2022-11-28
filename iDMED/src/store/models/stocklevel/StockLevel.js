@@ -1,12 +1,13 @@
 import { Model } from '@vuex-orm/core'
 import Stock from '../stock/Stock'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class StockLevel extends Model {
     static entity = 'stockLevels'
 
     static fields () {
         return {
-            id: this.attr(null),
+            id: this.uid(() => uuidv4()),
             bacth: this.attr(null),
             fullContainerRemaining: this.attr(null),
             loosePillsRemaining: this.attr(null),

@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver'
 import * as ExcelJS from 'exceljs'
 // import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/store/models/report/Report'
-
+import StockReceivedReport from 'src/store/models/report/stock/StockReceivedReport'
 // const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Stock Recebido'
 const reportName = 'ListaDeStockRecebido'
@@ -32,14 +32,34 @@ export default {
       'Recebidos',
       'Fornecedor'
     ]
+    /*
+    let data = []
+  await StockReceivedReport.localDbGetAll().then(reports => {
+      const reportData = []
+      reports.forEach(report => {
+              if (report.reportId === id) {
+               reportData.push(report)
+              }
+         })
+          if(reportData.length === 0) return '204'
+           data =  this.createArrayOfArrayRow(reportData)
+     })
+       if(data.length === 0) return '204'
+
     const rowsAux = await Report.api().get(`/receivedStockReport/printReport/${id}/${fileType}`) 
     if (rowsAux.response.status === 204) return rowsAux.response.status
     const firstReg = rowsAux.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
- 
-
     const data = this.createArrayOfArrayRow(rowsAux.response.data)
+  */   
+   
+   const data = await this.getDataLocalReport(id)
+   if(data.length === 0) return 204
+   params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate)
+   params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate)
+   console.log(data)
+  
     autoTable(doc, {
       margin: { top: 55 },
       bodyStyles: {
@@ -63,7 +83,7 @@ export default {
             }
           )
         doc.setFontSize(10)
-        doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, data.settings.margin.left + 2, 32)
+       // doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, data.settings.margin.left + 2, 32)
         doc.text('Província: ' + (params.province === null ? '' : params.province.description), data.settings.margin.left + 2, 40)
         doc.text('Distrito: ' + (params.district === null ? '' : params.district.description), data.settings.margin.left + 2, 48)
         doc.text('Data Início: ' + params.startDateParam, width / 2 + 95, 32)
@@ -331,5 +351,21 @@ export default {
           data.push(createRow)
       }
       return data
+    },
+   async getDataLocalReport(reportId) {
+      let data = []
+      await StockReceivedReport.localDbGetAll().then(reports => {
+          const reportData = []
+          reports.forEach(report => {
+                  if (report.reportId === reportId) {
+                   reportData.push(report)
+                  }
+             })
+             // if(reportData.length === 0) return '204'
+              data = this.createArrayOfArrayRow(reportData)
+             console.log(data)
+             return data
+         })
+         return data
     }
   }

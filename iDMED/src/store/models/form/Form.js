@@ -1,13 +1,14 @@
 import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Form extends Model {
   static entity = 'forms'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
 

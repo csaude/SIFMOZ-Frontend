@@ -93,7 +93,8 @@ import Role from '../../../store/models/userLogin/Role'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
-
+import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 const columns = [
   { name: 'fullName', required: true, label: 'Nome Completo', align: 'left', field: row => row.fullName, format: val => `${val}`, sortable: true },
   { name: 'username', required: true, label: 'Nome do Utilizador', align: 'left', field: row => row.username, format: val => `${val}`, sortable: true },
@@ -101,6 +102,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinSystemPlatform],
   data () {
     const $q = useQuasar()
 
@@ -189,11 +191,23 @@ export default {
                   user.accountLocked = false
                 msg = 'Utilizador activado com sucesso.'
               }
+              if (this.website) {
              UserLogin.apiSave(user).then(resp => {
                   this.displayAlert('info', msg)
             }).catch(error => {
                    this.displayAlert('error', error)
             })
+          } else {
+            let userLocalBase = JSON.parse(JSON.stringify(user))
+              userLocalBase = this.encrypt(userLocalBase)
+              UserLogin.localDbAddOrUpdate(userLocalBase).then(resp => {
+                this.submitting = false
+                UserLogin.insert({
+                    data: userLocalBase
+                })
+                this.displayAlert('info', msg)
+              })
+          }
         })
       },
        displayAlert (type, msg) {
@@ -205,14 +219,42 @@ export default {
           if (this.alert.type === 'info') {
             this.$emit('close')
           }
-        }
+        },
+        getRolesToVuex () {
+       Role.localDbGetAll().then(roles => {
+        Role.insert({ data: roles })
+       })
+      },
+      getSecUserToVuex () {
+        UserLogin.localDbGetAll().then(users => {
+          UserLogin.insert({ data: users })
+       })
+      },
+      getSystemConfigsToVue () {
+        SystemConfigs.localDbGetAll().then(systemConfigs => {
+          SystemConfigs.insert({ data: systemConfigs })
+      })
+    },
+    getClinicSectorTypeToVue () {
+        ClinicSectorType.localDbGetAll().then(clinicSectorTypes => {
+          console.log(clinicSectorTypes)
+          ClinicSectorType.insert({ data: clinicSectorTypes })
+      })
+    }
   },
   mounted () {
+    if (!this.website) {
     UserLogin.apiGetAll(0, 100)
     Role.apiGetAll()
     if (this.configs.value === 'PROVINCIAL') {
      this.getAllClinicsByProvinceCode(this.configs.description)
     }
+  } else {
+    this.getRolesToVuex()
+    this.getSecUserToVuex()
+    this.getSystemConfigsToVue()
+    this.getClinicSectorTypeToVue()
+  }
   },
   components: {
      addUser: require('components/Settings/User/AddUser.vue').default,

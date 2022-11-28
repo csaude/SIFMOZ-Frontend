@@ -4,13 +4,14 @@ import Clinic from '../clinic/Clinic'
 import Patient from '../patient/Patient'
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PatientTransReference extends Model {
   static entity = 'patientTransReferences'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       operationDate: this.attr(''),
       creationDate: this.attr(''),
       patientTransReferenceTypeId: this.attr(''),

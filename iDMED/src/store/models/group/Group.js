@@ -5,13 +5,14 @@ import ClinicalService from '../ClinicalService/ClinicalService'
 import Clinic from '../clinic/Clinic'
 import GroupPackHeader from './GroupPackHeader'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class Group extends Model {
   static entity = 'groups'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       code: this.attr(''),
       name: this.attr(''),
       startDate: this.attr(''),

@@ -2,13 +2,14 @@
 import { Model } from '@vuex-orm/core'
 import InteroperabilityAttribute from '../interoperabilityAttribute/InteroperabilityAttribute'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class HealthInformationSystem extends Model {
   static entity = 'healthInformationSystems'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       abbreviation: this.attr(''),
       syncStatus: this.attr(''),
       description: this.attr(''),

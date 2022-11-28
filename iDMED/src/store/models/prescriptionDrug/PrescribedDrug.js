@@ -2,12 +2,13 @@ import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
 import Prescription from '../prescription/Prescription'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PrescribedDrug extends Model {
     static entity = 'prescribedDrugs'
     static fields () {
       return {
-        id: this.attr(null),
+        id: this.uid(() => uuidv4()),
         amtPerTime: this.attr(''),
         timesPerDay: this.attr(''),
         modified: this.boolean(false),

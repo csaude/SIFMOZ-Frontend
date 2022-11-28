@@ -5,13 +5,14 @@ import Patient from '../patient/Patient'
 import ClinicalService from '../ClinicalService/ClinicalService'
 import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PatientServiceIdentifier extends Model {
   static entity = 'identifiers'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       startDate: this.attr(''),
       endDate: this.attr(''),
       reopenDate: this.attr(''),
@@ -137,8 +138,9 @@ export default class PatientServiceIdentifier extends Model {
     return db.newDb().collection('identifiers').add(identifier)
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('identifiers').doc({ id: id }).get()
+   static async localDbGetById (id) {
+   const identifier = await db.newDb().collection('identifiers').doc({ id: id }).get()
+   return identifier
   }
 
   static localDbGetAll () {

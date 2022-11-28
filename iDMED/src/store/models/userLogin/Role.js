@@ -1,7 +1,8 @@
 import { Model } from '@vuex-orm/core'
 import Menu from 'src/store/models/userLogin/Menu'
 import RoleMenu from './RoleMenu'
-
+import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 export default class Role extends Model {
   static entity = 'roles'
 
@@ -13,7 +14,7 @@ export default class Role extends Model {
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
      authority: this.attr(''),
      description: this.attr(''),
      name: this.attr(''),
@@ -34,5 +35,43 @@ export default class Role extends Model {
 
   static async apiUpdate (role) {
     return await this.api().put('/role/', role)
+  }
+
+  static localDbAdd (role) {
+    return db.newDb().collection('roles').add(role)
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('roles').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('roles').get()
+  }
+
+  static localDbUpdate (role) {
+    return db.newDb().collection('roles').doc({ id: role.id }).set(role)
+  }
+
+  static localDbUpdateAll (roles) {
+    return db.newDb().collection('roles').set(roles)
+  }
+
+  static localDbDelete (role) {
+    return db.newDb().collection('roles').doc({ id: role.id }).delete()
+  }
+
+  static localDbDeleteAll () {
+    return db.newDb().collection('roles').delete()
+  }
+
+  static localDbAddOrUpdate (role) {
+    if (role.id === null) {
+      role.id = uuidv4()
+     return this.localDbAdd(role)
+    } else {
+      role.syncStatus = 'U'
+      return this.localDbUpdate(role)
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { Model } from '@vuex-orm/core'
-
+import db from 'src/store/localbase'
 export default class Menu extends Model {
   static entity = 'menus'
 
@@ -19,5 +19,13 @@ export default class Menu extends Model {
 
   static async apiGetAll () {
     return await this.api().get('/menu')
+  }
+
+  static localDbUpdateAll (menus) {
+    return db.newDb().collection('menus').set(menus)
+  }
+
+  static localDbGetAll () {
+    return db.newDb().collection('menus').get()
   }
 }

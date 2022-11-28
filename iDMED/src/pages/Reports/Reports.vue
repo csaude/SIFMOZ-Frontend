@@ -13,11 +13,12 @@
       <q-tab name="graph" label="Análise Gráfica" :class='tab === "graph" ? "tab-menu" : ""' />
     </q-tabs>
     <q-separator style="margin-top: -1px"/>
+   <MenuMobile  v-if="mobile"  @changeTab="changeTab"></MenuMobile>
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="list">
 
-        <div class="row">
-          <div class="col-3   q-ml-sm q-mr-sm" style="max-width: 500px">
+        <div class="row" >
+          <div class="col-3   q-ml-sm q-mr-sm" style="max-width: 500px" v-if="website">
               <q-bar dark class="bg-primary text-white">
                   <div class="col text-center text-weight-bold">
                    Listagens
@@ -34,9 +35,10 @@
         </div>
 
         <div class="row">
-          <div class="col-3  q-ml-sm q-mr-sm panel" style="max-width: 500px">
+          <div class="col-3  q-ml-sm q-mr-sm panel" style="max-width: 500px"  v-if="website">
             <ListReportMenu
               @changeTab="changeTab"
+              v-if="website"
             />
 
           </div>
@@ -81,8 +83,9 @@ import { ref } from 'vue'
 // import { uuid } from 'uuid'
 import { uid, LocalStorage } from 'quasar'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
+import mixinSystemPlatform from '../../mixins/mixin-system-platform'
 export default {
-
+  mixins: [mixinSystemPlatform],
   setup () {
     return {
       tab: ref('list'),
@@ -110,7 +113,9 @@ export default {
   },
   data () {
     return {
-      components: []
+      components: [],
+      headerClass: 'list-header',
+      bgColor: 'bg-primary'
     }
   },
   components: {
@@ -130,7 +135,8 @@ export default {
      UsedStock: require('components/Reports/stock/UsedStock.vue').default,
      ArvDailyRegister: require('components/Reports/monitoring/ArvDailyRegister.vue').default,
      AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default,
-     PatientHistory: require('components/Reports/ClinicManagement/PatientHistory.vue').default
+     PatientHistory: require('components/Reports/ClinicManagement/PatientHistory.vue').default,
+     MenuMobile: require('components/Reports/Menus/ListReportMenuMobile.vue').default
     },
       mounted () {
      const array = LocalStorage.getAllKeys()
@@ -145,6 +151,8 @@ export default {
       this.changeTab(item.tabName, this.selectedService, item)
         }
  }
+ console.log(this.mobile)
+        console.log(this.website)
   },
     methods: {
      changeTab (tabName, selectedService, params) {
@@ -153,7 +161,16 @@ export default {
         const comp = { id: params === undefined ? uidValue : params.id, name: tabName, clinicalService: selectedService, params: params }
         this.components.push(comp)
         }
+    },
+    computed: {
+    clinicalServices: {
+      get () {
+        return ClinicalService.query()
+                              .orderBy('code', 'desc')
+                              .get()
+      }
     }
+  }
 }
 </script>
 
@@ -168,4 +185,8 @@ export default {
     border-right: 1px solid $grey-13;
     border-radius: 0px
   }
+  .list-header {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
 </style>

@@ -1,5 +1,10 @@
 <template>
   <div>
+    <q-banner
+    dense
+    inline-actions
+    :class="[bgColor, headerClass]"
+    class="text-white q-pa-none">
     <q-select
       class="q-ma-sm"
       dense outlined filled
@@ -50,6 +55,7 @@
             </q-banner>
           </div>
     </div>
+    </q-banner>
   </div>
 
 </template>

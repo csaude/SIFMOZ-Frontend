@@ -95,8 +95,12 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-  // baseURL: 'http://localhost:8884/api'
-    baseURL: 'http://10.10.2.230:8884/api'
+ //  baseURL: 'http://10.10.2.199:8884/'
+     baseURL: 'http://localhost:8884/api'
+ //  baseURL: 'http://localhost:8884/api'
+ // baseURL: 'http://10.10.2.173:8884/api'
+   //  baseURL: 'http://192.168.100.24:8884/api'
+   // baseURL: 'http://10.10.2.230:8884/api'
 })
 let numTries = 0
 // Request interceptor for API calls
@@ -105,7 +109,8 @@ axios.interceptors.request.use(
     config.headers = {
       Accept: 'application/json'
     }
-    if (config.url === '/province' || config.url === '/district' || config.url.includes('/clinic/district') || config.url === '/systemConfigs') {
+    if (config.url === '/province' || config.url === '/district' || config.url.includes('/clinic/district') ||
+     config.url === '/systemConfigs' || config.url === '/menu' || config.url.includes('/clinic/uuid')) {
       delete config.headers.Authorization
     } else if (localStorage.getItem('id_token') != null) {
       config.headers['X-Auth-Token'] = [

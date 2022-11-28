@@ -34,9 +34,12 @@
 <script>
 import Report from 'src/store/models/report/Report'
 import ReceivedStockReport from 'src/reports/stock/ReceivedStockReport.ts'
-
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
+import Stock from 'src/store/models/stock/Stock'
+import { v4 as uuidv4 } from 'uuid'
+import reportDatesParams from '../../../reports/ReportDatesParams'
+import StockReceivedReport from 'src/store/models/report/stock/StockReceivedReport'
   export default {
     name: 'ReceivedStock',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -54,6 +57,8 @@ import { ref } from 'vue'
     },
     mounted () {
     },
+    computed: {
+    },
     components: {
       ListHeader: require('components/Shared/ListHeader.vue').default,
       FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
@@ -62,13 +67,20 @@ import { ref } from 'vue'
     methods: {
       closeSection () {
         this.$refs.filterReceivedStockSection.remove()
+        this.$refs.filterDrugStoreSection.remove()
+        LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
+        /*
           Report.apiInitReceivedStockProcessing(params).then(resp => {
             console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
           })
+          */
+          reportDatesParams.determineStartEndDate(params)
+          console.log(params)
+          this.getDataLocalDb(params)
          // Pack.api().post('/receivedStockReport/initReportProcess', params)
       },
       getProcessingStatus (params) {
@@ -101,6 +113,37 @@ import { ref } from 'vue'
       },
       closeDialog () {
         this.alert.visible = false
+      },
+      getDataLocalDb (params) {
+        const reportParams = reportDatesParams.determineStartEndDate(params)
+        console.log(reportParams)
+       Stock.localDbGetAll().then(stocks => {
+          console.log(stocks)
+       const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate) && stock.drug.clinicalService.id === reportParams.clinicalService)
+          console.log(result)
+          return result
+        }).then(reportDatas => {
+          reportDatas.forEach(reportData => {
+            const stockReceived = new StockReceivedReport()
+            stockReceived.reportId = reportParams.id
+          // patientHistory.period = reportParams.periodTypeView
+          stockReceived.year = reportParams.year
+          stockReceived.startDate = reportParams.startDate
+          stockReceived.endDate = reportParams.endDate
+          stockReceived.orderNumber = reportData.entrance.orderNumber
+          stockReceived.drugName = reportData.drug.name
+          stockReceived.expiryDate = reportData.expireDate
+          stockReceived.dateReceived = reportData.entrance.dateReceived
+          stockReceived.unitsReceived = reportData.unitsReceived
+          stockReceived.manufacture = reportData.manufacture
+          stockReceived.batchNumber = reportData.batchNumber
+          stockReceived.id = uuidv4()
+          StockReceivedReport.localDbAdd(stockReceived)
+         console.log(stockReceived)
+        })
+          })
+          this.progress = 100
+          params.progress = 100
       }
     }
   }

@@ -1,13 +1,13 @@
 import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
 import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
-
+import { v4 as uuidv4 } from 'uuid'
 export default class RegimenDrug extends Model {
   static entity = 'regimenDrugs'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       // amPerTime: this.attr(''),
       // timesPerDay: this.attr(''),
      // modified: this.attr(''),

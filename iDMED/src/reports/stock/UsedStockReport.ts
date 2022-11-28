@@ -32,7 +32,7 @@ export default {
       'Ajustes',
       'Stock Actual'
     ]
-    const rowsAux = await Report.api().get(`/usedStockReport/printReport/${id}/${fileType}`) 
+    const rowsAux = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType}`) 
     if (rowsAux.response.status === 204) return rowsAux.response.status
     const firstReg = rowsAux.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
@@ -89,7 +89,7 @@ export default {
   },
 
   async downloadExcel (id, fileType2, params) {
-    const rows = await Report.api().get(`/usedStockReport/printReport/${id}/${fileType2}`) 
+    const rows = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType2}`) 
     if (rows.response.status === 204) return rows.response.status
     const firstReg = rows.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)

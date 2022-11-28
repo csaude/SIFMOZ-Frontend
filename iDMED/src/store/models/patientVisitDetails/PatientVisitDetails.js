@@ -5,13 +5,14 @@ import Prescription from '../prescription/Prescription'
 import PatientVisit from '../patientVisit/PatientVisit'
 import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PatientVisitDetails extends Model {
   static entity = 'patientVisitDetails'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       patient_visit_id: this.attr(''),
       episode_id: this.attr(''),
       clinic_id: this.attr(''),

@@ -2,13 +2,14 @@ import { Model } from '@vuex-orm/core'
 import ClinicalService from '../ClinicalService/ClinicalService'
 import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import db from 'src/store/localbase'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class ClinicalServiceAttribute extends Model {
   static entity = 'clinicalServiceAttributes'
 
   static fields () {
     return {
-      id: this.attr(null),
+      id: this.uid(() => uuidv4()),
       service_id: this.attr(null),
       service_attr_type_id: this.attr(''),
       syncStatus: this.attr(''),
