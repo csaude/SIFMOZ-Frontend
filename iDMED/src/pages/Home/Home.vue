@@ -148,22 +148,6 @@ export default {
     hideLoading () {
       this.$q.loading.hide()
     },
-    mounted () {
-       SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
-        SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
-     setTimeout(() => {
-       if (this.website) {
-         if (!this.isAppSyncDone) {
-          SynchronizationService.start(this.$q, this.currClinic.id)
-         } else {
-           this.hideLoading()
-         }
-       } else {
-          SynchronizationService.start(this.$q, this.currClinic.id)
-           this.hideLoading()
-       }
-     }, 3000)
-    },
     loadClinics () {
       Clinic.localDbGetAll().then((clinics) => {
         console.log(clinics)
@@ -171,16 +155,19 @@ export default {
     }
   },
   mounted () {
+     SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
+        SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
     setTimeout(() => {
       if (this.website) {
         if (!this.isAppSyncDone) {
-        //  SynchronizationService.start(this.$q, this.currClinic.id)
+          SynchronizationService.start(this.$q, this.currClinic.id)
         } else {
           this.hideLoading()
         }
       } else {
         console.log('Clinica:' + this.currClinic)
         SynchronizationService.start(this.$q, this.currClinic.id)
+         this.hideLoading()
       }
     }, 3000)
   },
