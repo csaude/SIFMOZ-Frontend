@@ -43,6 +43,7 @@ import StockAlert from 'src/store/models/stockAlert/StockAlert'
 import db from 'src/store/localbase'
 import DrugStockFileEvent from 'src/store/models/drugStockFileEvent/DrugStockFileEvent'
 import Doctor from 'src/store/models/doctor/Doctor'
+// import Stock from 'src/store/models/stock/Stock'
 
 export default {
   async loadAndSaveAppParameters (clinicId) {
@@ -335,7 +336,8 @@ export default {
     },
 
     async send () {
-     await this.sendUsers()
+  //   await this.sendUsers()
+        await this.sendEntrances()
     },
 
     async sendUsers () {
@@ -368,5 +370,38 @@ export default {
    })
  // }
 }
+    },
+     async sendEntrances () {
+      console.log('Iniciando a sincronizacao....')
+      StockEntrance.localDbGetAll().then((entrances) => {
+        const entrancesToSync = entrances.filter((entrance) =>
+        (entrance.syncStatus === 'R' || entrance.syncStatus === 'U'))
+        return entrancesToSync
+      }).then(entrancesToSync => {
+          console.log('Entrances to SYNC', entrancesToSync[0])
+          this.apiSendEntrances(entrancesToSync, 0)
+})
+},
+apiSendEntrances (entrancesToSync, i) {
+   const entrance = entrancesToSync[i]
+   if (entrance !== undefined) {
+  // const lista = Stock.query().where('entrance_id', entrance.id).all()
+  // .with('drug').with('clinic').with('center').with('center.clinic').with('center.clinic.district').with('center.clinic.facilityType').with('center.clinic.province').with('clinic.province').with('clinic.district').with('clinic.district.province').with('clinic.facilityType')
+  //  console.log('Lista de Stocks: ', lista)
+    entrance.id = null
+  //  if (lista !== null) {
+     // entrance.stocks = lista
+      entrance.clinic_id = entrance.clinic.id
+          StockEntrance.apiSave(entrance).then(resp => {
+        i = i + 1
+        entrance.syncStatus = 'S'
+        StockEntrance.localDbUpdate(entrance)
+          setTimeout(this.apiSendEntrances(entrancesToSync, i), 2)
+          }).catch(error => {
+            console.log(error)
+        })
     }
+ // }
+ }
+
 }

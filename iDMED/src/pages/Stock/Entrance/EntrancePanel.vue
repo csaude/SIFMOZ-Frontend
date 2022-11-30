@@ -607,7 +607,7 @@ export default {
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
-      if (this.website) {
+      if (this.mobile) {
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         this.submitting = false
@@ -630,24 +630,30 @@ export default {
           this.displayAlert('error', listErrors)
         })
       } else {
-                   stock.syncStatus = 'R'
-                 //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
-                   stock.entrance_id = stock.entrance.id
+                   //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
+                   stock.entrance_id = this.currStockEntrance.id // stock.entrance.id
                    stock.drug_id = stock.drug.id
                    stock.clinic = this.currClinic
                    stock.clinic_id = this.currClinic.id
                    stock.enabled = false
+                   stock.center = StockCenter.query().where('clinic_id', stock.clinic_id).first()
+                   stock.stock_center_id = stock.center.id
+                   stock.entrance.clinic_id = this.currClinic.id
+                   stock.center.clinic = this.currClinic
                   // const uuid = uuidv4
                     const targetCopy = JSON.parse(JSON.stringify(stock))
-                    targetCopy.id = stock.id
-                   Stock.localDbAddOrUpdate(targetCopy).then(stock1 => {
+                   Stock.localDbAddOrUpdate(targetCopy, this.step).then(stock1 => {
                      Stock.insert(
                   {
                     data: stock1.data.data
                   })
-                  if (stock.id === null) {
+                  StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
+                      entrance.stocks.push(targetCopy)
+                      StockEntrance.localDbUpdate(entrance)
+                  })
+                  /* if (stock.id === null) {
                   stock.id = stock1.data.data.id
-                  }
+                  } */
                     this.submitting = false
                     this.step = 'display'
                     this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -716,8 +722,11 @@ export default {
       this.alert.visible = false
     },
     getCurrStockEntrance () {
-      const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
-       if (this.mobile) return e
+      const e = SessionStorage.getItem('currStockEntrance')
+      // e.clinic = SessionStorage.getItem('currClinic')
+      // e.clinic.district.province_id = e.clinic.province.id
+      // e.clinic.district.province = e.clinic.province
+      if (this.website) return e
       return StockEntrance.query()
                           .with('stocks')
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])

@@ -97,7 +97,7 @@ export default {
       this.doStockEntranceGet(this.clinic.id, offset, max)
     },
     doStockEntranceGet (clinicId, offset, max) {
-       if (this.website) {
+       if (this.mobile) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         console.log(resp.response.data)
             if (resp.response.data.length > 0) {

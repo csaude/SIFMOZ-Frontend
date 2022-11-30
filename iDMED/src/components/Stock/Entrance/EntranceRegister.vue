@@ -121,7 +121,8 @@ export default {
         if (!this.$refs.orderNumber.$refs.ref.hasError) {
           this.showloading()
           this.stockEntrance.clinic = this.currClinic
-          if (this.website) {
+          this.stockEntrance.id = null
+          if (this.mobile) {
                     await StockEntrance.apiSave(this.stockEntrance).then(resp => {
                     SessionStorage.set('currStockEntrance', resp.response.data)
                     this.hideLoading()
@@ -143,12 +144,11 @@ export default {
                     })
           } else {
                   this.stockEntrance.syncStatus = 'R'
-                //  this.stockEntrance.id = uuidv4()
                    const targetCopy = new StockEntrance(JSON.parse(JSON.stringify(this.stockEntrance)))
-                    console.log(targetCopy)
+                   console.log('STOCK ENTRANCE WEB: ', targetCopy)
                   await StockEntrance.localDbAdd(targetCopy).then(stockEntrance2 => {
                      console.log('stockEntrance: ', this.stockEntrance)
-                      SessionStorage.set('currStockEntrance', this.stockEntrance)
+                      SessionStorage.set('currStockEntrance', targetCopy)
                       this.hideLoading()
                       this.$router.push('/stock/entrance')
                       this.$emit('close')
@@ -166,7 +166,7 @@ export default {
                   .with('province')
                   .with('facilityType')
                   .with('district.province')
-                  .where('id', SessionStorage.getItem('currClinic').id)
+                  .where('id', 'DBA59C40-2A5C-4404-9D65-5FE0B32059EE')
                   .first()
     }
   }

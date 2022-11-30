@@ -106,9 +106,9 @@ export default class Stock extends Model {
       return db.newDb().collection('stocks').delete()
     }
 
-    static localDbAddOrUpdate (stock) {
-      if (stock.id === null) {
-        stock.id = uuidv4()
+    static localDbAddOrUpdate (stock, operation) {
+      if (operation === 'create') {
+        stock.syncStatus = 'R'
        return this.localDbAdd(stock)
       } else {
         stock.syncStatus = 'U'
