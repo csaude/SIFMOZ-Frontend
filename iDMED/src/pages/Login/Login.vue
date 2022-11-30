@@ -423,7 +423,7 @@ export default {
         })
     },
     saveCurrClinic (clinic) {
-      SessionStorage.set('currClinic', clinic)
+      if (clinic !== null) SessionStorage.set('currClinic', clinic)
     },
     authUser () {
       const encodedStringBtoA = btoa(

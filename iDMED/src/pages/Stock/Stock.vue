@@ -39,7 +39,7 @@ export default {
           InventoryStockAdjustment.apiGetAll(offset, max)
 
    // copoia o stock do localbase para o VueX
-     if (this.mobile) {
+     if (this.website) {
         db.newDb().collection('stocks').get().then(stock => {
                     Stock.insert(
                       {
@@ -52,18 +52,23 @@ export default {
                         data: stockOperationType
                       })
                       })
-        db.newDb().collection('stockEntrances').get().then(stockEntrance => {
-                          StockEntrance.insert(
-                            {
-                              data: stockEntrance
-                            })
-                            })
         db.newDb().collection('inventorys').get().then(inventory => {
                           Inventory.insert(
                             {
                               data: inventory
                             })
                             })
+        db.newDb().collection('stockEntrances').get().then(stockEntrance => {
+        StockEntrance.insert(
+          {
+            data: stockEntrance
+          })
+          }).then(item => {
+              console.log('SessionClinic: ', SessionStorage.getItem('currClinic'))
+              Clinic.insert({
+              data: SessionStorage.getItem('currClinic')
+            })
+          })
       }
     },
    getAllStockOfClinic () {
