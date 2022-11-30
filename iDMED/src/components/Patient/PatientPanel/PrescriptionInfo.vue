@@ -23,7 +23,7 @@
       <AddEditPrescription
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
-        :step="step"
+        :stepp="step"
         @close="showAddPrescription = false" />
   </q-dialog>
   </div>

@@ -11,7 +11,7 @@
               <q-separator/>
             </q-card-section>
             <div class="text-center text-h6 q-mt-sm">
-              <span v-if="episodeToEdit.id !== null && isEditStep">Actualizar</span>
+              <span v-if="isEditStep">Actualizar</span>
               <span v-else>Adicionar</span>
               Episódio
             </div>
@@ -56,7 +56,7 @@
                   <q-select class="col q-ml-md"
                     dense outlined
                     v-model="episode.startStopReason"
-                    :disable="episode.id !== null && isCreateStep"
+                    :disable="!inEdition"
                     :options="startReasons"
                     ref="startReason"
                     :rules="[ val => !!val || 'Por favor indicar a nota de início']"
@@ -68,7 +68,7 @@
                   <q-select
                     class="col"
                     dense outlined
-                    :disable="episode.id !== null && isCreateStep"
+                    :disable="!inEdition"
                     ref="clinicSerctor"
                     :rules="[ val => !!val || 'Por favor indicar o sector onde vai ocorrer o atendimento']"
                     v-model="episode.clinicSector"
@@ -79,7 +79,7 @@
                   <q-input
                       dense
                       outlined
-                      :disable="episode.id !== null && isCreateStep"
+                      :disable="!inEdition"
                       class="col q-ml-md"
                       v-model="startDate"
                       ref="startDate"
@@ -98,7 +98,7 @@
                   </q-input>
                   <div class="col q-ml-md"/>
               </div>
-              <span v-if="episode.id !== null">
+              <span v-if="isEditStep">
                 <div class="q-mt-md">
                   <div class="row items-center q-mb-sm">
                       <span class="text-subtitle2">Dados do Novo Episódio</span>
@@ -253,7 +253,6 @@ export default {
             estados: ['Activo', 'Curado'],
             startDate: '',
             stopDate: '',
-            step: '',
             selectedProvince: null,
             selectedDistrict: null,
             selectedClinicSectorType: null,
@@ -262,14 +261,17 @@ export default {
     },
     methods: {
       init () {
+        this.setStep(this.stepp)
+        // this.changeToCreateStep()
         this.identifier = new PatientServiceIdentifier(this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
         if (this.identifier.lastEpisode() !== null && this.identifier.lastEpisode().isStartEpisode() && (this.episode !== null || this.episode !== undefined)) {
           this.episode = new Episode(this.identifier.lastEpisode())
-          this.step = 'close'
+          this.changeToCloseStep()
         }
         this.episode.patientServiceIdentifier = this.identifier
-        if (this.episode.id !== null) {
+        console.log(this.episode)
+        if (this.isEditStep) {
           this.startDate = this.getDDMMYYYFromJSDate(this.episode.episodeDate)
           this.episode.patientServiceIdentifier.episodes = []
           this.episode.clinicSector.clinic = Clinic.query()
@@ -279,7 +281,6 @@ export default {
                                                   .where('id', this.episode.clinicSector.clinic_id)
                                                   .first()
         }
-        this.step = this.stepp
       },
       submitForm () {
         if (this.isCreateStep || this.isEditStep) {
@@ -312,7 +313,7 @@ export default {
         }
       },
       async doSave () {
-        if (this.episode.id === null) {
+        if (this.inEdition) {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
           this.episode.clinic = this.currClinic
@@ -415,7 +416,7 @@ export default {
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
             lastEpisodeCopy.clinicSector_id = lastEpisodeCopy.clinicSector.id
             lastEpisodeCopy.episodeType_id = lastEpisodeCopy.episodeType.id
-            lastEpisodeCopy.syncStatus = 'R'
+            lastEpisodeCopy.syncStatus = this.isCreateStep ? 'R' : 'U'
             console.log(lastEpisodeCopy)
             await Episode.localDbAdd(lastEpisodeCopy)
             Episode.insert({ data: lastEpisodeCopy })
@@ -438,7 +439,7 @@ export default {
               console.log(transReference)
               setTimeout(this.doTransReference(transReference), 2)
             }
-            this.displayAlert('info', this.episode.id === null ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
+            this.displayAlert('info', this.isCreateStep ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
             }).catch(error => {
               console.log(error)
             })
@@ -669,15 +670,6 @@ export default {
         } else {
           return allReasons
         }
-      },
-      isEditStep () {
-        return this.step === 'edit'
-      },
-      isCreateStep () {
-        return this.step === 'create'
-      },
-      isCloseStep () {
-        return this.step === 'close'
       }
     }
 }

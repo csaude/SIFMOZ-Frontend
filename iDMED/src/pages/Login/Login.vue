@@ -406,7 +406,7 @@ export default {
         this.instalation_type === 'LOCAL' ? this.clinic.uuid : this.province.code
       await SystemConfigs.apiSave(this.systemConfigs)
         .then((resp) => {
-          /// this.$router.push({ path: '/Login' })
+          SystemConfigs.localDbAdd(resp.response.data)
         })
         .catch((error) => {
           this.listErrors = []

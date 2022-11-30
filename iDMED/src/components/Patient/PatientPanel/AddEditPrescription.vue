@@ -302,7 +302,7 @@ import mixinutils from 'src/mixins/mixin-utils'
 import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 export default {
   mixins: [mixinplatform, mixinutils],
-  props: ['selectedVisitDetails', 'step', 'service', 'member'],
+  props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
   data () {
     return {
       mds: ref('US_'),
@@ -346,6 +346,7 @@ export default {
   },
   methods: {
     async init () {
+      this.setStep(this.stepp)
       this.clearPrescriptionSession()
       await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
         ClinicalServiceAttribute.insert({ data: regimens })
@@ -355,7 +356,11 @@ export default {
       } else {
         this.getPatientActiveClinicalServices()
       }
-      if (this.mobile) this.doDispenseModeGetAll(0)
+      if (this.mobile) {
+        this.doDispenseModeGetAll(0)
+      } else {
+        this.loadParamsToVueX()
+      }
     },
     initPatientVisitDetailsForDispense () {
       this.inFormEdition = true
@@ -1176,11 +1181,12 @@ export default {
     },
     therapeuticRegimens: {
       get () {
+        if (this.selectedClinicalService === null) return []
         return TherapeuticRegimen.query()
-                                .with('clinicalService.identifierType')
+                              //  .with('clinicalService.identifierType')
                                 .has('code')
                                 .where('active', true)
-                                .where('clinical_service_id', this.selectedClinicalService.id)
+                              //  .where('clinical_service_id', this.selectedClinicalService.id)
                                 .get()
       }
     },

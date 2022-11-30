@@ -1,4 +1,4 @@
- import moment from 'moment'
+import moment from 'moment'
 import { date, LocalStorage, SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
@@ -15,6 +15,11 @@ import ClinicalServiceAttributeType from 'src/store/models/ClinicalServiceAttrib
 import ClinicalServiceAttribute from 'src/store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
 import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
+import EpisodeType from 'src/store/models/episodeType/EpisodeType'
+import IdentifierType from 'src/store/models/identifierType/IdentifierType'
+import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
+import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
+import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
 
 export default {
   data () {
@@ -24,6 +29,7 @@ export default {
         visible: false,
         msg: ''
       }),
+      step: '',
       $q: useQuasar()
     }
   },
@@ -65,9 +71,14 @@ export default {
   formatDate (dateString) {
     return date.formatDate(dateString, 'DD-MM-YYYY')
   },
-  loadParamsToVueX () {
+  async loadParamsToVueX () {
     TherapeuticRegimen.localDbGetAll().then(regimens => {
-      TherapeuticRegimen.insert({ data: regimens })
+      regimens.forEach((regimen) => {
+        regimen.clincalServiceId = ''
+        regimen.clinical_service_id = ''
+        TherapeuticRegimen.insert({ data: regimen })
+      })
+      console.log(regimens)
     })
     TherapeuticLine.localDbGetAll().then(regimens => {
       TherapeuticLine.insert({ data: regimens })
@@ -81,14 +92,8 @@ export default {
     DispenseType.localDbGetAll().then(regimens => {
       DispenseType.insert({ data: regimens })
     })
-    Drug.localDbGetAll().then(regimens => {
-      Drug.insert({ data: regimens })
-    })
     DispenseMode.localDbGetAll().then(regimens => {
       DispenseMode.insert({ data: regimens })
-    })
-    ClinicalService.localDbGetAll().then(services => {
-      ClinicalService.insert({ data: services })
     })
     ClinicalServiceAttributeType.localDbGetAll().then(regimens => {
       ClinicalServiceAttributeType.insert({ data: regimens })
@@ -99,6 +104,31 @@ export default {
     ClinicSectorType.localDbGetAll().then(clinicSectorTypes => {
       ClinicSectorType.insert({ data: clinicSectorTypes })
   })
+    ClinicalService.localDbGetAll().then(services => {
+      ClinicalService.insert({ data: services })
+    })
+    await EpisodeType.localDbGetAll().then(episodeTypes => {
+      EpisodeType.insert({ data: episodeTypes })
+    })
+    await IdentifierType.localDbGetAll().then(idTypes => {
+      IdentifierType.insert({ data: idTypes })
+    })
+    await StartStopReason.localDbGetAll().then(startStopReasons => {
+      StartStopReason.insert({ data: startStopReasons })
+    })
+    await ClinicSector.localDbGetAll().then(sectors => {
+      ClinicSector.insert({ data: sectors })
+    })
+    await ClinicSectorType.localDbGetAll().then(setorTypes => {
+      ClinicSectorType.insert({ data: setorTypes })
+    })
+    Drug.localDbGetAll().then(drugs => {
+      drugs.forEach((drug) => {
+        drug.clinicalServiceId = ''
+        drug.formId = ''
+        Drug.insert({ data: drug })
+      })
+    })
   },
   idadeCalculator (birthDate) {
     if (moment(birthDate, 'YYYY/MM/DDDD').isValid()) {
@@ -108,7 +138,28 @@ export default {
        console.log(idade)
       return idade
     }
-}
+  },
+  setStep (value) {
+    this.step = value
+  },
+  changeToEditStep () {
+    this.step = 'edit'
+  },
+  changeToCreateStep () {
+    this.step = 'create'
+  },
+  changeToCloseStep () {
+    this.step = 'close'
+  },
+  changeToRemotionStep () {
+    this.step = 'delete'
+  },
+  changeToDisplayStep () {
+    this.step = 'display'
+  },
+  changeToReOpenStep () {
+    this.step = 'reOpen'
+  }
  },
   computed: {
     isAppSyncDone () {
@@ -123,7 +174,7 @@ export default {
                                 .with('province')
                                 .with('facilityType')
                                 .with('district.province')
-                                .where('id', '087B9202-722D-47C2-A3D2-1145DB64A860')
+                                .where('mainClinic', true)
                                 .first()
        console.log('Clinica22:' + clinic)
           if (clinic !== null) return clinic
@@ -131,6 +182,27 @@ export default {
     },
     getUUID () {
       return uuidv4()
+    },
+    isEditStep () {
+      return this.step === 'edit'
+    },
+    isCreateStep () {
+      return this.step === 'create'
+    },
+    isCloseStep () {
+      return this.step === 'close'
+    },
+    isRemotionStep () {
+      return this.step === 'delete'
+    },
+    isDisplayStep () {
+      return this.step === 'display'
+    },
+    isReOpenStep () {
+      return this.step === 'reOpen'
+    },
+    inEdition () {
+      return this.isEditStep || this.isCreateStep
     }
   },
   components: {
