@@ -292,7 +292,7 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 export default {
-    props: ['identifierToEdit', 'selectedPatient', 'step'],
+    props: ['identifierToEdit', 'selectedPatient', 'stepp'],
    mixins: [mixinplatform, mixinutils],
     data () {
       const submitting = ref(false)
@@ -318,6 +318,9 @@ export default {
         this.reloadIdentifierTypeMask()
       },
       reloadIdentifierTypeMask () {
+        IdentifierType.localDbGetAll().then(idTypes => {
+          IdentifierType.insert({ data: idTypes })
+        })
         if (this.identifier.service !== null) {
           this.identifierTypeMask = this.identifier.service.identifierType.pattern
         }
@@ -631,6 +634,7 @@ export default {
       }
     },
     created () {
+      this.setStep(this.stepp)
         if (!this.isCreateStep) {
           this.identifier = Object.assign({}, this.identifierToEdit)
           this.identifier.clinic = this.currClinic
@@ -755,18 +759,6 @@ export default {
       },
       identifierTypes () {
         return IdentifierType.all()
-      },
-      isCloseStep () {
-        return this.step === 'close'
-      },
-      isEditStep () {
-        return this.step === 'edit'
-      },
-      isCreateStep () {
-        return this.step === 'create'
-      },
-      isReOpenStep () {
-        return this.step === 'reOpen'
       },
       pharmacies () {
         return Clinic.query().with('province').where('mainClinic', false).get()
