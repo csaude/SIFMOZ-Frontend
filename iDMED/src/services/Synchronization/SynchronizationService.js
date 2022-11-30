@@ -42,6 +42,7 @@ import User from 'src/store/models/userLogin/User'
 import StockAlert from 'src/store/models/stockAlert/StockAlert'
 import db from 'src/store/localbase'
 import DrugStockFileEvent from 'src/store/models/drugStockFileEvent/DrugStockFileEvent'
+import Doctor from 'src/store/models/doctor/Doctor'
 
 export default {
   async loadAndSaveAppParameters (clinicId) {
@@ -80,7 +81,12 @@ export default {
         Drug.localDbUpdateAll(resp.response.data)
     })
     await TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
-        TherapeuticRegimen.localDbUpdateAll(resp.response.data)
+        resp.response.data.forEach((therapeuticRegimen) => {
+          const tRegimen = new TherapeuticRegimen(therapeuticRegimen)
+          tRegimen.clinicalService = therapeuticRegimen.clincalService
+          console.log(tRegimen)
+          TherapeuticRegimen.localDbAdd(tRegimen)
+        })
     })
     await TherapeuticLine.apiGetAll(offset, max).then(resp => {
         TherapeuticLine.localDbUpdateAll(resp.response.data)
@@ -132,6 +138,9 @@ export default {
       })
       await ProvincialServer.apiGetAll().then(resp => {
           ProvincialServer.localDbUpdateAll(resp.response.data)
+      })
+      await Doctor.apiFetchByClinicId(clinicId).then(resp => {
+        Doctor.localDbUpdateAll(resp.response.data)
       })
       DispenseMode.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
@@ -317,10 +326,10 @@ export default {
       this.doPackGet(clinicId, 0, 100)
      this.doPrescriptionGet(clinicId, 0, 100)
     this.doInventoryGet(clinicId, 0, 100)
-    await this.loadAndSaveAppParameters(clinicId)
      this.loadAndSaveRolesAndUsers(clinicId)
       LocalStorage.set('system-sync-status', 'done')
       await this.doGetAllStockAlert(clinicId, 0, 100)
+      await this.loadAndSaveAppParameters(clinicId)
       await LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()
     },

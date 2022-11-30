@@ -107,13 +107,7 @@ import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
-import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import Episode from '../../../store/models/episode/Episode'
-import IdentifierType from '../../../store/models/identifierType/IdentifierType'
-import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
-import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
-import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import mixinutils from 'src/mixins/mixin-utils'
 export default {
   mixins: [mixinplatform, mixinutils],
@@ -155,28 +149,12 @@ export default {
         await Episode.localDbGetAll().then(episodes => {
           Episode.insert({ data: episodes })
         })
-        await ClinicSectorType.localDbGetAll().then(setorTypes => {
-          ClinicSectorType.insert({ data: setorTypes })
-        })
-        await ClinicSector.localDbGetAll().then(sectors => {
-          ClinicSector.insert({ data: sectors })
-        })
-        await ClinicalService.localDbGetAll().then(services => {
-          ClinicalService.insert({ data: services })
-        })
-        await EpisodeType.localDbGetAll().then(episodeTypes => {
-          EpisodeType.insert({ data: episodeTypes })
-        })
-        await IdentifierType.localDbGetAll().then(idTypes => {
-          IdentifierType.insert({ data: idTypes })
-        })
-        await StartStopReason.localDbGetAll().then(startStopReasons => {
-          StartStopReason.insert({ data: startStopReasons })
-        })
       }
       if (this.patient === null && this.mobile) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
+      setTimeout(
+      this.loadParamsToVueX(), 9000)
     },
     showPatientDetails () {
       console.log('showPatientDetails')

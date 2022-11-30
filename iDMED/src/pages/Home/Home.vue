@@ -155,8 +155,8 @@ export default {
     }
   },
   mounted () {
-     SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
-        SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
+     // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
+        // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
     setTimeout(() => {
       if (this.website) {
         if (!this.isAppSyncDone) {

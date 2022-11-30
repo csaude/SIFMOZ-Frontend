@@ -24,7 +24,7 @@
         <AddClinicService
           :identifierToEdit="selectedIdentifier"
           :selectedPatient="selectedPatient"
-          :step="step"
+          :stepp="step"
           @createFirstEpisode="createFirstEpisode"
           @close="showAddEditClinicalService = false" />
     </q-dialog>

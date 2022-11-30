@@ -1,5 +1,6 @@
 <template>
   <q-card style="width: 800px; max-width: 90vw;">
+  <pre>{{drugs}}</pre>
     <form @submit.prevent="submitForm" >
         <q-card-section class="q-pa-none">
           <div class="q-pt-md q-mb-sm bg-green-2">
@@ -104,7 +105,7 @@ export default {
         drugs = Drug.query().with('form').with('stocks').with('clinicalService.identifierType').where('active', true).get()
       }
       const validDrugs = drugs.filter((drug) => {
-        return drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock()
+        return drug.clinicalService !== null && (drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock())
       })
       return validDrugs
     },
