@@ -14,6 +14,7 @@ import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 import ClinicalServiceAttributeType from 'src/store/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import ClinicalServiceAttribute from 'src/store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
+import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
 
 export default {
   data () {
@@ -95,6 +96,9 @@ export default {
     ClinicalServiceAttribute.localDbGetAll().then(regimens => {
       ClinicalServiceAttribute.insert({ data: regimens })
     })
+    ClinicSectorType.localDbGetAll().then(clinicSectorTypes => {
+      ClinicSectorType.insert({ data: clinicSectorTypes })
+  })
   },
   idadeCalculator (birthDate) {
     if (moment(birthDate, 'YYYY/MM/DDDD').isValid()) {

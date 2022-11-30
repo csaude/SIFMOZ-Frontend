@@ -282,12 +282,15 @@ export default {
        // this.extractDatabaseCodes()
         if (this.configs.value === 'LOCAL') {
             this.isProvincial = false
+            /*
            const clinicCurr = Clinic.query()
                         .with('province')
                         .with('district.province')
                         .with('facilityType')
                         .where('id', SessionStorage.getItem('currClinic').id)
                         .first()
+                        / */
+              const clinicCurr = new Clinic(SessionStorage.getItem('currClinic'))
              this.user.clinics[0] = clinicCurr
               this.selectedClinics[0] = clinicCurr
     } else {
@@ -323,8 +326,10 @@ export default {
         this.$refs.nome.$refs.ref.validate()
         this.$refs.password.validate()
          this.$refs.username.$refs.ref.validate()
+         this.$refs.contact.$refs.ref.validate()
         if (!this.$refs.nome.$refs.ref.hasError &&
-            !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError) {
+            !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
+             !this.$refs.contact.hasError) {
              this.$refs.stepper.next()
         }
            } else if (this.step === 2) {
@@ -381,7 +386,7 @@ export default {
                   this.displayAlert('error', error)
             })
           } else {
-            this.user.syncStatus = 'S'
+            this.user.syncStatus = 'R'
             this.user.authorities = this.selectedRoles
               let userLocalBase = JSON.parse(JSON.stringify(this.user))
               console.log(this.userLocalBase)

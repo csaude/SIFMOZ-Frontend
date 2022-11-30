@@ -174,7 +174,7 @@ export default {
     setTimeout(() => {
       if (this.website) {
         if (!this.isAppSyncDone) {
-        //  SynchronizationService.start(this.$q, this.currClinic.id)
+          SynchronizationService.start(this.$q, this.currClinic.id)
         } else {
           this.hideLoading()
         }

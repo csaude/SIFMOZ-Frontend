@@ -362,7 +362,7 @@ export default {
           )
         }
       })
-      if (SessionStorage.getItem('currClinic') === null) {
+      if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic') === 'null') {
         await this.loadSystemConfigs()
         const sysconfig = SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
         await Clinic.apiGetByUUID(sysconfig.description).then((resp) => {
@@ -423,7 +423,7 @@ export default {
         })
     },
     saveCurrClinic (clinic) {
-      SessionStorage.set('currClinic', clinic)
+      if (clinic !== null) SessionStorage.set('currClinic', clinic)
     },
     authUser () {
       const encodedStringBtoA = btoa(
@@ -461,6 +461,7 @@ export default {
                 console.log(menusVuex)
                 var menusDescription = menusVuex.map((m) => m.description).flat()
                 localStorage.setItem('role_menus', menusDescription)
+                localStorage.setItem('userLocalId', userLoged.id)
                 this.$router.push({ path: '/' })
               } else {
                 Notify.create({

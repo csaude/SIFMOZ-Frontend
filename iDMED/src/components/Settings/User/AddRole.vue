@@ -17,7 +17,7 @@
                     ref="nome"
                     square
                     v-model="role.name"
-                    :rules="[ val => val.length >= 3 || 'O nome indicado é inválido']"
+                    :rules="[ val => val.length >= 3 || 'O nome indicado nao pode ter mais que 9 digitos']"
                     lazy-rules
                     :disable="onlyView"
                     class="col fild-radius"
@@ -129,19 +129,21 @@ export default {
         this.$refs.description.$refs.ref.validate()
         if (!this.$refs.nome.$refs.ref.hasError &&
             !this.$refs.description.hasError) {
-                        if (this.role.menus.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos uma funcionalidade')
-            } else {
+              const roleExist = this.userRoles.filter(role => role.name === this.role.name)
+              const roleDescription = this.userRoles.filter(role => role.description === this.role.description)
+              if (roleExist.length > 0 || roleDescription.length > 0) {
+          this.displayAlert('error', 'Ja Existe um Perfil com esse nome')
+        }
+      } else {
                    this.submitUser()
             }
-        }
         },
         submitUser () {
            this.submitting = true
             console.log(this.role)
             this.role.active = true
             this.role.authority = 'ROLE_' + this.role.name
-            if (this.website) {
+            if (!this.website) {
               Role.apiSave(this.role).then(resp => {
               this.submitting = false
                  this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
@@ -151,7 +153,7 @@ export default {
             })
             } else {
              // this.role.id = uuidv4()
-              this.role.syncStatus = 'S'
+              this.role.syncStatus = 'R'
               const roleLocalBase = JSON.parse(JSON.stringify(this.role))
               console.log(this.role)
               console.log(roleLocalBase)
