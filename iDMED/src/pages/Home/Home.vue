@@ -166,13 +166,13 @@ export default {
         }
       } else {
         console.log('Clinica:' + this.currClinic)
-        SynchronizationService.start(this.$q, this.currClinic.id)
+       // SynchronizationService.start(this.$q, this.currClinic.id)
          this.hideLoading()
       }
     }, 3000)
   },
   created () {
-    this.showloading()
+   // this.showloading()
   }
 }
 </script>

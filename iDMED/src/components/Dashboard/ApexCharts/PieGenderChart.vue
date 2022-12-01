@@ -50,7 +50,8 @@ export default {
           text: 'Percentual de Pacientes activos no Serviço ' + this.serviceCode,
           align: 'center',
           style: {
-            color: '#000000'
+            color: '#000000',
+            fontSize: '13px'
           }
           },
       plotOptions: {

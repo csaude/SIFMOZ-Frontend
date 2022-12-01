@@ -52,7 +52,7 @@ export default {
   async loadAndSaveAppParameters (clinicId) {
     const offset = 0
     const max = 100
-  //  this.doClinicGet(0, 100)
+    this.doClinicGet(0, 100)
 
     await Duration.apiGetAll(offset, max).then(resp => {
       Duration.localDbUpdateAll(resp.response.data)
@@ -331,8 +331,8 @@ export default {
    //   this.doPackGet(clinicId, 0, 100)
    //  this.doPrescriptionGet(clinicId, 0, 100)
   //  this.doInventoryGet(clinicId, 0, 100)
-  //  await this.loadAndSaveAppParameters(clinicId)
-     this.loadAndSaveRolesAndUsers(clinicId)
+//   await this.loadAndSaveAppParameters(clinicId)
+  //   this.loadAndSaveRolesAndUsers(clinicId)
       LocalStorage.set('system-sync-status', 'done')
     //  await this.doGetAllStockAlert(clinicId, 0, 100)
      // await LocalStorage.set('system-sync-status', 'done')
@@ -456,7 +456,7 @@ async getEpisodeToSend () {
     return episodesToSync
   }).then(episodesToSync => {
       console.log(episodesToSync[0])
-      this.apiPatientUsers(episodesToSync, 0)
+      this.apiSendEpisode(episodesToSync, 0)
 })
 },
 async getPatientServiceIdentifierToSend () {
@@ -489,6 +489,26 @@ if (identifier !== undefined) {
 })
 }
 },
+apiSendEpisode (episodesToSync, i) {
+  const episode = episodesToSync[i]
+if (episode !== undefined) {
+   const idToDelete = episode.id
+   episode.id = null
+   Episode.apiSave(episode).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    episode.syncStatus = 'S'
+    episode.id = resp.response.data.id
+    // Get Childs TO Update
+    Episode.localDbDeleteById(idToDelete)
+    Episode.delete(idToDelete)
+    Episode.localDbAdd(episode)
+       setTimeout(this.apiSendEpisode(episodesToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+})
+}
+},
     login (username, password) {
       UsersService.login({
         username: username,
@@ -507,6 +527,7 @@ if (identifier !== undefined) {
           this.getUsersToSend()
           this.getPatientsToSend()
           this.getPatientServiceIdentifierToSend()
+          this.getEpisodeToSend()
         })
         .catch((error) => {
           console.log(error)
@@ -521,7 +542,7 @@ if (identifier !== undefined) {
               })
             }
             console.log(this.listErrors)
-          }  
+          }
 })
 },
 async sendEntrances () {

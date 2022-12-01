@@ -155,8 +155,8 @@ export default class PatientServiceIdentifier extends Model {
     return db.newDb().collection('identifiers').set(identifiers)
   }
 
-  static localDbDelete (identifier) {
-    return db.newDb().collection('identifiers').doc({ id: identifier.id }).delete()
+  static localDbDelete (identifierId) {
+    return db.newDb().collection('identifiers').doc({ id: identifierId }).delete()
   }
 
   static localDbDeleteAll () {

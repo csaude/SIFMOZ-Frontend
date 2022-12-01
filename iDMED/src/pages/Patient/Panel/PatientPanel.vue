@@ -153,8 +153,7 @@ export default {
       if (this.patient === null && this.mobile) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
-      setTimeout(
-      this.loadParamsToVueX(), 9000)
+       setTimeout(this.loadParamsToVueX(), 9000)
     },
     showPatientDetails () {
       console.log('showPatientDetails')
