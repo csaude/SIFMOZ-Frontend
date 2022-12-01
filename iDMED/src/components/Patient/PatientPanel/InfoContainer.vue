@@ -271,7 +271,9 @@ export default {
     }
   },
   created () {
-    PatientServiceIdentifier.apiGetAllByPatientId(this.selectedPatient.id)
+    if (this.mobile) {
+      PatientServiceIdentifier.apiGetAllByPatientId(this.selectedPatient.id)
+    }
   }
 }
 </script>
