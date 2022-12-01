@@ -82,6 +82,7 @@ import Stock from '../../../store/models/stock/Stock'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import Drug from '../../../store/models/drug/Drug'
 const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
@@ -191,6 +192,15 @@ export default {
       this.nextPUpDate = nextPDate
       this.pickupDate = pickupDate
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs, pickupDate, nextPDate, duration)
+    },
+    async loadParams () {
+      await Drug.localDbGetAll().then(drugs => {
+        drugs.forEach((drug) => {
+          drug.clinicalServiceId = ''
+          drug.formId = ''
+          Drug.insert({ data: drug })
+        })
+      })
     }
   },
   mounted () {
@@ -238,6 +248,7 @@ export default {
   created () {
     this.curVisitDetails = Object.assign({}, this.visitDetails)
     this.currPrescription = new Prescription(this.prescription)
+    this.loadParams()
   },
   components: {
     AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,

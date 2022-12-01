@@ -39,7 +39,6 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
-  props: ['selectedPatient'],
   mixins: [mixinplatform, mixinutils],
   data () {
     return {
@@ -52,6 +51,7 @@ export default {
   },
   methods: {
     async init () {
+      console.log('On PrescriptionInfo initialization')
       if (this.identifiers.length <= 0) {
             this.flagGoReady = true
       } else {
@@ -60,13 +60,14 @@ export default {
             const episodeList = Episode.query()
                                         .with('startStopReason')
                                         .with('patientServiceIdentifier')
-                                        .with('patientVisitDetails.*')
+                                       .with('patientVisitDetails.*')
                                         .where('patientServiceIdentifier_id', identifier.id)
                                         .get()
            episodeList.forEach((episode) => {
                PatientVisitDetails.localDbGetAll().then(pvds => {
                 pvds.forEach((pvd) => {
-                  if (pvd.episode_id === episode.id) {
+                  if (pvd.episode.id === episode.id) {
+                    console.log(pvd)
                     PatientVisitDetails.insert({ data: pvd })
                   }
                 })

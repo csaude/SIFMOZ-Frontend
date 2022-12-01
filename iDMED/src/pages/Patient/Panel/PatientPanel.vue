@@ -67,7 +67,7 @@
                 style="height: 440px;"
                 class="q-pr-md"
               >
-                <PrescriptionInfo :selectedPatient="patient" class="q-mb-lg"/>
+                <PrescriptionInfo class="q-mb-lg"/>
             </q-scroll-area>
             </q-tab-panel>
             <q-tab-panel name="screening">
@@ -78,7 +78,7 @@
                 style="height: 440px;"
                 class="q-pr-md"
               >
-              <PharmaceuticalAtentionInfo :selectedPatient="patient"/>
+              <!--PharmaceuticalAtentionInfo :selectedPatient="patient"/-->
             </q-scroll-area>
             </q-tab-panel>
         </q-tab-panels>
@@ -93,8 +93,8 @@
         >
 
           <ClinicServiceInfo v-if="website" :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
-          <PrescriptionInfo v-if="website" :selectedPatient="patient" class="q-mb-lg"/>
-          <PharmaceuticalAtentionInfo v-if="website" :selectedPatient="patient"/>
+          <PrescriptionInfo v-if="website && isInitialized" class="q-mb-lg"/>
+          <!--PharmaceuticalAtentionInfo v-if="website" :selectedPatient="patient"/-->
         </q-scroll-area>
       </div>
     </div>
@@ -153,7 +153,9 @@ export default {
       if (this.patient === null && this.mobile) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
-       setTimeout(this.loadParamsToVueX(), 9000)
+      setTimeout(this.loadParamsToVueX(), 9000)
+      this.setAsInitialized()
+      console.log('Finished Panel initialization ' + this.isInitialized)
     },
     showPatientDetails () {
       console.log('showPatientDetails')
