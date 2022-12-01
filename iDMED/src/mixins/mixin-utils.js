@@ -19,6 +19,7 @@ import IdentifierType from 'src/store/models/identifierType/IdentifierType'
 import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
 import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
 import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
+import Stock from 'src/store/models/stock/Stock'
 
 export default {
   data () {
@@ -29,6 +30,7 @@ export default {
         msg: ''
       }),
       step: '',
+      initialized: false,
       $q: useQuasar()
     }
   },
@@ -77,7 +79,9 @@ export default {
         regimen.clinical_service_id = ''
         TherapeuticRegimen.insert({ data: regimen })
       })
-      console.log(regimens)
+    })
+    Stock.localDbGetAll().then(stocks => {
+      Stock.insert({ data: stocks })
     })
     TherapeuticLine.localDbGetAll().then(regimens => {
       TherapeuticLine.insert({ data: regimens })
@@ -155,9 +159,15 @@ export default {
   },
   changeToReOpenStep () {
     this.step = 'reOpen'
+  },
+  setAsInitialized () {
+    this.initialized = true
   }
  },
   computed: {
+    isInitialized () {
+      return this.initialized
+    },
     isAppSyncDone () {
       return LocalStorage.getItem('system-sync-status') === 'done'
     },

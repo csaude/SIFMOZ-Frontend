@@ -1,6 +1,5 @@
 <template>
   <q-card style="width: 800px; max-width: 90vw;">
-  <pre>{{drugs}}</pre>
     <form @submit.prevent="submitForm" >
         <q-card-section class="q-pa-none">
           <div class="q-pt-md q-mb-sm bg-green-2">
@@ -85,6 +84,7 @@ export default {
     }
   },
   methods: {
+    async init () {},
     submitForm () {
       this.$refs.drug.validate()
       this.$refs.amtPerTime.validate()
@@ -102,12 +102,17 @@ export default {
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').with('stocks').with('clinicalService.identifierType').where('active', true).get()
+        drugs = Drug.query()
+                   .with('form')
+                   .with('stocks')
+                   .with('clinicalService.identifierType')
+                    .where('active', true)
+                    .get()
       }
-      const validDrugs = drugs.filter((drug) => {
+      /* const validDrugs = drugs.filter((drug) => {
         return drug.clinicalService !== null && (drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock())
-      })
-      return validDrugs
+      }) */
+      return drugs
     },
     loadDefaultParameters () {
       if (this.prescribedDrug.drug !== null) {
@@ -134,6 +139,7 @@ export default {
       this.showOnlyOfRegimen = this.hasTherapeuticalRegimen
   },
   created () {
+    this.init()
       this.currVisitDetails = Object.assign({}, this.visitDetails)
   },
   components: {

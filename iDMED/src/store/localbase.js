@@ -4,6 +4,7 @@ import Localbase from 'localbase'
 export default {
     newDb () {
         const db = new Localbase('db')
+        db.config.debug = false
     return db
     }
 }
