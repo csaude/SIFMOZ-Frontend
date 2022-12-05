@@ -348,7 +348,9 @@ export default {
     async init () {
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
+      ClinicalServiceAttribute.deleteAll()
       await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
+        console.log(regimens)
         ClinicalServiceAttribute.insert({ data: regimens })
       })
       if (this.isNewPackStep || this.isEditPackStep) {
@@ -359,8 +361,9 @@ export default {
       if (this.mobile) {
         this.doDispenseModeGetAll(0)
       } else {
-        this.loadParamsToVueX()
+      //  this.loadParamsToVueX()
       }
+     // ClinicalService.deleteAll()
     },
     initPatientVisitDetailsForDispense () {
       this.inFormEdition = true

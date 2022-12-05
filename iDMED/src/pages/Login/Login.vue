@@ -434,7 +434,7 @@ export default {
       this.$refs.password.validate()
       if (!this.$refs.user.hasError && !this.$refs.password.hasError) {
         this.submitting = true
-        if (!this.website) {
+        if (this.website) {
           this.loginOnline(encodedStringBtoA)
         } else {
           User.localDbGetAll().then((users) => {

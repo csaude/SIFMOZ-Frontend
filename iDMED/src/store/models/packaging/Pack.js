@@ -96,4 +96,8 @@ export default class Pack extends Model {
     static localDbDeleteAll () {
       return db.newDb().collection('packs').delete()
     }
+
+    static localDbDeleteById (packId) {
+      return db.newDb().collection('packs').doc({ id: packId }).delete()
+    }
 }
