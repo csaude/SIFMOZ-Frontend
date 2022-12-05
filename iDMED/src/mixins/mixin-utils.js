@@ -110,9 +110,6 @@ export default {
     await EpisodeType.localDbGetAll().then(episodeTypes => {
       EpisodeType.insert({ data: episodeTypes })
     })
-    await IdentifierType.localDbGetAll().then(idTypes => {
-      IdentifierType.insert({ data: idTypes })
-    })
     await StartStopReason.localDbGetAll().then(startStopReasons => {
       StartStopReason.insert({ data: startStopReasons })
     })
@@ -128,6 +125,9 @@ export default {
         drug.formId = ''
         Drug.insert({ data: drug })
       })
+    })
+    await IdentifierType.localDbGetAll().then(idTypes => {
+      IdentifierType.insert({ data: idTypes })
     })
   },
   idadeCalculator (birthDate) {

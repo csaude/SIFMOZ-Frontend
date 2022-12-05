@@ -102,7 +102,7 @@ export default {
   props: ['selectedPatient'],
   methods: {
     init () {
-      if (this.selectedPatient === null && this.website) {
+      if (this.selectedPatient === null && this.mobile) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
       },
