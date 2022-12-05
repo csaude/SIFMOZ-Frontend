@@ -70,6 +70,7 @@
 
 <script>
 import Drug from '../../../store/models/drug/Drug'
+import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 export default {
@@ -84,7 +85,11 @@ export default {
     }
   },
   methods: {
-    async init () {},
+    async init () {
+      IdentifierType.localDbGetAll().then(idTypes => {
+        IdentifierType.insert({ data: idTypes })
+      })
+    },
     submitForm () {
       this.$refs.drug.validate()
       this.$refs.amtPerTime.validate()
@@ -109,10 +114,10 @@ export default {
                     .where('active', true)
                     .get()
       }
-      /* const validDrugs = drugs.filter((drug) => {
+      const validDrugs = drugs.filter((drug) => {
         return drug.clinicalService !== null && (drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock())
-      }) */
-      return drugs
+      })
+      return validDrugs
     },
     loadDefaultParameters () {
       if (this.prescribedDrug.drug !== null) {

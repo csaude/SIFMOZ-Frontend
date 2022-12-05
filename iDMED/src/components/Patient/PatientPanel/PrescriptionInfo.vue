@@ -65,21 +65,16 @@ export default {
                                         .get()
            episodeList.forEach((episode) => {
                PatientVisitDetails.localDbGetAll().then(pvds => {
-                pvds.forEach((pvd) => {
-                  if (pvd.episode.id === episode.id) {
-                    console.log(pvd)
-                    PatientVisitDetails.insert({ data: pvd })
+                pvds.forEach((p) => {
+                  if (p.episode_id === episode.id) {
+                    PatientVisitDetails.insert({ data: p })
                   }
-                })
-                Prescription.localDbGetAll().then(prescriptionList => {
-                  prescriptionList.forEach((prescription) => {
+                Prescription.localDbGetById(p.prescription_id).then(prescription => {
                     Prescription.insert({ data: prescription })
-                  })
                 })
-                Pack.localDbGetAll().then(packList => {
-                  packList.forEach((pack) => {
+                Pack.localDbGetById(p.pack_id).then(pack => {
                     Pack.insert({ data: pack })
-                  })
+                })
                 })
               })
             })

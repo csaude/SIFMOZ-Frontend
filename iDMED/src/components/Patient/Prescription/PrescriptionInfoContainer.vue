@@ -161,9 +161,8 @@ export default {
       return episode
     },
     reloadParams () {
-      if (this.website) {
-        this.loadParamsToVueX()
-      } else {
+      if (this.mobile) {
+        // this.loadParamsToVueX()
         TherapeuticRegimen.apiGetAll()
         TherapeuticLine.apiGetAll()
         Doctor.apiGetAll()

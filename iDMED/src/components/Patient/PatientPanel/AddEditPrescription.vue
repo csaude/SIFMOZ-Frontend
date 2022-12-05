@@ -862,6 +862,23 @@ export default {
                                                                                                         .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                                                                                         .first()
           if (this.website) {
+            memberPrescription.prescription.doctor_id = memberPrescription.prescription.doctor.id
+            memberPrescription.prescription.clinic_id = memberPrescription.prescription.clinic.id
+            memberPrescription.prescription.duration_id = memberPrescription.prescription.duration.id
+
+            memberPrescription.prescription.prescriptionDetails[0].prescription_id = memberPrescription.prescription.id
+            memberPrescription.prescription.prescriptionDetails[0].therapeutic_line_id = memberPrescription.prescription.prescriptionDetails[0].therapeuticLine.id
+            memberPrescription.prescription.prescriptionDetails[0].therapeutic_regimen_id = memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id
+            memberPrescription.prescription.prescriptionDetails[0].dispense_type_id = memberPrescription.prescription.prescriptionDetails[0].dispenseType.id
+            if (memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
+              memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
+            }
+
+            memberPrescription.prescription.prescribedDrugs.forEach((pDrug) => {
+              pDrug.prescription_id = memberPrescription.prescription.id
+              pDrug.drug_id = pDrug.drug.id
+            })
+
             Prescription.localDbAdd(memberPrescription.prescription)
             memberPrescription.prescription.prescribedDrugs = []
             GroupMemberPrescription.localDbAdd(memberPrescription)
@@ -915,7 +932,40 @@ export default {
                                       .first()
           patientVDetails.episode.patientVisitDetails = []
           console.log(patientVDetails)
-          patientVDetails.prescription.syncStatus = 'R'
+          if (patientVDetails.prescription.syncStatus === '') {
+            patientVDetails.prescription.syncStatus = 'R'
+          }
+
+          patientVDetails.prescription.doctor_id = patientVDetails.prescription.doctor.id
+          patientVDetails.prescription.clinic_id = patientVDetails.prescription.clinic.id
+          patientVDetails.prescription.duration_id = patientVDetails.prescription.duration.id
+
+          patientVDetails.prescription.prescriptionDetails[0].prescription_id = patientVDetails.prescription.id
+          patientVDetails.prescription.prescriptionDetails[0].therapeutic_line_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticLine.id
+          patientVDetails.prescription.prescriptionDetails[0].therapeutic_regimen_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id
+          patientVDetails.prescription.prescriptionDetails[0].dispense_type_id = patientVDetails.prescription.prescriptionDetails[0].dispenseType.id
+          if (patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
+            patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
+          }
+
+          patientVDetails.prescription.prescribedDrugs.forEach((pDrug) => {
+            pDrug.prescription_id = patientVDetails.prescription.id
+            pDrug.drug_id = pDrug.drug.id
+          })
+
+          patientVDetails.pack.dispenseMode_id = patientVDetails.pack.dispenseMode.id
+          patientVDetails.pack.clinic_id = patientVDetails.pack.clinic.id
+
+          patientVDetails.pack.packagedDrugs.forEach((pDrug) => {
+            pDrug.pack_id = patientVDetails.pack.id
+            pDrug.drug_id = pDrug.drug.id
+            pDrug.packagedDrugStocks.forEach((pDrugStock) => {
+              pDrugStock.pack_id = patientVDetails.pack.id
+              pDrugStock.drug_id = pDrugStock.drug.id
+              pDrugStock.packagedDrug_id = pDrug.id
+            })
+          })
+
           Prescription.localDbAdd(patientVDetails.prescription).then(pre => {
             patientVDetails.pack.syncStatus = 'R'
             Pack.localDbAdd(patientVDetails.pack)
@@ -926,14 +976,24 @@ export default {
           const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
           patientVisit.patient = this.simplePatient
           patientVisit.clinic = this.currClinic
+          patientVisit.clinic_id = patientVisit.clinic.id
+          patientVisit.patient_id = patientVisit.patient.id
           patientVisitCopy.patientVisitDetails.forEach((pvd) => {
             pvd.prescription.prescriptionDetails = []
             pvd.prescription.prescribedDrugs = []
             pvd.patientVisit = JSON.parse(JSON.stringify(patientVisit))
             pvd.patientVisit.patientVisitDetails = []
             pvd.syncStatus = 'R'
+            pvd.episode_id = pvd.episode.id
+            pvd.clinic_id = pvd.clinic.id
+            pvd.patient_visit_id = pvd.patientVisit.id
+            pvd.prescription_id = pvd.prescription.id
+            pvd.pack_id = pvd.pack.id
           console.log(pvd)
-            PatientVisitDetails.localDbAdd(pvd)
+
+            PatientVisitDetails.localDbAdd(pvd).then(p => {
+              this.loadVitisToVueX(pvd)
+            })
           })
           this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
         }
@@ -941,9 +1001,9 @@ export default {
         if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
           const patientVDetails = patientVisit.patientVisitDetails[i]
           patientVDetails.episode = Episode.query()
-                                      .withAll()
-                                      .where('id', patientVDetails.episode.id)
-                                      .first()
+                                            .withAll()
+                                            .where('id', patientVDetails.episode.id)
+                                            .first()
           patientVDetails.episode.patientVisitDetails = []
           console.log(patientVDetails)
           if (patientVDetails.prescription.id === null) {
@@ -992,6 +1052,17 @@ export default {
           this.savePatientVisit(patientVisitCopy)
         }
       }
+    },
+    async loadVitisToVueX (pvd) {
+     await PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
+       PatientVisitDetails.insert({ data: visitDetails })
+     })
+     Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
+        Prescription.insert({ data: prescription })
+      })
+      Pack.localDbGetById(pvd.pack_id).then(pack => {
+        Pack.insert({ data: pack })
+      })
     },
     savePack (patientVisit, patientVisitDetails, i) {
       Pack.apiSave(patientVisitDetails.pack).then(resp => {
@@ -1226,7 +1297,7 @@ export default {
                                 .with('clinicalService.identifierType')
                                 .has('code')
                                 .where('active', true)
-                              //  .where('clinical_service_id', this.selectedClinicalService.id)
+                                .where('clinical_service_id', this.selectedClinicalService.id)
                                 .get()
       }
     },
