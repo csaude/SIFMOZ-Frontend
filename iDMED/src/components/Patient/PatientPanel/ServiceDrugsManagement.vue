@@ -118,7 +118,6 @@ export default {
                                                                 .with('pack')
                                                                 .where('prescription_id', prescriptionCopy.id)
                                                                 .get()
-      console.log(duration.weeks)
       if (duration.weeks > prescriptionCopy.remainigDurationInWeeks()) {
         this.displayAlert('error', 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' + Number((prescriptionCopy.remainigDurationInWeeks()) / 4) + ' mes(es)]')
       } else {
@@ -177,7 +176,6 @@ export default {
     init () {
       this.pickupDate = this.newPickUpDate
       if (this.isNewPrescriptionStep) {
-        console.log(this.visitDetails.prescription.prescribedDrugs)
         const pvd = new PatientVisitDetails(this.visitClone)
         this.prescribedDrugs = pvd.prescription.prescribedDrugs
       } else
@@ -194,13 +192,15 @@ export default {
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs, pickupDate, nextPDate, duration)
     },
     async loadParams () {
-      await Drug.localDbGetAll().then(drugs => {
-        drugs.forEach((drug) => {
-          drug.clinicalServiceId = ''
-          drug.formId = ''
-          Drug.insert({ data: drug })
+      if (this.mobile) {
+        await Drug.localDbGetAll().then(drugs => {
+          drugs.forEach((drug) => {
+            drug.clinicalServiceId = ''
+            drug.formId = ''
+            Drug.insert({ data: drug })
+          })
         })
-      })
+      }
     }
   },
   mounted () {

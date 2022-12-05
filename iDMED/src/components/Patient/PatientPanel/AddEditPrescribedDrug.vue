@@ -73,7 +73,9 @@ import Drug from '../../../store/models/drug/Drug'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+    mixins: [mixinplatform],
   props: ['visitDetails', 'hasTherapeuticalRegimen'],
   data () {
     return {
@@ -86,9 +88,11 @@ export default {
   },
   methods: {
     async init () {
-      IdentifierType.localDbGetAll().then(idTypes => {
-        IdentifierType.insert({ data: idTypes })
-      })
+      if (this.mobile) {
+        IdentifierType.localDbGetAll().then(idTypes => {
+          IdentifierType.insert({ data: idTypes })
+        })
+      }
     },
     submitForm () {
       this.$refs.drug.validate()

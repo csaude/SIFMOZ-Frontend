@@ -372,7 +372,7 @@ export default {
                                                                           .first()
                         }
                         console.log(this.closureEpisode)
-                        if (this.website) {
+                        if (this.mobile) {
                           this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
                           this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
                           this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
@@ -410,7 +410,7 @@ export default {
           this.episode.patientServiceIdentifier.episodes = []
           console.log(this.episode)
           const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
-          if (this.website) {
+          if (this.mobile) {
             lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
             lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
@@ -458,7 +458,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -477,7 +477,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id

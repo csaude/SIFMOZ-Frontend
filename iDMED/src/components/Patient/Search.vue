@@ -129,6 +129,7 @@
             :newPatient="newPatient"
             :selectedPatient="currPatient"
             :clinic="currClinic"
+            :stepp="step"
             :transferencePatientData="transferencePatientData"
             @close="showPatientRegister = false" />
       </q-dialog>
@@ -148,6 +149,7 @@ import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
 import TransferenceService from 'src/services/Transferences/TransferenceService'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 const columns = [
  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   { name: 'identifier', align: 'left', label: 'Identificador', sortable: false },
@@ -157,7 +159,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-   mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinutils],
     data () {
       return {
         searchField: '',
@@ -211,9 +213,8 @@ export default {
       this.$q.loading.hide()
     },
       init () {
-        if (this.website) {
+        if (this.mobile) {
           Patient.localDbGetAll().then(patients => {
-            console.log(patients)
             Patient.insert({ data: patients })
           })
         }
@@ -225,6 +226,7 @@ export default {
           ]
         })
         SessionStorage.remove('selectedPatient')
+        this.changeToCreateStep()
         this.showPatientRegister = true
         this.newPatient = true
       },
@@ -243,11 +245,13 @@ export default {
       },
       editPatient (patient) {
         this.currPatient = Object.assign({}, patient)
+        this.changeToEditStep()
         this.showPatientRegister = true
         this.newPatient = false
       },
       saveOpenMRSPatient (patient) {
         this.currPatient = Object.assign({}, patient)
+        this.changeToCreateStep()
         this.showPatientRegister = true
         this.newPatient = true
       },
@@ -341,7 +345,7 @@ export default {
       },
       localSearch () {
         this.showloading()
-        if (this.mobile) {
+        if (this.website) {
           console.log('Performing website search')
           Patient.deleteAll()
           this.currPatient.clinic = this.clinic
@@ -465,7 +469,6 @@ export default {
               return psi
       },
       buildLocalPatientFromOpenMRS (localpatient, pacienteOpenMRS) {
-        console.log(pacienteOpenMRS)
         const cellphoneObject = pacienteOpenMRS.person.attributes.find(attribute => attribute.attributeType.uuid === 'e2e3fd64-1d5f-11e0-b929-000c29ad1d07')
               localpatient.hisUuid = pacienteOpenMRS.uuid
               localpatient.his = (this.selectedDataSources.id.length > 4) ? this.selectedDataSources : null

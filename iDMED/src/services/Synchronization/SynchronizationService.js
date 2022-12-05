@@ -85,6 +85,7 @@ export default {
         resp.response.data.forEach((therapeuticRegimen) => {
           const tRegimen = new TherapeuticRegimen(therapeuticRegimen)
           tRegimen.clinicalService = therapeuticRegimen.clincalService
+          tRegimen.clinical_service_id = tRegimen.clinicalService.id
           console.log(tRegimen)
           TherapeuticRegimen.localDbAdd(tRegimen)
         })

@@ -44,7 +44,7 @@
             </div>
             <div class="q-mx-lg">
               <q-stepper
-                v-model="step"
+                v-model="screeningStep"
                 ref="stepper"
                 header-class="text-bold bg-grey-3"
                 color="primary"
@@ -56,7 +56,7 @@
                   :name="1"
                   title="Dados Vitais"
                   icon="show_chart"
-                  :done="step > 1"
+                  :done="screeningStep > 1"
                 >
                   <div class="row q-mt-md">
                         <numberField v-model="vitalSigns.height" label="Altura *"  :disable="onlyView" suffix="[Metros]" ref="height" @update:model-value="getImcValue()"/>
@@ -76,7 +76,7 @@
                   :name="2"
                   title="Rastreio de Tuberculose"
                   icon="show_chart"
-                  :done="step > 2"
+                  :done="screeningStep > 2"
                 >
                  <tbTable  @tbScreening="TBScreening = $event" :selectedTbTracing="patientVisit.tbScreening[0]"/>
                 </q-step>
@@ -86,7 +86,7 @@
                   title="Rastreio de Gravidez"
                   v-if="this.patient.gender === 'Feminino'"
                   icon="show_chart"
-                  :done="step > 3"
+                  :done="screeningStep > 3"
                 >
                    <pregnancyTable  @pregnancyScreening="pregnancyScreening = $event" :selectedPregnancyTracing="patientVisit.pregnancyScreening[0]"/>
                 </q-step>
@@ -95,7 +95,7 @@
                   :name="4"
                   title="Monitoria e Reforço à Adesão"
                   icon="show_chart"
-                  :done="step > 4"
+                  :done="screeningStep > 4"
                 >
                   <adherenceTable  @adherenceScreening="adherenceScreening = $event" :selectedAdherenceTracing="patientVisit.adherenceScreening[0]"/>
                 </q-step>
@@ -113,8 +113,8 @@
              <q-card-actions align="right" class="q-my-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                 <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep" color="primary" :label="step === 5 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
+                 <q-btn v-if="screeningStep > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+          <q-btn @click="goToNextStep" color="primary" :label="screeningStep === 5 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
@@ -137,53 +137,49 @@ import TBScreening from '../../../store/models/screening/TBScreening'
 import PregnancyScreening from '../../../store/models/screening/PregnancyScreening'
 import AdherenceScreening from '../../../store/models/screening/AdherenceScreening'
 import RAMScreening from '../../../store/models/screening/RAMScreening'
-import Clinic from '../../../store/models/clinic/Clinic'
-import moment from 'moment'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
+    mixins: [mixinplatform, mixinutils],
     props: ['editPatientVisit', 'editMode'],
     data () {
         return {
-          alert: ref({
-                type: '',
-                visible: false,
-                msg: ''
-          }),
           patientVisit: new PatientVisit(),
           vitalSigns: new VitalSignsScreening(),
           TBScreening: new TBScreening(),
           pregnancyScreening: new PregnancyScreening(),
           adherenceScreening: new AdherenceScreening(),
           rAMScreening: new RAMScreening(),
-          step: ref(1),
+          screeningStep: ref(1),
           visitDate: '',
           // imcDescription: '',
           hasVisitSameDay: false,
           contentStyle: {
-        backgroundColor: '#ffffff',
-        color: '#555'
-      },
+            backgroundColor: '#ffffff',
+            color: '#555'
+          },
 
-      contentActiveStyle: {
-        backgroundColor: '#eee',
-        color: 'black'
-      },
+          contentActiveStyle: {
+            backgroundColor: '#eee',
+            color: 'black'
+          },
 
-      thumbStyle: {
-        right: '2px',
-        borderRadius: '5px',
-        backgroundColor: '#0ba58b',
-        width: '5px',
-        opacity: 0.75
+          thumbStyle: {
+            right: '2px',
+            borderRadius: '5px',
+            backgroundColor: '#0ba58b',
+            width: '5px',
+            opacity: 0.75
+          }
       }
-        }
     },
     created () {
-        if (this.editPatientVisit) {
+      if (this.editPatientVisit) {
         this.patientVisit = Object.assign({}, this.editPatientVisit)
         this.visitDate = this.getDDMMYYYFromJSDate(this.editPatientVisit.visitDate)
         this.vitalSigns = Object.assign({}, this.editPatientVisit.vitalSigns[0])
         this.TBScreening = Object.assign({}, this.editPatientVisit.tbScreening[0])
-        }
+      }
     },
     computed: {
       imcDescription: {
@@ -213,21 +209,11 @@ export default {
                             .with('bairro')
                             .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                             .where('id', selectedP.id).first()
-      },
-      currClinic () {
-      return Clinic.query()
-                    .with('province')
-                    .with('district.province')
-                    .with('facilityType')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
-    }
+      }
     },
     methods: {
        async goToNextStep () {
-          if (this.step === 1) {
-           // this.patientVisit.TBScreening = this.TBScreening
-           // this.patientVisit.pregnancyScreening = this.pregnancyScreening
+          if (this.screeningStep === 1) {
             this.$refs.height.$refs.ref.validate()
             this.$refs.weight.$refs.ref.validate()
             this.$refs.systole.$refs.ref.validate()
@@ -251,7 +237,7 @@ export default {
              !this.$refs.systole.$refs.ref.hasError && !this.$refs.distort.$refs.ref.hasError) {
               this.$refs.stepper.next()
             }
-          } else if (this.step === 2) {
+          } else if (this.screeningStep === 2) {
             if (this.TBScreening.treatmentTB === 'true' && this.TBScreening.startTreatmentDate === '') {
                 this.displayAlert('error', 'Deve Preencher a Data de inicio de Tratamento uma vez que esta em Tratamento TB.')
             } else if ((this.TBScreening.startTreatmentDate) && new Date(this.TBScreening.startTreatmentDate) > new Date()) {
@@ -261,7 +247,7 @@ export default {
             } else {
               this.$refs.stepper.next()
             }
-          } else if (this.step === 3) {
+          } else if (this.screeningStep === 3) {
              if (this.pregnancyScreening.pregnant === 'false' && this.pregnancyScreening.lastMenstruation === '') {
                 this.displayAlert('error', 'Deve Preencher a Data da Ultima Menstruação.')
             } else if ((this.pregnancyScreening.lastMenstruation) && new Date(this.pregnancyScreening.lastMenstruation) > new Date()) {
@@ -269,7 +255,7 @@ export default {
             } else {
               this.$refs.stepper.next()
             }
-          } else if (this.step === 4) {
+          } else if (this.screeningStep === 4) {
             if ((this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine === '') ||
              (this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine <= 0)) {
                this.displayAlert('error', 'Por Favor Indique quantos dias de atraso completou o paciente')
@@ -279,37 +265,63 @@ export default {
           } else {
              this.$refs.stepper.next()
           }
-          } else if (this.step === 5) {
+          } else if (this.screeningStep === 5) {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
                 this.displayAlert('error', 'Por Favor Indique as reacoes adversas')
              } else {
-            this.patientVisit.clinic = this.currClinic
-            this.patientVisit.patient = this.patient
-             this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
-            this.patientVisit.vitalSigns.push(this.vitalSigns)
-            this.patientVisit.tbScreening.push(this.TBScreening)
-            this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
-            this.patientVisit.adherenceScreening.push(this.adherenceScreening)
-            this.patientVisit.ramScreening.push(this.rAMScreening)
-            await PatientVisit.apiSave(this.patientVisit).then(resp => {
-              PatientVisit.apiFetchById(resp.response.data.id)
-             this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
-            // this.$emit('patientVisitNew', this.patientVisit)
-             }).catch(error => {
-             this.displayAlert('error', error)
-          })
+              if (this.website) {
+                this.patientVisit.clinic = this.currClinic
+                this.patientVisit.patient = this.patient
+                this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
+
+                this.vitalSigns.patient_visit_id = this.patientVisit.id
+                this.TBScreening.patient_visit_id = this.patientVisit.id
+                this.pregnancyScreening.patient_visit_id = this.patientVisit.id
+                this.adherenceScreening.patient_visit_id = this.patientVisit.id
+                this.rAMScreening.patient_visit_id = this.patientVisit.id
+
+                this.vitalSigns.syncStatus = this.isCreateStep ? 'R' : 'U'
+                this.TBScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
+                this.pregnancyScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
+                this.adherenceScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
+                this.rAMScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
+
+                this.patientVisit.syncStatus = this.isCreateStep ? 'R' : 'U'
+
+                this.patientVisit.vitalSigns.push(this.vitalSigns)
+                this.patientVisit.tbScreening.push(this.TBScreening)
+                this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
+                this.patientVisit.adherenceScreening.push(this.adherenceScreening)
+                this.patientVisit.ramScreening.push(this.rAMScreening)
+
+                this.patientVisit.clinic_id = this.currClinic.id
+                this.patientVisit.patient_id = this.patient.id
+
+                const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patientVisit)))
+
+                await PatientVisit.localDbAdd(targetCopy).then(res => {
+                  PatientVisit.insert({ data: targetCopy })
+                  this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
+                })
+              } else {
+                this.patientVisit.clinic = this.currClinic
+                this.patientVisit.patient = this.patient
+                this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
+                this.patientVisit.vitalSigns.push(this.vitalSigns)
+                this.patientVisit.tbScreening.push(this.TBScreening)
+                this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
+                this.patientVisit.adherenceScreening.push(this.adherenceScreening)
+                this.patientVisit.ramScreening.push(this.rAMScreening)
+                await PatientVisit.apiSave(this.patientVisit).then(resp => {
+                  PatientVisit.apiFetchById(resp.response.data.id)
+                this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
+                }).catch(error => {
+                  this.displayAlert('error', error)
+                })
+              }
              }
           }
           },
-          displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
-      if (this.alert.type === 'info') this.$emit('close')
-    },
        getImcValue () {
         if (this.vitalSigns.height !== 0.0 && this.vitalSigns.weight !== 0) {
           this.vitalSigns.imc = this.vitalSigns.weight / ((this.vitalSigns.height) * (this.vitalSigns.height))
@@ -338,14 +350,7 @@ export default {
                            this.hasVisitSameDay = false
                           }
                        }
-         },
-      getJSDateFromDDMMYYY (dateString) {
-        const dateParts = dateString.split('-')
-        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-      },
-      getDDMMYYYFromJSDate (jsDate) {
-        return moment(jsDate).format('DD-MM-YYYY')
-      }
+         }
     },
     components: {
        TextInput: require('components/Shared/Input/TextField.vue').default,

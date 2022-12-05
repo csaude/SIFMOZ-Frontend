@@ -73,7 +73,6 @@
 </template>
 
 <script>
-import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from '../../../store/models/episode/Episode'
@@ -86,17 +85,11 @@ export default {
    mixins: [mixinplatform, mixinutils],
   data () {
     return {
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
       isPatientActive: false,
       showAddEpisode: false,
       selectedEpisode: new Episode(),
       showAddEditEpisode: false,
-      serviceInfoVisible: true,
-      step: ''
+      serviceInfoVisible: true
     }
   },
   components: {
@@ -108,7 +101,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.mobile) {
+      if (this.website) {
         PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
         Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
       }
@@ -271,7 +264,7 @@ export default {
     }
   },
   created () {
-    if (this.mobile) {
+    if (this.website) {
       PatientServiceIdentifier.apiGetAllByPatientId(this.selectedPatient.id)
     }
   }

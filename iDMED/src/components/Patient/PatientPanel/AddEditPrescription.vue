@@ -356,7 +356,7 @@ export default {
       } else {
         this.getPatientActiveClinicalServices()
       }
-      if (this.mobile) {
+      if (this.website) {
         this.doDispenseModeGetAll(0)
       } else {
         this.loadParamsToVueX()
@@ -861,7 +861,7 @@ export default {
                                                                                                         .where('active', true)
                                                                                                         .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                                                                                         .first()
-          if (this.website) {
+          if (this.mobile) {
             memberPrescription.prescription.doctor_id = memberPrescription.prescription.doctor.id
             memberPrescription.prescription.clinic_id = memberPrescription.prescription.clinic.id
             memberPrescription.prescription.duration_id = memberPrescription.prescription.duration.id
@@ -1297,7 +1297,7 @@ export default {
                                 .with('clinicalService.identifierType')
                                 .has('code')
                                 .where('active', true)
-                                .where('clinical_service_id', this.selectedClinicalService.id)
+                                // .where('clinical_service_id', this.selectedClinicalService.id)
                                 .get()
       }
     },

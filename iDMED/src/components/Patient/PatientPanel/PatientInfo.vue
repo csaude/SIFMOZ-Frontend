@@ -80,6 +80,7 @@
           <patientRegister
             :selectedPatient="patient"
             :clinic="currClinic"
+            :stepp="step"
             @close="showPatientRegister = false" />
         </q-dialog>
         <span >
@@ -91,8 +92,9 @@
 import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
-   mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinutils],
   data () {
     return {
       showPatientRegister: false,
@@ -102,12 +104,14 @@ export default {
   props: ['selectedPatient'],
   methods: {
     init () {
-      if (this.selectedPatient === null && this.mobile) {
+      this.changeToDisplayStep()
+      if (this.selectedPatient === null && this.website) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
       },
     editPatient () {
       this.patient = this.selectedPatient
+      this.changeToEditStep()
       this.showPatientRegister = true
     }
   },
