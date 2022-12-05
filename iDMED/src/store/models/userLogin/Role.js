@@ -14,7 +14,7 @@ export default class Role extends Model {
 
   static fields () {
     return {
-      id: this.uid(() => uuidv4()),
+     id: this.attr(null),
      authority: this.attr(''),
      description: this.attr(''),
      name: this.attr(''),
@@ -57,8 +57,8 @@ export default class Role extends Model {
     return db.newDb().collection('roles').set(roles)
   }
 
-  static localDbDelete (role) {
-    return db.newDb().collection('roles').doc({ id: role.id }).delete()
+  static localDbDelete (roleId) {
+    return db.newDb().collection('roles').doc({ id: roleId }).delete()
   }
 
   static localDbDeleteAll () {

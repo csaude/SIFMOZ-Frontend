@@ -128,4 +128,8 @@ export default class Prescription extends Model {
     static localDbDeleteAll () {
       return db.newDb().collection('prescriptions').delete()
     }
+
+    static localDbDeleteById (prescriptionId) {
+      return db.newDb().collection('prescriptions').doc({ id: prescriptionId }).delete()
+    }
 }

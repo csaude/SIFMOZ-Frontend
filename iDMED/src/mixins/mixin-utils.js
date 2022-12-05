@@ -1,4 +1,4 @@
- import moment from 'moment'
+import moment from 'moment'
 import { date, LocalStorage, SessionStorage, QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from 'src/store/models/clinic/Clinic'
 import Patient from 'src/store/models/patient/Patient'
@@ -18,7 +18,7 @@ import EpisodeType from 'src/store/models/episodeType/EpisodeType'
 import IdentifierType from 'src/store/models/identifierType/IdentifierType'
 import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
 import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
-import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
+// import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
 import Stock from 'src/store/models/stock/Stock'
 
 export default {
@@ -104,6 +104,9 @@ export default {
     ClinicalServiceAttribute.localDbGetAll().then(regimens => {
       ClinicalServiceAttribute.insert({ data: regimens })
     })
+    ClinicSectorType.localDbGetAll().then(clinicSectorTypes => {
+      ClinicSectorType.insert({ data: clinicSectorTypes })
+  })
     ClinicalService.localDbGetAll().then(services => {
       ClinicalService.insert({ data: services })
     })
@@ -113,9 +116,15 @@ export default {
     await StartStopReason.localDbGetAll().then(startStopReasons => {
       StartStopReason.insert({ data: startStopReasons })
     })
+    /*
     await ClinicSector.localDbGetAll().then(sectors => {
-      ClinicSector.insert({ data: sectors })
+      sectors.forEach((sector) => {
+        sector.clinic.district.id = ''
+        sector.clinic.province.id = ''
+        ClinicSector.insert({ data: sector })
+      })
     })
+    */
     await ClinicSectorType.localDbGetAll().then(setorTypes => {
       ClinicSectorType.insert({ data: setorTypes })
     })

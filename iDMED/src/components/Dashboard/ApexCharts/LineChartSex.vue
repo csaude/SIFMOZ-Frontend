@@ -38,14 +38,19 @@ export default {
       loading,
       chartOptions: { // ApexCharts options
         chart: {
-          id: 'vue-chart-line'
+          id: 'vue-chart-line',
+          toolbar: {
+        show: true,
+        offsetY: 7
+        }
         },
         colors: ['#0096FF', '#FF1493'],
          title: {
           text: 'Total de Pacientes no Serviço ' + this.serviceCode + ' que iniciaram o levantamento',
           align: 'center',
           style: {
-            color: '#000000'
+            color: '#000000',
+            fontSize: '13px'
           }
           },
            animations: {
