@@ -78,7 +78,7 @@
                 style="height: 440px;"
                 class="q-pr-md"
               >
-              <!--PharmaceuticalAtentionInfo :selectedPatient="patient"/-->
+              <PharmaceuticalAtentionInfo :selectedPatient="patient"/>
             </q-scroll-area>
             </q-tab-panel>
         </q-tab-panels>
@@ -89,12 +89,12 @@
           :content-active-style="contentActiveStyle"
           style="height: 700px;"
           class="q-pr-md"
-           v-if="website"
+           v-if="mobile"
         >
 
           <ClinicServiceInfo v-if="website" :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
           <PrescriptionInfo v-if="website && isInitialized" class="q-mb-lg"/>
-          <!--PharmaceuticalAtentionInfo v-if="website" :selectedPatient="patient"/-->
+          <PharmaceuticalAtentionInfo v-if="website" :selectedPatient="patient"/>
         </q-scroll-area>
       </div>
     </div>
@@ -109,6 +109,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from '../../../store/models/episode/Episode'
 import mixinutils from 'src/mixins/mixin-utils'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   mixins: [mixinplatform, mixinutils],
   setup () {
@@ -136,12 +137,11 @@ export default {
   },
   methods: {
     async init () {
-      if (this.website) {
+      if (this.mobile) {
         this.showPatientInfo = ref(true)
         await PatientServiceIdentifier.localDbGetAll().then(identifiers => {
           identifiers.forEach(identifier => {
             if (identifier.patient.id === this.patient.id) {
-              console.log(identifier)
               PatientServiceIdentifier.insert({ data: identifier })
             }
           })
@@ -149,11 +149,19 @@ export default {
         await Episode.localDbGetAll().then(episodes => {
           Episode.insert({ data: episodes })
         })
+        await PatientVisit.localDbGetAll().then(pvList => {
+          pvList.forEach((pv) => {
+            if (pv.patient_id === this.patient.id) {
+              PatientVisit.insert({ data: pv })
+            }
+          })
+        })
+        this.loadParamsToVueX()
+      } else {
+        if (this.patient === null) {
+          Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
+        }
       }
-      if (this.patient === null && this.mobile) {
-        Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
-      }
-      setTimeout(this.loadParamsToVueX(), 9000)
       this.setAsInitialized()
       console.log('Finished Panel initialization ' + this.isInitialized)
     },
@@ -194,8 +202,8 @@ export default {
       InfoTitleBar: require('components/Patient/PatientPanel/PanelTitleBar.vue').default,
       PatientInfo: require('components/Patient/PatientPanel/PatientInfo.vue').default,
       ClinicServiceInfo: require('components/Patient/PatientPanel/ClinicServicesInfo.vue').default,
-      PrescriptionInfo: require('components/Patient/PatientPanel/PrescriptionInfo.vue').default
-      // PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
+      PrescriptionInfo: require('components/Patient/PatientPanel/PrescriptionInfo.vue').default,
+      PharmaceuticalAtentionInfo: require('components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue').default
   },
   created () {
     this.init()

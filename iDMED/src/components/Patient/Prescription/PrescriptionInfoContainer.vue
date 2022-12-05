@@ -104,7 +104,7 @@ export default {
   },
   methods: {
      init () {
-       if (this.mobile) {
+       if (this.website) {
           if (this.identifier !== null) {
             PatientServiceIdentifier.apiFetchById(this.identifier.id)
             if (this.identifier.service !== null) {
@@ -161,7 +161,7 @@ export default {
       return episode
     },
     reloadParams () {
-      if (this.mobile) {
+      if (this.website) {
         // this.loadParamsToVueX()
         TherapeuticRegimen.apiGetAll()
         TherapeuticLine.apiGetAll()
@@ -230,7 +230,7 @@ export default {
       }
     },
     validadeColor () {
-      if (this.prescription !== null && this.prescription.remainigDuration() > 0) {
+      if (this.prescription !== null && this.prescription.leftDuration > 0) {
         return 'text-primary'
       } else {
         return 'text-red'

@@ -517,7 +517,7 @@ export default {
         if (this.isEditStep) {
           this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
         }
-        if (this.website) {
+        if (this.mobile) {
           this.identifier.id = this.getUUID
           this.identifier.identifier_type_id = this.identifier.identifierType.id
           this.identifier.service_id = this.identifier.service.id
@@ -591,7 +591,7 @@ export default {
           })
           transReference.identifier.episodes = []
           transReference.patient.identifiers = []
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -612,7 +612,7 @@ export default {
           })
           transReference.identifier.episodes = []
           transReference.patient.identifiers = []
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id

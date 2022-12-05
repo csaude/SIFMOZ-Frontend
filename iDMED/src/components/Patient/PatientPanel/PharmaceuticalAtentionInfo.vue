@@ -30,7 +30,10 @@ import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import PregnancyScreening from '../../../store/models/screening/PregnancyScreening'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
+    mixins: [mixinplatform, mixinutils],
   props: ['selectedPatient'],
   data () {
     return {
@@ -42,11 +45,13 @@ export default {
   },
   methods: {
     init () {
-      this.patientVisits.forEach(patientVisit => {
-        PregnancyScreening.apiGetAllByPatientVisitId(patientVisit.id).then(resp => {
-          this.flagGo = true
+      if (this.website) {
+        this.patientVisits.forEach(patientVisit => {
+          PregnancyScreening.apiGetAllByPatientVisitId(patientVisit.id).then(resp => {
+            this.flagGo = true
+          })
         })
-      })
+      }
     },
     expandLess (value) {
       this.infoVisible = !value
@@ -61,10 +66,6 @@ export default {
         return new Patient(SessionStorage.getItem('selectedPatient'))
       }
     },
-    /*
-    patient () {
-      return new Patient(SessionStorage.getItem('selectedPatient'))
-    }, */
     patientVisits: {
       get () {
         const pvts = PatientVisit.query()
@@ -77,17 +78,6 @@ export default {
       return pvts
       }
     },
-    /*
-    patientVisits () {
-      const pvts = PatientVisit.query()
-                          .where('patient_id', this.patient.id)
-                          .limit(4)
-                          .has('vitalSigns')
-                          .orderBy('visitDate', 'desc')
-                          .get()
-      if (pvts.length > 0) pvts[0].isLast = true
-      return pvts
-    }, */
     showAddButton () {
       return this.selectedPatient.identifiers.length > 0
     }
