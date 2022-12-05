@@ -168,7 +168,7 @@ export default {
     }, 3000)
   },
   created () {
-    this.showloading()
+   // this.showloading()
   }
 }
 </script>

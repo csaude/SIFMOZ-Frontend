@@ -180,8 +180,8 @@ export default class Patient extends Model {
     return db.newDb().collection('patients').set(patients)
   }
 
-  static localDbDelete (patient) {
-    return db.newDb().collection('patients').doc({ id: patient.id }).delete()
+  static localDbDelete (patientId) {
+    return db.newDb().collection('patients').doc({ id: patientId }).delete()
   }
 
   static localDbDeleteAll () {
