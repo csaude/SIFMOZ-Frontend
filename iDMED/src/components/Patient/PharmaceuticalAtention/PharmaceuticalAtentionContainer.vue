@@ -113,6 +113,8 @@ import { SessionStorage, date } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 const columns = [
   { name: 'vitalSigns', required: true, field: 'row.vitalSigns', label: 'Dados Vitais', align: 'left', sortable: false },
   { name: 'tb', align: 'left', field: 'row.tbScreening', label: 'Rastreio TB', sortable: false },
@@ -123,6 +125,7 @@ const columns = [
 ]
 export default {
   props: ['selectedPatientVisit'],
+    mixins: [mixinplatform, mixinutils],
   data () {
     return {
         alert: ref({
@@ -155,7 +158,9 @@ export default {
   },
   methods: {
     init () {
-      PatientVisit.apiFetchById(this.selectedPatientVisit.id)
+      if (this.website) {
+        PatientVisit.apiFetchById(this.selectedPatientVisit.id)
+      }
     },
     checkPatientStatusOnService () {
       if (this.curIdentifier.endDate !== '') {

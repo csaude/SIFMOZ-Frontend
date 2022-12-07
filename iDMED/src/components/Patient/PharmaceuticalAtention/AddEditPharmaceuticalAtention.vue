@@ -179,6 +179,9 @@ export default {
         this.visitDate = this.getDDMMYYYFromJSDate(this.editPatientVisit.visitDate)
         this.vitalSigns = Object.assign({}, this.editPatientVisit.vitalSigns[0])
         this.TBScreening = Object.assign({}, this.editPatientVisit.tbScreening[0])
+        this.changeToEditStep()
+      } else {
+        this.changeToCreateStep()
       }
     },
     computed: {
@@ -269,7 +272,7 @@ export default {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
                 this.displayAlert('error', 'Por Favor Indique as reacoes adversas')
              } else {
-              if (this.website) {
+              if (this.mobile) {
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
@@ -296,13 +299,21 @@ export default {
 
                 this.patientVisit.clinic_id = this.currClinic.id
                 this.patientVisit.patient_id = this.patient.id
+                this.patientVisit.patient.identifiers = []
 
-                const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patientVisit)))
+                const targetCopy = new PatientVisit(JSON.parse(JSON.stringify(this.patientVisit)))
 
-                await PatientVisit.localDbAdd(targetCopy).then(res => {
-                  PatientVisit.insert({ data: targetCopy })
-                  this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
-                })
+                if (this.isCreateStep) {
+                  await PatientVisit.localDbAdd(targetCopy).then(res => {
+                    PatientVisit.insert({ data: targetCopy })
+                    this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
+                  })
+                } else {
+                  await PatientVisit.localDbUpdate(targetCopy).then(res => {
+                    PatientVisit.update({ data: targetCopy })
+                    this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
+                  })
+                }
               } else {
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient

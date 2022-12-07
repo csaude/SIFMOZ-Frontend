@@ -190,7 +190,6 @@ import Pack from 'src/store/models/packaging/Pack'
 import Prescription from 'src/store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
-import { v4 as uuidv4 } from 'uuid'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 export default {
     props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData', 'stepp'],
@@ -332,18 +331,26 @@ export default {
                                 .first()
         this.patient.clinic = clinicAux
         if (this.mobile) {
-          this.patient.id = uuidv4()
-          this.patient.syncStatus = 'R'
+          this.patient.syncStatus = this.isEditStep ? 'U' : 'R'
           this.patient.province_id = this.patient.province.id
           this.patient.district_id = this.patient.district.id
           this.patient.postoAdministrativo_id = this.patient.postoAdministrativo !== null ? this.patient.postoAdministrativo.id : ''
           this.patient.bairro_id = this.patient.bairro !== null ? this.patient.bairro.id : null
           this.patient.clinic_id = this.patient.clinic.id
           const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patient)))
-          await Patient.localDbAdd(targetCopy).then(patient => {
-            console.log(patient)
-          })
-          await Patient.insert({ data: targetCopy })
+          console.log(targetCopy)
+          if (!this.isEditStep) {
+            await Patient.localDbAdd(targetCopy).then(patient => {
+              console.log(patient)
+            })
+            await Patient.insert({ data: targetCopy })
+          } else {
+            await Patient.localDbUpdate(targetCopy).then(patient => {
+              console.log(patient)
+            })
+            await Patient.update({ data: targetCopy })
+          }
+
           SessionStorage.set('selectedPatient', targetCopy)
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false

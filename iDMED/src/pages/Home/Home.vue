@@ -143,7 +143,9 @@ export default {
         message: 'Carregando, aguarde por favor...',
         messageColor: 'white'
       })
+      if (this.mobile) {
       this.loadParamsToVueX()
+      }
     },
     hideLoading () {
       this.$q.loading.hide()
@@ -157,8 +159,10 @@ export default {
   mounted () {
      // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
         // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
+        console.log(this.mobile)
     setTimeout(() => {
       if (this.mobile) {
+        console.log(this.isAppSyncDone)
         if (!this.isAppSyncDone) {
           SynchronizationService.start(this.$q, this.currClinic.id)
         } else {
