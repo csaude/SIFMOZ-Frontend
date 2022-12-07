@@ -262,15 +262,9 @@ export default {
     methods: {
       init () {
         this.setStep(this.stepp)
-        // this.changeToCreateStep()
         this.identifier = new PatientServiceIdentifier(this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
-        if (this.identifier.lastEpisode() !== null && this.identifier.lastEpisode().isStartEpisode() && (this.episode !== null || this.episode !== undefined)) {
-          this.episode = new Episode(this.identifier.lastEpisode())
-          this.changeToCloseStep()
-        }
         this.episode.patientServiceIdentifier = this.identifier
-        console.log(this.episode)
         if (this.isEditStep) {
           this.startDate = this.getDDMMYYYFromJSDate(this.episode.episodeDate)
           this.episode.patientServiceIdentifier.episodes = []
@@ -280,6 +274,11 @@ export default {
                                                   .with('facilityType')
                                                   .where('id', this.episode.clinicSector.clinic_id)
                                                   .first()
+        } else {
+          if (this.identifier.lastEpisode() !== null && this.identifier.lastEpisode().isStartEpisode() && (this.episode !== null || this.episode !== undefined)) {
+            this.episode = new Episode(this.identifier.lastEpisode())
+            this.changeToCloseStep()
+          }
         }
       },
       submitForm () {
@@ -371,8 +370,7 @@ export default {
                                                                           .where('id', this.selectedClinicSector.id)
                                                                           .first()
                         }
-                        console.log(this.closureEpisode)
-                        if (this.website) {
+                        if (this.mobile) {
                           this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
                           this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
                           this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
@@ -390,9 +388,9 @@ export default {
                             this.closureEpisode.patientServiceIdentifier.service.identifierType = IdentifierType.find(this.closureEpisode.patientServiceIdentifier.service.identifier_type_id)
 
                             this.initPatientTransReference()
-                          this.displayAlert('info', 'Operação efectuada com sucesso.')
-                        }).catch(error => {
-                          console.log(error)
+                            this.displayAlert('info', 'Operação efectuada com sucesso.')
+                          }).catch(error => {
+                            console.log(error)
                           })
                         }
                       }
@@ -408,16 +406,14 @@ export default {
           this.episode.patientServiceIdentifier.clinic.district = District.query().with('province').where('id', this.episode.patientServiceIdentifier.clinic.district_id).first()
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
           this.episode.patientServiceIdentifier.episodes = []
-          console.log(this.episode)
           const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
-          if (this.website) {
+          if (this.mobile) {
             lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
             lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
             lastEpisodeCopy.clinicSector_id = lastEpisodeCopy.clinicSector.id
             lastEpisodeCopy.episodeType_id = lastEpisodeCopy.episodeType.id
             lastEpisodeCopy.syncStatus = this.isCreateStep ? 'R' : 'U'
-            console.log(lastEpisodeCopy)
             await Episode.localDbAdd(lastEpisodeCopy)
             Episode.insert({ data: lastEpisodeCopy })
             this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -436,7 +432,6 @@ export default {
               })
               transReference.patient.clinic.facilityType = FacilityType.find(transReference.patient.clinic.facilityTypeId)
 
-              console.log(transReference)
               setTimeout(this.doTransReference(transReference), 2)
             }
             this.displayAlert('info', this.isCreateStep ? 'Episódio adicionado com sucesso.' : 'Episódio actualizado com sucesso.')
@@ -458,7 +453,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -477,7 +472,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -507,9 +502,13 @@ export default {
         return false
       },
       doTransReference (transReference) {
-        PatientTransReference.apiSave(transReference).then(resp => {
-            console.log(resp.response.data)
-        })
+        if (this.mobile) {
+          transReference.syncStatus = 'R'
+          PatientTransReference.localDbAdd(transReference)
+          PatientTransReference.insert({ data: transReference })
+        } else {
+          PatientTransReference.apiSave(transReference)
+        }
       },
       loadProvince () {
         this.selectedProvince = Province.query().with('districts.*').where('id', this.currClinic.province.id).first()

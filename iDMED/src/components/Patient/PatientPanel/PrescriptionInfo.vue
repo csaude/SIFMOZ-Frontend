@@ -56,7 +56,7 @@ export default {
             this.flagGoReady = true
       } else {
         this.identifiers.forEach(identifier => {
-          if (this.website) {
+          if (this.mobile) {
             const episodeList = Episode.query()
                                         .with('startStopReason')
                                         .with('patientServiceIdentifier')

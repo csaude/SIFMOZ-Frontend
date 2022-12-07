@@ -62,10 +62,16 @@ export default {
         ClinicalServiceAttributeType.localDbUpdateAll(resp.response.data)
     })
     await ClinicalService.apiGetAll(offset, max).then(resp => {
-        ClinicalService.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        // cs.attributes = []
+        ClinicalService.localDbAdd(cs)
+      })
     })
     await ClinicSector.apiGetAll(offset, max).then(resp => {
-        ClinicSector.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        cs.clinic = null
+        ClinicSector.localDbAdd(cs)
+      })
     })
     await IdentifierType.apiGetAll(offset, max).then(resp => {
         IdentifierType.localDbUpdateAll(resp.response.data)
@@ -80,17 +86,25 @@ export default {
         StartStopReason.localDbUpdateAll(resp.response.data)
     })
     await ClinicalServiceAttribute.apiGetAll(offset, max).then(resp => {
-        ClinicalServiceAttribute.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        // cs.clinicalService = null
+        ClinicalServiceAttribute.localDbAdd(cs)
+      })
     })
     await Drug.apiGetAll(offset, max).then(resp => {
-        Drug.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        // cs.clinicalService = null
+        Drug.localDbAdd(cs)
+      })
     })
     await TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
         resp.response.data.forEach((therapeuticRegimen) => {
-          const tRegimen = new TherapeuticRegimen(therapeuticRegimen)
-          tRegimen.clinicalService = therapeuticRegimen.clincalService
-          console.log(tRegimen)
-          TherapeuticRegimen.localDbAdd(tRegimen)
+          /* const tRegimen = new TherapeuticRegimen(therapeuticRegimen)
+          tRegimen.drugs = []
+          tRegimen.clinical_service_id = therapeuticRegimen.clincalService.id
+          tRegimen.clinicalService = null
+          console.log(therapeuticRegimen) */
+          TherapeuticRegimen.localDbAdd(therapeuticRegimen)
         })
     })
     await TherapeuticLine.apiGetAll(offset, max).then(resp => {
@@ -326,20 +340,20 @@ export default {
     },
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
-   //  this.doPatientGet(clinicId, 0, 100)
-   //  this.doStockEntranceGet(clinicId, 0, 100)
-   //   this.doIdentifiersGet(clinicId, 0, 100)
-   //  this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
-   //  this.doPatientVisitGet(clinicId, 0, 100)
-   //   this.doPackGet(clinicId, 0, 100)
-   //  this.doPrescriptionGet(clinicId, 0, 100)
-  //  this.doInventoryGet(clinicId, 0, 100)
- //  await this.loadAndSaveAppParameters(clinicId)
-  //   this.loadAndSaveRolesAndUsers(clinicId)
-      LocalStorage.set('system-sync-status', 'done')
-    //  await this.doGetAllStockAlert(clinicId, 0, 100)
-     // await LocalStorage.set('system-sync-status', 'done')
-   //  this.loadAndSaveRolesAndUsers(clinicId)
+      this.doPatientGet(clinicId, 0, 100)
+      this.doStockEntranceGet(clinicId, 0, 100)
+      this.doIdentifiersGet(clinicId, 0, 100)
+      this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
+      this.doPatientVisitGet(clinicId, 0, 100)
+      this.doPackGet(clinicId, 0, 100)
+      this.doPrescriptionGet(clinicId, 0, 100)
+      this.doInventoryGet(clinicId, 0, 100)
+      await this.loadAndSaveAppParameters(clinicId)
+      this.loadAndSaveRolesAndUsers(clinicId)
+        LocalStorage.set('system-sync-status', 'done')
+        await this.doGetAllStockAlert(clinicId, 0, 100)
+      // await LocalStorage.set('system-sync-status', 'done')
+      this.loadAndSaveRolesAndUsers(clinicId)
       await this.doGetAllStockAlert(clinicId, 0, 100)
       $q.loading.hide()
     },

@@ -27,7 +27,10 @@
 <script>
 import { ref } from 'vue'
 import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     return {
       mds: ref('US'),
@@ -35,7 +38,9 @@ export default {
     }
   },
    mounted () {
-        this.doDispenseModeGetAll(0)
+     if (this.website) {
+       this.doDispenseModeGetAll(0)
+     }
   },
   computed: {
     dispenseModes () {

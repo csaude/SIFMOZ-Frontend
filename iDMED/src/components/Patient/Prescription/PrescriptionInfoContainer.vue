@@ -30,7 +30,7 @@
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Duração:</div>
-            <div class="col text-grey-8">{{ (prescription === null || prescription === undefined) ? 'Sem Info' : prescription.duration.description }}</div>
+            <div class="col text-grey-8">{{ (prescription === null || prescription === undefined || prescription.duration === null) ? 'Sem Info' : prescription.duration.description }}</div>
             <div class="col text-grey-9 text-weight-medium"></div>
             <div class="col text-grey-8"></div>
           </div>
@@ -104,7 +104,7 @@ export default {
   },
   methods: {
      init () {
-       if (this.mobile) {
+       if (this.website) {
           if (this.identifier !== null) {
             PatientServiceIdentifier.apiFetchById(this.identifier.id)
             if (this.identifier.service !== null) {
@@ -161,7 +161,7 @@ export default {
       return episode
     },
     reloadParams () {
-      if (this.mobile) {
+      if (this.website) {
         // this.loadParamsToVueX()
         TherapeuticRegimen.apiGetAll()
         TherapeuticLine.apiGetAll()
@@ -230,7 +230,7 @@ export default {
       }
     },
     validadeColor () {
-      if (this.prescription !== null && this.prescription.remainigDuration() > 0) {
+      if (this.prescription !== null && this.prescription.leftDuration > 0) {
         return 'text-primary'
       } else {
         return 'text-red'

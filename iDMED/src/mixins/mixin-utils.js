@@ -75,8 +75,6 @@ export default {
   async loadParamsToVueX () {
     TherapeuticRegimen.localDbGetAll().then(regimens => {
       regimens.forEach((regimen) => {
-       // regimen.clincalServiceId = ''
-       // regimen.clinical_service_id = ''
         TherapeuticRegimen.insert({ data: regimen })
       })
     })
@@ -130,8 +128,6 @@ export default {
     })
     Drug.localDbGetAll().then(drugs => {
       drugs.forEach((drug) => {
-        drug.clinicalServiceId = ''
-        drug.formId = ''
         Drug.insert({ data: drug })
       })
     })
@@ -171,6 +167,9 @@ export default {
   },
   setAsInitialized () {
     this.initialized = true
+  },
+  setAsInitializing () {
+    this.initialized = false
   }
  },
   computed: {
