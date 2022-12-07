@@ -103,6 +103,9 @@ import Episode from '../../store/models/episode/Episode'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import GroupMember from 'src/store/models/groupMember/GroupMember'
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -111,6 +114,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       selected: ref([]),
@@ -123,10 +127,40 @@ export default {
   },
   methods: {
     init () {
-      GroupType.apiGetAll()
-      ClinicalService.apiGetAll()
-      // this.getAllPatientsOfClinic()
-      this.getAllGroupsOfClinic()
+      if (this.website) { // Depois mudar para mobile
+      console.log('website')
+        GroupType.localDbGetAll().then(groupTypes => {
+          console.log(groupTypes)
+          GroupType.insert({ data: groupTypes })
+        })
+        ClinicalService.localDbGetAll().then(clinicalServices => {
+          console.log(clinicalServices)
+          ClinicalService.insert({ data: clinicalServices })
+        })
+        Patient.localDbGetAll().then(patients => {
+          console.log(patients)
+          Patient.insert({ data: patients })
+        })
+        PatientServiceIdentifier.localDbGetAll().then(identifiers => {
+          console.log(identifiers)
+          PatientServiceIdentifier.insert({ data: identifiers })
+        })
+        Episode.localDbGetAll().then(episodes => {
+          console.log(episodes)
+          Episode.insert({ data: episodes })
+        })
+        GroupMember.localDbGetAll().then(members => {
+          console.log(members)
+          GroupMember.insert({ data: members })
+        })
+        // Pegar os grupos da clinic
+      } else {
+        console.log('mobile')
+        GroupType.apiGetAll()
+        ClinicalService.apiGetAll()
+        // this.getAllPatientsOfClinic()
+        this.getAllGroupsOfClinic()
+      }
     },
     search () {
       const groups = Group.query()
@@ -195,7 +229,7 @@ export default {
       return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     }
   },
-  mounted () {
+  created () {
     this.init()
   },
   components: {
