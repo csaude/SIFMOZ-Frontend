@@ -926,7 +926,7 @@ export default {
       }
     },
     saveVisitPrescriptionAndPack (patientVisit, i) {
-      if (this.website) {
+      if (this.mobile) {
         if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
           const patientVDetails = JSON.parse(JSON.stringify(patientVisit.patientVisitDetails[i]))
           patientVDetails.episode = Episode.query()
@@ -992,7 +992,6 @@ export default {
             pvd.patient_visit_id = pvd.patientVisit.id
             pvd.prescription_id = pvd.prescription.id
             pvd.pack_id = pvd.pack.id
-          console.log(pvd)
 
             PatientVisitDetails.localDbAdd(pvd).then(p => {
               this.loadVitisToVueX(pvd)
@@ -1142,7 +1141,6 @@ export default {
     },
     checkPrescribedDrugs () {
       const somePrescribed = this.clinicalServices.some((service) => {
-        console.log(SessionStorage.getItem(service.code).prescription.prescribedDrugs)
         return SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0
       })
       return somePrescribed
@@ -1300,7 +1298,7 @@ export default {
                                 .with('clinicalService.identifierType')
                                 .has('code')
                                 .where('active', true)
-                                // .where('clinical_service_id', this.selectedClinicalService.id)
+                                .where('clinical_service_id', this.selectedClinicalService.id)
                                 .get()
       }
     },

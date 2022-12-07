@@ -147,6 +147,7 @@ export default {
     },
     doOnConfirm () {
       this.closeDialog()
+      if (this.website) {
         Episode.apiRemove(this.selectedEpisode).then(resp => {
           Episode.delete(this.selectedEpisode.id)
           this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -164,6 +165,11 @@ export default {
           }
           this.displayAlert('error', listErrors)
         })
+      } else {
+        Episode.localDbDelete(this.selectedEpisode)
+        Episode.delete(this.selectedEpisode.id)
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+      }
     },
     cancelOperation () {
       this.alert.visible = false
