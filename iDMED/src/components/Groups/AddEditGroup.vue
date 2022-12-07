@@ -286,7 +286,15 @@ export default {
                                 .get()
       if (members !== null) {
         members.forEach((member) => {
-          if (patient.id === member.patient.id && serviceCode === member.group.service.code) {
+           member.patient = Patient.query()
+                                  .has('identifiers')
+                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                  .with('province')
+                                  .with('district.province')
+                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                  .where('id', member.patient_id)
+                                  .first()
+          if (patient.id === member.patient.id && serviceCode === member.group.service.code && member.endDate === null) {
             res = true
           }
         })
@@ -322,7 +330,6 @@ export default {
     },
     addPatient (patient) {
       this.showloading()
-      console.log('Patient to be added: ', patient)
       const patientExists = this.curGroup.members.some((member) => {
             return member.patient.id === patient.id
           })
@@ -339,7 +346,6 @@ export default {
             identifier.episodes = episodes
             if (identifier.service.code === this.curGroup.service.code) {
               lastEpisode = this.lastEpisode(identifier)
-            console.log('LAST_EPISODE: ', this.lastEpisode(identifier))
           }
           })
 
@@ -350,17 +356,15 @@ export default {
           } else if (this.isMemberOfGroupOnService(patient, this.curGroup.service.code)) {
             this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço ', this.curGroup.service.code)
           } else {
-            console.log('Avanca...')
             this.curGroup.members.push(this.initNewMember(patient))
           }
-          this.hideLoading() // MabF
-         } else { // Real_Website
+          this.hideLoading()
+         } else {
           Group.apiValidateBeforeAdd(patient.id, this.curGroup.service.code).then(resp => {
             if (resp.response.data === 'Accepted') {
               this.curGroup.members.push(this.initNewMember(patient))
             } else {
               this.displayAlert('error', resp.response.data)
-              console.log(resp.response)
             }
             this.hideLoading()
           })
@@ -402,7 +406,6 @@ export default {
         this.searchResults = patients.filter((patient) => {
           return this.stringContains(patient.firstNames, this.searchParam) || this.stringContains(patient.middleNames, this.searchParam) || this.stringContains(patient.lastNames, this.searchParam) || this.stringContains(this.getIdentifier(patient.identifiers), this.searchParam)
         })
-        console.log('Result Search (Patients): ', patients)
       } else {
         Patient.delete((patient) => {
           return this.notMember(patient)
@@ -473,9 +476,7 @@ export default {
         member.startDate = group.startDate
         member.patient.identifiers = []
       })
-      console.log('Group Before id Set: ', group)
       if (this.website) { // Depois mudar para mobile
-        console.log('Save on local Base')
         group.id = uuidv4()
         group.syncStatus = 'R'
         group.clinic_id = this.clinic.id
@@ -485,14 +486,11 @@ export default {
           member.startDate = group.startDate
           member.patient.identifiers = []
         })
-        console.log('GROUP_Offline', group)
         Group.localDbAdd(group).then(groupRes => {
-          console.log('After_Save_On_LocalBase', groupRes)
           Group.insert({ data: groupRes })
         })
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       } else {
-        console.log('GROUP_Online', group)
         this.displayAlert('info', 'Operação efectuada com sucesso.')
         Group.apiSave(group).then(resp => {
           Group.apiFetchById(resp.response.data.id).then(resp => {
@@ -505,7 +503,6 @@ export default {
                                 .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                 .where('id', resp.response.data.id)
                                 .first()
-            console.log(this.curGroup)
             this.displayAlert('info', 'Operação efectuada com sucesso.')
           })
         }).catch(error => {
@@ -533,10 +530,6 @@ export default {
         })
       })
     },
-    // getAllIdentifiersByClinicalService (clinicalServiceId) {
-    //   // const identifiers = PatientServiceIdentifier.apiGetAllIdentifiersByClinicalService(clinicalServiceId)
-    //   // console.log(identifiers)
-    // },
     displayAlert (type, msg) {
       this.alert.type = type
       this.alert.msg = msg
