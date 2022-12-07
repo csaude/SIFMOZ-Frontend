@@ -167,6 +167,9 @@ export default {
   },
   setAsInitialized () {
     this.initialized = true
+  },
+  setAsInitializing () {
+    this.initialized = false
   }
  },
   computed: {

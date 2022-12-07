@@ -935,8 +935,10 @@ export default {
                                       .first()
           patientVDetails.episode.patientVisitDetails = []
           console.log(patientVDetails)
-          if (patientVDetails.prescription.syncStatus === '') {
+          if (patientVDetails.prescription.syncStatus === '' || (patientVDetails.prescription.syncStatus === 'R' && this.isEditPackStep)) {
             patientVDetails.prescription.syncStatus = 'R'
+          } else if (patientVDetails.prescription.syncStatus === 'S' && this.isEditPackStep) {
+            patientVDetails.prescription.syncStatus = 'U'
           }
 
           patientVDetails.prescription.doctor_id = patientVDetails.prescription.doctor.id
@@ -969,12 +971,25 @@ export default {
             })
           })
 
-          Prescription.localDbAdd(patientVDetails.prescription).then(pre => {
-            patientVDetails.pack.syncStatus = 'R'
-            Pack.localDbAdd(patientVDetails.pack)
-            i = i + 1
-            setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
-          })
+          if (this.isEditPackStep) {
+            Prescription.localDbUpdate(patientVDetails.prescription).then(pre => {
+              if (patientVDetails.pack.syncStatus === 'R') {
+                patientVDetails.pack.syncStatus = 'R'
+              } else {
+                patientVDetails.pack.syncStatus = 'U'
+              }
+              Pack.localDbUpdate(patientVDetails.pack)
+              i = i + 1
+              setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+            })
+          } else {
+            Prescription.localDbAdd(patientVDetails.prescription).then(pre => {
+              patientVDetails.pack.syncStatus = 'R'
+              Pack.localDbAdd(patientVDetails.pack)
+              i = i + 1
+              setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+            })
+          }
         } else {
           const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
           patientVisit.patient = this.simplePatient
@@ -986,16 +1001,27 @@ export default {
             pvd.prescription.prescribedDrugs = []
             pvd.patientVisit = JSON.parse(JSON.stringify(patientVisit))
             pvd.patientVisit.patientVisitDetails = []
-            pvd.syncStatus = 'R'
             pvd.episode_id = pvd.episode.id
             pvd.clinic_id = pvd.clinic.id
             pvd.patient_visit_id = pvd.patientVisit.id
             pvd.prescription_id = pvd.prescription.id
             pvd.pack_id = pvd.pack.id
 
-            PatientVisitDetails.localDbAdd(pvd).then(p => {
-              this.loadVitisToVueX(pvd)
-            })
+            if (pvd.syncStatus === 'S' && this.isEditPackStep) {
+              pvd.syncStatus = 'U'
+            } else {
+              pvd.syncStatus = 'R'
+            }
+
+            if (this.isEditPackStep) {
+              PatientVisitDetails.localDbUpdate(pvd).then(p => {
+                this.loadVitisToVueX(pvd)
+              })
+            } else {
+              PatientVisitDetails.localDbAdd(pvd).then(p => {
+                this.loadVitisToVueX(pvd)
+              })
+            }
           })
           this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
         }
