@@ -75,8 +75,8 @@ export default {
   async loadParamsToVueX () {
     TherapeuticRegimen.localDbGetAll().then(regimens => {
       regimens.forEach((regimen) => {
-        regimen.clincalServiceId = ''
-        regimen.clinical_service_id = ''
+       // regimen.clincalServiceId = ''
+       // regimen.clinical_service_id = ''
         TherapeuticRegimen.insert({ data: regimen })
       })
     })

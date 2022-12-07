@@ -50,6 +50,10 @@
                     </q-item-section>
                   </q-item>
                   <q-item clickable>
+                    <q-item-section avatar>
+                      <q-avatar icon="sync">
+                      </q-avatar>
+                    </q-item-section>
                     <q-item-section clickable @click="sync()">Sincronizar</q-item-section>
                 </q-item>
                   <q-separator spaced />

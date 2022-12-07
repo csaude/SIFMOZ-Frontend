@@ -143,8 +143,8 @@ export default class PatientServiceIdentifier extends Model {
    return identifier
   }
 
-  static localDbGetAll () {
-    return db.newDb().collection('identifiers').get()
+  static async localDbGetAll () {
+    return await db.newDb().collection('identifiers').get()
   }
 
   static localDbUpdate (identifier) {

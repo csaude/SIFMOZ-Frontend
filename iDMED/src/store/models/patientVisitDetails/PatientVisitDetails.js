@@ -73,8 +73,8 @@ export default class PatientVisitDetails extends Model {
     return db.newDb().collection('patientVisitDetails').doc({ id: id }).get()
   }
 
-  static localDbGetAll () {
-    return db.newDb().collection('patientVisitDetails').get()
+  static async localDbGetAll () {
+    return await db.newDb().collection('patientVisitDetails').get()
   }
 
   static localDbUpdate (patientVisitDetail) {
@@ -91,5 +91,9 @@ export default class PatientVisitDetails extends Model {
 
   static localDbDeleteAll () {
     return db.newDb().collection('patientVisitDetails').delete()
+  }
+
+  static localDbDeleteById (patientVisitDetailsId) {
+    return db.newDb().collection('patientVisitDetails').doc({ id: patientVisitDetailsId }).delete()
   }
 }
