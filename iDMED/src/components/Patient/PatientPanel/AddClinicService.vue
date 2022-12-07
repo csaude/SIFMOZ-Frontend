@@ -527,7 +527,13 @@ export default {
           this.identifier.service_id = this.identifier.service.id
           this.identifier.patient_id = this.identifier.patient.id
           this.identifier.clinic_id = this.identifier.clinic.id
-          this.identifier.syncStatus = 'R'
+
+          if (this.isCreateStep) {
+            this.identifier.syncStatus = 'R'
+          } else {
+            this.identifier.syncStatus = 'U'
+          }
+
           if (this.identifier.episodes.length > 0) {
             this.identifier.episodes[0].episodeType_id = this.identifier.episodes[0].episodeType.id
             this.identifier.episodes[0].clinicSector_id = this.identifier.episodes[0].clinicSector.id
