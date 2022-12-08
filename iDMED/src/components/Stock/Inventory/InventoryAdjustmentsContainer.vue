@@ -282,9 +282,9 @@ export default {
                      InventoryStockAdjustment.localDbGetById(id).then(item => {
                     if (item !== null && item !== undefined) {
                       targetCopy.operation_id = targetCopy.operation.id
-                      targetCopy.clinic_id = targetCopy.clinic.id
                       targetCopy.clinic = this.currClinic
-                                InventoryStockAdjustment.localDbUpdate(item).then(resp => {
+                      targetCopy.clinic_id = targetCopy.clinic.id
+                                InventoryStockAdjustment.localDbUpdate(targetCopy).then(resp => {
                                   InventoryStockAdjustment.insert(
                                     {
                                         data: targetCopy
