@@ -53,23 +53,15 @@
 </template>
 
 <script>
-import { QSpinnerBall, useQuasar, date, SessionStorage } from 'quasar'
+import { SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
-import Clinic from '../../../store/models/clinic/Clinic'
-import moment from 'moment'
-import { ref } from 'vue'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 export default {
-     mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinutils],
   data () {
     return {
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
-      $q: useQuasar(),
       stockEntrance: new StockEntrance({
         dateReceived: new Date()
       }),
@@ -81,36 +73,6 @@ export default {
     TextInput: require('components/Shared/Input/TextField.vue').default
   },
   methods: {
-    getJSDateFromDDMMYYY (dateString) {
-      const dateParts = dateString.split('-')
-      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-    },
-    getDDMMYYYFromJSDate (jsDate) {
-      return moment(jsDate).format('DD-MM-YYYY')
-    },
-    formatDate (dateString) {
-      return date.formatDate(dateString, 'YYYY-MM-DD')
-    },
-    showloading () {
-       this.$q.loading.show({
-          spinner: QSpinnerBall,
-          spinnerColor: 'gray',
-          spinnerSize: 140,
-          message: 'Processando, aguarde por favor...',
-          messageColor: 'white'
-        })
-    },
-    hideLoading () {
-      this.$q.loading.hide()
-    },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
-    },
     async submitForm () {
       this.submitting = true
       this.stockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived)
@@ -158,16 +120,6 @@ export default {
              }
         }
       }
-    }
-  },
-  computed: {
-    currClinic () {
-      return Clinic.query()
-                  .with('province')
-                  .with('facilityType')
-                  .with('district.province')
-                  .where('id', 'DBA59C40-2A5C-4404-9D65-5FE0B32059EE')
-                  .first()
     }
   }
 }

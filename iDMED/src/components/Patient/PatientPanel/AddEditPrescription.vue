@@ -1325,6 +1325,7 @@ export default {
                                 .has('code')
                                 .where('active', true)
                                 .where('clinical_service_id', this.selectedClinicalService.id)
+                                .orderBy('description')
                                 .get()
       }
     },
