@@ -90,7 +90,13 @@ export default {
     async init () {
       if (this.mobile) {
         IdentifierType.localDbGetAll().then(idTypes => {
-          IdentifierType.insert({ data: idTypes })
+          IdentifierType.update({ data: idTypes })
+        })
+        await Drug.localDbGetAll().then(drugs => {
+          Drug.insertOrUpdate({ data: drugs })
+          /* drugs.forEach((drug) => {
+            Drug.update({ where: drug.id, data: drug })
+          }) */
         })
       }
     },

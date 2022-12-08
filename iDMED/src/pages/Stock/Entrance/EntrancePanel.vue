@@ -453,8 +453,16 @@ export default {
         if (stringText === '') return false
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     },
-    init () {
+    async init () {
       this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
+      if (this.mobile) {
+        await Drug.localDbGetAll().then(drugs => {
+          drugs.forEach((drug) => {
+            Drug.update({ where: drug.id, data: drug })
+          })
+        })
+        this.loadStockList()
+      }
     },
     cancelOperation () {
       this.guiaStep = 'display'
@@ -750,6 +758,7 @@ export default {
                           .first()
     },
     loadStockList () {
+      this.stockList = ref([])
       if (this.currStockEntrance.stocks.length > 0) {
         Object.keys(this.currStockEntrance.stocks).forEach(function (k) {
           const stock = Stock.query()
@@ -765,11 +774,11 @@ export default {
           this.stockList.push(stock)
         }.bind(this))
       }
+        console.log('Finished loading stock')
     }
   },
   created () {
       this.drugs = this.activeDrugs
-    console.log(this.drugs)
   },
   mounted () {
     this.init()

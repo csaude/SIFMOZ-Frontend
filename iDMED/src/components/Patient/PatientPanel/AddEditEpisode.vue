@@ -260,7 +260,7 @@ export default {
         }
     },
     methods: {
-      init () {
+      async init () {
         this.setStep(this.stepp)
         this.identifier = new PatientServiceIdentifier(this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
@@ -279,6 +279,11 @@ export default {
             this.episode = new Episode(this.identifier.lastEpisode())
             this.changeToCloseStep()
           }
+        }
+        if (this.mobile) {
+          await ClinicSector.localDbGetAll().then(items => {
+            ClinicSector.insertOrUpdate({ data: items })
+          })
         }
       },
       submitForm () {

@@ -470,6 +470,16 @@ export default {
           Province.apiGetAll(offset, max)
           PostoAdministrativo.apiGetAll(offset, max)
           Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
+        } else {
+          Province.localDbGetAll().then(provinceList => {
+            Province.insertOrUpdate({ data: provinceList })
+          })
+          PostoAdministrativo.localDbGetAll().then(items => {
+            PostoAdministrativo.insertOrUpdate({ data: items })
+          })
+          Localidade.localDbGetAll().then(items => {
+            Localidade.insertOrUpdate({ data: items })
+          })
         }
       },
       moment

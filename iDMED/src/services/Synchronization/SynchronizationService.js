@@ -69,7 +69,6 @@ export default {
     })
     await ClinicSector.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((cs) => {
-        cs.clinic = null
         ClinicSector.localDbAdd(cs)
       })
     })
