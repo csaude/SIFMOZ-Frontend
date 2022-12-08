@@ -144,7 +144,7 @@ export default {
         messageColor: 'white'
       })
       if (this.mobile) {
-      this.loadParamsToVueX()
+        this.loadParamsToVueX()
       }
     },
     hideLoading () {

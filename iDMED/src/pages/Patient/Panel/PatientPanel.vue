@@ -113,6 +113,9 @@ import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Prescription from '../../../store/models/prescription/Prescription'
 import Pack from '../../../store/models/packaging/Pack'
+import Province from '../../../store/models/province/Province'
+import PostoAdministrativo from '../../../store/models/PostoAdministrativo/PostoAdministrativo'
+import Localidade from '../../../store/models/Localidade/Localidade'
 export default {
   mixins: [mixinplatform, mixinutils],
   setup () {
@@ -182,6 +185,15 @@ export default {
           })
         })
         this.loadParamsToVueX()
+        Province.localDbGetAll().then(provinceList => {
+          Province.insertOrUpdate({ data: provinceList })
+        })
+        PostoAdministrativo.localDbGetAll().then(items => {
+          PostoAdministrativo.insertOrUpdate({ data: items })
+        })
+        Localidade.localDbGetAll().then(items => {
+          Localidade.insertOrUpdate({ data: items })
+        })
       } else {
         if (this.patient === null) {
           Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)

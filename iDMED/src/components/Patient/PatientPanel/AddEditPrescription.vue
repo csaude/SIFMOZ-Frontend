@@ -947,7 +947,9 @@ export default {
 
           patientVDetails.prescription.prescriptionDetails[0].prescription_id = patientVDetails.prescription.id
           patientVDetails.prescription.prescriptionDetails[0].therapeutic_line_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticLine.id
-          patientVDetails.prescription.prescriptionDetails[0].therapeutic_regimen_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id
+          if (patientVDetails.prescription.prescriptionDetails[0].therapeuticRegimen !== null) {
+              patientVDetails.prescription.prescriptionDetails[0].therapeutic_regimen_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id
+          }
           patientVDetails.prescription.prescriptionDetails[0].dispense_type_id = patientVDetails.prescription.prescriptionDetails[0].dispenseType.id
           if (patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
             patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
@@ -1325,6 +1327,7 @@ export default {
                                 .has('code')
                                 .where('active', true)
                                 .where('clinical_service_id', this.selectedClinicalService.id)
+                                .orderBy('description')
                                 .get()
       }
     },

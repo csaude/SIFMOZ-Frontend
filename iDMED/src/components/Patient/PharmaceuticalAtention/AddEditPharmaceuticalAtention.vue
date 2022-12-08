@@ -139,6 +139,7 @@ import AdherenceScreening from '../../../store/models/screening/AdherenceScreeni
 import RAMScreening from '../../../store/models/screening/RAMScreening'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 export default {
     mixins: [mixinplatform, mixinutils],
     props: ['editPatientVisit', 'editMode'],
@@ -270,12 +271,20 @@ export default {
           }
           } else if (this.screeningStep === 5) {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
-                this.displayAlert('error', 'Por Favor Indique as reacoes adversas')
+                this.displayAlert('error', 'Por Favor Indique as reações adversas')
              } else {
               if (this.mobile) {
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
+
+                PatientVisitDetails.localDbGetAll().then(pvds => {
+                  pvds.forEach((p) => {
+                    if (p.patientVisit.patient_id === this.patient.id && new Date(this.patientVisit.visitDate) === new Date(p.patientVisit.visitDate)) {
+                      this.patientVisit.id = p.patientVisit.id
+                    }
+                  })
+                })
 
                 this.vitalSigns.patient_visit_id = this.patientVisit.id
                 this.TBScreening.patient_visit_id = this.patientVisit.id

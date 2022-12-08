@@ -110,6 +110,7 @@ import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
 import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import GroupMember from 'src/store/models/groupMember/GroupMember'
 export default {
   mixins: [mixinplatform],
   data () {
@@ -235,29 +236,44 @@ export default {
     desintagrateGroup () {
       this.group.members = this.group.members.filter((member) => { return member.isActive() })
           this.group.members.forEach((member) => {
-          member.endDate = new Date()
-          member.patient = Patient.query()
-                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+            if (member.syncStatus !== 'R') member.syncStatus = 'U'
+            member.endDate = new Date()
+            member.patient = Patient.query()
+                                    .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                    .with('province')
+                                    .with('district.province')
+                                    .where('id', member.patient.id)
+                                    .first()
+            member.group = null
+            member.clinic = Clinic.query()
                                   .with('province')
                                   .with('district.province')
-                                  .where('id', member.patient.id)
+                                  .with('facilityType')
+                                  .where('id', member.clinic_id)
                                   .first()
-          member.group = null
-          member.clinic = Clinic.query()
-                                .with('province')
-                                .with('district.province')
-                                .with('facilityType')
-                                .where('id', member.clinic_id)
-                                .first()
-       })
+        })
        this.group.service.identifierType = IdentifierType.find(this.group.service.identifier_type_id)
        this.group.endDate = new Date()
        const group = Object.assign({}, this.group)
        group.packHeaders = []
-       Group.apiUpdate(group).then(resp => {
-         Group.apiFetchById(group.id)
-         this.displayAlert('info', 'Operação efectuada com sucesso.')
-       })
+       if (this.website) {
+        if (this.group.syncStatus !== 'R') this.group.syncStatus = 'U'
+        const groupUpdate = new Group(JSON.parse(JSON.stringify((this.group))))
+        Group.localDbUpdate(groupUpdate).then(group => {
+          group.members.forEach((member) => {
+            const memberUpdate = new GroupMember(JSON.parse(JSON.stringify((member))))
+            GroupMember.localDbUpdate(memberUpdate)
+            GroupMember.update({ data: memberUpdate })
+          })
+        })
+        Group.update({ data: groupUpdate })
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+       } else {
+         Group.apiUpdate(group).then(resp => {
+          Group.apiFetchById(group.id)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
+       }
     },
     displayAlert (type, msg) {
       this.alert.type = type

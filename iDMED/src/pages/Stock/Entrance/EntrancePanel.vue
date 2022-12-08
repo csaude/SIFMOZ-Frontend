@@ -453,8 +453,16 @@ export default {
         if (stringText === '') return false
         return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     },
-    init () {
+    async init () {
       this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
+      if (this.mobile) {
+        await Drug.localDbGetAll().then(drugs => {
+          drugs.forEach((drug) => {
+            Drug.update({ where: drug.id, data: drug })
+          })
+        })
+        this.loadStockList()
+      }
     },
     cancelOperation () {
       this.guiaStep = 'display'
@@ -622,7 +630,7 @@ export default {
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
-      if (this.mobile) {
+      if (this.website) {
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         this.submitting = false
@@ -663,8 +671,9 @@ export default {
                     data: stock1.data.data
                   })
                   StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
-                      entrance.stocks.push(targetCopy)
-                      StockEntrance.localDbUpdate(entrance)
+                    console.log('Minha entrada: ', entrance)
+                      this.currStockEntrance.stocks.push(targetCopy)
+                      StockEntrance.localDbUpdate(this.currStockEntrance)
                   })
                   /* if (stock.id === null) {
                   stock.id = stock1.data.data.id
@@ -741,7 +750,7 @@ export default {
       // e.clinic = SessionStorage.getItem('currClinic')
       // e.clinic.district.province_id = e.clinic.province.id
       // e.clinic.district.province = e.clinic.province
-      if (this.website) return e
+     // if (this.website) return e
       return StockEntrance.query()
                           .with('stocks')
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
@@ -749,6 +758,7 @@ export default {
                           .first()
     },
     loadStockList () {
+      this.stockList = ref([])
       if (this.currStockEntrance.stocks.length > 0) {
         Object.keys(this.currStockEntrance.stocks).forEach(function (k) {
           const stock = Stock.query()
@@ -764,11 +774,11 @@ export default {
           this.stockList.push(stock)
         }.bind(this))
       }
+        console.log('Finished loading stock')
     }
   },
   created () {
       this.drugs = this.activeDrugs
-    console.log(this.drugs)
   },
   mounted () {
     this.init()
