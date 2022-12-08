@@ -346,7 +346,7 @@ export default {
             identifier.episodes = episodes
             if (identifier.service.code === this.curGroup.service.code) {
               lastEpisode = this.lastEpisode(identifier)
-          }
+            }
           })
 
           if (!patient.hasEpisodes()) {
@@ -477,18 +477,35 @@ export default {
         member.patient.identifiers = []
       })
       if (this.website) { // Depois mudar para mobile
-        group.id = uuidv4()
-        group.syncStatus = 'R'
-        group.clinic_id = this.clinic.id
-        group.clinical_service_id = this.curGroup.service.id
-        group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
-        group.members.forEach((member) => {
-          member.startDate = group.startDate
-          member.patient.identifiers = []
-        })
-        Group.localDbAdd(group).then(groupRes => {
-          Group.insert({ data: groupRes })
-        })
+        if (this.isCreateStep) {
+          group.id = uuidv4()
+          group.syncStatus = 'R'
+          group.clinic_id = this.clinic.id
+          group.clinical_service_id = this.curGroup.service.id
+          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
+          group.members.forEach((member) => {
+            member.startDate = group.startDate
+            member.syncStatus = 'R'
+            member.patient.identifiers = []
+          })
+          Group.localDbAdd(group).then(groupRes => {
+            Group.insert({ data: groupRes })
+          })
+        } else {
+          if (group.syncStatus !== 'R') group.syncStatus = 'U'
+          group.clinic_id = this.clinic.id
+          group.clinical_service_id = this.curGroup.service.id
+          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
+          group.members.forEach((member) => {
+            member.startDate = group.startDate
+            if (member.syncStatus !== 'R') member.syncStatus = 'U'
+            member.patient.identifiers = []
+            const groupUpdate = new Group(JSON.parse(JSON.stringify((group))))
+            Group.localDbUpdate(groupUpdate).then(groupRes => {
+              Group.update({ data: groupUpdate })
+            })
+          })
+        }
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       } else {
         this.displayAlert('info', 'Operação efectuada com sucesso.')
