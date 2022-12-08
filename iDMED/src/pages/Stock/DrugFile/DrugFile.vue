@@ -196,9 +196,7 @@ export default {
     },
     generateDrugEventSummary () {
       if (this.mobile) {
-        console.log('SUMMARY DRU', DrugFile.query().where('drugId', this.drug.id).first())
        this.drugFile = DrugFile.query().where('drugId', this.drug.id).first()
-       console.log('SUMMARY DRR', this.drugFile)
                // busca do local base e faz insert no VueX ORM
               db.newDb().collection('drugFile').get().then(drugFile => {
                 DrugFile.insert(

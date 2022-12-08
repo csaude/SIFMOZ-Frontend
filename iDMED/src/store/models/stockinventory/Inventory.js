@@ -116,4 +116,12 @@ export default class Inventory extends Model {
     static localDbDeleteAll () {
       return db.newDb().collection('inventorys').delete()
     }
+
+    static localDbDeleteById (id) {
+      return db.newDb().collection('inventorys').doc({ id: id }).delete()
+    }
+
+    static getClassName () {
+      return 'Inventory'
+    }
 }

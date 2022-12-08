@@ -29,13 +29,13 @@ export default {
          const offset = 0
         const max = 300
           StockCenter.apiGetAll(offset, max)
-          Stock.apiGetAll(offset, max)
+         // Stock.apiGetAll(offset, max)
           StockOperationType.apiGetAll(offset, max)
           ReferedStockMoviment.apiGetAll(offset, max)
           DestroyedStock.apiGetAll(offset, max)
           Drug.apiGetAll(offset, max)
           Province.apiGetAll(offset, max)
-          this.getAllStockOfClinic()
+          // this.getAllStockOfClinic()
           InventoryStockAdjustment.apiGetAll(offset, max)
 
    // copoia o stock do localbase para o VueX
@@ -46,12 +46,6 @@ export default {
                         data: stock
                       })
                       })
-        db.newDb().collection('stockOperationTypes').get().then(stockOperationType => {
-                    StockOperationType.insert(
-                      {
-                        data: stockOperationType
-                      })
-                      })
         db.newDb().collection('inventorys').get().then(inventory => {
                           Inventory.insert(
                             {
@@ -59,6 +53,7 @@ export default {
                             })
                             })
         db.newDb().collection('stockEntrances').get().then(stockEntrance => {
+          StockEntrance.deleteAll()
         StockEntrance.insert(
           {
             data: stockEntrance
@@ -69,6 +64,12 @@ export default {
               data: SessionStorage.getItem('currClinic')
             })
           })
+        db.newDb().collection('stockOperationTypes').get().then(stockOperationType => {
+                StockOperationType.insert(
+                  {
+                    data: stockOperationType
+                  })
+                  })
       }
     },
    getAllStockOfClinic () {

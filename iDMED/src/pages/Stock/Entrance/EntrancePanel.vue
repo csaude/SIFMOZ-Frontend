@@ -402,6 +402,7 @@ import { date, SessionStorage } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 // import { v4 as uuidv4 } from 'uuid'
 
 const columns = [
@@ -506,10 +507,17 @@ export default {
       }
     },
     doRemoveGuia () {
+      if (this.website) {
       StockEntrance.apiRemove(this.currStockEntrance.id).then(resp => {
         this.goBack()
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
+      } else {
+        StockEntrance.localDbDelete(this.currStockEntrance).then(item => {
+          StockEntrance.delete(this.currStockEntrance.id)
+        })
+        this.$router.go(-1)
+      }
     },
     formatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
@@ -550,9 +558,16 @@ export default {
             this.displayAlert('error', listErrors)
           })
       } else {
-         const targetStock = this.selectedStock
+         const targetStock = JSON.parse(JSON.stringify(this.selectedStock))
           this.removeFromList(targetStock)
-        if (this.selectedStock.syncStatus === 'S') {
+          const auditSync = new AuditSyncronization()
+          auditSync.operationType = 'remove'
+          auditSync.className = Stock.getClassName()
+          auditSync.syncStatus = 'D'
+          auditSync.entity = targetStock
+          AuditSyncronization.localDbAdd(auditSync)
+
+       /* if (this.selectedStock.syncStatus === 'S') {
               targetStock.syncStatus = 'D'
               Stock.localDbUpdate(targetStock).then(stock => {
                 Stock.update(targetStock)
@@ -561,7 +576,7 @@ export default {
             Stock.localDbDelete(targetStock).then(stock => {
                 Stock.delete(targetStock.id)
             })
-           }
+           } */
         }
         this.step = 'display'
     },

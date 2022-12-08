@@ -102,6 +102,10 @@ export default class Stock extends Model {
       return db.newDb().collection('stocks').doc({ id: stock.id }).delete()
     }
 
+    static localDbDeleteById (id) {
+      return db.newDb().collection('stocks').doc({ id: id }).delete()
+    }
+
     static localDbDeleteAll () {
       return db.newDb().collection('stocks').delete()
     }
@@ -114,5 +118,9 @@ export default class Stock extends Model {
         stock.syncStatus = 'U'
         return this.localDbUpdate(stock)
       }
+    }
+
+    static getClassName () {
+      return 'Stock'
     }
 }

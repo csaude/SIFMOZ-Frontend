@@ -214,7 +214,6 @@ export default {
         this.doProcessAndClose()
       })
       } else {
-        this.currInventory = new Inventory(SessionStorage.getItem('currInventory'))
         const targetCopy = JSON.parse(JSON.stringify(this.currInventory))
         Inventory.insert({
           data: targetCopy
@@ -257,18 +256,19 @@ export default {
                                  .first()
       inventory.endDate = new Date()
       inventory.open = false
-      inventory.adjustments.forEach((adjustment) => {
+      const adjustmentsList = inventory.adjustments
+      adjustmentsList.forEach((adjustment) => {
         this.processAdjustment(adjustment, inventory)
+        InventoryStockAdjustment.update(JSON.parse(JSON.stringify(adjustment)))
       })
-      this.doSaveAdjustmentMobile(0)
+    //  this.doSaveAdjustmentMobile(0)
       inventory.syncStatus = 'U'
       inventory.clinic = this.currClinic
        const targetCopy = JSON.parse(JSON.stringify(inventory))
       Inventory.localDbUpdate(targetCopy).then(item => {
         Inventory.update(targetCopy)
-        this.step = 'display'
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
+      SessionStorage.set('currInventory', inventory)
     },
     doSaveAdjustment (i) {
       if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
@@ -282,7 +282,7 @@ export default {
       if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
               InventoryStockAdjustment.localDbUpdate(this.processAdjustment[i]).then(invStkAdj => {
               i = i + 1
-              setTimeout(this.doSaveAdjustment(i), 2)
+              setTimeout(this.doSaveAdjustmentMobile(i), 2)
               })
       }
     },
@@ -401,7 +401,7 @@ export default {
     },
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
-      if (this.mobile) return e
+       if (this.mobile) return e
       return Inventory.query()
                       .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                       .with('adjustments.adjustedStock')

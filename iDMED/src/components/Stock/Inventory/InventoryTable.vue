@@ -76,6 +76,8 @@
 import { SessionStorage } from 'quasar'
 import Inventory from '../../../store/models/stockinventory/Inventory'
 import { ref } from 'vue'
+import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/InventoryStockAdjustment'
+
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
   { name: 'generic', align: 'left', label: 'Tipo de Inventário', sortable: true },
@@ -94,6 +96,19 @@ export default {
   },
   methods: {
     openFile (inventory) {
+      if (this.website) {
+        // Inserir no VueX inventory e InvstockAdj
+        Inventory.deleteAll()
+        Inventory.localDbGetAll().then(item => {
+        Inventory.insert({
+          data: item
+        })
+        })
+        InventoryStockAdjustment.deleteAll()
+        InventoryStockAdjustment.insert({
+          data: inventory.adjustments
+        })
+      }
       SessionStorage.set('currInventory', inventory)
       this.$router.push('/stock/inventory')
     }
