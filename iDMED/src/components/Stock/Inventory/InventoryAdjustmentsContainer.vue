@@ -129,11 +129,9 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
 import moment from 'moment'
-import { v4 as uuidv4 } from 'uuid'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Inventory from 'src/store/models/stockinventory/Inventory'
-// import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustment'
-// import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustment'
+import { v4 as uuidv4 } from 'uuid'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
@@ -167,9 +165,7 @@ export default {
       this.infoContainerVisible = !value
     },
     init () {
-        if (this.mobile) {
-         // StockAdjustment.deleteAll()
-
+        if (this.website) {
          Inventory.localDbGetAll().then(item => {
               console.log('LISTA Inventarios: ', item)
               if (item.syncStatus !== '') {
@@ -282,41 +278,36 @@ export default {
             } else {
                     const targetCopy = new InventoryStockAdjustment(JSON.parse(JSON.stringify(this.adjustments[i])))
                     targetCopy.syncStatus = 'R'
-                    let adjustmentToPreview = null
                     const id = targetCopy.id === null ? uuidv4() : targetCopy.id
                      InventoryStockAdjustment.localDbGetById(id).then(item => {
-                      adjustmentToPreview = item
-                        })
-                          if (adjustmentToPreview !== null && adjustmentToPreview !== undefined) {
-                          adjustmentToPreview.balance = targetCopy.balance
-                          adjustmentToPreview.notes = targetCopy.notes
-                          adjustmentToPreview.syncStatus = targetCopy.syncStatus
-                          adjustmentToPreview.adjustedStock = targetCopy.adjustedStock
-                          adjustmentToPreview.adjustedValue = targetCopy.adjustedValue
-                          adjustmentToPreview.operation = targetCopy.operation
-                          adjustmentToPreview.inventory_id = targetCopy.inventory.id
-                          InventoryStockAdjustment.localDbUpdate(targetCopy).then(resp => {
-                            InventoryStockAdjustment.update(
-                              {
-                                  data: targetCopy
-                                }
-                            )
-                        i = i + 1
-                        setTimeout(this.doSave(i), 2)
-                        this.displayAlert('info', 'Operação efectuada com sucesso.')
-                        })
+                    if (item !== null && item !== undefined) {
+                      targetCopy.operation_id = targetCopy.operation.id
+                      targetCopy.clinic_id = targetCopy.clinic.id
+                      targetCopy.clinic = this.currClinic
+                                InventoryStockAdjustment.localDbUpdate(item).then(resp => {
+                                  InventoryStockAdjustment.insert(
+                                    {
+                                        data: targetCopy
+                                      }
+                                  )
+                              i = i + 1
+                              setTimeout(this.doSave(i), 2)
+                              this.displayAlert('info', 'Operação efectuada com sucesso.')
+                              })
                         } else {
-                          targetCopy.inventory_id = targetCopy.inventory.id
-                          targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id
-                          InventoryStockAdjustment.localDbAdd(targetCopy).then(resp => {
-                                InventoryStockAdjustment.insert({
-                                  data: targetCopy
-                                })
-                            i = i + 1
-                            setTimeout(this.doSave(i), 2)
-                            this.displayAlert('info', 'Operação efectuada com sucesso.')
-                        })
+                              targetCopy.inventory_id = targetCopy.inventory.id
+                              targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id
+                              targetCopy.operation_id = targetCopy.operation.id
+                              InventoryStockAdjustment.localDbAdd(targetCopy).then(resp => {
+                                    InventoryStockAdjustment.insert({
+                                      data: targetCopy
+                                    })
+                                i = i + 1
+                                setTimeout(this.doSave(i), 2)
+                                this.displayAlert('info', 'Operação efectuada com sucesso.')
+                            })
                         }
+                        })
                     }
       }
     },

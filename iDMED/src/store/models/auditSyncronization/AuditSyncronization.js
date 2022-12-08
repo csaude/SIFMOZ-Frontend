@@ -9,10 +9,10 @@ export default class AuditSyncronization extends Model {
     return {
       id: this.uid(() => uuidv4()),
       operationType: this.attr(''),
-      username: this.attr(''),
-      class: this.attr(''),
-      operationDate: this.attr('null'),
-      syncStatus: this.attr('')
+      username: this.attr(() => localStorage.getItem('user')),
+      className: this.attr(''),
+      syncStatus: this.attr(''), // 'D -deleted, S sent'
+      entity: this.attr(null)
     }
   }
 

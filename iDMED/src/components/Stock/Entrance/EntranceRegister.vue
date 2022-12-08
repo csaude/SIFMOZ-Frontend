@@ -166,7 +166,7 @@ export default {
                   .with('province')
                   .with('facilityType')
                   .with('district.province')
-                  .where('id', 'DBA59C40-2A5C-4404-9D65-5FE0B32059EE')
+                  .where('id', SessionStorage.getItem('currClinic').id)
                   .first()
     }
   }

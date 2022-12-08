@@ -64,7 +64,15 @@ export default class StockEntrance extends Model {
       return db.newDb().collection('stockEntrances').doc({ id: stockEntrance.id }).delete()
     }
 
+    static localDbDeleteById (idStockEntrance) {
+      return db.newDb().collection('stockEntrances').doc({ id: idStockEntrance }).delete()
+    }
+
     static localDbDeleteAll () {
       return db.newDb().collection('stockEntrances').delete()
+    }
+
+    static localDbGetByStockEntranceId (id) {
+      return db.newDb().collection('stockEntrances').doc({ id: id }).get()
     }
 }

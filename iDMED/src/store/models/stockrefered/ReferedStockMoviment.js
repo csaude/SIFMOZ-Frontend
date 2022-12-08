@@ -4,7 +4,7 @@ import { StockReferenceAdjustment } from '../stockadjustment/StockAdjustmentHier
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 
-export default class ReferedStockMoviment extends Model {
+export default class StockReferedStockMoviment extends Model {
     static entity = 'referedStockMoviments'
 
     static fields () {
@@ -65,5 +65,9 @@ export default class ReferedStockMoviment extends Model {
 
     static localDbDeleteAll () {
       return db.newDb().collection('referedStockMoviments').delete()
+    }
+
+    static localDbDeleteById (id) {
+      return db.newDb().collection('referedStockMoviments').doc({ id: id }).delete()
     }
 }
