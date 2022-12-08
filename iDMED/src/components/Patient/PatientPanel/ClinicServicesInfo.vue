@@ -24,7 +24,7 @@
         <AddClinicService
           :identifierToEdit="selectedIdentifier"
           :selectedPatient="selectedPatient"
-          :step="step"
+          :stepp="step"
           @createFirstEpisode="createFirstEpisode"
           @close="showAddEditClinicalService = false" />
     </q-dialog>
@@ -41,7 +41,10 @@
 import { LocalStorage } from 'quasar'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Patient from '../../../store/models/patient/Patient'
+import mixinutils from 'src/mixins/mixin-utils'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+  mixins: [mixinplatform, mixinutils],
   props: ['selectedPatient'],
   data () {
     return {
@@ -49,11 +52,11 @@ export default {
       emptyList: false,
       selectedIdentifier: new PatientServiceIdentifier(),
       showAddEditEpisode: false,
-      serviceInfoVisible: true,
-      step: ''
+      serviceInfoVisible: true
     }
   },
   methods: {
+    init () {},
     editClinicService (curIdentifier) {
       this.selectedIdentifier = Object.assign({}, curIdentifier)
       this.step = 'edit'
@@ -84,6 +87,7 @@ export default {
     }
   },
   created () {
+    this.init()
   },
   mounted () {
   },

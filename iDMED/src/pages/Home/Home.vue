@@ -143,7 +143,9 @@ export default {
         message: 'Carregando, aguarde por favor...',
         messageColor: 'white'
       })
+      if (this.mobile) {
       this.loadParamsToVueX()
+      }
     },
     hideLoading () {
       this.$q.loading.hide()
@@ -155,24 +157,22 @@ export default {
     }
   },
   mounted () {
-     SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
-        SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
+     // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
+        // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
+        console.log(this.mobile)
     setTimeout(() => {
-      if (this.website) {
+      if (this.mobile) {
+        console.log(this.isAppSyncDone)
         if (!this.isAppSyncDone) {
           SynchronizationService.start(this.$q, this.currClinic.id)
         } else {
           this.hideLoading()
         }
-      } else {
-        console.log('Clinica:' + this.currClinic)
-        SynchronizationService.start(this.$q, this.currClinic.id)
-         this.hideLoading()
       }
     }, 3000)
   },
   created () {
-    this.showloading()
+   // this.showloading()
   }
 }
 </script>

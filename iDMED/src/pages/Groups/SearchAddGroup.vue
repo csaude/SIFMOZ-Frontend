@@ -103,6 +103,14 @@ import Episode from '../../store/models/episode/Episode'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import GroupMember from 'src/store/models/groupMember/GroupMember'
+import Drug from 'src/store/models/drug/Drug'
+import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
+import Doctor from 'src/store/models/doctor/Doctor'
+import Duration from 'src/store/models/Duration/Duration'
+import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -111,6 +119,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       selected: ref([]),
@@ -123,10 +132,76 @@ export default {
   },
   methods: {
     init () {
-      GroupType.apiGetAll()
-      ClinicalService.apiGetAll()
-      // this.getAllPatientsOfClinic()
-      this.getAllGroupsOfClinic()
+      if (this.website) { // Depois mudar para mobile
+        GroupType.localDbGetAll().then(groupTypes => {
+          GroupType.insert({ data: groupTypes })
+        })
+        ClinicalService.localDbGetAll().then(clinicalServices => {
+          ClinicalService.insert({ data: clinicalServices })
+        })
+        Patient.localDbGetAll().then(patients => {
+          Patient.insert({ data: patients })
+        })
+        PatientServiceIdentifier.localDbGetAll().then(identifiers => {
+          PatientServiceIdentifier.insert({ data: identifiers })
+        })
+        Episode.localDbGetAll().then(episodes => {
+          Episode.insert({ data: episodes })
+        })
+        Group.localDbGetAll().then(groups => {
+          groups.forEach((group) => {
+            Group.insert({ data: group })
+            if (group.members.length > 0) {
+              group.members.forEach((member) => {
+                member.group_id = group.id
+                member.clinic_id = group.clinic.id
+                member.patient_id = member.patient.id
+                GroupMember.insert({ data: member })
+              })
+            }
+          })
+        })
+        Pack.localDbGetAll().then(packs => {
+          packs.forEach((pack) => {
+            pack.clinic_id = pack.clinic.id
+            pack.dispenseMode_id = pack.dispenseMode.id
+            Pack.insert({ data: pack })
+            pack.packagedDrugs.forEach((packagedDrug) => {
+              Drug.insert({ data: packagedDrug.drug })
+              packagedDrug.drug_id = packagedDrug.drug.id
+              packagedDrug.pack_id = pack.id
+              PackagedDrug.insert({ data: packagedDrug })
+            })
+          })
+        })
+        Prescription.localDbGetAll().then(prescriptions => {
+          prescriptions.forEach((prescription) => {
+            prescription.clinic_id = prescription.clinic.id
+            Doctor.insert({ data: prescription.doctor })
+            prescription.doctor_id = prescription.doctor.id
+            Duration.insert({ data: prescription.duration })
+            prescription.duration_id = prescription.duration.id
+            Prescription.insert({ data: prescription })
+          })
+        })
+        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
+          patientVisitDetails.forEach((pvd) => {
+            pvd.clinic_id = pvd.clinic.id
+            pvd.episode_id = pvd.episode.id
+            pvd.pack_id = pvd.pack.id
+            pvd.patientVisit.clinic_id = pvd.patientVisit.clinic.id
+            pvd.prescription_id = pvd.prescription.id
+            PatientVisit.insert({ data: pvd.patientVisit })
+            pvd.patient_visit_id = pvd.patientVisit.id
+            PatientVisitDetails.insert({ data: pvd })
+          })
+        })
+      } else {
+        GroupType.apiGetAll()
+        ClinicalService.apiGetAll()
+        // this.getAllPatientsOfClinic()
+        this.getAllGroupsOfClinic()
+      }
     },
     search () {
       const groups = Group.query()
@@ -195,7 +270,7 @@ export default {
       return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
     }
   },
-  mounted () {
+  created () {
     this.init()
   },
   components: {

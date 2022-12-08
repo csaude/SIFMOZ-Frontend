@@ -362,7 +362,7 @@ export default {
           )
         }
       })
-      if (SessionStorage.getItem('currClinic') === null) {
+      if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic') === 'null') {
         await this.loadSystemConfigs()
         const sysconfig = SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
         await Clinic.apiGetByUUID(sysconfig.description).then((resp) => {
@@ -406,7 +406,7 @@ export default {
         this.instalation_type === 'LOCAL' ? this.clinic.uuid : this.province.code
       await SystemConfigs.apiSave(this.systemConfigs)
         .then((resp) => {
-          /// this.$router.push({ path: '/Login' })
+          SystemConfigs.localDbAdd(resp.response.data)
         })
         .catch((error) => {
           this.listErrors = []
@@ -461,6 +461,7 @@ export default {
                 console.log(menusVuex)
                 var menusDescription = menusVuex.map((m) => m.description).flat()
                 localStorage.setItem('role_menus', menusDescription)
+                localStorage.setItem('userLocalId', userLoged.id)
                 this.$router.push({ path: '/' })
               } else {
                 Notify.create({

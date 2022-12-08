@@ -100,7 +100,8 @@ import moment from 'moment'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import GroupMember from '../../../store/models/groupMember/GroupMember'
 import Clinic from '../../../store/models/clinic/Clinic'
-import GroupMemberPrescription from '../../../store/models/group/GroupMemberPrescription'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -111,6 +112,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform],
   data () {
     return {
       alert: ref({
@@ -159,7 +161,6 @@ export default {
               identifier.episodes = resp.response.data
               identifier.episodes.forEach(episode => {
                 PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                  console.log(resp.response.data)
                   if (resp.response.data) {
                     episode.patientVisitDetails[0] = resp.response.data
                     this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
@@ -175,11 +176,9 @@ export default {
     loadVisitDetailsInfo (visitDetails, i) {
       if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
         Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
-          console.log(resp.response.data)
           visitDetails[i].prescription = resp.response.data
           if (visitDetails[i].pack !== null) {
             Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-              console.log(resp.response.data)
               visitDetails[i].pack = resp.response.data
                 this.membersInfoLoaded = true
             })
@@ -252,42 +251,48 @@ export default {
       return moment(jsDate).format('DD-MM-YYYY')
     },
     getGroupMembers () {
-      const group = Group.query()
-                        .with('service')
-                        .with('members.patient.identifiers.identifierType')
-                        .with('groupType')
-                        .where('id', SessionStorage.getItem('selectedGroup').id)
-                        .first()
-                        console.log(group)
-      group.members.forEach((member) => {
-          member.groupMemberPrescription = GroupMemberPrescription.query()
-                                                                  .with('prescription.*')
-                                                                  .where('member_id', member.id)
-                                                                  .first()
-          member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
-                                  .with('province')
-                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                                  .where('id', member.patient.id)
-                                  .first()
-          member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
-            return identifier.service.id === this.selectedGroup.service.id
-          })
-          member.patient.identifiers[0].episodes = []
-          member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-         // this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
-      })
-      this.allMembers = group.members
-      if (!group.isDesintegrated()) {
-        this.members = group.members.filter((member) => { return member.isActive() })
-      } else {
-        this.members = group.members
-      }
+        const group = Group.query()
+                          .with('service')
+                          .with('members.patient.identifiers.identifierType')
+                          .with('groupType')
+                          .where('id', SessionStorage.getItem('selectedGroup').id)
+                          .first()
+        group.members.forEach((member) => {
+            member.groupMemberPrescription = GroupMemberPrescription.query()
+                                                                    .with('prescription.*')
+                                                                    .where('member_id', member.id)
+                                                                    .first()
+            member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
+                                    .with('province')
+                                    .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                    .where('id', member.patient.id)
+                                    .first()
+            member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
+              return identifier.service.id === this.selectedGroup.service.id
+            })
+            member.patient.identifiers[0].episodes = []
+            member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
+
+            this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+        })
+        this.allMembers = group.members
+        if (!group.isDesintegrated()) {
+          this.members = group.members.filter((member) => { return member.isActive() })
+        } else {
+          this.members = group.members
+        }
     },
     fecthMemberPrescriptionData (visitDetails) {
-      if (visitDetails.pack !== null) Pack.apiFetchById(visitDetails.pack.id)
-      Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
-        this.fecthedMemberData = this.fecthedMemberData + 1
-      })
+      if (this.website) { // Depois mudar para mobile
+        if (visitDetails.pack !== null) {
+          this.fecthedMemberData = this.fecthedMemberData + 1
+        }
+      } else {
+        if (visitDetails.pack !== null) Pack.apiFetchById(visitDetails.pack.id)
+        Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
+          this.fecthedMemberData = this.fecthedMemberData + 1
+        })
+      }
     },
     getAllVisitsOfPrescription (prescription) {
       const visits = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
@@ -359,8 +364,7 @@ export default {
     }
   },
   mounted () {
-    // this.loadMemberInfo()
-     this.getGroupMembers()
+    this.getGroupMembers()
   },
   computed: {
     selectedGroup: {

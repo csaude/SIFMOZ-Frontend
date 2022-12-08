@@ -44,25 +44,34 @@ import db from 'src/store/localbase'
 import DrugStockFileEvent from 'src/store/models/drugStockFileEvent/DrugStockFileEvent'
 import Stock from 'src/store/models/stock/Stock'
 import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustment'
-// import Stock from 'src/store/models/stock/Stock'
+import UsersService from '../../services/UsersService'
+import Encryption from 'src/services/Encryption'
+import Doctor from 'src/store/models/doctor/Doctor'
 
 export default {
+  // mixins: [mixinEncryption],
   async loadAndSaveAppParameters (clinicId) {
     const offset = 0
     const max = 100
-  //  this.doClinicGet(0, 100)
+ //   this.doClinicGet(0, 100)
 
     await Duration.apiGetAll(offset, max).then(resp => {
       Duration.localDbUpdateAll(resp.response.data)
     })
-    await ClinicalServiceAttributeType.apiGetAll(offset, max).then(resp => {
+    await ClinicalServiceAttributeType.apiGetAll(offset, 4).then(resp => {
         ClinicalServiceAttributeType.localDbUpdateAll(resp.response.data)
     })
     await ClinicalService.apiGetAll(offset, max).then(resp => {
-        ClinicalService.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        // cs.attributes = []
+        ClinicalService.localDbAdd(cs)
+      })
     })
     await ClinicSector.apiGetAll(offset, max).then(resp => {
-        ClinicSector.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        cs.clinic = null
+        ClinicSector.localDbAdd(cs)
+      })
     })
     await IdentifierType.apiGetAll(offset, max).then(resp => {
         IdentifierType.localDbUpdateAll(resp.response.data)
@@ -77,13 +86,26 @@ export default {
         StartStopReason.localDbUpdateAll(resp.response.data)
     })
     await ClinicalServiceAttribute.apiGetAll(offset, max).then(resp => {
-        ClinicalServiceAttribute.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        // cs.clinicalService = null
+        ClinicalServiceAttribute.localDbAdd(cs)
+      })
     })
     await Drug.apiGetAll(offset, max).then(resp => {
-        Drug.localDbUpdateAll(resp.response.data)
+      resp.response.data.forEach((cs) => {
+        // cs.clinicalService = null
+        Drug.localDbAdd(cs)
+      })
     })
     await TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
-        TherapeuticRegimen.localDbUpdateAll(resp.response.data)
+        resp.response.data.forEach((therapeuticRegimen) => {
+          /* const tRegimen = new TherapeuticRegimen(therapeuticRegimen)
+          tRegimen.drugs = []
+          tRegimen.clinical_service_id = therapeuticRegimen.clincalService.id
+          tRegimen.clinicalService = null
+          console.log(therapeuticRegimen) */
+          TherapeuticRegimen.localDbAdd(therapeuticRegimen)
+        })
     })
     await TherapeuticLine.apiGetAll(offset, max).then(resp => {
         TherapeuticLine.localDbUpdateAll(resp.response.data)
@@ -142,6 +164,9 @@ export default {
       await ProvincialServer.apiGetAll().then(resp => {
           ProvincialServer.localDbUpdateAll(resp.response.data)
       })
+      await Doctor.apiFetchByClinicId(clinicId).then(resp => {
+        Doctor.localDbUpdateAll(resp.response.data)
+      })
       DispenseMode.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
           DispenseMode.localDbAdd(item)
@@ -149,18 +174,19 @@ export default {
       })
     },
     async loadAndSaveRolesAndUsers () {
-      const offset = 0
-     const max = 100
-     if (Role.all().length > 0) {
+    //  const offset = 0
+    // const max = 100
       await Role.apiGetAll().then(resp => {
+        console.log(resp.response.data)
           Role.localDbUpdateAll(resp.response.data)
-      })
-     }
+     })
+     /*
      if (User.all().length > 0) {
     await User.apiGetAll(offset, max).then(resp => {
     User.localDbUpdateAll(resp.response.data)
   })
 }
+*/
     },
     doStockEntranceGet (clinicId, offset, max) {
       StockEntrance.deleteAll()
@@ -319,62 +345,63 @@ export default {
     },
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
-     this.doPatientGet(clinicId, 0, 100)
-     this.doStockEntranceGet(clinicId, 0, 100)
+      this.doPatientGet(clinicId, 0, 100)
+      this.doStockEntranceGet(clinicId, 0, 100)
       this.doIdentifiersGet(clinicId, 0, 100)
-     this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
-     this.doPatientVisitGet(clinicId, 0, 100)
+      this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
+      this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
-     this.doPrescriptionGet(clinicId, 0, 100)
-    this.doInventoryGet(clinicId, 0, 100)
-    await this.loadAndSaveAppParameters(clinicId)
-     this.loadAndSaveRolesAndUsers(clinicId)
-      LocalStorage.set('system-sync-status', 'done')
+      this.doPrescriptionGet(clinicId, 0, 100)
+      this.doInventoryGet(clinicId, 0, 100)
+      await this.loadAndSaveAppParameters(clinicId)
+      this.loadAndSaveRolesAndUsers(clinicId)
+        LocalStorage.set('system-sync-status', 'done')
+        await this.doGetAllStockAlert(clinicId, 0, 100)
+      // await LocalStorage.set('system-sync-status', 'done')
+      this.loadAndSaveRolesAndUsers(clinicId)
       await this.doGetAllStockAlert(clinicId, 0, 100)
-      await LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()
     },
 
     async send () {
-  //   await this.sendUsers()
-     // await this.sendEntrances()
-     // await this.sendStocks()
-    //  await this.sendReferedStocks()
-    await this.sendInventory()
-   // await this.sendStockAdjustment()
-    },
-
-    async sendUsers () {
-        // const usersToSync = await this.getUsersToSync()
+     // const userId = LocalStorage.getItem('userLocalId')
+      User.localDbGetById(130).then((user) => {
+        if (user !== undefined) {
+          this.login(user.username, 'admin')
+        }
+    })
+  },
+    async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
-          (user.syncStatus === 'S' || user.syncStatus === 'U'))
+          (user.syncStatus === 'R' || user.syncStatus === 'U'))
           return usersToSync
         }).then(usersToSync => {
-        //  for (let i = 0; i < usersToSync.length; i++) {
             console.log(usersToSync[0])
             this.apiSendUsers(usersToSync, 0)
-     // }
-   //  this.apiSendUsers(usersToSync)
   })
 },
     apiSendUsers (usersToSync, i) {
-     // for (let i = 0; i < usersToSync.length; i++) {
         const user = usersToSync[i]
       if (user !== undefined) {
+        const idToDelete = user.id
         user.id = null
+        user.password = Encryption.decryptPlainText(user.password)
         User.apiSave(user).then(resp => {
           // apiSendUsers(usersToSync , i)
           i = i + 1
           user.syncStatus = 'S'
-          User.localDbUpdate(user)
+          user.id = resp.response.data.id
+          User.localDbDelete(idToDelete)
+          User.delete(idToDelete)
+          User.localDbAdd(user)
            setTimeout(this.apiSendUsers(usersToSync, i), 2)
      }).catch(error => {
        console.log(error)
    })
- // }
 }
     },
+
      async sendEntrances () {
       console.log('Iniciando a sincronizacao....')
      StockEntrance.localDbGetAll().then((entrances) => {
@@ -513,7 +540,295 @@ apiSendStocks (stocksToSync, i) {
   })
 }
 },
+    async getRolesToSend () {
+      Role.localDbGetAll().then((roles) => {
+        const rolesToSync = roles.filter((role) =>
+        (role.syncStatus === 'R' || role.syncStatus === 'U'))
+        return rolesToSync
+      }).then(rolesToSync => {
+          console.log(rolesToSync[0])
+          this.apiSendRoles(rolesToSync, 0)
+})
+},
+apiSendRoles (rolesToSync, i) {
+  const role = rolesToSync[i]
+if (role !== undefined) {
+  const idToDelete = role.id
+  role.id = null
+  Role.apiSave(role).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    role.syncStatus = 'S'
+    role.id = resp.response.data.id
+    Role.localDbDelete(idToDelete)
+    Role.delete(idToDelete)
+    Role.localDbAdd(role)
+   setTimeout(this.apiSendRoles(rolesToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+})
+}
+},
 
+async getPatientsToSend () {
+  Patient.localDbGetAll().then((patients) => {
+    const patientsToSync = patients.filter((patient) =>
+    (patient.syncStatus === 'R' || patient.syncStatus === 'U'))
+    return patientsToSync
+  }).then(patientsToSync => {
+      console.log(patientsToSync[0])
+      this.apiPatientUsers(patientsToSync, 0)
+})
+},
+apiPatientUsers (patientsToSync, i) {
+  const patient = patientsToSync[i]
+if (patient !== undefined) {
+   const idToDelete = patient.id
+  patient.id = null
+  Patient.apiSave(patient).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    patient.syncStatus = 'S'
+    patient.id = resp.response.data.id
+    // Get Childs TO Update
+PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
+  const toUpdates = identifiers.filter((identifier) => identifier.patient_id === idToDelete)
+  console.log(toUpdates)
+    toUpdates.forEach(toUpdate => {
+      toUpdate.patient_id = resp.response.data.id
+      toUpdate.patient = patient
+      PatientServiceIdentifier.localDbUpdate(toUpdate)
+    })
+    Patient.localDbDelete(idToDelete)
+    Patient.delete(idToDelete)
+      Patient.localDbAdd(patient)
+       setTimeout(this.apiPatientUsers(patientsToSync, i), 2)
+})
+}).catch(error => {
+ console.log(error)
+})
+}
+},
+async getEpisodeToSend () {
+  Episode.localDbGetAll().then((episodes) => {
+    const episodesToSync = episodes.filter((episode) =>
+    (episode.syncStatus === 'R' || episode.syncStatus === 'U'))
+    return episodesToSync
+  }).then(episodesToSync => {
+      console.log(episodesToSync[0])
+      this.apiSendEpisode(episodesToSync, 0)
+})
+},
+async getPatientServiceIdentifierToSend () {
+  PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
+    const identifiersToSync = identifiers.filter((identifier) =>
+    (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
+    return identifiersToSync
+  }).then(identifiersToSync => {
+      console.log(identifiersToSync[0])
+      this.apiSendPatientServiceIdentifier(identifiersToSync, 0)
+})
+},
+apiSendPatientServiceIdentifier (identifiersToSync, i) {
+  const identifier = identifiersToSync[i]
+if (identifier !== undefined) {
+   const idToDelete = identifier.id
+   identifier.id = null
+   PatientServiceIdentifier.apiSave(identifier).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    identifier.syncStatus = 'S'
+    identifier.id = resp.response.data.id
+    // Get Childs TO Update
+    PatientServiceIdentifier.localDbDelete(idToDelete)
+    PatientServiceIdentifier.delete(idToDelete)
+    PatientServiceIdentifier.localDbAdd(identifier)
+       setTimeout(this.apiSendPatientServiceIdentifier(identifiersToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+})
+}
+},
+apiSendEpisode (episodesToSync, i) {
+  const episode = episodesToSync[i]
+if (episode !== undefined) {
+   const idToDelete = episode.id
+   episode.id = null
+   Episode.apiSave(episode).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    episode.syncStatus = 'S'
+    episode.id = resp.response.data.id
+    // Get Childs TO Update
+    Episode.localDbDeleteById(idToDelete)
+    Episode.delete(idToDelete)
+    Episode.localDbAdd(episode)
+       setTimeout(this.apiSendEpisode(episodesToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+})
+}
+},
+async getPrescriptionAndPackAndVisitToSend () {
+  Prescription.localDbGetAll().then((prescriptions) => {
+    const prescriptionsToSync = prescriptions.filter((prescription) =>
+    (prescription.syncStatus === 'R' || prescription.syncStatus === 'U'))
+    return prescriptionsToSync
+  }).then(prescriptionsToSync => {
+      console.log(prescriptionsToSync[0])
+      this.apiSendPrescription(prescriptionsToSync, 0)
+}).then(() => {
+  Pack.localDbGetAll().then((packs) => {
+  const packsToSync = packs.filter((pack) =>
+  (pack.syncStatus === 'R' || pack.syncStatus === 'U'))
+  return packsToSync
+}).then(packsToSync => {
+  console.log(packsToSync[0])
+  this.apiSendPack(packsToSync, 0)
+})
+}).then(PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
+  const patientVisitDetailsToSync = patientVisitDetails.filter((patientVisitDetail) =>
+  (patientVisitDetail.syncStatus === 'R' || patientVisitDetail.syncStatus === 'U'))
+  return patientVisitDetailsToSync
+})).then(patientVisitDetailsToSync => {
+  console.log(patientVisitDetailsToSync[0])
+  this.apiSendPatientVisit(patientVisitDetailsToSync, 0)
+})
+},
+apiSendPrescription (prescriptionsToSync, i) {
+  const prescription = prescriptionsToSync[i]
+if (prescription !== undefined) {
+   const idToDelete = prescription.id
+   prescription.id = null
+   prescription.doctor.clinic = prescription.clinic
+   prescription.prescribedDrugs.forEach(prescribedDrugs => {
+    prescribedDrugs.drug.clinicalService.identifierType.code = 'NID'
+    prescribedDrugs.drug.clinicalService.identifierType.description = 'NID'
+    prescribedDrugs.drug.clinicalService.identifierType.pattern = '########01/####/#####'
+   })
+   Prescription.apiSave(prescription).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    prescription.syncStatus = 'S'
+    prescription.id = resp.response.data.id
+    // Get Childs TO Update
+    Prescription.localDbDeleteById(idToDelete)
+    Prescription.delete(idToDelete)
+    Prescription.localDbAdd(prescription)
+   setTimeout(this.apiSendPrescription(prescriptionsToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+ i = i + 1
+ setTimeout(this.apiSendPrescription(prescriptionsToSync, i), 2)
+})
+}
+},
+apiSendPack (packsToSync, i) {
+  const pack = packsToSync[i]
+if (pack !== undefined) {
+   const idToDelete = pack.id
+   pack.id = null
+  // pack.packagedDrugs.clinic = pack.clinic
+   pack.packagedDrugs.forEach(packagedDrugs => {
+    packagedDrugs.drug.clinicalService.identifierType.code = 'NID'
+    packagedDrugs.drug.clinicalService.identifierType.description = 'NID'
+    packagedDrugs.drug.clinicalService.identifierType.pattern = '########01/####/#####'
+    packagedDrugs.packagedDrugStocks.forEach(packagedDrugStock => {
+      packagedDrugStock.drug.clinicalService.identifierType.code = 'NID'
+      packagedDrugStock.drug.clinicalService.identifierType.description = 'NID'
+      packagedDrugStock.drug.clinicalService.identifierType.pattern = '########01/####/#####'
+      packagedDrugStock.stock.clinic = pack.clinic
+      packagedDrugStock.stock.entrance.clinic = pack.clinic
+    })
+   })
+   console.log(pack)
+   Pack.apiSave(pack).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    pack.syncStatus = 'S'
+    pack.id = resp.response.data.id
+    // Get Childs TO Update
+    Pack.localDbDeleteById(idToDelete)
+    Pack.delete(idToDelete)
+    Pack.localDbAdd(pack)
+   setTimeout(this.apiSendPack(packsToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+ i = i + 1
+ setTimeout(this.apiSendPack(packsToSync, i), 2)
+})
+}
+},
+
+apiSendPatientVisit (patientVisitDetailsToSync, i) {
+  const patientVisitDetails = patientVisitDetailsToSync[i]
+if (patientVisitDetails !== undefined) {
+  //  const idToDelete = patientVisitDetails.id
+    const patientVisit = patientVisitDetails.patientVisit
+    patientVisitDetails.id = null
+    patientVisitDetails.patientVisit = null
+    patientVisit.patientVisitDetails.push(patientVisitDetails)
+    patientVisit.id = null
+   PatientVisit.apiSave(patientVisit).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    patientVisitDetails.syncStatus = 'S'
+    patientVisitDetails.id = resp.response.data.patientVisitDetails[0].id
+    // Get Childs TO Update
+  //  Pack.localDbDeleteById(idToDelete)
+  //  Pack.delete(idToDelete)
+    PatientVisitDetails.localDbAdd(patientVisitDetails)
+   setTimeout(this.apiSendPatientVisit(patientVisitDetailsToSync, i), 2)
+}).catch(error => {
+ console.log(error)
+ i = i + 1
+ setTimeout(this.apiSendPatientVisit(patientVisitDetailsToSync, i), 2)
+})
+}
+},
+    login (username, password) {
+      UsersService.login({
+        username: username,
+        password: password
+      })
+        .then((response) => {
+          this.submitting = false
+          console.log('Login >>>>>>>>', response)
+          localStorage.setItem('id_token', response.response.data.access_token)
+          localStorage.setItem('refresh_token', response.response.data.refresh_token)
+          localStorage.setItem('username', response.response.data.username)
+          localStorage.setItem('user', this.username)
+          localStorage.setItem('role_menus', response.response.data.menus)
+          //   await this.sendUsers()
+     // await this.sendEntrances()
+     // await this.sendStocks()
+    //  await this.sendReferedStocks()
+     this.sendInventory()
+   // await this.sendStockAdjustment()
+        //  this.sendEntrances()
+          this.getRolesToSend()
+          this.getUsersToSend()
+          this.getPatientsToSend()
+          this.getPatientServiceIdentifierToSend()
+          this.getEpisodeToSend()
+          this.getPrescriptionAndPackAndVisitToSend()
+        })
+        .catch((error) => {
+          console.log(error)
+          this.submitting = false
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              this.listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                this.listErrors.push(element.message)
+              })
+            }
+            console.log(this.listErrors)
+          }
+})
+},
 sendInventory () {
   console.log('Iniciando a sincronizacao Stock....')
   Inventory.localDbGetAll().then((inventory) => {

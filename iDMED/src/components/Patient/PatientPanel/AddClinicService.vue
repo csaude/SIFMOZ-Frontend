@@ -79,7 +79,7 @@
                 </div>
 
                 <div class="row q-mb-md">
-                    <div v-if="isCreateStep && patient.identifiers.length > 0 && identifier.id === null" class="col"  tabindex="0"> Assumir Identificador Anterior?
+                    <div v-if="isCreateStep && patient.identifiers.length > 0" class="col"  tabindex="0"> Assumir Identificador Anterior?
                         <q-radio keep-color color="primary" v-model="usePreferedId" v-bind:val="true" label="Sim" />
                         <q-radio keep-color color="primary" v-model="usePreferedId" v-bind:val="false" label="Nao"/>
                     </div>
@@ -292,7 +292,7 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 export default {
-    props: ['identifierToEdit', 'selectedPatient', 'step'],
+    props: ['identifierToEdit', 'selectedPatient', 'stepp'],
    mixins: [mixinplatform, mixinutils],
     data () {
       const submitting = ref(false)
@@ -318,6 +318,9 @@ export default {
         this.reloadIdentifierTypeMask()
       },
       reloadIdentifierTypeMask () {
+        IdentifierType.localDbGetAll().then(idTypes => {
+          IdentifierType.insert({ data: idTypes })
+        })
         if (this.identifier.service !== null) {
           this.identifierTypeMask = this.identifier.service.identifierType.pattern
         }
@@ -480,11 +483,13 @@ export default {
         this.identifier.episodes = []
         if (this.isCloseStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
+          this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
           this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.endDate)
           if (!this.isReferenceEpisode || !this.isDCReferenceEpisode) this.identifier.endDate = this.getJSDateFromDDMMYYY(this.endDate)
         }
         if (this.isReOpenStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
+          this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
           this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.reOpenDate)
           this.identifier.reopenDate = this.getJSDateFromDDMMYYY(this.reOpenDate)
           this.identifier.endDate = ''
@@ -492,6 +497,7 @@ export default {
         if (this.isCloseStep || this.isReOpenStep) {
           this.closureEpisode.creationDate = new Date()
           this.closureEpisode.clinic = this.currClinic
+          this.closureEpisode.clinic_id = this.currClinic.id
           if (this.selectedClinicSector !== null) {
             this.closureEpisode.clinicSector = ClinicSector.query()
                                                             .with('clinic')
@@ -500,10 +506,12 @@ export default {
                                                             .first()
           } else {
             this.closureEpisode.clinicSector = this.lastEpisode.clinicSector
+            this.closureEpisode.clinicSector_id = this.lastEpisode.clinicSector.id
           }
           this.closureEpisode.clinicSector.clinic = this.currClinic
+          this.closureEpisode.clinicSector.clinic_id = this.currClinic.id
           this.closureEpisode.clinicSector.clinicSectorType = ClinicSectorType.find(this.closureEpisode.clinicSector.clinic_sector_type_id)
-
+          this.closureEpisode.clinicSector.clinic_sector_type_id = this.closureEpisode.clinicSector.clinicSectorType.id
           this.identifier.episodes.push(this.closureEpisode)
         }
         if (this.isCreateStep) {
@@ -514,13 +522,18 @@ export default {
         if (this.isEditStep) {
           this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
         }
-        if (this.website) {
-          this.identifier.id = this.getUUID
+        if (this.mobile) {
           this.identifier.identifier_type_id = this.identifier.identifierType.id
           this.identifier.service_id = this.identifier.service.id
           this.identifier.patient_id = this.identifier.patient.id
           this.identifier.clinic_id = this.identifier.clinic.id
-          this.identifier.syncStatus = 'R'
+
+          if (this.isCreateStep) {
+            this.identifier.syncStatus = 'R'
+          } else {
+            this.identifier.syncStatus = 'U'
+          }
+
           if (this.identifier.episodes.length > 0) {
             this.identifier.episodes[0].episodeType_id = this.identifier.episodes[0].episodeType.id
             this.identifier.episodes[0].clinicSector_id = this.identifier.episodes[0].clinicSector.id
@@ -529,15 +542,19 @@ export default {
             this.identifier.episodes[0].referralClinic_id = this.identifier.episodes[0].referralClinic !== null ? this.identifier.episodes[0].referralClinic.id : null
             this.identifier.episodes[0].syncStatus = 'R'
           }
-          // this.identifier = new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier)))
-          console.log(new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier))))
           const identifierCopy = new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier)))
-          await PatientServiceIdentifier.localDbAdd(identifierCopy)
-          PatientServiceIdentifier.insert({ data: identifierCopy })
+          if (this.isCreateStep) {
+            await PatientServiceIdentifier.localDbAdd(identifierCopy)
+            PatientServiceIdentifier.insert({ data: identifierCopy })
+          } else {
+            await PatientServiceIdentifier.localDbUpdate(identifierCopy)
+            PatientServiceIdentifier.update({ data: identifierCopy })
+          }
           if (identifierCopy.episodes.length > 0) {
             await Episode.localDbAdd(identifierCopy.episodes[0])
             Episode.insert({ data: identifierCopy.episodes[0] })
           }
+          this.initPatientTransReference()
           this.displayAlert('info', 'Operação efectuada com sucesso.')
         } else {
           await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
@@ -588,7 +605,7 @@ export default {
           })
           transReference.identifier.episodes = []
           transReference.patient.identifiers = []
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -609,7 +626,7 @@ export default {
           })
           transReference.identifier.episodes = []
           transReference.patient.identifiers = []
-          if (this.website) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -620,7 +637,13 @@ export default {
         }
       },
       doTransReference (transReference) {
-        PatientTransReference.apiSave(transReference)
+        if (this.mobile) {
+          transReference.syncStatus = 'R'
+          PatientTransReference.localDbAdd(transReference)
+          PatientTransReference.insert({ data: transReference })
+        } else {
+          PatientTransReference.apiSave(transReference)
+        }
       },
       async fetchUpdatedIdentifier (id) {
         await PatientServiceIdentifier.apiFetchById(id).then(resp => {
@@ -631,6 +654,7 @@ export default {
       }
     },
     created () {
+      this.setStep(this.stepp)
         if (!this.isCreateStep) {
           this.identifier = Object.assign({}, this.identifierToEdit)
           this.identifier.clinic = this.currClinic
@@ -755,18 +779,6 @@ export default {
       },
       identifierTypes () {
         return IdentifierType.all()
-      },
-      isCloseStep () {
-        return this.step === 'close'
-      },
-      isEditStep () {
-        return this.step === 'edit'
-      },
-      isCreateStep () {
-        return this.step === 'create'
-      },
-      isReOpenStep () {
-        return this.step === 'reOpen'
       },
       pharmacies () {
         return Clinic.query().with('province').where('mainClinic', false).get()
