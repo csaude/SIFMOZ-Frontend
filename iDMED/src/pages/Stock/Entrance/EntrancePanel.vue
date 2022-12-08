@@ -462,8 +462,6 @@ export default {
           })
         })
         this.loadStockList()
-        console.log(this.stockList)
-        console.log('Finished init')
       }
     },
     cancelOperation () {
