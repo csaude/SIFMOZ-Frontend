@@ -108,7 +108,7 @@ export default {
       if (this.selectedPatient === null && this.website) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
-      },
+    },
     editPatient () {
       this.patient = this.selectedPatient
       this.changeToEditStep()
@@ -123,7 +123,6 @@ export default {
   components: {
     patientRegister: require('components/Patient/Register/PatientRegister.vue').default
   }
-
 }
 </script>
 
