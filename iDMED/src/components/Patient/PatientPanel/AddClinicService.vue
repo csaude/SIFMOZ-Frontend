@@ -537,22 +537,23 @@ export default {
           if (this.identifier.episodes.length > 0) {
             this.identifier.episodes[0].episodeType_id = this.identifier.episodes[0].episodeType.id
             this.identifier.episodes[0].clinicSector_id = this.identifier.episodes[0].clinicSector.id
-            this.identifier.episodes[0].patientServiceIdentifier_id = this.identifier.episodes[0].patientServiceIdentifier.id
+            this.identifier.episodes[0].patientServiceIdentifier_id = this.identifier.id
             this.identifier.episodes[0].startStopReason_id = this.identifier.episodes[0].startStopReason.id
             this.identifier.episodes[0].referralClinic_id = this.identifier.episodes[0].referralClinic !== null ? this.identifier.episodes[0].referralClinic.id : null
             this.identifier.episodes[0].syncStatus = 'R'
           }
           const identifierCopy = new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier)))
+          if (identifierCopy.episodes.length > 0) {
+            await Episode.localDbAdd(identifierCopy.episodes[0])
+            Episode.insert({ data: identifierCopy.episodes[0] })
+            identifierCopy.episodes = []
+          }
           if (this.isCreateStep) {
             await PatientServiceIdentifier.localDbAdd(identifierCopy)
             PatientServiceIdentifier.insert({ data: identifierCopy })
           } else {
             await PatientServiceIdentifier.localDbUpdate(identifierCopy)
             PatientServiceIdentifier.update({ data: identifierCopy })
-          }
-          if (identifierCopy.episodes.length > 0) {
-            await Episode.localDbAdd(identifierCopy.episodes[0])
-            Episode.insert({ data: identifierCopy.episodes[0] })
           }
           this.initPatientTransReference()
           this.displayAlert('info', 'Operação efectuada com sucesso.')
