@@ -133,6 +133,10 @@ export default class Episode extends Model {
     return db.newDb().collection('episodes').doc({ id: episode.id }).delete()
   }
 
+  static localDbDeleteById (episodeId) {
+    return db.newDb().collection('episodes').doc({ id: episodeId }).delete()
+  }
+
   static localDbDeleteAll () {
     return db.newDb().collection('episodes').delete()
   }

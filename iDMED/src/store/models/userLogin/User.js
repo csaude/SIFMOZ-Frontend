@@ -18,7 +18,7 @@ export default class User extends Model {
 
   static fields () {
     return {
-      id: this.uid(() => uuidv4()),
+      id: this.attr(null),
       username: this.attr(''),
       password: this.attr(''),
       role: this.attr(null),
@@ -66,8 +66,8 @@ export default class User extends Model {
     return db.newDb().collection('secUsers').set(secUsers)
   }
 
-  static localDbDelete (secUser) {
-    return db.newDb().collection('secUsers').doc({ id: secUser.id }).delete()
+  static localDbDelete (secUserId) {
+    return db.newDb().collection('secUsers').doc({ id: secUserId }).delete()
   }
 
   static localDbDeleteAll () {

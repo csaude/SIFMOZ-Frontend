@@ -302,7 +302,7 @@ import mixinutils from 'src/mixins/mixin-utils'
 import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
 export default {
   mixins: [mixinplatform, mixinutils],
-  props: ['selectedVisitDetails', 'step', 'service', 'member'],
+  props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
   data () {
     return {
       mds: ref('US_'),
@@ -346,8 +346,11 @@ export default {
   },
   methods: {
     async init () {
+      this.setStep(this.stepp)
       this.clearPrescriptionSession()
+      ClinicalServiceAttribute.deleteAll()
       await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
+        console.log(regimens)
         ClinicalServiceAttribute.insert({ data: regimens })
       })
       if (this.isNewPackStep || this.isEditPackStep) {
@@ -355,7 +358,12 @@ export default {
       } else {
         this.getPatientActiveClinicalServices()
       }
-      if (this.mobile) this.doDispenseModeGetAll(0)
+      if (this.website) {
+        this.doDispenseModeGetAll(0)
+      } else {
+      //  this.loadParamsToVueX()
+      }
+     // ClinicalService.deleteAll()
     },
     initPatientVisitDetailsForDispense () {
       this.inFormEdition = true
@@ -856,20 +864,44 @@ export default {
                                                                                                         .where('active', true)
                                                                                                         .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                                                                                         .first()
-          Prescription.apiSave(memberPrescription.prescription).then(resp => {
-            memberPrescription.prescription.id = resp.response.data.id
-            memberPrescription.prescription.$id = resp.response.data.id
-            memberPrescription.prescription.prescribedDrugs = []
-            memberPrescription.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
-            GroupMemberPrescription.apiSave(memberPrescription).then(resp1 => {
-              GroupMemberPrescription.apiFetchByMemberId(this.member.id).then(respd => {
-                if (respd.response.status === 200) {
-                  Prescription.apiFetchById(respd.response.data.prescription.id)
-                }
-              })
-              this.displayAlert('info', 'Prescrição gravada com sucesso.')
+          if (this.mobile) {
+            memberPrescription.prescription.doctor_id = memberPrescription.prescription.doctor.id
+            memberPrescription.prescription.clinic_id = memberPrescription.prescription.clinic.id
+            memberPrescription.prescription.duration_id = memberPrescription.prescription.duration.id
+
+            memberPrescription.prescription.prescriptionDetails[0].prescription_id = memberPrescription.prescription.id
+            memberPrescription.prescription.prescriptionDetails[0].therapeutic_line_id = memberPrescription.prescription.prescriptionDetails[0].therapeuticLine.id
+            memberPrescription.prescription.prescriptionDetails[0].therapeutic_regimen_id = memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id
+            memberPrescription.prescription.prescriptionDetails[0].dispense_type_id = memberPrescription.prescription.prescriptionDetails[0].dispenseType.id
+            if (memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
+              memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
+            }
+
+            memberPrescription.prescription.prescribedDrugs.forEach((pDrug) => {
+              pDrug.prescription_id = memberPrescription.prescription.id
+              pDrug.drug_id = pDrug.drug.id
             })
-          })
+
+            Prescription.localDbAdd(memberPrescription.prescription)
+            memberPrescription.prescription.prescribedDrugs = []
+            GroupMemberPrescription.localDbAdd(memberPrescription)
+            this.displayAlert('info', 'Prescrição gravada com sucesso.')
+          } else {
+            Prescription.apiSave(memberPrescription.prescription).then(resp => {
+              memberPrescription.prescription.id = resp.response.data.id
+              memberPrescription.prescription.$id = resp.response.data.id
+              memberPrescription.prescription.prescribedDrugs = []
+              memberPrescription.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
+              GroupMemberPrescription.apiSave(memberPrescription).then(resp1 => {
+                GroupMemberPrescription.apiFetchByMemberId(this.member.id).then(respd => {
+                  if (respd.response.status === 200) {
+                    Prescription.apiFetchById(respd.response.data.prescription.id)
+                  }
+                })
+                this.displayAlert('info', 'Prescrição gravada com sucesso.')
+              })
+            })
+        }
       } else {
           Object.keys(this.curPatientVisitDetails).forEach(function (k) {
           const visitDetails = Object.assign({}, this.curPatientVisitDetails[k])
@@ -894,59 +926,171 @@ export default {
       }
     },
     saveVisitPrescriptionAndPack (patientVisit, i) {
-      if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
-        const patientVDetails = patientVisit.patientVisitDetails[i]
-        patientVDetails.episode = Episode.query()
-                                    .withAll()
-                                    .where('id', patientVDetails.episode.id)
-                                    .first()
-        patientVDetails.episode.patientVisitDetails = []
-        console.log(patientVDetails)
-        if (patientVDetails.prescription.id === null) {
-          Prescription.apiSave(patientVDetails.prescription).then(resp => {
-            patientVDetails.prescription.id = resp.response.data.id
-            patientVDetails.prescription.$id = resp.response.data.id
-            patientVDetails.prescription.prescribedDrugs = []
-            patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
-            if (patientVDetails.pack !== null) {
-              console.log(patientVDetails.pack)
-                Pack.apiSave(patientVDetails.pack).then(resp => {
-                  patientVDetails.pack.id = resp.response.data.id
-                  patientVDetails.pack.$id = resp.response.data.id
-                  patientVDetails.pack.packagedDrugs = []
-                  i = i + 1
-                  setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
-                })
-            } else {
+      if (this.mobile) {
+        if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
+          const patientVDetails = JSON.parse(JSON.stringify(patientVisit.patientVisitDetails[i]))
+          patientVDetails.episode = Episode.query()
+                                      .withAll()
+                                      .where('id', patientVDetails.episode.id)
+                                      .first()
+          patientVDetails.episode.patientVisitDetails = []
+          console.log(patientVDetails)
+          if (patientVDetails.prescription.syncStatus === '' || (patientVDetails.prescription.syncStatus === 'R' && this.isEditPackStep)) {
+            patientVDetails.prescription.syncStatus = 'R'
+          } else if (patientVDetails.prescription.syncStatus === 'S' && this.isEditPackStep) {
+            patientVDetails.prescription.syncStatus = 'U'
+          }
+
+          patientVDetails.prescription.doctor_id = patientVDetails.prescription.doctor.id
+          patientVDetails.prescription.clinic_id = patientVDetails.prescription.clinic.id
+          patientVDetails.prescription.duration_id = patientVDetails.prescription.duration.id
+
+          patientVDetails.prescription.prescriptionDetails[0].prescription_id = patientVDetails.prescription.id
+          patientVDetails.prescription.prescriptionDetails[0].therapeutic_line_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticLine.id
+          patientVDetails.prescription.prescriptionDetails[0].therapeutic_regimen_id = patientVDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id
+          patientVDetails.prescription.prescriptionDetails[0].dispense_type_id = patientVDetails.prescription.prescriptionDetails[0].dispenseType.id
+          if (patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
+            patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = patientVDetails.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
+          }
+
+          patientVDetails.prescription.prescribedDrugs.forEach((pDrug) => {
+            pDrug.prescription_id = patientVDetails.prescription.id
+            pDrug.drug_id = pDrug.drug.id
+          })
+
+          patientVDetails.pack.dispenseMode_id = patientVDetails.pack.dispenseMode.id
+          patientVDetails.pack.clinic_id = patientVDetails.pack.clinic.id
+
+          patientVDetails.pack.packagedDrugs.forEach((pDrug) => {
+            pDrug.pack_id = patientVDetails.pack.id
+            pDrug.drug_id = pDrug.drug.id
+            pDrug.packagedDrugStocks.forEach((pDrugStock) => {
+              pDrugStock.pack_id = patientVDetails.pack.id
+              pDrugStock.drug_id = pDrugStock.drug.id
+              pDrugStock.packagedDrug_id = pDrug.id
+            })
+          })
+
+          if (this.isEditPackStep) {
+            Prescription.localDbUpdate(patientVDetails.prescription).then(pre => {
+              if (patientVDetails.pack.syncStatus === 'R') {
+                patientVDetails.pack.syncStatus = 'R'
+              } else {
+                patientVDetails.pack.syncStatus = 'U'
+              }
+              Pack.localDbUpdate(patientVDetails.pack)
               i = i + 1
               setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
-            }
-          })
-        } else {
-          const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(patientVDetails.pack.pickupDate), 'days')
-          if (pickUpDiferrence > 0) {
-            this.msgObject.patientVDetails = patientVDetails
-            this.msgObject.patientVisit = patientVisit
-            this.msgObject.nextPickUpDate = moment(patientVDetails.pack.nextPickUpDate, 'DD-MM-YYYY').add('d', pickUpDiferrence)
-            this.displayAlert('YesNo', 'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?')
+            })
           } else {
-            Pack.apiSave(patientVDetails.pack).then(resp => {
-              patientVDetails.pack.id = resp.response.data.id
-              patientVDetails.pack.$id = resp.response.data.id
-              patientVDetails.pack.packagedDrugs = []
+            Prescription.localDbAdd(patientVDetails.prescription).then(pre => {
+              patientVDetails.pack.syncStatus = 'R'
+              Pack.localDbAdd(patientVDetails.pack)
               i = i + 1
               setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
             })
           }
+        } else {
+          const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
+          patientVisit.patient = this.simplePatient
+          patientVisit.clinic = this.currClinic
+          patientVisit.clinic_id = patientVisit.clinic.id
+          patientVisit.patient_id = patientVisit.patient.id
+          patientVisitCopy.patientVisitDetails.forEach((pvd) => {
+            pvd.prescription.prescriptionDetails = []
+            pvd.prescription.prescribedDrugs = []
+            pvd.patientVisit = JSON.parse(JSON.stringify(patientVisit))
+            pvd.patientVisit.patientVisitDetails = []
+            pvd.episode_id = pvd.episode.id
+            pvd.clinic_id = pvd.clinic.id
+            pvd.patient_visit_id = pvd.patientVisit.id
+            pvd.prescription_id = pvd.prescription.id
+            pvd.pack_id = pvd.pack.id
+
+            if (pvd.syncStatus === 'S' && this.isEditPackStep) {
+              pvd.syncStatus = 'U'
+            } else {
+              pvd.syncStatus = 'R'
+            }
+
+            if (this.isEditPackStep) {
+              PatientVisitDetails.localDbUpdate(pvd).then(p => {
+                this.loadVitisToVueX(pvd)
+              })
+            } else {
+              PatientVisitDetails.localDbAdd(pvd).then(p => {
+                this.loadVitisToVueX(pvd)
+              })
+            }
+          })
+          this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
         }
       } else {
-        const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
-        patientVisitCopy.patientVisitDetails.forEach((pvd) => {
-          pvd.prescription.prescriptionDetails = []
-          pvd.prescription.prescribedDrugs = []
-        })
-        this.savePatientVisit(patientVisitCopy)
+        if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
+          const patientVDetails = patientVisit.patientVisitDetails[i]
+          patientVDetails.episode = Episode.query()
+                                            .withAll()
+                                            .where('id', patientVDetails.episode.id)
+                                            .first()
+          patientVDetails.episode.patientVisitDetails = []
+          console.log(patientVDetails)
+          if (patientVDetails.prescription.id === null) {
+            Prescription.apiSave(patientVDetails.prescription).then(resp => {
+              patientVDetails.prescription.id = resp.response.data.id
+              patientVDetails.prescription.$id = resp.response.data.id
+              patientVDetails.prescription.prescribedDrugs = []
+              patientVDetails.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
+              if (patientVDetails.pack !== null) {
+                console.log(patientVDetails.pack)
+                  Pack.apiSave(patientVDetails.pack).then(resp => {
+                    patientVDetails.pack.id = resp.response.data.id
+                    patientVDetails.pack.$id = resp.response.data.id
+                    patientVDetails.pack.packagedDrugs = []
+                    i = i + 1
+                    setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+                  })
+              } else {
+                i = i + 1
+                setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+              }
+            })
+          } else {
+            const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(patientVDetails.pack.pickupDate), 'days')
+            if (pickUpDiferrence > 0) {
+              this.msgObject.patientVDetails = patientVDetails
+              this.msgObject.patientVisit = patientVisit
+              this.msgObject.nextPickUpDate = moment(patientVDetails.pack.nextPickUpDate, 'DD-MM-YYYY').add('d', pickUpDiferrence)
+              this.displayAlert('YesNo', 'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?')
+            } else {
+              Pack.apiSave(patientVDetails.pack).then(resp => {
+                patientVDetails.pack.id = resp.response.data.id
+                patientVDetails.pack.$id = resp.response.data.id
+                patientVDetails.pack.packagedDrugs = []
+                i = i + 1
+                setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
+              })
+            }
+          }
+        } else {
+          const patientVisitCopy = JSON.parse(JSON.stringify(patientVisit))
+          patientVisitCopy.patientVisitDetails.forEach((pvd) => {
+            pvd.prescription.prescriptionDetails = []
+            pvd.prescription.prescribedDrugs = []
+          })
+          this.savePatientVisit(patientVisitCopy)
+        }
       }
+    },
+    async loadVitisToVueX (pvd) {
+     await PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
+       PatientVisitDetails.insert({ data: visitDetails })
+     })
+     Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
+        Prescription.insert({ data: prescription })
+      })
+      Pack.localDbGetById(pvd.pack_id).then(pack => {
+        Pack.insert({ data: pack })
+      })
     },
     savePack (patientVisit, patientVisitDetails, i) {
       Pack.apiSave(patientVisitDetails.pack).then(resp => {
@@ -1023,7 +1167,6 @@ export default {
     },
     checkPrescribedDrugs () {
       const somePrescribed = this.clinicalServices.some((service) => {
-        console.log(SessionStorage.getItem(service.code).prescription.prescribedDrugs)
         return SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0
       })
       return somePrescribed
@@ -1176,6 +1319,7 @@ export default {
     },
     therapeuticRegimens: {
       get () {
+        if (this.selectedClinicalService === null) return []
         return TherapeuticRegimen.query()
                                 .with('clinicalService.identifierType')
                                 .has('code')

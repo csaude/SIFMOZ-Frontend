@@ -70,9 +70,12 @@
 
 <script>
 import Drug from '../../../store/models/drug/Drug'
+import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+    mixins: [mixinplatform],
   props: ['visitDetails', 'hasTherapeuticalRegimen'],
   data () {
     return {
@@ -84,6 +87,13 @@ export default {
     }
   },
   methods: {
+    async init () {
+      if (this.mobile) {
+        IdentifierType.localDbGetAll().then(idTypes => {
+          IdentifierType.insert({ data: idTypes })
+        })
+      }
+    },
     submitForm () {
       this.$refs.drug.validate()
       this.$refs.amtPerTime.validate()
@@ -101,10 +111,15 @@ export default {
       if (this.showOnlyOfRegimen) {
         drugs = this.therapeuticRegimen.drugs
       } else {
-        drugs = Drug.query().with('form').with('stocks').with('clinicalService.identifierType').where('active', true).get()
+        drugs = Drug.query()
+                   .with('form')
+                   .with('stocks')
+                   .with('clinicalService.identifierType')
+                    .where('active', true)
+                    .get()
       }
       const validDrugs = drugs.filter((drug) => {
-        return drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock()
+        return drug.clinicalService !== null && (drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock())
       })
       return validDrugs
     },
@@ -133,6 +148,7 @@ export default {
       this.showOnlyOfRegimen = this.hasTherapeuticalRegimen
   },
   created () {
+    this.init()
       this.currVisitDetails = Object.assign({}, this.visitDetails)
   },
   components: {

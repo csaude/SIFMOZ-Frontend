@@ -82,6 +82,7 @@ import Stock from '../../../store/models/stock/Stock'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import Drug from '../../../store/models/drug/Drug'
 const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
@@ -117,7 +118,6 @@ export default {
                                                                 .with('pack')
                                                                 .where('prescription_id', prescriptionCopy.id)
                                                                 .get()
-      console.log(duration.weeks)
       if (duration.weeks > prescriptionCopy.remainigDurationInWeeks()) {
         this.displayAlert('error', 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' + Number((prescriptionCopy.remainigDurationInWeeks()) / 4) + ' mes(es)]')
       } else {
@@ -176,7 +176,6 @@ export default {
     init () {
       this.pickupDate = this.newPickUpDate
       if (this.isNewPrescriptionStep) {
-        console.log(this.visitDetails.prescription.prescribedDrugs)
         const pvd = new PatientVisitDetails(this.visitClone)
         this.prescribedDrugs = pvd.prescription.prescribedDrugs
       } else
@@ -191,6 +190,17 @@ export default {
       this.nextPUpDate = nextPDate
       this.pickupDate = pickupDate
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs, pickupDate, nextPDate, duration)
+    },
+    async loadParams () {
+      if (this.mobile) {
+        await Drug.localDbGetAll().then(drugs => {
+          drugs.forEach((drug) => {
+            drug.clinicalServiceId = ''
+            drug.formId = ''
+            Drug.insert({ data: drug })
+          })
+        })
+      }
     }
   },
   mounted () {
@@ -238,6 +248,7 @@ export default {
   created () {
     this.curVisitDetails = Object.assign({}, this.visitDetails)
     this.currPrescription = new Prescription(this.prescription)
+    this.loadParams()
   },
   components: {
     AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,

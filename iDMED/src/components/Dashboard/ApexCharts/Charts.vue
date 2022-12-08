@@ -36,12 +36,16 @@
     <div class="row">
       <LineByAge class="col graph-conainer" :serviceCode=serviceCode :year="year" > </LineByAge>
       <PieGenderChart class="col graph-conainer" :serviceCode=serviceCode :year="year" > </PieGenderChart>
+      <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year" v-if="this.website"> </LineBySex>
+    </div>
+    <div class="row" v-if="this.mobile">
       <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year"> </LineBySex>
+      <DispenseTypeByGenderTable class="col-6 " :serviceCode=serviceCode :year="year"/>
     </div>
       <div class="row q-mb-xl q-ma-md" >
-        <DispenseTypeByAgeTable class="col-3 " :serviceCode=serviceCode :year="year" />
+        <DispenseTypeByAgeTable class="col-4 " :serviceCode=serviceCode :year="year" />
         <StockAlert class="col q-mx-md" :serviceCode=serviceCode :year="year" />
-        <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year"/>
+        <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year" v-if="this.website"/>
       </div>
     </div>
          </div>
@@ -53,7 +57,9 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
+    mixins: [mixinplatform],
      props: ['dataLoaded'],
     data () {
       const loading = ref(false)

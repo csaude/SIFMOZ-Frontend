@@ -16,7 +16,7 @@ export default class Group extends Model {
       code: this.attr(''),
       name: this.attr(''),
       startDate: this.attr(''),
-      endDate: this.attr(''),
+      endDate: this.attr(null),
       groupType_id: this.attr(''),
       clinical_service_id: this.attr(''),
       clinic_id: this.attr(''),

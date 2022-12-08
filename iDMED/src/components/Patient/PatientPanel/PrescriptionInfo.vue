@@ -23,7 +23,7 @@
       <AddEditPrescription
         :patient="selectedPatient"
         :selectedVisitDetails="selectedVisitDetails"
-        :step="step"
+        :stepp="step"
         @close="showAddPrescription = false" />
   </q-dialog>
   </div>
@@ -39,7 +39,6 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 export default {
-  props: ['selectedPatient'],
   mixins: [mixinplatform, mixinutils],
   data () {
     return {
@@ -52,33 +51,30 @@ export default {
   },
   methods: {
     async init () {
+      console.log('On PrescriptionInfo initialization')
       if (this.identifiers.length <= 0) {
             this.flagGoReady = true
       } else {
         this.identifiers.forEach(identifier => {
-          if (this.website) {
+          if (this.mobile) {
             const episodeList = Episode.query()
                                         .with('startStopReason')
                                         .with('patientServiceIdentifier')
-                                        .with('patientVisitDetails.*')
+                                       .with('patientVisitDetails.*')
                                         .where('patientServiceIdentifier_id', identifier.id)
                                         .get()
            episodeList.forEach((episode) => {
                PatientVisitDetails.localDbGetAll().then(pvds => {
-                pvds.forEach((pvd) => {
-                  if (pvd.episode_id === episode.id) {
-                    PatientVisitDetails.insert({ data: pvd })
+                pvds.forEach((p) => {
+                  if (p.episode_id === episode.id) {
+                    PatientVisitDetails.insert({ data: p })
                   }
-                })
-                Prescription.localDbGetAll().then(prescriptionList => {
-                  prescriptionList.forEach((prescription) => {
+                Prescription.localDbGetById(p.prescription_id).then(prescription => {
                     Prescription.insert({ data: prescription })
-                  })
                 })
-                Pack.localDbGetAll().then(packList => {
-                  packList.forEach((pack) => {
+                Pack.localDbGetById(p.pack_id).then(pack => {
                     Pack.insert({ data: pack })
-                  })
+                })
                 })
               })
             })

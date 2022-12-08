@@ -1,11 +1,11 @@
 import { Model } from '@vuex-orm/core'
 import ClinicalServiceAttribute from '../ClinicalServiceAttribute/ClinicalServiceAttribute'
-import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
+// import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import IdentifierType from '../identifierType/IdentifierType'
 import ClinicSector from '../clinicSector/ClinicSector'
 import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServiceSector'
-import Group from '../group/Group'
-import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
+// import Group from '../group/Group'
+// import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -23,10 +23,10 @@ export default class ClinicalService extends Model {
 
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
       attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),
-      therapeuticRegimens: this.hasMany(TherapeuticRegimen, 'clinical_service_id'),
-      clinicSectors: this.belongsToMany(ClinicSector, ClinicalServiceSector, 'clinical_service_id', 'clinic_sector_id'),
-      groups: this.hasMany(Group, 'clinical_service_id'),
-      patientServiceIdentifiers: this.hasMany(PatientServiceIdentifier, 'service_id')
+      // therapeuticRegimens: this.hasMany(TherapeuticRegimen, 'clinical_service_id'),
+      clinicSectors: this.belongsToMany(ClinicSector, ClinicalServiceSector, 'clinical_service_id', 'clinic_sector_id')
+      // groups: this.hasMany(Group, 'clinical_service_id'),
+      // patientServiceIdentifiers: this.hasMany(PatientServiceIdentifier, 'service_id')
     }
   }
 

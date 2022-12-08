@@ -187,37 +187,41 @@ export default {
     },
     loadMemberInfo () {
       this.showloading()
-      DispenseMode.apiGetAll()
-      this.group.members.forEach((member) => {
-        GroupMemberPrescription.apiFetchByMemberId(member.id).then(respd => {
-          if (respd.response.status === 200) {
-            Prescription.apiFetchById(respd.response.data.prescription.id)
-          }
-        })
-        Patient.apiFetchById(member.patient.id).then(res0 => {
-          member.patient = res0.response.data
-          member.patient.identifiers.forEach((identifier) => {
-            identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
-            if (identifier.service.code === this.group.service.code) {
-              Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-                if (resp.response.data.length > 0) {
-                  identifier.episodes = resp.response.data
-                  identifier.episodes.forEach(episode => {
-                    PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                      if (resp.response.data) {
-                        episode.patientVisitDetails[0] = resp.response.data
-                        PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
-                        })
-                        this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-                      }
-                    })
-                  })
-                }
-              })
+      if (this.website) {
+        this.membersInfoLoaded = true
+      } else {
+        DispenseMode.apiGetAll()
+        this.group.members.forEach((member) => {
+          GroupMemberPrescription.apiFetchByMemberId(member.id).then(respd => {
+            if (respd.response.status === 200) {
+              Prescription.apiFetchById(respd.response.data.prescription.id)
             }
           })
+          Patient.apiFetchById(member.patient.id).then(res0 => {
+            member.patient = res0.response.data
+            member.patient.identifiers.forEach((identifier) => {
+              identifier = PatientServiceIdentifier.query().withAll().where('id', identifier.id).first()
+              if (identifier.service.code === this.group.service.code) {
+                Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+                  if (resp.response.data.length > 0) {
+                    identifier.episodes = resp.response.data
+                    identifier.episodes.forEach(episode => {
+                      PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
+                        if (resp.response.data) {
+                          episode.patientVisitDetails[0] = resp.response.data
+                          PatientVisitDetails.apiGetAllofPrecription(episode.patientVisitDetails[0].prescription.id).then(resp1 => {
+                          })
+                          this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
+                        }
+                      })
+                    })
+                  }
+                })
+              }
+            })
+          })
         })
-      })
+      }
     },
     loadVisitDetailsInfo (visitDetails, i) {
         Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
@@ -314,7 +318,6 @@ export default {
       this.showRegisterRegister = true
     },
     newPacking (lasHeader) {
-      console.log(lasHeader)
       if (lasHeader !== null && lasHeader !== undefined) this.defaultPickUpDate = lasHeader.nextPickUpDate
       this.showNewPackingForm = true
     }

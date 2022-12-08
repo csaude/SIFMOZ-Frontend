@@ -189,19 +189,14 @@ import Episode from 'src/store/models/episode/Episode'
 import Pack from 'src/store/models/packaging/Pack'
 import Prescription from 'src/store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import { v4 as uuidv4 } from 'uuid'
+import mixinutils from 'src/mixins/mixin-utils'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 export default {
-    props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData'],
+    props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData', 'stepp'],
     emits: ['update:newPatient'],
-   mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinutils],
     data () {
         return {
-            alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
             dateOfBirth: '',
             selectedProvince: {},
             genders: ['Masculino', 'Feminino'],
@@ -266,10 +261,6 @@ export default {
         update(() => {
           this.filterRedBairros = this.bairros.filter((f) => { return this.stringContains(f.description, val) })
         })
-      },
-      stringContains (stringToCheck, stringText) {
-          if (stringText === '') return false
-          return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
       },
       submitForm () {
         this.submitLoading = true
@@ -339,20 +330,27 @@ export default {
                                 .where('id', this.patient.clinic.id)
                                 .first()
         this.patient.clinic = clinicAux
-        if (this.website) {
-          this.patient.id = uuidv4()
-          this.patient.syncStatus = 'R'
+        if (this.mobile) {
+          this.patient.syncStatus = this.isEditStep ? 'U' : 'R'
           this.patient.province_id = this.patient.province.id
           this.patient.district_id = this.patient.district.id
           this.patient.postoAdministrativo_id = this.patient.postoAdministrativo !== null ? this.patient.postoAdministrativo.id : ''
           this.patient.bairro_id = this.patient.bairro !== null ? this.patient.bairro.id : null
           this.patient.clinic_id = this.patient.clinic.id
           const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patient)))
-            console.log(targetCopy)
-          await Patient.localDbAdd(targetCopy).then(patient => {
-            console.log(patient)
-          })
-          await Patient.insert({ data: targetCopy })
+          console.log(targetCopy)
+          if (!this.isEditStep) {
+            await Patient.localDbAdd(targetCopy).then(patient => {
+              console.log(patient)
+            })
+            await Patient.insert({ data: targetCopy })
+          } else {
+            await Patient.localDbUpdate(targetCopy).then(patient => {
+              console.log(patient)
+            })
+            await Patient.update({ data: targetCopy })
+          }
+
           SessionStorage.set('selectedPatient', targetCopy)
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false
@@ -424,11 +422,6 @@ export default {
           })
         })
       },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
       closeDialog () {
         this.alert.visible = false
         if (this.alert.type === 'info' && this.newPatient) {
@@ -464,32 +457,22 @@ export default {
               }
           }
       },
-      getJSDateFromDDMMYYY (dateString) {
-        const dateParts = dateString.split('-')
-        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-      },
       formatDate (dateString) {
         if (!dateString || !moment(dateString).isValid()) return ''
         const dateMoment = moment(dateString).format('DD-MM-YYYY')
         return dateMoment
       },
       initParams () {
-        const offset = 0
-        const max = 200
-        Province.apiGetAll(offset, max)
-        PostoAdministrativo.apiGetAll(offset, max)
-        Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
-      },
-      moment,
-      idadeCalculator (birthDate) {
-            if (moment(birthDate, 'DD/MM/YYYY').isValid()) {
-               const utentBirthDate = moment(birthDate, 'DD/MM/YYYY')
-               const todayDate = moment(new Date())
-               const idade = todayDate.diff(utentBirthDate, 'years')
-               console.log(idade)
-               this.age = idade
-            }
+        this.setStep(this.stepp)
+        if (this.website) {
+          const offset = 0
+          const max = 200
+          Province.apiGetAll(offset, max)
+          PostoAdministrativo.apiGetAll(offset, max)
+          Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
         }
+      },
+      moment
     },
     components: {
         TextInput: require('components/Shared/Input/TextField.vue').default,
@@ -532,25 +515,11 @@ export default {
             return null
           }
         }
-      },
-      currClinic: {
-        get () {
-          return Clinic.query()
-                      .with('province')
-                      .with('district.province')
-                      .with('facilityType')
-                      .where('id', SessionStorage.getItem('currClinic').id)
-                      .first()
-        }
-      },
-      isEditStep () {
-        return this.selectedPatient.id !== null
       }
     },
     mounted () {
       this.initParams()
       this.initPatient()
-      console.log(this.transferencePatientData)
     }
 }
 </script>
