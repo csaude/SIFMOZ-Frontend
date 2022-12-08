@@ -673,8 +673,9 @@ export default {
                     data: stock1.data.data
                   })
                   StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
-                      entrance.stocks.push(targetCopy)
-                      StockEntrance.localDbUpdate(entrance)
+                    console.log('Minha entrada: ', entrance)
+                      this.currStockEntrance.stocks.push(targetCopy)
+                      StockEntrance.localDbUpdate(this.currStockEntrance)
                   })
                   /* if (stock.id === null) {
                   stock.id = stock1.data.data.id
@@ -751,7 +752,7 @@ export default {
       // e.clinic = SessionStorage.getItem('currClinic')
       // e.clinic.district.province_id = e.clinic.province.id
       // e.clinic.district.province = e.clinic.province
-      if (this.website) return e
+     // if (this.website) return e
       return StockEntrance.query()
                           .with('stocks')
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
