@@ -401,7 +401,7 @@ export default {
     },
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
-       if (this.mobile) return e
+      // if (this.mobile) return e
       return Inventory.query()
                       .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                       .with('adjustments.adjustedStock')
