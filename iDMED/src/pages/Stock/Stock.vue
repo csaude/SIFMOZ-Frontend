@@ -26,20 +26,8 @@ export default {
   },
   methods: {
     init () {
-         const offset = 0
-        const max = 300
-          StockCenter.apiGetAll(offset, max)
-          Stock.apiGetAll(offset, max)
-          StockOperationType.apiGetAll(offset, max)
-          ReferedStockMoviment.apiGetAll(offset, max)
-          DestroyedStock.apiGetAll(offset, max)
-          Drug.apiGetAll(offset, max)
-          Province.apiGetAll(offset, max)
-          this.getAllStockOfClinic()
-          InventoryStockAdjustment.apiGetAll(offset, max)
-
    // copoia o stock do localbase para o VueX
-     if (this.website) {
+     if (this.mobile) {
         db.newDb().collection('stocks').get().then(stock => {
                     Stock.insert(
                       {
@@ -69,7 +57,31 @@ export default {
               data: SessionStorage.getItem('currClinic')
             })
           })
-      }
+
+          Drug.localDbGetAll().then(drugs => {
+            drugs.forEach((drug) => {
+              Drug.insert({ data: drug })
+            })
+          })
+
+          StockCenter.localDbGetAll().then(drugs => {
+            drugs.forEach((drug) => {
+              StockCenter.insert({ data: drug })
+            })
+          })
+      } else {
+          const offset = 0
+          const max = 300
+          StockCenter.apiGetAll(offset, max)
+          Stock.apiGetAll(offset, max)
+          StockOperationType.apiGetAll(offset, max)
+          ReferedStockMoviment.apiGetAll(offset, max)
+          DestroyedStock.apiGetAll(offset, max)
+          Drug.apiGetAll(offset, max)
+          Province.apiGetAll(offset, max)
+          this.getAllStockOfClinic()
+          InventoryStockAdjustment.apiGetAll(offset, max)
+        }
     },
    getAllStockOfClinic () {
       const offset = 0

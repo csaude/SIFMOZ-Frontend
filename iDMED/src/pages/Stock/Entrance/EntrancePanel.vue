@@ -454,6 +454,13 @@ export default {
     },
     init () {
       this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
+      if (this.mobile) {
+        Drug.localDbGetAll().then(drugs => {
+            drugs.forEach((drug) => {
+              Drug.insert({ data: drug })
+            })
+          })
+      }
     },
     cancelOperation () {
       this.guiaStep = 'display'
@@ -607,7 +614,7 @@ export default {
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
-      if (this.mobile) {
+      if (this.website) {
       await Stock.apiSave(stock).then(resp => {
         stock.id = resp.response.data.id
         this.submitting = false

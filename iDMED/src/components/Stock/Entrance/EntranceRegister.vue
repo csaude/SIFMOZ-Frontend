@@ -122,7 +122,7 @@ export default {
           this.showloading()
           this.stockEntrance.clinic = this.currClinic
           this.stockEntrance.id = null
-          if (this.mobile) {
+          if (this.website) {
                     await StockEntrance.apiSave(this.stockEntrance).then(resp => {
                     SessionStorage.set('currStockEntrance', resp.response.data)
                     this.hideLoading()
