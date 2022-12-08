@@ -34,12 +34,6 @@ export default {
                         data: stock
                       })
                       })
-        db.newDb().collection('stockOperationTypes').get().then(stockOperationType => {
-                    StockOperationType.insert(
-                      {
-                        data: stockOperationType
-                      })
-                      })
         db.newDb().collection('inventorys').get().then(inventory => {
                           Inventory.insert(
                             {
@@ -47,12 +41,12 @@ export default {
                             })
                             })
         db.newDb().collection('stockEntrances').get().then(stockEntrance => {
+          StockEntrance.deleteAll()
         StockEntrance.insert(
           {
             data: stockEntrance
           })
           }).then(item => {
-              console.log('SessionClinic: ', SessionStorage.getItem('currClinic'))
               Clinic.insert({
               data: SessionStorage.getItem('currClinic')
             })
@@ -69,6 +63,12 @@ export default {
               StockCenter.insert({ data: drug })
             })
           })
+          db.newDb().collection('stockOperationTypes').get().then(stockOperationType => {
+                StockOperationType.insert(
+                  {
+                    data: stockOperationType
+                  })
+                  })
       } else {
           const offset = 0
           const max = 300

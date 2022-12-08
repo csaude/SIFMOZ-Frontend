@@ -42,11 +42,11 @@ import User from 'src/store/models/userLogin/User'
 import StockAlert from 'src/store/models/stockAlert/StockAlert'
 import db from 'src/store/localbase'
 import DrugStockFileEvent from 'src/store/models/drugStockFileEvent/DrugStockFileEvent'
+import Stock from 'src/store/models/stock/Stock'
+import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustment'
 import UsersService from '../../services/UsersService'
 import Encryption from 'src/services/Encryption'
 import Doctor from 'src/store/models/doctor/Doctor'
-// import PrescribedDrug from 'src/store/models/prescriptionDrug/PrescribedDrug'
-// import Stock from 'src/store/models/stock/Stock'
 
 export default {
   // mixins: [mixinEncryption],
@@ -128,19 +128,23 @@ export default {
     await StockCenter.apiGetAll(offset, max).then(resp => {
         StockCenter.localDbUpdateAll(resp.response.data)
     })
-    /*
-    await Stock.apiGetAll(offset, max).then(resp => {
-        Stock.localDbUpdateAll(resp.response.data)
+    Stock.apiGetAll(offset, max).then(resp => {
+      resp.response.data.forEach((item) => {
+        Stock.localDbAdd(item)
+      })
     })
-    */
     await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
         InventoryStockAdjustment.localDbUpdateAll(resp.response.data)
     })
-    await StockOperationType.apiGetAll(offset, max).then(resp => {
-        StockOperationType.localDbUpdateAll(resp.response.data)
+    StockOperationType.apiGetAll(offset, max).then(resp => {
+      resp.response.data.forEach((item) => {
+        StockOperationType.localDbAdd(item)
+      })
     })
-    await ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
-        ReferedStockMoviment.localDbUpdateAll(resp.response.data)
+    ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
+      resp.response.data.forEach((item) => {
+        ReferedStockMoviment.localDbAdd(item)
+      })
     })
     await DestroyedStock.apiGetAll(offset, max).then(resp => {
         DestroyedStock.localDbUpdateAll(resp.response.data)
@@ -185,6 +189,7 @@ export default {
 */
     },
     doStockEntranceGet (clinicId, offset, max) {
+      StockEntrance.deleteAll()
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
@@ -366,7 +371,6 @@ export default {
         }
     })
   },
-
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
@@ -397,6 +401,145 @@ export default {
    })
 }
     },
+
+     async sendEntrances () {
+      console.log('Iniciando a sincronizacao....')
+     StockEntrance.localDbGetAll().then((entrances) => {
+        const entrancesToSync = entrances.filter((entrance) =>
+        (entrance.syncStatus === 'R' || entrance.syncStatus === 'U'))
+        return entrancesToSync
+      }).then(entrancesToSync => {
+          console.log('Entrances to SYNC', entrancesToSync[0])
+          this.apiSendEntrances(entrancesToSync, 0)
+})
+},
+apiSendEntrances (entrancesToSync, i) {
+        if (entrancesToSync[i] !== undefined && i < entrancesToSync.length) {
+          const entrance = entrancesToSync[i]
+          entrance.clinic_id = entrance.clinic.id
+          const idLocalBase = entrance.id
+          entrance.id = null
+          StockEntrance.apiSave(entrance).then(resp => {
+            const entranceId = resp.response.data.id
+          StockEntrance.deleteAll()
+            i = i + 1
+            const stocksNew = []
+            const stockListLb = entrance.stocks
+            Object.keys(stockListLb).forEach(function (k) {
+              if (stockListLb[k] !== null && stockListLb[k] !== undefined) {
+                console.log('stockListLb[k]::: ', stockListLb[k])
+               // Stock.delete(stockListLb[k].id)
+                Stock.localDbDeleteById(stockListLb[k].id).then(rep => {
+                  stockListLb[k].entrance_id = entranceId
+                  stockListLb[k].syncStatus = 'S'
+                  Stock.localDbAdd(stockListLb[k]).then(rep2 => {
+                    stocksNew.push(stockListLb[k])
+                  })
+                })
+              }
+            })
+        StockEntrance.localDbDeleteById(idLocalBase).then(rep => {
+         // StockEntrance.delete(idLocalBase)
+          entrance.id = entranceId
+          entrance.syncStatus = 'S'
+          entrance.stocks = stocksNew
+          StockEntrance.localDbAdd(entrance)
+
+          db.newDb().collection('stockEntrances').get().then(stockEntrance => {
+            StockEntrance.deleteAll()
+          StockEntrance.insert(
+            {
+              data: stockEntrance
+            })
+        })
+
+        db.newDb().collection('stocks').get().then(stock => {
+          Stock.deleteAll()
+          Stock.insert(
+            {
+              data: stock
+            })
+        })
+      })
+          setTimeout(this.apiSendEntrances(entrancesToSync, i), 2)
+          }).catch(error => {
+            console.log(error)
+        })
+    }
+ // }
+ },
+ async sendReferedStocks () {
+  console.log('Iniciando a sincronizacao ReferedStockMoviment....')
+  ReferedStockMoviment.localDbGetAll().then((referedSt) => {
+    const referedStToSync = referedSt.filter((referd) =>
+    (referd.syncStatus === 'R' || referd.syncStatus === 'U'))
+    return referedStToSync
+  }).then(referedStToSync => {
+      this.apiReferedStocks(referedStToSync, 0)
+})
+},
+
+apiReferedStocks (referedStocksToSync, i) {
+  if (referedStocksToSync[i] !== undefined && i < referedStocksToSync.length) {
+    const referedStock = referedStocksToSync[i]
+    const idLocalBase = referedStock.id
+    referedStock.id = null
+    ReferedStockMoviment.apiSave(referedStock).then(resp => {
+      const referedStockId = resp.response.data.id
+      ReferedStockMoviment.deleteAll()
+      i = i + 1
+      ReferedStockMoviment.localDbDeleteById(idLocalBase).then(rep => {
+      referedStock.id = referedStockId
+      referedStock.syncStatus = 'S'
+      ReferedStockMoviment.localDbAdd(referedStock)
+
+      db.newDb().collection('referedStockMoviments').get().then(referedStock => {
+        ReferedStockMoviment.deleteAll()
+        ReferedStockMoviment.insert(
+        {
+          data: referedStock
+        })
+  })
+})
+    setTimeout(this.apiReferedStocks(referedStocksToSync, i), 2)
+    }).catch(error => {
+      console.log(error)
+  })
+}
+},
+async sendStocks () {
+  console.log('Iniciando a sincronizacao Stock....')
+  Stock.localDbGetAll().then((stock) => {
+    const stockToSync = stock.filter((st) =>
+    (st.syncStatus === 'R' || st.syncStatus === 'U'))
+    return stockToSync
+  }).then(stockToSync => {
+      this.apiSendStocks(stockToSync, 0)
+})
+},
+
+apiSendStocks (stocksToSync, i) {
+  if (stocksToSync[i] !== undefined && i < stocksToSync.length) {
+    const stock = stocksToSync[i]
+    Stock.apiUpdate(stock).then(resp => {
+      const stockId = resp.response.data.id
+      i = i + 1
+      stock.id = stockId
+      stock.syncStatus = 'S'
+      Stock.localDbUpdate(stock)
+      db.newDb().collection('stocks').get().then(stock => {
+        Stock.deleteAll()
+        Stock.insert(
+        {
+          data: stock
+        })
+  })
+    setTimeout(this.apiSendStocks(stocksToSync, i), 2)
+    }).catch(error => {
+      console.log(error)
+  })
+}
+},
     async getRolesToSend () {
       Role.localDbGetAll().then((roles) => {
         const rolesToSync = roles.filter((role) =>
@@ -656,6 +799,12 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('username', response.response.data.username)
           localStorage.setItem('user', this.username)
           localStorage.setItem('role_menus', response.response.data.menus)
+          //   await this.sendUsers()
+     // await this.sendEntrances()
+     // await this.sendStocks()
+    //  await this.sendReferedStocks()
+     this.sendInventory()
+   // await this.sendStockAdjustment()
         //  this.sendEntrances()
           this.getRolesToSend()
           this.getUsersToSend()
@@ -680,37 +829,91 @@ if (patientVisitDetails !== undefined) {
           }
 })
 },
-async sendEntrances () {
-  console.log('Iniciando a sincronizacao....')
-  StockEntrance.localDbGetAll().then((entrances) => {
-    const entrancesToSync = entrances.filter((entrance) =>
-    (entrance.syncStatus === 'R' || entrance.syncStatus === 'U'))
-    return entrancesToSync
-  }).then(entrancesToSync => {
-      console.log('Entrances to SYNC', entrancesToSync[0])
-      this.apiSendEntrances(entrancesToSync, 0)
+sendInventory () {
+  console.log('Iniciando a sincronizacao Stock....')
+  Inventory.localDbGetAll().then((inventory) => {
+    const inventoryToSync = inventory.filter((inv) =>
+    ((inv.syncStatus === 'R' || inv.syncStatus === 'U') && inv.open === false))
+    return inventoryToSync
+  }).then(inventoryToSync => {
+      this.apiSendInventory(inventoryToSync, 0)
 })
 },
-apiSendEntrances (entrancesToSync, i) {
-const entrance = entrancesToSync[i]
-if (entrance !== undefined) {
-// const lista = Stock.query().where('entrance_id', entrance.id).all()
-// .with('drug').with('clinic').with('center').with('center.clinic').with('center.clinic.district').with('center.clinic.facilityType').with('center.clinic.province').with('clinic.province').with('clinic.district').with('clinic.district.province').with('clinic.facilityType')
-//  console.log('Lista de Stocks: ', lista)
-entrance.id = null
-//  if (lista !== null) {
- // entrance.stocks = lista
-  entrance.clinic_id = entrance.clinic.id
-      StockEntrance.apiSave(entrance).then(resp => {
-    i = i + 1
-    entrance.syncStatus = 'S'
-    StockEntrance.localDbUpdate(entrance)
-      setTimeout(this.apiSendEntrances(entrancesToSync, i), 2)
+apiSendInventory (inventoryToSync, i) {
+    if (inventoryToSync[i] !== undefined && i < inventoryToSync.length) {
+      const inventory = inventoryToSync[i]
+      inventory.clinic_id = inventory.clinic.id
+      const idLocalBase = inventory.id
+      inventory.id = null
+      Inventory.apiSave(inventory).then(resp => {
+        const inventoryId = resp.response.data.id
+        i = i + 1
+        const stocksNew = []
+        const stockListLb = inventory.adjustments
+        Object.keys(stockListLb).forEach(function (k) {
+          if (stockListLb[k] !== null && stockListLb[k] !== undefined) {
+            console.log('stockListLb[k]::: ', stockListLb[k])
+           // Stock.delete(stockListLb[k].id)
+            InventoryStockAdjustment.localDbDeleteById(stockListLb[k].id).then(rep => {
+              stockListLb[k].inventory_id = inventoryId
+              stockListLb[k].syncStatus = 'S'
+              InventoryStockAdjustment.localDbAdd(stockListLb[k]).then(rep2 => {
+                stocksNew.push(stockListLb[k])
+              })
+             StockAdjustment.delete(stockListLb[k].id)
+             Inventory.delete(idLocalBase)
+            })
+          }
+        })
+        Inventory.localDbDeleteById(idLocalBase).then(rep => {
+      inventory.id = inventoryId
+      inventory.syncStatus = 'S'
+      inventory.stocks = stocksNew
+      Inventory.localDbAdd(inventory)
+  })
+      setTimeout(this.apiSendInventory(inventoryToSync, i), 2)
       }).catch(error => {
         console.log(error)
     })
 }
 // }
-}
+},
+async sendStockAdjustment () {
+  console.log('Iniciando a sincronizacao InventoryStockAdjustment....')
+  InventoryStockAdjustment.localDbGetAll().then((stockAdj) => {
+    const invStAdjToSync = stockAdj.filter((st) =>
+    (st.syncStatus === 'R' || st.syncStatus === 'U') && st.finalised === true)
+    return invStAdjToSync
+  }).then(invStAdjToSync => {
+      this.apiStockAdjustment(invStAdjToSync, 0)
+})
+},
+apiStockAdjustment (invStAdjToSync, i) {
+  if (invStAdjToSync[i] !== undefined && i < invStAdjToSync.length) {
+    const stockAdj = invStAdjToSync[i]
+    const idLocalBase = stockAdj.id
+    stockAdj.id = null
+    InventoryStockAdjustment.apiSave(stockAdj).then(resp => {
+      InventoryStockAdjustment.delete(idLocalBase)
+      console.log('salvandooo...Obj')
+      const stockAdjId = resp.response.data.id
+      i = i + 1
+      InventoryStockAdjustment.localDbDeleteById(idLocalBase).then(rep => {
+        stockAdj.id = stockAdjId
+        stockAdj.syncStatus = 'S'
+        InventoryStockAdjustment.localDbAdd(stockAdj)
 
+      db.newDb().collection('inventoryStockAdjustments').get().then(stockAdj => {
+        InventoryStockAdjustment.insert(
+        {
+          data: stockAdj
+        })
+  })
+})
+    setTimeout(this.apiStockAdjustment(invStAdjToSync, i), 2)
+    }).catch(error => {
+      console.log(error)
+  })
+}
+}
 }
