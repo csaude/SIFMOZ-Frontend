@@ -259,7 +259,6 @@ export default {
        if (this.website) {
         if (this.group.syncStatus !== 'R') this.group.syncStatus = 'U'
         const groupUpdate = new Group(JSON.parse(JSON.stringify((this.group))))
-        console.log(groupUpdate)
         Group.localDbUpdate(groupUpdate).then(group => {
           group.members.forEach((member) => {
             const memberUpdate = new GroupMember(JSON.parse(JSON.stringify((member))))
