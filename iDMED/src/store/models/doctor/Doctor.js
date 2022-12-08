@@ -2,7 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import Prescription from '../prescription/Prescription'
 import db from 'src/store/localbase'
-import { v4 as uuidv4 } from 'uuid'
+// import { v4 as uuidv4 } from 'uuid'
 
 export default class Doctor extends Model {
     static entity = 'doctors'
@@ -13,7 +13,7 @@ export default class Doctor extends Model {
 
     static fields () {
       return {
-        id: this.uid(() => uuidv4()),
+        id: this.attr(null),
         firstnames: this.attr(''),
         lastname: this.attr(''),
         gender: this.attr(''),
