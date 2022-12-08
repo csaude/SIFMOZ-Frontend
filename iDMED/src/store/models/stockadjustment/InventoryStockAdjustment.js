@@ -61,4 +61,8 @@ export class InventoryStockAdjustment extends StockAdjustment {
     static localDbDeleteAll () {
       return db.newDb().collection('inventoryStockAdjustments').delete()
     }
+
+    static localDbDeleteById (id) {
+      return db.newDb().collection('inventoryStockAdjustments').doc({ id: id }).delete()
+    }
 }

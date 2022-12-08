@@ -202,7 +202,7 @@ export default {
             item.id = uuidv4()
         }.bind(this))
 
-          const targetCopy = new Inventory(JSON.parse(JSON.stringify(this.currInventory)))
+          const targetCopy = JSON.parse(JSON.stringify(this.currInventory))
           Inventory.localDbAdd(targetCopy).then(inv => {
             Inventory.insert(
               {

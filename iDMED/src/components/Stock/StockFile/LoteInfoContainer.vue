@@ -291,8 +291,8 @@ export default {
         adjustment.balance = adjustment.adjustedStock.stockMoviment
         this.curEvent.balance = adjustment.balance
         if (this.mobile) {
-          reference.syncStatus = 'R'
            if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
+            reference.syncStatus = 'R'
             ReferedStockMoviment.localDbAdd(reference).then(resp => {
               reference.adjustments[0].adjustedStock.syncStatus = 'U'
               Stock.localDbUpdate(reference.adjustments[0].adjustedStock)
@@ -306,7 +306,7 @@ export default {
            } else {
             destruction.syncStatus = 'R'
              DestroyedStock.localDbAdd(destruction).then(resp => {
-              destruction.adjustments[0].adjustedStock = 'U'
+              destruction.adjustments[0].syncStatus = 'U'
               Stock.localDbUpdate(destruction.adjustments[0].adjustedStock)
               this.$emit('updateDrugFileAdjustment', destruction.adjustments[0])
               this.step = 'display'
