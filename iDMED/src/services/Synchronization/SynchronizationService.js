@@ -576,37 +576,18 @@ async getPatientsToSend () {
     return patientsToSync
   }).then(patientsToSync => {
       console.log(patientsToSync[0])
-      this.apiPatientUsers(patientsToSync, 0)
+     this.apiSendPatients(patientsToSync, 0)
 })
 },
-apiPatientUsers (patientsToSync, i) {
-  const patient = patientsToSync[i]
-if (patient !== undefined) {
-   const idToDelete = patient.id
-  patient.id = null
-  Patient.apiSave(patient).then(resp => {
-    // apiSendUsers(usersToSync , i)
-    i = i + 1
-    patient.syncStatus = 'S'
-    patient.id = resp.response.data.id
-    // Get Childs TO Update
-PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
-  const toUpdates = identifiers.filter((identifier) => identifier.patient_id === idToDelete)
-  console.log(toUpdates)
-    toUpdates.forEach(toUpdate => {
-      toUpdate.patient_id = resp.response.data.id
-      toUpdate.patient = patient
-      PatientServiceIdentifier.localDbUpdate(toUpdate)
-    })
-    Patient.localDbDelete(idToDelete)
-    Patient.delete(idToDelete)
-      Patient.localDbAdd(patient)
-       setTimeout(this.apiPatientUsers(patientsToSync, i), 2)
+async getPatientServiceIdentifierToSend () {
+  PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
+    const identifiersToSync = identifiers.filter((identifier) =>
+    (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
+    return identifiersToSync
+  }).then(identifiersToSync => {
+      console.log(identifiersToSync[0])
+       this.apiSendPatientServiceIdentifier(identifiersToSync, 0)
 })
-}).catch(error => {
- console.log(error)
-})
-}
 },
 async getEpisodeToSend () {
   Episode.localDbGetAll().then((episodes) => {
@@ -618,81 +599,130 @@ async getEpisodeToSend () {
       this.apiSendEpisode(episodesToSync, 0)
 })
 },
-async getPatientServiceIdentifierToSend () {
-  PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
-    const identifiersToSync = identifiers.filter((identifier) =>
-    (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
-    return identifiersToSync
-  }).then(identifiersToSync => {
-      console.log(identifiersToSync[0])
-      this.apiSendPatientServiceIdentifier(identifiersToSync, 0)
+getPrescriptionsToSend () {
+  Prescription.localDbGetAll().then((prescriptions) => {
+    const prescriptionsToSync = prescriptions.filter((prescription) =>
+    (prescription.syncStatus === 'R' || prescription.syncStatus === 'U'))
+  return prescriptionsToSync
+  }).then(prescriptionsToSync => {
+    console.log(prescriptionsToSync[0])
+    this.apiSendPrescription(prescriptionsToSync, 0)
 })
 },
-apiSendPatientServiceIdentifier (identifiersToSync, i) {
+getPacksToSend () {
+  Pack.localDbGetAll().then((packs) => {
+    const packsToSync = packs.filter((pack) =>
+    (pack.syncStatus === 'R' || pack.syncStatus === 'U'))
+    return packsToSync
+  }).then(packsToSync => {
+    console.log(packsToSync[0])
+    this.apiSendPack(packsToSync, 0)
+})
+},
+getPatientVisitDetailsToSend () {
+  PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
+    const patientVisitDetailsToSync = patientVisitDetails.filter((patientVisitDetail) =>
+    (patientVisitDetail.syncStatus === 'R' || patientVisitDetail.syncStatus === 'U'))
+   return patientVisitDetailsToSync
+  }).then(patientVisitDetailsToSync => {
+    console.log(patientVisitDetailsToSync[0])
+    this.apiSendPatientVisit(patientVisitDetailsToSync, 0)
+})
+},
+async apiSendPatients (patientsToSync, i) {
+  const patient = patientsToSync[i]
+if (patient !== undefined) {
+   const idToDelete = patient.id
+  patient.id = null
+await Patient.apiSave(patient).then(resp => {
+    i = i + 1
+    patient.syncStatus = 'S'
+    patient.id = resp.response.data.id
+    // Get Childs TO Update
+ PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
+  const toUpdates = identifiers.filter((identifier) => identifier.patient_id === idToDelete)
+  console.log(toUpdates)
+    toUpdates.forEach(toUpdate => {
+      toUpdate.patient_id = resp.response.data.id
+      toUpdate.patient = patient
+      PatientServiceIdentifier.localDbUpdate(toUpdate)
+    })
+    Patient.localDbDelete(idToDelete)
+    Patient.delete(idToDelete)
+  Patient.localDbAdd(patient).then(patient => {
+    setTimeout(this.apiSendPatients(patientsToSync, i), 200)
+  })
+})
+}).catch(error => {
+ console.log(error)
+})
+} else {
+  this.getPatientServiceIdentifierToSend()
+}
+},
+async apiSendPatientServiceIdentifier (identifiersToSync, i) {
   const identifier = identifiersToSync[i]
 if (identifier !== undefined) {
    const idToDelete = identifier.id
    identifier.id = null
-   PatientServiceIdentifier.apiSave(identifier).then(resp => {
+  await PatientServiceIdentifier.apiSave(identifier).then(resp => {
     // apiSendUsers(usersToSync , i)
     i = i + 1
     identifier.syncStatus = 'S'
     identifier.id = resp.response.data.id
     // Get Childs TO Update
+    Episode.localDbGetAll().then((episodes) => {
+      const toUpdates = episodes.filter((episode) => episode.patientServiceIdentifier.id === idToDelete)
+      console.log(toUpdates)
+        toUpdates.forEach(toUpdate => {
+          toUpdate.patientServiceIdentifier_id = resp.response.data.id
+          toUpdate.patientServiceIdentifier = identifier
+          Episode.localDbUpdate(toUpdate)
+        })
     PatientServiceIdentifier.localDbDelete(idToDelete)
     PatientServiceIdentifier.delete(idToDelete)
-    PatientServiceIdentifier.localDbAdd(identifier)
-       setTimeout(this.apiSendPatientServiceIdentifier(identifiersToSync, i), 2)
+    PatientServiceIdentifier.localDbAdd(identifier).then(identifier => {
+      setTimeout(this.apiSendPatientServiceIdentifier(identifiersToSync, i), 200)
+    })
+      })
 }).catch(error => {
  console.log(error)
 })
+} else {
+  this.getEpisodeToSend()
 }
 },
-apiSendEpisode (episodesToSync, i) {
+async apiSendEpisode (episodesToSync, i) {
   const episode = episodesToSync[i]
 if (episode !== undefined) {
    const idToDelete = episode.id
    episode.id = null
-   Episode.apiSave(episode).then(resp => {
+   await Episode.apiSave(episode).then(resp => {
     // apiSendUsers(usersToSync , i)
     i = i + 1
     episode.syncStatus = 'S'
     episode.id = resp.response.data.id
     // Get Childs TO Update
+  PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
+      const toUpdates = patientVisitDetails.filter((patientVisitDetail) => patientVisitDetail.episode.id === idToDelete)
+      console.log(toUpdates)
+        toUpdates.forEach(toUpdate => {
+          toUpdate.episode_id = resp.response.data.id
+          toUpdate.episode = episode
+          PatientVisitDetails.localDbUpdate(toUpdate)
+        })
     Episode.localDbDeleteById(idToDelete)
     Episode.delete(idToDelete)
-    Episode.localDbAdd(episode)
-       setTimeout(this.apiSendEpisode(episodesToSync, i), 2)
+    Episode.localDbAdd(episode).then(episode => {
+       setTimeout(this.apiSendEpisode(episodesToSync, i), 200)
+      })
+      })
 }).catch(error => {
  console.log(error)
 })
+} else {
+    this.getPrescriptionsToSend()
 }
-},
-async getPrescriptionAndPackAndVisitToSend () {
-  Prescription.localDbGetAll().then((prescriptions) => {
-    const prescriptionsToSync = prescriptions.filter((prescription) =>
-    (prescription.syncStatus === 'R' || prescription.syncStatus === 'U'))
-    return prescriptionsToSync
-  }).then(prescriptionsToSync => {
-      console.log(prescriptionsToSync[0])
-      this.apiSendPrescription(prescriptionsToSync, 0)
-}).then(() => {
-  Pack.localDbGetAll().then((packs) => {
-  const packsToSync = packs.filter((pack) =>
-  (pack.syncStatus === 'R' || pack.syncStatus === 'U'))
-  return packsToSync
-}).then(packsToSync => {
-  console.log(packsToSync[0])
-  this.apiSendPack(packsToSync, 0)
-})
-}).then(PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
-  const patientVisitDetailsToSync = patientVisitDetails.filter((patientVisitDetail) =>
-  (patientVisitDetail.syncStatus === 'R' || patientVisitDetail.syncStatus === 'U'))
-  return patientVisitDetailsToSync
-})).then(patientVisitDetailsToSync => {
-  console.log(patientVisitDetailsToSync[0])
-  this.apiSendPatientVisit(patientVisitDetailsToSync, 0)
-})
 },
 apiSendPrescription (prescriptionsToSync, i) {
   const prescription = prescriptionsToSync[i]
@@ -700,26 +730,40 @@ if (prescription !== undefined) {
    const idToDelete = prescription.id
    prescription.id = null
    prescription.doctor.clinic = prescription.clinic
+    /*
    prescription.prescribedDrugs.forEach(prescribedDrugs => {
     prescribedDrugs.drug.clinicalService.identifierType.code = 'NID'
     prescribedDrugs.drug.clinicalService.identifierType.description = 'NID'
     prescribedDrugs.drug.clinicalService.identifierType.pattern = '########01/####/#####'
    })
+   */
    Prescription.apiSave(prescription).then(resp => {
     // apiSendUsers(usersToSync , i)
     i = i + 1
     prescription.syncStatus = 'S'
     prescription.id = resp.response.data.id
     // Get Childs TO Update
+    PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
+      const toUpdates = patientVisitDetails.filter((patientVisitDetail) => patientVisitDetail.prescription.id === idToDelete)
+      console.log(toUpdates)
+        toUpdates.forEach(toUpdate => {
+          toUpdate.prescription_id = resp.response.data.id
+          toUpdate.prescription = prescription
+          PatientVisitDetails.localDbUpdate(toUpdate)
+        })
+      })
     Prescription.localDbDeleteById(idToDelete)
     Prescription.delete(idToDelete)
-    Prescription.localDbAdd(prescription)
-   setTimeout(this.apiSendPrescription(prescriptionsToSync, i), 2)
+    Prescription.localDbAdd(prescription).then(presc => {
+      setTimeout(this.apiSendPrescription(prescriptionsToSync, i), 2)
+    })
 }).catch(error => {
  console.log(error)
  i = i + 1
  setTimeout(this.apiSendPrescription(prescriptionsToSync, i), 2)
 })
+} else {
+  this.getPacksToSend()
 }
 },
 apiSendPack (packsToSync, i) {
@@ -727,15 +771,9 @@ apiSendPack (packsToSync, i) {
 if (pack !== undefined) {
    const idToDelete = pack.id
    pack.id = null
-  // pack.packagedDrugs.clinic = pack.clinic
+  // pack.clinic = pack.clinic
    pack.packagedDrugs.forEach(packagedDrugs => {
-    packagedDrugs.drug.clinicalService.identifierType.code = 'NID'
-    packagedDrugs.drug.clinicalService.identifierType.description = 'NID'
-    packagedDrugs.drug.clinicalService.identifierType.pattern = '########01/####/#####'
     packagedDrugs.packagedDrugStocks.forEach(packagedDrugStock => {
-      packagedDrugStock.drug.clinicalService.identifierType.code = 'NID'
-      packagedDrugStock.drug.clinicalService.identifierType.description = 'NID'
-      packagedDrugStock.drug.clinicalService.identifierType.pattern = '########01/####/#####'
       packagedDrugStock.stock.clinic = pack.clinic
       packagedDrugStock.stock.entrance.clinic = pack.clinic
     })
@@ -747,25 +785,37 @@ if (pack !== undefined) {
     pack.syncStatus = 'S'
     pack.id = resp.response.data.id
     // Get Childs TO Update
+    PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
+      const toUpdates = patientVisitDetails.filter((patientVisitDetail) => patientVisitDetail.pack.id === idToDelete)
+      console.log(toUpdates)
+        toUpdates.forEach(toUpdate => {
+          toUpdate.pack_id = resp.response.data.id
+          toUpdate.pack = pack
+          PatientVisitDetails.localDbUpdate(toUpdate)
+        })
+      })
     Pack.localDbDeleteById(idToDelete)
     Pack.delete(idToDelete)
-    Pack.localDbAdd(pack)
-   setTimeout(this.apiSendPack(packsToSync, i), 2)
+    Pack.localDbAdd(pack).then(pack => {
+      setTimeout(this.apiSendPack(packsToSync, i), 2)
+    })
 }).catch(error => {
  console.log(error)
  i = i + 1
  setTimeout(this.apiSendPack(packsToSync, i), 2)
 })
+} else {
+  this.getPatientVisitDetailsToSend()
 }
 },
-
 apiSendPatientVisit (patientVisitDetailsToSync, i) {
   const patientVisitDetails = patientVisitDetailsToSync[i]
 if (patientVisitDetails !== undefined) {
-  //  const idToDelete = patientVisitDetails.id
+    const idToDelete = patientVisitDetails.id
     const patientVisit = patientVisitDetails.patientVisit
     patientVisitDetails.id = null
     patientVisitDetails.patientVisit = null
+    patientVisitDetails.prescription.prescribedDrugs = []
     patientVisit.patientVisitDetails.push(patientVisitDetails)
     patientVisit.id = null
    PatientVisit.apiSave(patientVisit).then(resp => {
@@ -774,8 +824,8 @@ if (patientVisitDetails !== undefined) {
     patientVisitDetails.syncStatus = 'S'
     patientVisitDetails.id = resp.response.data.patientVisitDetails[0].id
     // Get Childs TO Update
-  //  Pack.localDbDeleteById(idToDelete)
-  //  Pack.delete(idToDelete)
+    PatientVisitDetails.localDbDeleteById(idToDelete)
+    PatientVisitDetails.delete(idToDelete)
     PatientVisitDetails.localDbAdd(patientVisitDetails)
    setTimeout(this.apiSendPatientVisit(patientVisitDetailsToSync, i), 2)
 }).catch(error => {
@@ -783,6 +833,8 @@ if (patientVisitDetails !== undefined) {
  i = i + 1
  setTimeout(this.apiSendPatientVisit(patientVisitDetailsToSync, i), 2)
 })
+} else {
+  console.log('Fim Visita')
 }
 },
     login (username, password) {
@@ -808,9 +860,10 @@ if (patientVisitDetails !== undefined) {
           this.getRolesToSend()
           this.getUsersToSend()
           this.getPatientsToSend()
-          this.getPatientServiceIdentifierToSend()
-          this.getEpisodeToSend()
-          this.getPrescriptionAndPackAndVisitToSend()
+        //  this.getPatientServiceIdentifierToSend()
+        //  this.getEpisodeToSend()
+       //   this.getPrescriptionAndPackAndVisitToSend()
+         // this.testSequence()
         })
         .catch((error) => {
           console.log(error)

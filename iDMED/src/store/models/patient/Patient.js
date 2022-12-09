@@ -168,8 +168,8 @@ export default class Patient extends Model {
     return db.newDb().collection('patients').doc({ id: id }).get()
   }
 
-  static localDbGetAll () {
-    return db.newDb().collection('patients').get()
+  static async localDbGetAll () {
+    return await db.newDb().collection('patients').get()
   }
 
   static localDbUpdate (patient) {
