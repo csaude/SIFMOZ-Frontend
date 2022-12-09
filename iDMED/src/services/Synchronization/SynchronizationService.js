@@ -364,11 +364,17 @@ export default {
 
     async send () {
      // const userId = LocalStorage.getItem('userLocalId')
-      User.localDbGetById(130).then((user) => {
-        if (user !== undefined) {
-          this.login(user.username, 'admin')
-        }
+     // User.localDbGetById(130).then((user) => {
+       // if (user !== undefined) {
+          this.login('admin', 'admin')
+      //  }
+    // })
+    /*
+    Episode.localDbGetById('414c85a1-efd5-44d7-875b-d80a61a12314').then(episode => {
+      episode.episodeDate = '2017-12-05T22:00:00.000Z'
+      Episode.localDbUpdate(episode)
     })
+    */
   },
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
@@ -640,17 +646,25 @@ await Patient.apiSave(patient).then(resp => {
     patient.id = resp.response.data.id
     // Get Childs TO Update
  PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
+  PatientVisitDetails.localDbGetAll().then(visitDetails => {
   const toUpdates = identifiers.filter((identifier) => identifier.patient_id === idToDelete)
+  const visitsToUpdate = visitDetails.filter((visitDetail) => visitDetail.patientVisit.patient_id === idToDelete)
   console.log(toUpdates)
     toUpdates.forEach(toUpdate => {
       toUpdate.patient_id = resp.response.data.id
       toUpdate.patient = patient
       PatientServiceIdentifier.localDbUpdate(toUpdate)
     })
+    visitsToUpdate.forEach(visitToUpdate => {
+      visitToUpdate.patientVisit.patient_id = resp.response.data.id
+      visitToUpdate.patientVisit.patient = patient
+      PatientVisitDetails.localDbUpdate(visitToUpdate)
+    })
     Patient.localDbDelete(idToDelete)
     Patient.delete(idToDelete)
   Patient.localDbAdd(patient).then(patient => {
     setTimeout(this.apiSendPatients(patientsToSync, i), 200)
+  })
   })
 })
 }).catch(error => {
@@ -763,7 +777,7 @@ if (prescription !== undefined) {
  setTimeout(this.apiSendPrescription(prescriptionsToSync, i), 2)
 })
 } else {
-  this.getPacksToSend()
+  this.getPatientVisitDetailsToSend()
 }
 },
 apiSendPack (packsToSync, i) {
@@ -808,30 +822,70 @@ if (pack !== undefined) {
   this.getPatientVisitDetailsToSend()
 }
 },
-apiSendPatientVisit (patientVisitDetailsToSync, i) {
+  apiSendPatientVisit (patientVisitDetailsToSync, i) {
   const patientVisitDetails = patientVisitDetailsToSync[i]
 if (patientVisitDetails !== undefined) {
-    const idToDelete = patientVisitDetails.id
-    const patientVisit = patientVisitDetails.patientVisit
-    patientVisitDetails.id = null
-    patientVisitDetails.patientVisit = null
-    patientVisitDetails.prescription.prescribedDrugs = []
-    patientVisit.patientVisitDetails.push(patientVisitDetails)
-    patientVisit.id = null
-   PatientVisit.apiSave(patientVisit).then(resp => {
+   PatientVisit.localDbGetAll().then(visits => {
+      const patientVisitsSameDate = visits.filter((patientVisit) => (patientVisit.visitDate === patientVisitDetails.patientVisit.visitDate) && (patientVisit.patient.id === patientVisitDetails.patientVisit.patient.id))
+         return patientVisitsSameDate
+    }).then(patientVisitsSameDate => {
+      if (patientVisitsSameDate.length > 0) {
+        const patientVisitSameDate = patientVisitsSameDate[0]
+        if (patientVisitSameDate.syncStatus === 'S') {
+          //
+        }
+      }
+    const patientVisitDetailsByVisit = patientVisitDetailsToSync.filter((patientVisitDetailToSync) => (patientVisitDetailToSync.patient_visit_id === patientVisitDetails.patient_visit_id))
+    const patientVisitDetailsidsTodelete = []
+    let patientVisit = ''
+    let idToDelete = ''
+    if (patientVisitDetailsByVisit.length > 1) {
+       patientVisit = patientVisitDetailsByVisit[0].patientVisit
+      patientVisitDetailsByVisit.forEach(patientVisitDetailByVisit => {
+        patientVisitDetailsidsTodelete.push(patientVisitDetailByVisit.id)
+        patientVisitDetailByVisit.patientVisit.id = null
+        patientVisitDetailByVisit.prescription.prescribedDrugs = []
+        patientVisit.patientVisitDetails.push(patientVisitDetails)
+        patientVisit.id = null
+      })
+    } else {
+       idToDelete = patientVisitDetails.id
+       patientVisit = patientVisitDetails.patientVisit
+      patientVisitDetails.id = null
+      patientVisitDetails.patientVisit = null
+      patientVisitDetails.prescription.prescribedDrugs = []
+      patientVisit.patientVisitDetails.push(patientVisitDetails)
+      patientVisit.id = null
+    }
+    console.log(patientVisit)
+ PatientVisit.apiSave(patientVisit).then(resp => {
     // apiSendUsers(usersToSync , i)
     i = i + 1
     patientVisitDetails.syncStatus = 'S'
-    patientVisitDetails.id = resp.response.data.patientVisitDetails[0].id
+   // patientVisitDetails.id = resp.response.data.patientVisitDetails[0].id
+    if (patientVisitDetailsidsTodelete.length > 1) {
+    patientVisitDetailsidsTodelete.forEach(patientVisitDetailId => {
+      PatientVisitDetails.localDbDeleteById(patientVisitDetailId)
+      const objWithIdIndex = patientVisitDetailsidsTodelete.findIndex((obj) => obj === patientVisitDetailId)
+      patientVisitDetailsidsTodelete.splice(objWithIdIndex, 1)
+    PatientVisitDetails.delete(patientVisitDetailId)
+   // PatientVisitDetails.localDbAdd(patientVisitDetails)
+    })
+     } else {
     // Get Childs TO Update
     PatientVisitDetails.localDbDeleteById(idToDelete)
     PatientVisitDetails.delete(idToDelete)
-    PatientVisitDetails.localDbAdd(patientVisitDetails)
+  //  PatientVisitDetails.localDbAdd(patientVisitDetails)
+    }
+    resp.response.data.patientVisitDetails.forEach(patientVisitDetail => {
+      PatientVisitDetails.localDbAdd(patientVisitDetail)
+    })
    setTimeout(this.apiSendPatientVisit(patientVisitDetailsToSync, i), 2)
 }).catch(error => {
  console.log(error)
  i = i + 1
  setTimeout(this.apiSendPatientVisit(patientVisitDetailsToSync, i), 2)
+})
 })
 } else {
   console.log('Fim Visita')
@@ -851,8 +905,8 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('user', this.username)
           localStorage.setItem('role_menus', response.response.data.menus)
           //   await this.sendUsers()
-     // await this.sendEntrances()
-     // await this.sendStocks()
+  //   this.sendEntrances()
+  //     this.sendStocks()
     //  await this.sendReferedStocks()
      this.sendInventory()
    // await this.sendStockAdjustment()

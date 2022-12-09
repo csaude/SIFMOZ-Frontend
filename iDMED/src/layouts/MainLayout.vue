@@ -110,9 +110,11 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
+import { Notify } from 'quasar'
 import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
+import isOnline from 'is-online'
 export default defineComponent({
   name: 'MainLayout',
   mixins: [mixinplatform],
@@ -157,7 +159,23 @@ export default defineComponent({
         }
       },
       async sync () {
-        SynchronizationService.send()
+        await isOnline().then(resp => {
+          if (resp === true) {
+            SynchronizationService.send()
+          } else if (resp === false) {
+           Notify.create({
+                    icon: 'announcement',
+                    message: 'Nao Possui conectividade com a internet , Sincronização nao efectuda',
+                    type: 'negative',
+                    progress: true,
+                    timeout: 3000,
+                    position: 'top',
+                    color: 'negative',
+                    textColor: 'white',
+                    classes: 'glossy'
+          })
+        }
+        })
       }
   }
 })
