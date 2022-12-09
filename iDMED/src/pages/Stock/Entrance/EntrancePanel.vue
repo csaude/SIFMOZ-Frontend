@@ -750,7 +750,7 @@ export default {
       // e.clinic = SessionStorage.getItem('currClinic')
       // e.clinic.district.province_id = e.clinic.province.id
       // e.clinic.district.province = e.clinic.province
-     // if (this.website) return e
+      if (this.mobile) return e
       return StockEntrance.query()
                           .with('stocks')
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])

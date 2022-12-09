@@ -132,7 +132,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.website) { // Depois mudar para mobile
+      if (this.mobile) { // Depois mudar para mobile
         GroupType.localDbGetAll().then(groupTypes => {
           GroupType.insert({ data: groupTypes })
         })
@@ -199,7 +199,6 @@ export default {
       } else {
         GroupType.apiGetAll()
         ClinicalService.apiGetAll()
-        // this.getAllPatientsOfClinic()
         this.getAllGroupsOfClinic()
       }
     },
@@ -242,18 +241,6 @@ export default {
           })
         })
       })
-    },
-    doPatientGet (clinicId, offset, max) {
-      Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
-          if (resp.response.data.length > 0) {
-            offset = offset + max
-            setTimeout(this.doPatientGet(clinicId, offset, max), 2)
-          } else {
-            this.loadPatientInfo()
-          }
-        }).catch(error => {
-            console.log(error)
-        })
     },
     doGroupsGet (clinicId, offset, max) {
       Group.apiGetAllByClinicId(clinicId, offset, max).then(resp => {

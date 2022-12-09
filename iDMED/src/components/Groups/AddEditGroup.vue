@@ -337,7 +337,7 @@ export default {
           this.hideLoading()
           this.displayAlert('error', 'O paciente selecionado ja se encontra associado a este grupo [' + this.curGroup.service.code + '].')
        } else {
-         if (this.website) { // Depois mudar para mobile
+         if (this.mobile) { // Depois mudar para mobile
           // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
           let lastEpisode = {}
           patient.identifiers.forEach((identifier) => {
@@ -393,7 +393,7 @@ export default {
     },
     search () {
       this.showloading()
-      if (this.website) { // Depois mudar para mobile
+      if (this.mobile) { // Depois mudar para mobile
         const patients = Patient.query()
                                   .has('identifiers')
                                   .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
@@ -404,7 +404,7 @@ export default {
                                   .where('clinic_id', this.clinic.id)
                                   .get()
         this.searchResults = patients.filter((patient) => {
-          return this.stringContains(patient.firstNames, this.searchParam) || this.stringContains(patient.middleNames, this.searchParam) || this.stringContains(patient.lastNames, this.searchParam) || this.stringContains(this.getIdentifier(patient.identifiers), this.searchParam)
+          return this.stringContains(patient.firstNames, this.searchParam) || this.stringContains(patient.middleNames, this.searchParam) || this.stringContains(patient.lastNames, this.searchParam)
         })
       } else {
         Patient.delete((patient) => {
@@ -476,7 +476,7 @@ export default {
         member.startDate = group.startDate
         member.patient.identifiers = []
       })
-      if (this.website) { // Depois mudar para mobile
+      if (this.mobile) { // Depois mudar para mobile
         if (this.isCreateStep) {
           group.id = uuidv4()
           group.syncStatus = 'R'
