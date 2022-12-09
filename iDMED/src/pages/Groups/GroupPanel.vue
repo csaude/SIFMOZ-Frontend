@@ -188,7 +188,7 @@ export default {
     },
     loadMemberInfo () {
       this.showloading()
-      if (this.website) {
+      if (this.mobile) {
         this.membersInfoLoaded = true
       } else {
         DispenseMode.apiGetAll()
@@ -256,17 +256,17 @@ export default {
        this.group.endDate = new Date()
        const group = Object.assign({}, this.group)
        group.packHeaders = []
-       if (this.website) {
+       if (this.mobile) {
         if (this.group.syncStatus !== 'R') this.group.syncStatus = 'U'
         const groupUpdate = new Group(JSON.parse(JSON.stringify((this.group))))
         Group.localDbUpdate(groupUpdate).then(group => {
           group.members.forEach((member) => {
             const memberUpdate = new GroupMember(JSON.parse(JSON.stringify((member))))
             GroupMember.localDbUpdate(memberUpdate)
-            GroupMember.update({ data: memberUpdate })
+            GroupMember.update({ where: memberUpdate.id, data: memberUpdate })
           })
         })
-        Group.update({ data: groupUpdate })
+        Group.update({ where: groupUpdate.id, data: groupUpdate })
         this.displayAlert('info', 'Operação efectuada com sucesso.')
        } else {
          Group.apiUpdate(group).then(resp => {
