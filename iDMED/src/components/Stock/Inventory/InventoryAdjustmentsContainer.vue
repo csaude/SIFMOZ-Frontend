@@ -130,8 +130,8 @@ import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import Inventory from 'src/store/models/stockinventory/Inventory'
 import { v4 as uuidv4 } from 'uuid'
+import Drug from '../../../store/models/drug/Drug'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
@@ -164,25 +164,28 @@ export default {
     expandLess (value) {
       this.infoContainerVisible = !value
     },
-    init () {
-        if (this.website) {
-         Inventory.localDbGetAll().then(item => {
+    async init () {
+        if (this.mobile) {
+        /* Inventory.localDbGetAll().then(item => {
               console.log('LISTA Inventarios: ', item)
               if (item.syncStatus !== '') {
                   Inventory.insert({
                     data: item
                   })
               }
-            })
-       InventoryStockAdjustment.localDbGetAll().then(item => {
-              console.log('LISTA AJustes: ', item)
-              if (item.syncStatus !== '') {
-                  InventoryStockAdjustment.insert({
-                    data: item
-                  })
-              }
-            this.prepareInit()
-            })
+            }) */
+          await InventoryStockAdjustment.localDbGetAll().then(item => {
+            console.log('LISTA AJustes: ', item)
+            if (item.syncStatus !== '') {
+                InventoryStockAdjustment.insert({
+                  data: item
+                })
+            }
+          })
+          await Drug.localDbGetAll().then(drugs => {
+            Drug.insertOrUpdate({ data: drugs })
+          })
+          this.prepareInit()
         } else {
           this.prepareInit()
         }
