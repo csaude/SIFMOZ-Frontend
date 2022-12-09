@@ -259,14 +259,24 @@ export default {
       const adjustmentsList = inventory.adjustments
       adjustmentsList.forEach((adjustment) => {
         this.processAdjustment(adjustment, inventory)
-        InventoryStockAdjustment.update(JSON.parse(JSON.stringify(adjustment)))
+        adjustment.inventory.endDate = new Date()
+        adjustment.inventory.open = false
+        const targetCopy = JSON.parse(JSON.stringify(adjustment))
+        InventoryStockAdjustment.update({
+          where: targetCopy.id,
+          data: targetCopy
+        })
+        InventoryStockAdjustment.localDbUpdate(targetCopy)
       })
     //  this.doSaveAdjustmentMobile(0)
       inventory.syncStatus = 'U'
       inventory.clinic = this.currClinic
        const targetCopy = JSON.parse(JSON.stringify(inventory))
       Inventory.localDbUpdate(targetCopy).then(item => {
-        Inventory.update(targetCopy)
+        Inventory.update({
+          where: targetCopy.id,
+          data: targetCopy
+        })
       })
       SessionStorage.set('currInventory', inventory)
     },
@@ -445,12 +455,19 @@ export default {
                   .first()
     }
   },
+  created () {
+    if (this.mobile) {
+      Drug.localDbGetAll().then(drugs => {
+        Drug.insertOrUpdate({ data: drugs })
+      })
+    }
+  },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,
     TitleBar: require('components/Shared/TitleBar.vue').default,
     ListHeader: require('components/Shared/ListHeader.vue').default,
     TextInput: require('components/Shared/Input/TextField.vue').default,
-    AdjustmentTable: require('components/Stock/Inventory/InventoryAdjustmentsContainer.vue').default
+   AdjustmentTable: require('components/Stock/Inventory/InventoryAdjustmentsContainer.vue').default
   }
 }
 </script>

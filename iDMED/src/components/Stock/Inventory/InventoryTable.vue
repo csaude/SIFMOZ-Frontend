@@ -96,7 +96,7 @@ export default {
   },
   methods: {
     openFile (inventory) {
-      if (this.website) {
+      if (this.mobile) {
         // Inserir no VueX inventory e InvstockAdj
         Inventory.deleteAll()
         Inventory.localDbGetAll().then(item => {
