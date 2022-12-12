@@ -283,7 +283,7 @@ export default {
         }
     },
     fecthMemberPrescriptionData (visitDetails) {
-      if (this.website) { // Depois mudar para mobile
+      if (this.mobile) { // Depois mudar para mobile
         if (visitDetails.pack !== null) {
           this.fecthedMemberData = this.fecthedMemberData + 1
         }
