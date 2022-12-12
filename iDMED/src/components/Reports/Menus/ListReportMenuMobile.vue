@@ -2,53 +2,53 @@
     <q-banner
     dense
     inline-actions
-    :class="[bgColor, headerClass]"
+    :class="[bgColor]"
     class="text-white q-pa-none">
     <div class="row">
       <div class="col">
-    <q-select
-    class="q-ma-sm"
-    bg-color="white"
-    dense outlined filled
-    style="margin:2px; max-width: 300px"
-    ref="clinicalService"
-    v-model="selectedService"
-    :options="clinicalServices"
-    option-value="id"
-    option-label="code"
-    label="Serviço de Saúde" />
-  </div>
-    <q-list bordered v-if="selectedService !== null">
-      <div  v-if="selectedService.code === 'TARV'">
-        <q-btn-group push>
-        </q-btn-group>
-        <q-btn-dropdown color="primary"
-        v-for="menu in menu"
-        :key="menu.id"
-        :label="menu.description"
-        header-class="bg-green-1 text-black"
-        class="q-ma-sm "
-        >
-        <q-list bordered separator>
-          <q-item
-           v-for="(item, index) in menu.menuItem"
-           :key="index"
-           clickable v-ripple :active="true"
-           v-close-popup
-           class="bg-orange-1 q-ma-sm text-black"
-           @click="changeTab(item.tabName)" >
-            <q-item-section> {{ item.description }} </q-item-section>
-          </q-item>
-        </q-list>
-      </q-btn-dropdown>
-        </div>
-        <div v-else class="vertical-middle col">
-            <q-banner rounded class="bg-orange-1 text-left text-orange-10">
-              Nenhum Relatório assossiado ao Serviço de Saúde Seleccionado!.
-            </q-banner>
+        <q-select
+        class="q-ma-sm items-center"
+        bg-color="white"
+        dense outlined
+        style="max-width: 300px"
+        ref="clinicalService"
+        v-model="selectedService"
+        :options="clinicalServices"
+        option-value="id"
+        option-label="code"
+        label="Serviço de Saúde" />
+      </div>
+      <q-list v-if="selectedService !== null">
+        <div  v-if="selectedService.code === 'TARV'">
+          <q-btn-group push>
+          </q-btn-group>
+          <q-btn-dropdown color="orange-6"
+          v-for="menu in menu"
+          :key="menu.id"
+          :label="menu.description"
+          header-class="bg-green-1 text-black"
+          class="q-ma-sm "
+          >
+          <q-list bordered separator>
+            <q-item
+            v-for="(item, index) in menu.menuItem"
+            :key="index"
+            clickable v-ripple :active="true"
+            v-close-popup
+            class="bg-orange-1 q-ma-sm text-black"
+            @click="changeTab(item.tabName)" >
+              <q-item-section> {{ item.description }} </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
           </div>
-      </q-list>
-      <div v-else class="vertical-middle col">
+          <div v-else class="items-center col">
+              <q-banner rounded class="bg-orange-1 text-left text-orange-10">
+                Nenhum Relatório assossiado ao Serviço de Saúde Seleccionado!.
+              </q-banner>
+            </div>
+        </q-list>
+      <div v-else class="items-center col q-ma-sm">
             <q-banner rounded class="bg-orange-1 text-left text-orange-10">
               Nenhum Serviço de Saúde foi Seleccionado!.
             </q-banner>
