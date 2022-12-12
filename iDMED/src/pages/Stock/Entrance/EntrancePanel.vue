@@ -656,13 +656,13 @@ export default {
                    //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
                    stock.entrance_id = this.currStockEntrance.id // stock.entrance.id
                    stock.drug_id = stock.drug.id
-                   stock.clinic = this.currClinic
-                   stock.clinic_id = this.currClinic.id
+                   stock.clinic = SessionStorage.getItem('currClinic')
+                   stock.clinic_id = SessionStorage.getItem('currClinic').id
                    stock.enabled = false
                    stock.center = StockCenter.query().where('clinic_id', stock.clinic_id).first()
                    stock.stock_center_id = stock.center.id
-                   stock.entrance.clinic_id = this.currClinic.id
-                   stock.center.clinic = this.currClinic
+                   stock.entrance.clinic_id = SessionStorage.getItem('currClinic').id
+                   stock.center.clinic = SessionStorage.getItem('currClinic')
                   // const uuid = uuidv4
                     const targetCopy = JSON.parse(JSON.stringify(stock))
                    Stock.localDbAddOrUpdate(targetCopy, this.step).then(stock1 => {
@@ -670,11 +670,11 @@ export default {
                   {
                     data: stock1.data.data
                   })
-                  StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
+                  /* StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
                     console.log('Minha entrada: ', entrance)
                       this.currStockEntrance.stocks.push(targetCopy)
                       StockEntrance.localDbUpdate(this.currStockEntrance)
-                  })
+                  }) */
                   /* if (stock.id === null) {
                   stock.id = stock1.data.data.id
                   } */
@@ -746,10 +746,7 @@ export default {
       this.alert.visible = false
     },
     getCurrStockEntrance () {
-      const e = SessionStorage.getItem('currStockEntrance')
-      // e.clinic = SessionStorage.getItem('currClinic')
-      // e.clinic.district.province_id = e.clinic.province.id
-      // e.clinic.district.province = e.clinic.province
+      const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
       if (this.mobile) return e
       return StockEntrance.query()
                           .with('stocks')

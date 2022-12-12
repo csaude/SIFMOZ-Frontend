@@ -277,8 +277,12 @@ export default {
           where: targetCopy.id,
           data: targetCopy
         })
-      })
-      SessionStorage.set('currInventory', inventory)
+      }).then(item => {
+              this.step = 'display'
+        this.currInventory.open = false
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
+     // SessionStorage.set('currInventory', inventory)
     },
     doSaveAdjustment (i) {
       if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
@@ -411,7 +415,7 @@ export default {
     },
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
-      // if (this.mobile) return e
+       if (this.mobile) return e
       return Inventory.query()
                       .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                       .with('adjustments.adjustedStock')
