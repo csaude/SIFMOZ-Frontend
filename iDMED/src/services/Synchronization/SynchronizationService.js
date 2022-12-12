@@ -47,6 +47,7 @@ import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustmen
 import UsersService from '../../services/UsersService'
 import Encryption from 'src/services/Encryption'
 import Doctor from 'src/store/models/doctor/Doctor'
+import GroupType from 'src/store/models/groupType/GroupType'
 
 export default {
   // mixins: [mixinEncryption],
@@ -169,6 +170,11 @@ export default {
       DispenseMode.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
           DispenseMode.localDbAdd(item)
+        })
+      })
+      GroupType.apiGetAll().then(resp => {
+        resp.response.data.forEach((item) => {
+          GroupType.localDbAdd(item)
         })
       })
     },

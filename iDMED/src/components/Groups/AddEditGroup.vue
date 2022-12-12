@@ -457,7 +457,7 @@ export default {
     submitForm () {
       this.doSave()
     },
-    doSave () {
+    async doSave () {
       this.$q.loading.show({
         message: 'Carregando ...',
         spinnerColor: 'grey-4',
@@ -482,20 +482,21 @@ export default {
           group.syncStatus = 'R'
           group.clinic_id = this.clinic.id
           group.clinical_service_id = this.curGroup.service.id
-          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
+          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType.id))
           group.members.forEach((member) => {
             member.startDate = group.startDate
             member.syncStatus = 'R'
             member.patient.identifiers = []
           })
-          Group.localDbAdd(group).then(groupRes => {
-            Group.insert({ data: groupRes })
+          await Group.localDbAdd(group).then(groupRes => {
+            console.log(groupRes)
           })
+          await Group.insert({ data: group })
         } else {
           if (group.syncStatus !== 'R') group.syncStatus = 'U'
           group.clinic_id = this.clinic.id
           group.clinical_service_id = this.curGroup.service.id
-          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
+          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType.id))
           group.members.forEach((member) => {
             member.startDate = group.startDate
             if (member.syncStatus !== 'R') member.syncStatus = 'U'
@@ -508,7 +509,6 @@ export default {
         }
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       } else {
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
         Group.apiSave(group).then(resp => {
           Group.apiFetchById(resp.response.data.id).then(resp => {
             this.loadMembersData()
@@ -556,6 +556,11 @@ export default {
       this.alert.visible = false
       if (this.alert.type === 'info') {
         this.$emit('close')
+        if (this.isCreateStep) {
+          this.curGroup.clinic_id = this.curGroup.clinic.id
+          this.curGroup.clinical_service_id = this.curGroup.service.id
+          this.curGroup.groupType_id = this.curGroup.groupType.id
+        }
         SessionStorage.set('selectedGroup', this.curGroup)
         this.$router.push('/group/panel')
       }
