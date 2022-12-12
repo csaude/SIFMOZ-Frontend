@@ -179,7 +179,6 @@ import { date, QSpinnerBall, SessionStorage } from 'quasar'
 import DispenseMode from '../../store/models/dispenseMode/DispenseMode'
 import Duration from '../../store/models/Duration/Duration'
 import Group from '../../store/models/group/Group'
-import moment from 'moment'
 import Patient from '../../store/models/patient/Patient'
 import Episode from '../../store/models/episode/Episode'
 import GroupPackHeader from '../../store/models/group/GroupPackHeader'
@@ -195,6 +194,9 @@ import Prescription from '../../store/models/prescription/Prescription'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
 import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail'
 import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
+import Drug from '../../store/models/drug/Drug'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -205,15 +207,11 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform, mixinutils],
   props: ['group', 'defaultPickUpDate'],
   data () {
     return {
       columns,
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
       nextPDate: '',
       pickupDate: '',
       drugsDuration: '',
@@ -226,11 +224,22 @@ export default {
     }
   },
   methods: {
-    init () {
+    async init () {
       // this.loadGroup()
       console.log(this.defaultPickUpDate)
       if (this.defaultPickUpDate !== null) {
         this.pickupDate = this.getDDMMYYYFromJSDate(this.defaultPickUpDate)
+      }
+      if (this.mobile) {
+        await Drug.localDbGetAll().then(drugs => {
+          Drug.insertOrUpdate({ data: drugs })
+        })
+        await Duration.localDbGetAll().then(drugs => {
+          Duration.insertOrUpdate({ data: drugs })
+        })
+        await DispenseMode.localDbGetAll().then(drugs => {
+          DispenseMode.insertOrUpdate({ data: drugs })
+        })
       }
     },
     getNextPickUpDate () {
@@ -393,34 +402,92 @@ export default {
       }
     },
     savePatientVisitDetails (groupPacks, i) {
-      if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
-        const patientVisit = Object.assign({}, groupPacks[i].pack.patientVisitDetails[0].patientVisit)
-        console.log(patientVisit)
-        patientVisit.patientVisitDetails.push(groupPacks[i].pack.patientVisitDetails[0])
-        patientVisit.patientVisitDetails[0].patientVisit = null
-        groupPacks[i].pack.patientVisitDetails = []
-        Pack.apiSave(groupPacks[i].pack).then(resp => {
-          groupPacks[i].pack.id = resp.response.data.id
-          groupPacks[i].pack.$id = resp.response.data.id
-          patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack
-          patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
+      if (this.mobile) {
+        if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
+          const patientVisit = JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0].patientVisit))
 
           console.log(patientVisit)
-          PatientVisit.apiSave(patientVisit).then(resp => {
-            // groupPacks[i].pack.patientVisitDetails = []
-            i = i + 1
-            setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
+          patientVisit.patientVisitDetails.push(JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0])))
+          patientVisit.patientVisitDetails[0].patientVisit = null
+          groupPacks[i].pack.patientVisitDetails = []
+
+          groupPacks[i].pack.dispenseMode_id = groupPacks[i].pack.dispenseMode.id
+          groupPacks[i].pack.clinic_id = groupPacks[i].pack.clinic.id
+
+          groupPacks[i].pack.packagedDrugs.forEach((pDrug) => {
+            pDrug.pack_id = groupPacks[i].pack.id
+            pDrug.drug_id = pDrug.drug.id
+            pDrug.packagedDrugStocks.forEach((pDrugStock) => {
+              pDrugStock.pack_id = groupPacks[i].pack.id
+              pDrugStock.drug_id = pDrugStock.drug.id
+              pDrugStock.packagedDrug_id = pDrug.id
+            })
           })
-        })
-      } else {
-        this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
-          groupPack.pack.patientVisitDetails = []
-        })
-        GroupPackHeader.apiSave(this.curGroupPackHeader).then(resp => {
-          this.curGroupPackHeader.id = resp.response.data.id
-          Group.apiFetchById(this.curGroupPackHeader.group.id)
+          // patientVisit.patientVisitDetails[0].prescription.calculateLeftDuration(JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
+
+          Pack.localDbAdd(JSON.parse(JSON.stringify(groupPacks[i].pack)))
+          Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) })
+          patientVisit.patientVisitDetails[0].pack = JSON.parse(JSON.stringify(groupPacks[i].pack))
+          patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
+          patientVisit.clinic_id = patientVisit.clinic.id
+          patientVisit.patient_id = patientVisit.patient.id
+          patientVisit.patientVisitDetails[0].episode_id = patientVisit.patientVisitDetails[0].episode.id
+          patientVisit.patientVisitDetails[0].clinic_id = patientVisit.patientVisitDetails[0].clinic.id
+          patientVisit.patientVisitDetails[0].patient_visit_id = patientVisit.id
+          patientVisit.patientVisitDetails[0].prescription_id = patientVisit.patientVisitDetails[0].prescription.id
+          patientVisit.patientVisitDetails[0].pack_id = patientVisit.patientVisitDetails[0].pack.id
+
+          PatientVisit.localDbAdd(patientVisit)
+          PatientVisit.insert({ data: patientVisit })
+
+          i = i + 1
+          setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
+        } else {
+          this.curGroupPackHeader = JSON.parse(JSON.stringify(this.curGroupPackHeader))
+          this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
+            groupPack.pack.patientVisitDetails = []
+            groupPack.pack_id = groupPack.pack.id
+            groupPack.header_id = this.curGroupPackHeader.id
+            groupPack.syncStatus = 'R'
+          })
+          this.curGroupPackHeader.duration_id = this.curGroupPackHeader.duration.id
+          this.curGroupPackHeader.group_id = this.group.id
+          this.curGroupPackHeader.group = null
+          console.log(this.curGroupPackHeader)
+          GroupPackHeader.localDbAdd(JSON.parse(JSON.stringify(this.curGroupPackHeader)))
+          GroupPackHeader.insert({ data: this.curGroupPackHeader })
+
           this.displayAlert('info', 'Operação efectuada com sucesso.')
-        })
+        }
+      } else {
+        if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
+          const patientVisit = Object.assign({}, groupPacks[i].pack.patientVisitDetails[0].patientVisit)
+          console.log(patientVisit)
+          patientVisit.patientVisitDetails.push(groupPacks[i].pack.patientVisitDetails[0])
+          patientVisit.patientVisitDetails[0].patientVisit = null
+          groupPacks[i].pack.patientVisitDetails = []
+          Pack.apiSave(groupPacks[i].pack).then(resp => {
+            groupPacks[i].pack.id = resp.response.data.id
+            groupPacks[i].pack.$id = resp.response.data.id
+            patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
+
+            console.log(patientVisit)
+            PatientVisit.apiSave(patientVisit).then(resp => {
+              // groupPacks[i].pack.patientVisitDetails = []
+              i = i + 1
+              setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
+            })
+          })
+        } else {
+          this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
+            groupPack.pack.patientVisitDetails = []
+          })
+          GroupPackHeader.apiSave(this.curGroupPackHeader).then(resp => {
+            this.curGroupPackHeader.id = resp.response.data.id
+            Group.apiFetchById(this.curGroupPackHeader.group.id)
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          })
+        }
       }
     },
     savePack (pack, i) {
@@ -627,24 +694,12 @@ export default {
         // this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
       }
     },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
     closeDialog () {
       this.alert.visible = false
       if (this.alert.type === 'info') {
         this.$emit('close')
         this.$router.push('/group/panel')
       }
-    },
-    getJSDateFromDDMMYYY (dateString) {
-      const dateParts = dateString.split('-')
-      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-    },
-    getDDMMYYYFromJSDate (jsDate) {
-      return moment(jsDate).format('DD-MM-YYYY')
     }
   },
   computed: {
