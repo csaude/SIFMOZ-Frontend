@@ -328,7 +328,7 @@ export default {
           this.hasInstalationTypeConfigured = true
           SystemConfigs.insert({ data: systemConfigs })
         } else {
-          SystemConfigs.apiGetAll().then((resp) => {
+       SystemConfigs.apiGetAll().then((resp) => {
             resp.response.data.forEach((sysConfig) => {
               SystemConfigs.localDbAdd(sysConfig)
             })
@@ -364,12 +364,14 @@ export default {
       })
       if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic') === 'null') {
         await this.loadSystemConfigs()
-        const sysconfig = SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
-        await Clinic.apiGetByUUID(sysconfig.description).then((resp) => {
+        setTimeout(() => {
+          const sysconfig = SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
+         Clinic.apiGetByUUID(sysconfig.description).then((resp) => {
            Clinic.localDbAdd(resp.response.data)
           this.saveCurrClinic(resp.response.data)
           console.log('CURR CLINICas :' + resp.response.data.uuid + 'sysConfig:' + sysconfig)
         })
+           }, 900)
       }
     },
     async getAllClinicsByDistrictId (districtId) {
