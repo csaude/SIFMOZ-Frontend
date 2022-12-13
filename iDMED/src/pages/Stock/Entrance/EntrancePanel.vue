@@ -568,25 +568,21 @@ export default {
       } else {
          const targetStock = JSON.parse(JSON.stringify(this.selectedStock))
           this.removeFromList(targetStock)
-          const auditSync = new AuditSyncronization()
-          auditSync.operationType = 'remove'
-          auditSync.className = Stock.getClassName()
-          auditSync.syncStatus = 'D'
-          auditSync.entity = targetStock
-          AuditSyncronization.localDbAdd(auditSync)
-
-       /* if (this.selectedStock.syncStatus === 'S') {
-              targetStock.syncStatus = 'D'
-              Stock.localDbUpdate(targetStock).then(stock => {
-                Stock.update(targetStock)
-            })
-           } else {
-            Stock.localDbDelete(targetStock).then(stock => {
-                Stock.delete(targetStock.id)
-            })
-           } */
-        }
-        this.step = 'display'
+         Stock.localDbGetById(targetStock.id).then(item => {
+          if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
+                        const auditSync = new AuditSyncronization()
+                          auditSync.operationType = 'remove'
+                          auditSync.className = Stock.getClassName()
+                          auditSync.syncStatus = 'D'
+                          auditSync.entity = item
+                          AuditSyncronization.localDbAdd(auditSync)
+                    }
+                    Stock.localDbDelete(item).then(stock => {
+                      Stock.delete(item.id)
+                      })
+                     this.step = 'display'
+                  })
+          }
     },
     initNewStock () {
       if (this.isEditionStep || this.isCreationStep) {

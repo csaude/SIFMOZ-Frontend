@@ -47,6 +47,7 @@ import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustmen
 import UsersService from '../../services/UsersService'
 import Encryption from 'src/services/Encryption'
 import Doctor from 'src/store/models/doctor/Doctor'
+import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 
 export default {
   // mixins: [mixinEncryption],
@@ -882,12 +883,13 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('username', response.response.data.username)
           localStorage.setItem('user', this.username)
           localStorage.setItem('role_menus', response.response.data.menus)
+          this.syncronizeAudit()
           //   await this.sendUsers()
-        // this.sendEntrances()
+       // this.sendEntrances()
   //     this.sendStocks()
     //  await this.sendReferedStocks()
-    this.sendEntrances()
-    this.sendInventory()
+          this.sendEntrances()
+          this.sendInventory()
   // await this.sendStockAdjustment()
         //  this.sendEntrances()
          this.getRolesToSend()
@@ -989,5 +991,10 @@ async apiStockAdjustment (invStAdjToSync, i) {
    console.log(error)
   })
   }
+},
+async syncronizeAudit () {
+  AuditSyncronization.localDbGetAll().then(lista => {
+  AuditSyncronization.apiSyncDeletedRecords(lista)
+  })
 }
 }
