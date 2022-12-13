@@ -985,7 +985,9 @@ export default {
               setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
             })
           } else {
-            Prescription.localDbAdd(patientVDetails.prescription).then(pre => {
+            const prescription = new Prescription(patientVDetails.prescription)
+            prescription.calculateLeftDuration(patientVDetails.pack.weeksSupply)
+            Prescription.localDbAdd(prescription).then(pre => {
               patientVDetails.pack.syncStatus = 'R'
               Pack.localDbAdd(patientVDetails.pack)
               i = i + 1

@@ -111,6 +111,7 @@ import Pack from '../../store/models/packaging/Pack'
 import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import GroupMember from 'src/store/models/groupMember/GroupMember'
+import GroupPackHeader from '../../store/models/group/GroupPackHeader'
 export default {
   mixins: [mixinplatform],
   data () {
@@ -186,9 +187,26 @@ export default {
         })
       })
     },
-    loadMemberInfo () {
+    async loadMemberInfo () {
       this.showloading()
       if (this.mobile) {
+        await this.group.members.forEach((member) => {
+           GroupMemberPrescription.localDbGetAll().then(memberPrescriptions => {
+            memberPrescriptions.forEach((mPre) => {
+              if (mPre.member.id === member.id && !mPre.used) {
+                GroupMemberPrescription.insert({ data: mPre })
+              }
+            })
+          })
+        })
+        await GroupPackHeader.localDbGetAll().then(items => {
+          items.forEach((item) => {
+            if (item.group_id === this.group.id) {
+              GroupPackHeader.insert({ data: item })
+            }
+          })
+        })
+
         this.membersInfoLoaded = true
       } else {
         DispenseMode.apiGetAll()

@@ -23,7 +23,7 @@ export default class Prescription extends Model {
         modified: this.boolean(false),
         patientType: this.attr(''),
         patientStatus: this.attr(''),
-        leftDuration: this.attr(''),
+        leftDuration: this.attr(0),
         doctor_id: this.attr(''),
         clinic_id: this.attr(''),
         special: this.boolean(false),
@@ -36,6 +36,14 @@ export default class Prescription extends Model {
         duration: this.belongsTo(Duration, 'duration_id'),
         prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id'),
         groupMemberPrescription: this.hasMany(GroupMemberPrescription, 'prescription_id')
+      }
+    }
+
+    calculateLeftDuration (weeksSupply) {
+      if (this.leftDuration === 0) {
+        this.leftDuration = Number((Number(this.duration.weeks) - Number(weeksSupply)) / 4)
+      } else {
+        this.leftDuration = Number((Number(this.leftDuration) - Number(weeksSupply)) / 4)
       }
     }
 

@@ -48,6 +48,7 @@ import UsersService from '../../services/UsersService'
 import Encryption from 'src/services/Encryption'
 import Doctor from 'src/store/models/doctor/Doctor'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
+import GroupType from 'src/store/models/groupType/GroupType'
 
 export default {
   // mixins: [mixinEncryption],
@@ -170,6 +171,11 @@ export default {
       DispenseMode.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
           DispenseMode.localDbAdd(item)
+        })
+      })
+      GroupType.apiGetAll().then(resp => {
+        resp.response.data.forEach((item) => {
+          GroupType.localDbAdd(item)
         })
       })
     },
@@ -380,7 +386,8 @@ export default {
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
-          (user.syncStatus === 'R' || user.syncStatus === 'U'))
+          (user.syncStatus 
+          'R' || user.syncStatus === 'U'))
           return usersToSync
         }).then(usersToSync => {
             console.log(usersToSync[0])
@@ -419,7 +426,8 @@ export default {
 })
 },
 async apiSendEntrances (entrancesToSync, i) {
- // ======================================
+ // 
+ ==================================
  const entrance = entrancesToSync[i]
  if (entrance !== undefined) {
     const idToDelete = entrance.id
