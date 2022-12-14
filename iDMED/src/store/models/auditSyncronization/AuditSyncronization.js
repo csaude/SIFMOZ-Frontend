@@ -20,6 +20,10 @@ export default class AuditSyncronization extends Model {
     return db.newDb().collection('auditSyncronization').add(auditSyncronization)
   }
 
+  static localDbGetAll () {
+    return db.newDb().collection('auditSyncronization').get()
+  }
+
   static localDbUpdate (auditSyncronization) {
     return db.newDb().collection('auditSyncronization').doc({ id: auditSyncronization.id }).set(auditSyncronization)
   }
@@ -34,5 +38,13 @@ export default class AuditSyncronization extends Model {
 
   static localDbDeleteAll () {
     return db.newDb().collection('auditSyncronization').delete()
+  }
+
+  static async apiSyncDeletedRecords (lista) {
+      lista.forEach(item => {
+        this.api().delete(`/${item.className}/${item.entity.id}`).then(resp => {
+          console.log('Resposta: ', resp)
+        })
+      })
   }
 }
