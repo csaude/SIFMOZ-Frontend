@@ -655,7 +655,7 @@ export default {
                    stock.clinic = SessionStorage.getItem('currClinic')
                    stock.clinic_id = SessionStorage.getItem('currClinic').id
                    stock.enabled = false
-                   stock.center = StockCenter.query().where('clinic_id', stock.clinic_id).first()
+                   stock.center = StockCenter.query().where('prefered', true).first()
                    stock.stock_center_id = stock.center.id
                    stock.entrance.clinic_id = SessionStorage.getItem('currClinic').id
                    stock.center.clinic = SessionStorage.getItem('currClinic')
