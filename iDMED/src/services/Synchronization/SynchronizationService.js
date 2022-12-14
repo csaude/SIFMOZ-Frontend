@@ -29,7 +29,7 @@ import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/Inven
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
-import { LocalStorage } from 'quasar'
+import { LocalStorage, SessionStorage } from 'quasar'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import Pack from 'src/store/models/packaging/Pack'
@@ -47,6 +47,7 @@ import { StockAdjustment } from 'src/store/models/stockadjustment/StockAdjustmen
 import UsersService from '../../services/UsersService'
 import Encryption from 'src/services/Encryption'
 import Doctor from 'src/store/models/doctor/Doctor'
+import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 import GroupType from 'src/store/models/groupType/GroupType'
 
 export default {
@@ -385,7 +386,8 @@ export default {
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
-          (user.syncStatus === 'R' || user.syncStatus === 'U'))
+          (user.syncStatus 
+          'R' || user.syncStatus === 'U'))
           return usersToSync
         }).then(usersToSync => {
             console.log(usersToSync[0])
@@ -412,7 +414,6 @@ export default {
    })
 }
     },
-
      async sendEntrances () {
       console.log('Iniciando a sincronizacao....')
      StockEntrance.localDbGetAll().then((entrances) => {
@@ -424,60 +425,40 @@ export default {
           this.apiSendEntrances(entrancesToSync, 0)
 })
 },
-apiSendEntrances (entrancesToSync, i) {
-        if (entrancesToSync[i] !== undefined && i < entrancesToSync.length) {
-          const entrance = entrancesToSync[i]
-          entrance.clinic_id = entrance.clinic.id
-          const idLocalBase = entrance.id
-          entrance.id = null
-          StockEntrance.apiSave(entrance).then(resp => {
-            const entranceId = resp.response.data.id
-          StockEntrance.deleteAll()
-            i = i + 1
-            const stocksNew = []
-            const stockListLb = entrance.stocks
-            Object.keys(stockListLb).forEach(function (k) {
-              if (stockListLb[k] !== null && stockListLb[k] !== undefined) {
-                console.log('stockListLb[k]::: ', stockListLb[k])
-               // Stock.delete(stockListLb[k].id)
-                Stock.localDbDeleteById(stockListLb[k].id).then(rep => {
-                  stockListLb[k].entrance_id = entranceId
-                  stockListLb[k].syncStatus = 'S'
-                  Stock.localDbAdd(stockListLb[k]).then(rep2 => {
-                    stocksNew.push(stockListLb[k])
-                  })
-                })
-              }
-            })
-        StockEntrance.localDbDeleteById(idLocalBase).then(rep => {
-         // StockEntrance.delete(idLocalBase)
-          entrance.id = entranceId
-          entrance.syncStatus = 'S'
-          entrance.stocks = stocksNew
-          StockEntrance.localDbAdd(entrance)
-
-          db.newDb().collection('stockEntrances').get().then(stockEntrance => {
-            StockEntrance.deleteAll()
-          StockEntrance.insert(
-            {
-              data: stockEntrance
-            })
-        })
-
-        db.newDb().collection('stocks').get().then(stock => {
-          Stock.deleteAll()
-          Stock.insert(
-            {
-              data: stock
-            })
-        })
-      })
-          setTimeout(this.apiSendEntrances(entrancesToSync, i), 2)
-          }).catch(error => {
-            console.log(error)
-        })
-    }
- // }
+async apiSendEntrances (entrancesToSync, i) {
+ // 
+ ==================================
+ const entrance = entrancesToSync[i]
+ if (entrance !== undefined) {
+    const idToDelete = entrance.id
+    entrance.id = null
+    entrance.clinic = SessionStorage.getItem('currClinic')
+    entrance.stocks = []
+ await StockEntrance.apiSave(entrance).then(resp => {
+     i = i + 1
+     entrance.syncStatus = 'S'
+     entrance.id = resp.response.data.id
+     // Get Childs TO Update
+  Stock.localDbGetAll().then((stocks) => {
+   const toUpdates = stocks.filter((stock) => stock.entrance_id === idToDelete)
+   console.log(toUpdates)
+     toUpdates.forEach(toUpdate => {
+       toUpdate.entrance_id = resp.response.data.id
+       toUpdate.entrance = entrance
+       Stock.localDbUpdate(toUpdate)
+     })
+     StockEntrance.localDbDeleteById(idToDelete)
+     StockEntrance.delete(idToDelete)
+     StockEntrance.localDbAdd(entrance).then(entrance => {
+     setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
+   })
+ })
+ }).catch(error => {
+  console.log(error)
+ })
+ } else {
+   this.sendStocks()
+ }
  },
  async sendReferedStocks () {
   console.log('Iniciando a sincronizacao ReferedStockMoviment....')
@@ -529,27 +510,27 @@ async sendStocks () {
 })
 },
 
-apiSendStocks (stocksToSync, i) {
-  if (stocksToSync[i] !== undefined && i < stocksToSync.length) {
-    const stock = stocksToSync[i]
-    Stock.apiUpdate(stock).then(resp => {
-      const stockId = resp.response.data.id
+async apiSendStocks (stocksToSync, i) {
+  const stock = stocksToSync[i]
+  if (stock !== undefined) {
+     const idToDelete = stock.id
+     stock.id = null
+     stock.clinic = SessionStorage.getItem('currClinic')
+    await Stock.apiSave(stock).then(resp => {
+      // apiSendUsers(usersToSync , i)
       i = i + 1
-      stock.id = stockId
       stock.syncStatus = 'S'
-      Stock.localDbUpdate(stock)
-      db.newDb().collection('stocks').get().then(stock => {
-        Stock.deleteAll()
-        Stock.insert(
-        {
-          data: stock
-        })
+      stock.id = resp.response.data.id
+      // Get Childs TO Update
+      Stock.localDbDeleteById(idToDelete)
+      Stock.delete(idToDelete)
+      Stock.localDbAdd(stock).then(stock => {
+        setTimeout(this.apiSendStocks(stocksToSync, i), 200)
+      })
+  }).catch(error => {
+   console.log(error)
   })
-    setTimeout(this.apiSendStocks(stocksToSync, i), 2)
-    }).catch(error => {
-      console.log(error)
-  })
-}
+  }
 },
     async getRolesToSend () {
       Role.localDbGetAll().then((roles) => {
@@ -910,14 +891,16 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('username', response.response.data.username)
           localStorage.setItem('user', this.username)
           localStorage.setItem('role_menus', response.response.data.menus)
+          this.syncronizeAudit()
           //   await this.sendUsers()
-  //   this.sendEntrances()
+       // this.sendEntrances()
   //     this.sendStocks()
     //  await this.sendReferedStocks()
-     this.sendInventory()
-   // await this.sendStockAdjustment()
+          this.sendEntrances()
+          this.sendInventory()
+  // await this.sendStockAdjustment()
         //  this.sendEntrances()
-          this.getRolesToSend()
+         this.getRolesToSend()
           this.getUsersToSend()
           this.getPatientsToSend()
         //  this.getPatientServiceIdentifierToSend()
@@ -941,7 +924,7 @@ if (patientVisitDetails !== undefined) {
           }
 })
 },
-sendInventory () {
+async sendInventory () {
   console.log('Iniciando a sincronizacao Stock....')
   Inventory.localDbGetAll().then((inventory) => {
     const inventoryToSync = inventory.filter((inv) =>
@@ -951,44 +934,39 @@ sendInventory () {
       this.apiSendInventory(inventoryToSync, 0)
 })
 },
-apiSendInventory (inventoryToSync, i) {
-    if (inventoryToSync[i] !== undefined && i < inventoryToSync.length) {
-      const inventory = inventoryToSync[i]
-      inventory.clinic_id = inventory.clinic.id
-      const idLocalBase = inventory.id
-      inventory.id = null
-      Inventory.apiSave(inventory).then(resp => {
-        const inventoryId = resp.response.data.id
-        i = i + 1
-        const stocksNew = []
-        const stockListLb = inventory.adjustments
-        Object.keys(stockListLb).forEach(function (k) {
-          if (stockListLb[k] !== null && stockListLb[k] !== undefined) {
-            console.log('stockListLb[k]::: ', stockListLb[k])
-           // Stock.delete(stockListLb[k].id)
-            InventoryStockAdjustment.localDbDeleteById(stockListLb[k].id).then(rep => {
-              stockListLb[k].inventory_id = inventoryId
-              stockListLb[k].syncStatus = 'S'
-              InventoryStockAdjustment.localDbAdd(stockListLb[k]).then(rep2 => {
-                stocksNew.push(stockListLb[k])
-              })
-             StockAdjustment.delete(stockListLb[k].id)
-             Inventory.delete(idLocalBase)
-            })
-          }
-        })
-        Inventory.localDbDeleteById(idLocalBase).then(rep => {
-      inventory.id = inventoryId
+async apiSendInventory (inventoryToSync, i) {
+  // ======================
+  const inventory = inventoryToSync[i]
+  if (inventory !== undefined) {
+     const idToDelete = inventory.id
+     inventory.id = null
+     inventory.clinic = SessionStorage.getItem('currClinic')
+     inventory.adjustments = []
+  await Inventory.apiSave(inventory).then(resp => {
+      i = i + 1
       inventory.syncStatus = 'S'
-      inventory.stocks = stocksNew
-      Inventory.localDbAdd(inventory)
-  })
-      setTimeout(this.apiSendInventory(inventoryToSync, i), 2)
-      }).catch(error => {
-        console.log(error)
+      inventory.id = resp.response.data.id
+      // Get Childs TO Update
+   InventoryStockAdjustment.localDbGetAll().then((adjustments) => {
+    const toUpdates = adjustments.filter((adjustment) => adjustment.inventory_id === idToDelete)
+    console.log(toUpdates)
+      toUpdates.forEach(toUpdate => {
+        toUpdate.inventory_id = resp.response.data.id
+        toUpdate.inventory = inventory
+        InventoryStockAdjustment.localDbUpdate(toUpdate)
+      })
+      Inventory.localDbDeleteById(idToDelete)
+      Inventory.delete(idToDelete)
+      Inventory.localDbAdd(inventory).then(inventory => {
+      setTimeout(this.apiSendInventory(inventoryToSync, i), 200)
     })
-}
-// }
+  })
+  }).catch(error => {
+   console.log(error)
+  })
+  } else {
+    this.sendStockAdjustment()
+  }
 },
 async sendStockAdjustment () {
   console.log('Iniciando a sincronizacao InventoryStockAdjustment....')
@@ -1000,32 +978,31 @@ async sendStockAdjustment () {
       this.apiStockAdjustment(invStAdjToSync, 0)
 })
 },
-apiStockAdjustment (invStAdjToSync, i) {
-  if (invStAdjToSync[i] !== undefined && i < invStAdjToSync.length) {
-    const stockAdj = invStAdjToSync[i]
-    const idLocalBase = stockAdj.id
-    stockAdj.id = null
-    InventoryStockAdjustment.apiSave(stockAdj).then(resp => {
-      InventoryStockAdjustment.delete(idLocalBase)
-      console.log('salvandooo...Obj')
-      const stockAdjId = resp.response.data.id
+async apiStockAdjustment (invStAdjToSync, i) {
+  const adjustment = invStAdjToSync[i]
+  if (adjustment !== undefined) {
+     const idToDelete = adjustment.id
+     adjustment.id = null
+     adjustment.clinic = SessionStorage.getItem('currClinic')
+    await InventoryStockAdjustment.apiSave(adjustment).then(resp => {
+      // apiSendUsers(usersToSync , i)
       i = i + 1
-      InventoryStockAdjustment.localDbDeleteById(idLocalBase).then(rep => {
-        stockAdj.id = stockAdjId
-        stockAdj.syncStatus = 'S'
-        InventoryStockAdjustment.localDbAdd(stockAdj)
-
-      db.newDb().collection('inventoryStockAdjustments').get().then(stockAdj => {
-        InventoryStockAdjustment.insert(
-        {
-          data: stockAdj
-        })
+      adjustment.syncStatus = 'S'
+      adjustment.id = resp.response.data.id
+      // Get Childs TO Update
+      InventoryStockAdjustment.localDbDeleteById(idToDelete)
+      StockAdjustment.delete(idToDelete)
+      InventoryStockAdjustment.localDbAdd(adjustment).then(stockAdjust => {
+        setTimeout(this.apiStockAdjustment(invStAdjToSync, i), 200)
+      })
+  }).catch(error => {
+   console.log(error)
   })
-})
-    setTimeout(this.apiStockAdjustment(invStAdjToSync, i), 2)
-    }).catch(error => {
-      console.log(error)
+  }
+},
+async syncronizeAudit () {
+  AuditSyncronization.localDbGetAll().then(lista => {
+  AuditSyncronization.apiSyncDeletedRecords(lista)
   })
-}
 }
 }
