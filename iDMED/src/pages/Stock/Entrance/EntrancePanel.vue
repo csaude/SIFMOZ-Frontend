@@ -659,7 +659,7 @@ export default {
                    stock.clinic = this.currClinic
                    stock.clinic_id = this.currClinic.id
                    stock.enabled = false
-                   stock.center = StockCenter.query().where('clinic_id', stock.clinic_id).first()
+                   stock.center = StockCenter.query().where('prefered', true).first()
                    stock.stock_center_id = stock.center.id
                    stock.entrance.clinic_id = this.currClinic.id
                    stock.center.clinic = this.currClinic

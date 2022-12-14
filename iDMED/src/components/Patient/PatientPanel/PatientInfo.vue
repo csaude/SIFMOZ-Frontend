@@ -93,6 +93,7 @@ import { SessionStorage } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import Province from '../../../store/models/province/Province'
 export default {
     mixins: [mixinplatform, mixinutils],
   data () {
@@ -107,6 +108,11 @@ export default {
       this.changeToDisplayStep()
       if (this.selectedPatient === null && this.website) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
+      }
+      if (this.mobile) {
+        Province.localDbGetAll().then(idTypes => {
+          Province.update({ data: idTypes })
+        })
       }
     },
     editPatient () {
