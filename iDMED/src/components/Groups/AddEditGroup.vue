@@ -221,7 +221,6 @@ import GroupMember from '../../store/models/groupMember/GroupMember'
 import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import { v4 as uuidv4 } from 'uuid'
 import Episode from 'src/store/models/episode/Episode'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
@@ -457,7 +456,7 @@ export default {
     submitForm () {
       this.doSave()
     },
-    doSave () {
+    async doSave () {
       this.$q.loading.show({
         message: 'Carregando ...',
         spinnerColor: 'grey-4',
@@ -471,36 +470,33 @@ export default {
         this.curGroup.startDate = this.getJSDateFromDDMMYYY(this.startDate)
         this.curGroup.clinic = this.clinic
       }
-      const group = JSON.parse(JSON.stringify(this.curGroup))
-      group.members.forEach((member) => {
-        member.startDate = group.startDate
-        member.patient.identifiers = []
-      })
-      if (this.mobile) { // Depois mudar para mobile
+
+      this.curGroup = new Group(JSON.parse(JSON.stringify(this.curGroup)))
+      if (this.mobile) {
+        this.curGroup.members.forEach((member) => {
+          member.startDate = this.curGroup.startDate
+          member.group_id = this.curGroup.id
+          member.patient_id = member.patient.id
+          member.clinic_id = this.clinic.id
+          member.syncStatus = 'R'
+        })
         if (this.isCreateStep) {
-          group.id = uuidv4()
-          group.syncStatus = 'R'
-          group.clinic_id = this.clinic.id
-          group.clinical_service_id = this.curGroup.service.id
-          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
-          group.members.forEach((member) => {
-            member.startDate = group.startDate
-            member.syncStatus = 'R'
-            member.patient.identifiers = []
-          })
-          Group.localDbAdd(group).then(groupRes => {
-            Group.insert({ data: groupRes })
-          })
+          this.curGroup.syncStatus = 'R'
+          this.curGroup.clinic_id = this.clinic.id
+          this.curGroup.clinical_service_id = this.curGroup.service.id
+          this.curGroup.groupType_id = this.curGroup.groupType.id
+          await Group.localDbAdd(JSON.parse(JSON.stringify(this.curGroup)))
+          await Group.insert({ data: this.curGroup })
         } else {
-          if (group.syncStatus !== 'R') group.syncStatus = 'U'
-          group.clinic_id = this.clinic.id
-          group.clinical_service_id = this.curGroup.service.id
-          group.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType)).id
-          group.members.forEach((member) => {
-            member.startDate = group.startDate
+          if (this.curGroup.syncStatus !== 'R') this.curGroup.syncStatus = 'U'
+          this.curGroup.clinic_id = this.clinic.id
+          this.curGroup.clinical_service_id = this.curGroup.service.id
+          this.curGroup.groupType_id = JSON.parse(JSON.stringify(this.curGroup.groupType.id))
+          this.curGroup.members.forEach((member) => {
+            member.startDate = this.curGroup.startDate
             if (member.syncStatus !== 'R') member.syncStatus = 'U'
             member.patient.identifiers = []
-            const groupUpdate = new Group(JSON.parse(JSON.stringify((group))))
+            const groupUpdate = new Group(JSON.parse(JSON.stringify((this.curGroup))))
             Group.localDbUpdate(groupUpdate).then(groupRes => {
               Group.update({ data: groupUpdate })
             })
@@ -508,8 +504,7 @@ export default {
         }
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       } else {
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
-        Group.apiSave(group).then(resp => {
+        Group.apiSave(this.curGroup).then(resp => {
           Group.apiFetchById(resp.response.data.id).then(resp => {
             this.loadMembersData()
             this.curGroup = Group.query()
@@ -556,6 +551,11 @@ export default {
       this.alert.visible = false
       if (this.alert.type === 'info') {
         this.$emit('close')
+        if (this.isCreateStep) {
+          this.curGroup.clinic_id = this.curGroup.clinic.id
+          this.curGroup.clinical_service_id = this.curGroup.service.id
+          this.curGroup.groupType_id = this.curGroup.groupType.id
+        }
         SessionStorage.set('selectedGroup', this.curGroup)
         this.$router.push('/group/panel')
       }

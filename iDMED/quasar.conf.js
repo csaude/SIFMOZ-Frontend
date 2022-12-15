@@ -76,7 +76,7 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-devServer
     devServer: {
       https: false,
-      port: 8087,
+      port: 8082,
       open: true, // opens browser window automatically
       proxy: {
         // proxy all requests starting with /openmrs to jsonplaceholder

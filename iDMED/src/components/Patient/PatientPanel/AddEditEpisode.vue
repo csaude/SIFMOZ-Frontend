@@ -590,9 +590,8 @@ export default {
         const sectors = ClinicSector.query()
                                     .with('clinic')
                                     .with('clinicSectorType')
-                                    .where((sector) => {
-                                      return sector.clinic_id === this.currClinic.id && sector.active === true
-                                    }).get()
+                                    .where((sector) => { return sector.clinic_id === this.currClinic.id && sector.active === true })
+                                    .get()
         const sectorList = sectors.filter((sector) => {
           return sector.clinicSectorType.code === 'PARAGEM_UNICA'
         })

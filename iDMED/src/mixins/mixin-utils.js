@@ -18,8 +18,22 @@ import EpisodeType from 'src/store/models/episodeType/EpisodeType'
 import IdentifierType from 'src/store/models/identifierType/IdentifierType'
 import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
 import ClinicSectorType from 'src/store/models/clinicSectorType/ClinicSectorType'
-// import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
+import ClinicSector from 'src/store/models/clinicSector/ClinicSector'
 import Stock from 'src/store/models/stock/Stock'
+import GroupType from 'src/store/models/groupType/GroupType'
+import Form from 'src/store/models/form/Form'
+import InteroperabilityAttribute from 'src/store/models/interoperabilityAttribute/InteroperabilityAttribute'
+import InteroperabilityType from 'src/store/models/interoperabilityType/InteroperabilityType'
+import StockCenter from 'src/store/models/stockcenter/StockCenter'
+import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/InventoryStockAdjustment'
+import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
+import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
+import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
+import FacilityType from 'src/store/models/facilityType/FacilityType'
+import PatientTransReferenceType from 'src/store/models/tansreference/PatientTransReferenceType'
+import SpetialPrescriptionMotive from 'src/store/models/prescription/SpetialPrescriptionMotive'
+import ProvincialServer from 'src/store/models/provincialServer/ProvincialServer'
+import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
 
 export default {
   data () {
@@ -134,6 +148,8 @@ export default {
     await IdentifierType.localDbGetAll().then(idTypes => {
       IdentifierType.insert({ data: idTypes })
     })
+
+    this.hideLoading()
   },
   idadeCalculator (birthDate) {
     if (moment(birthDate, 'YYYY/MM/DDDD').isValid()) {
@@ -170,6 +186,48 @@ export default {
   },
   setAsInitializing () {
     this.initialized = false
+  },
+  async loadWebParamsToVueX () {
+    const offset = 0
+    const max = 100
+ //   this.doClinicGet(0, 100)
+
+    await Duration.apiGetAll(offset, max)
+    await ClinicalServiceAttributeType.apiGetAll(offset, max)
+    await ClinicalService.apiGetAll(offset, max).then(resp => {
+      console.log(resp.response.data)
+  })
+    await ClinicSector.apiGetAll(offset, max).then(resp => {
+      console.log(resp.response.data)
+  })
+    await IdentifierType.apiGetAll(offset, max)
+    await EpisodeType.apiGetAll(offset, max)
+    await FacilityType.apiGetAll(offset, max)
+    await StartStopReason.apiGetAll(offset, max)
+    await ClinicalServiceAttribute.apiGetAll(offset, max)
+    await Drug.apiGetAll(offset, max)
+    await TherapeuticRegimen.apiGetAll(offset, max)
+    await TherapeuticLine.apiGetAll(offset, max)
+    await Form.apiGetAll(offset, max)
+    await DispenseType.apiGetAll(offset, max)
+    await InteroperabilityType.apiGetAll(offset, max)
+    await InteroperabilityAttribute.apiGetAll(offset, max)
+    await HealthInformationSystem.apiGetAll(offset, max)
+    await StockCenter.apiGetAll(offset, max)
+    await Stock.apiGetAll(offset, max)
+    await InventoryStockAdjustment.apiGetAll(offset, max)
+    await StockOperationType.apiGetAll(offset, max)
+    await ReferedStockMoviment.apiGetAll(offset, max)
+    await DestroyedStock.apiGetAll(offset, max)
+    await FacilityType.apiGetAll(offset, max)
+    await ClinicSectorType.apiGetAll(offset, max)
+    await PatientTransReferenceType.apiGetAll(offset, max)
+    await SpetialPrescriptionMotive.apiGetAll(offset, max)
+    await ProvincialServer.apiGetAll()
+    await Doctor.apiGetAll()
+    await DispenseMode.apiGetAll()
+    await GroupType.apiGetAll()
+    this.hideLoading()
   }
  },
   computed: {

@@ -113,7 +113,7 @@ import { defineComponent, ref } from 'vue'
 // import { Notify } from 'quasar'
 import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
+// import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
 // import isOnline from 'is-online'
 export default defineComponent({
   name: 'MainLayout',
@@ -159,9 +159,7 @@ export default defineComponent({
         }
       },
       async sync () {
-        SynchronizationService.send()
-        /*
-        await isOnline().then(resp => {
+        /* await isOnline().then(resp => {
           if (resp === true) {
             SynchronizationService.send()
           } else if (resp === false) {
@@ -177,8 +175,7 @@ export default defineComponent({
                     classes: 'glossy'
           })
         }
-        })
-        */
+        }) */
       }
   }
 })

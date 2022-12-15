@@ -568,25 +568,21 @@ export default {
       } else {
          const targetStock = JSON.parse(JSON.stringify(this.selectedStock))
           this.removeFromList(targetStock)
-          const auditSync = new AuditSyncronization()
-          auditSync.operationType = 'remove'
-          auditSync.className = Stock.getClassName()
-          auditSync.syncStatus = 'D'
-          auditSync.entity = targetStock
-          AuditSyncronization.localDbAdd(auditSync)
-
-       /* if (this.selectedStock.syncStatus === 'S') {
-              targetStock.syncStatus = 'D'
-              Stock.localDbUpdate(targetStock).then(stock => {
-                Stock.update(targetStock)
-            })
-           } else {
-            Stock.localDbDelete(targetStock).then(stock => {
-                Stock.delete(targetStock.id)
-            })
-           } */
-        }
-        this.step = 'display'
+         Stock.localDbGetById(targetStock.id).then(item => {
+          if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
+                        const auditSync = new AuditSyncronization()
+                          auditSync.operationType = 'remove'
+                          auditSync.className = Stock.getClassName()
+                          auditSync.syncStatus = 'D'
+                          auditSync.entity = item
+                          AuditSyncronization.localDbAdd(auditSync)
+                    }
+                    Stock.localDbDelete(item).then(stock => {
+                      Stock.delete(item.id)
+                      })
+                     this.step = 'display'
+                  })
+          }
     },
     initNewStock () {
       if (this.isEditionStep || this.isCreationStep) {
@@ -656,25 +652,22 @@ export default {
                    //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
                    stock.entrance_id = this.currStockEntrance.id // stock.entrance.id
                    stock.drug_id = stock.drug.id
-                   stock.clinic = this.currClinic
-                   stock.clinic_id = this.currClinic.id
+                   stock.clinic = SessionStorage.getItem('currClinic')
+                   stock.clinic_id = SessionStorage.getItem('currClinic').id
                    stock.enabled = false
-                   stock.center = StockCenter.query().where('clinic_id', stock.clinic_id).first()
+                   stock.center = StockCenter.query().where('prefered', true).first()
                    stock.stock_center_id = stock.center.id
-                   stock.entrance.clinic_id = this.currClinic.id
-                   stock.center.clinic = this.currClinic
+                   stock.entrance.clinic_id = SessionStorage.getItem('currClinic').id
+                   stock.center.clinic = SessionStorage.getItem('currClinic')
                   // const uuid = uuidv4
-                    const targetCopy = JSON.parse(JSON.stringify(stock))
+                   const targetCopy = JSON.parse(JSON.stringify(stock))
                    Stock.localDbAddOrUpdate(targetCopy, this.step).then(stock1 => {
                      Stock.insert(
                   {
                     data: stock1.data.data
                   })
-                  StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
-                    console.log('Minha entrada: ', entrance)
                       this.currStockEntrance.stocks.push(targetCopy)
                       StockEntrance.localDbUpdate(this.currStockEntrance)
-                  })
                   /* if (stock.id === null) {
                   stock.id = stock1.data.data.id
                   } */
@@ -746,10 +739,7 @@ export default {
       this.alert.visible = false
     },
     getCurrStockEntrance () {
-      const e = SessionStorage.getItem('currStockEntrance')
-      // e.clinic = SessionStorage.getItem('currClinic')
-      // e.clinic.district.province_id = e.clinic.province.id
-      // e.clinic.district.province = e.clinic.province
+      const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
       if (this.mobile) return e
       return StockEntrance.query()
                           .with('stocks')

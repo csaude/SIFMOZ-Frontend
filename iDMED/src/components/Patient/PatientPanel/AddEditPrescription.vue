@@ -348,11 +348,13 @@ export default {
     async init () {
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
-      ClinicalServiceAttribute.deleteAll()
-      await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
-        console.log(regimens)
-        ClinicalServiceAttribute.insert({ data: regimens })
-      })
+      if (this.mobile) {
+        ClinicalServiceAttribute.deleteAll()
+        await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
+          console.log(regimens)
+          ClinicalServiceAttribute.insert({ data: regimens })
+        })
+      }
       if (this.isNewPackStep || this.isEditPackStep) {
         this.initPatientVisitDetailsForDispense()
       } else {
@@ -921,9 +923,9 @@ export default {
           }
         }.bind(this))
 
-       // const i = 0
-       // this.saveVisitPrescriptionAndPack(this.patientVisit, i)
-       this.patientVisit.patient = this.simplePatient
+        // const i = 0
+        // this.saveVisitPrescriptionAndPack(this.patientVisit, i)
+        this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
         PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit)))
       }
@@ -988,7 +990,9 @@ export default {
               setTimeout(this.saveVisitPrescriptionAndPack(patientVisit, i), 2)
             })
           } else {
-            Prescription.localDbAdd(patientVDetails.prescription).then(pre => {
+            const prescription = new Prescription(patientVDetails.prescription)
+            prescription.calculateLeftDuration(patientVDetails.pack.weeksSupply)
+            Prescription.localDbAdd(prescription).then(pre => {
               patientVDetails.pack.syncStatus = 'R'
               Pack.localDbAdd(patientVDetails.pack)
               i = i + 1
