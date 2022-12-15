@@ -660,17 +660,14 @@ export default {
                    stock.entrance.clinic_id = SessionStorage.getItem('currClinic').id
                    stock.center.clinic = SessionStorage.getItem('currClinic')
                   // const uuid = uuidv4
-                    const targetCopy = JSON.parse(JSON.stringify(stock))
+                   const targetCopy = JSON.parse(JSON.stringify(stock))
                    Stock.localDbAddOrUpdate(targetCopy, this.step).then(stock1 => {
                      Stock.insert(
                   {
                     data: stock1.data.data
                   })
-                  /* StockEntrance.localDbGetById(this.currStockEntrance.id).then(entrance => {
-                    console.log('Minha entrada: ', entrance)
                       this.currStockEntrance.stocks.push(targetCopy)
                       StockEntrance.localDbUpdate(this.currStockEntrance)
-                  }) */
                   /* if (stock.id === null) {
                   stock.id = stock1.data.data.id
                   } */
