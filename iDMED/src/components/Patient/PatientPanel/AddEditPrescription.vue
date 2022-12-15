@@ -921,8 +921,11 @@ export default {
           }
         }.bind(this))
 
-        const i = 0
-        this.saveVisitPrescriptionAndPack(this.patientVisit, i)
+       // const i = 0
+       // this.saveVisitPrescriptionAndPack(this.patientVisit, i)
+       this.patientVisit.patient = this.simplePatient
+        this.patientVisit.clinic = this.currClinic
+        PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit)))
       }
     },
     saveVisitPrescriptionAndPack (patientVisit, i) {
