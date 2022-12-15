@@ -89,7 +89,7 @@
           :content-active-style="contentActiveStyle"
           style="height: 700px;"
           class="q-pr-md"
-           v-if="mobile"
+           v-if="website"
         >
 
           <ClinicServiceInfo v-if="website" :selectedPatient="patient" :identifiers="patient.identifiers" class="q-mb-lg"/>
