@@ -1131,7 +1131,7 @@ export default {
       PatientVisit.localDbGetById(pv.id).then(visit => {
        PatientVisit.insert({ data: visit })
        visit.forEach((pvd) => {
-         await PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
+         PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
         PatientVisitDetails.insert({ data: visitDetails })
       })
       Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
