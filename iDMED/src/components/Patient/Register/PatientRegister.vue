@@ -298,29 +298,10 @@ export default {
           this.patient.identifiers = []
         }
           this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
-          if (this.patient.bairro !== null && this.patient.bairro.id === null) {
+          if (this.patient.bairro !== null && this.patient.bairro.district === null) {
             this.patient.bairro.district = this.patient.district
-            Localidade.apiSave(this.patient.bairro).then(resp => {
-              this.patient.bairro.id = resp.response.data.id
-              this.doSave()
-            }).catch(error => {
-                this.listErrors = []
-                this.submitLoading = false
-              if (error.request.status !== 0) {
-                const arrayErrors = JSON.parse(error.request.response)
-                if (arrayErrors.total == null) {
-                  this.listErrors.push(arrayErrors.message)
-                } else {
-                  arrayErrors._embedded.errors.forEach(element => {
-                    this.listErrors.push(element.message)
-                  })
-                }
-              }
-                this.displayAlert('error', this.listErrors)
-              })
-          } else {
-            this.doSave()
           }
+          this.doSave()
       },
       async doSave () {
         const clinicAux = Clinic.query()
@@ -355,6 +336,7 @@ export default {
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false
         } else {
+          Localidade.insertOrUpdate({ data: this.patient.bairro })
           await Patient.apiSave(this.patient).then(resp => {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id

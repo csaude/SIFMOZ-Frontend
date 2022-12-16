@@ -472,14 +472,15 @@ export default {
       }
 
       this.curGroup = new Group(JSON.parse(JSON.stringify(this.curGroup)))
-      if (this.mobile) {
         this.curGroup.members.forEach((member) => {
           member.startDate = this.curGroup.startDate
           member.group_id = this.curGroup.id
           member.patient_id = member.patient.id
           member.clinic_id = this.clinic.id
           member.syncStatus = 'R'
+          member.group = null
         })
+      if (this.mobile) {
         if (this.isCreateStep) {
           this.curGroup.syncStatus = 'R'
           this.curGroup.clinic_id = this.clinic.id
@@ -572,21 +573,14 @@ export default {
         return GroupType.query().get()
       }
     },
-    // clinic () {
-    //   return Clinic.query()
-    //               .with('province')
-    //               .with('facilityType')
-    //               .with('district.province')
-    //               .where('id', SessionStorage.getItem('currClinic').id)
-    //               .first()
-    // },
-    clinic: {
-        get () {
-          return Clinic.query()
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
-        }
-      },
+    clinic () {
+       return Clinic.query()
+                   .with('province')
+                   .with('facilityType')
+                   .with('district.province')
+                   .where('id', SessionStorage.getItem('currClinic').id)
+                   .first()
+     },
     isCreateStep () {
       return this.step === 'create'
     },
