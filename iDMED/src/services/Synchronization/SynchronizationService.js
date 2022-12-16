@@ -445,6 +445,8 @@ async apiSendEntrances (entrancesToSync, i) {
  }).catch(error => {
   console.log(error)
  })
+ } else {
+  this.sendInventory()
  }
  },
  async sendReferedStocks () {
@@ -473,6 +475,8 @@ apiReferedStocks (referedStocksToSync, i) {
 }).catch(error => {
  console.log(error)
 })
+} else {
+  this.sendDestroyedStocks()
 }
 },
 async sendDestroyedStocks () {
@@ -864,12 +868,9 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('user', this.username)
           localStorage.setItem('role_menus', response.response.data.menus)
           this.syncronizeAudit()
+          this.sendEntrances()
           //   await this.sendUsers()
-        this.sendEntrances()
-        this.sendReferedStocks()
-        this.sendDestroyedStocks()
-        this.sendInventory()
-        this.getRolesToSend()
+                this.getRolesToSend()
           this.getUsersToSend()
           this.getPatientsToSend()
         //  this.getPatientServiceIdentifierToSend()
@@ -926,6 +927,8 @@ async apiSendInventory (inventoryToSync, i) {
   }).catch(error => {
    console.log(error)
   })
+  } else {
+    this.sendReferedStocks()
   }
 },
 async syncronizeAudit () {
