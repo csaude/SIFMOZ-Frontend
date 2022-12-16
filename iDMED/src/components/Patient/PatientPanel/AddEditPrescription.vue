@@ -929,7 +929,7 @@ export default {
 
         if (this.mobile) {
           PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
-            PatientVisit.insert({ data: JSON.parse(JSON.stringify(this.patientVisit)) })
+            loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
             this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
           })
           .catch(error => {
@@ -1127,16 +1127,21 @@ export default {
         }
       }
     },
-    async loadVitisToVueX (pvd) {
-     await PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
-       PatientVisitDetails.insert({ data: visitDetails })
+    async loadVitisToVueX (pv) {
+      PatientVisit.localDbGetById(pv.id).then(visit => {
+       PatientVisit.insert({ data: visit })
+       visit.forEach((pvd) => {
+         await PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
+        PatientVisitDetails.insert({ data: visitDetails })
+      })
+      Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
+          Prescription.insert({ data: prescription })
+        })
+        Pack.localDbGetById(pvd.pack_id).then(pack => {
+          Pack.insert({ data: pack })
+        })
+       })
      })
-     Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
-        Prescription.insert({ data: prescription })
-      })
-      Pack.localDbGetById(pvd.pack_id).then(pack => {
-        Pack.insert({ data: pack })
-      })
     },
     savePack (patientVisit, patientVisitDetails, i) {
       Pack.apiSave(patientVisitDetails.pack).then(resp => {

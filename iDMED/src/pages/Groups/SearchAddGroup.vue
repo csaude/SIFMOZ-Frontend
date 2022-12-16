@@ -196,6 +196,10 @@ export default {
             PatientVisitDetails.insert({ data: pvd })
           })
         })
+        Clinic.localDbGetAll().then((clinics) => {
+          console.log(clinics)
+          Clinic.insertOrUpdate({ data: clinics })
+        })
       } else {
         GroupType.apiGetAll()
         ClinicalService.apiGetAll()

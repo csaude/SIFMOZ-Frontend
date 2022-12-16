@@ -142,6 +142,7 @@ export default {
     loadClinics () {
       Clinic.localDbGetAll().then((clinics) => {
         console.log(clinics)
+        Clinic.insertOrUpdate({ data: clinics })
       })
     }
   },
