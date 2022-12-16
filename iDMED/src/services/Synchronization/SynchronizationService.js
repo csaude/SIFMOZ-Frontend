@@ -359,13 +359,12 @@ export default {
       this.doPackGet(clinicId, 0, 100)
       this.doPrescriptionGet(clinicId, 0, 100)
       this.doInventoryGet(clinicId, 0, 100)
+      this.doGetAllStockAlert(clinicId, 0, 100)
+      this.doGetDrugFileMobile(clinicId, 0, 100)
       await this.loadAndSaveAppParameters(clinicId)
       this.loadAndSaveRolesAndUsers(clinicId)
         LocalStorage.set('system-sync-status', 'done')
-        await this.doGetAllStockAlert(clinicId, 0, 100)
-      // await LocalStorage.set('system-sync-status', 'done')
-      this.loadAndSaveRolesAndUsers(clinicId)
-      await this.doGetAllStockAlert(clinicId, 0, 100)
+
       $q.loading.hide()
     },
 
@@ -471,13 +470,41 @@ apiReferedStocks (referedStocksToSync, i) {
      ReferedStockMoviment.insert(
        { data: referedStock })
      setTimeout(this.apiReferedStocks(referedStocksToSync, i), 200)
-    // Get Childs TO Update
 })
 }).catch(error => {
  console.log(error)
 })
 }
 },
+async sendDestroyedStocks () {
+  console.log('Iniciando a sincronizacao DestroyedStock....')
+  DestroyedStock.localDbGetAll().then((destroyedSt) => {
+    const destroyedStToSync = destroyedSt.filter((destr) =>
+    (destr.syncStatus === 'R' || destr.syncStatus === 'U'))
+    return destroyedStToSync
+  }).then(destroyedStToSync => {
+      this.apiDestroyedStocks(destroyedStToSync, 0)
+})
+},
+
+apiDestroyedStocks (destroyedStToSync, i) {
+  const destroyedStock = destroyedStToSync[i]
+  if (destroyedStock !== undefined) {
+    destroyedStock.clinic = SessionStorage.getItem('currClinic')
+    DestroyedStock.apiSave(destroyedStock).then(resp => {
+    i = i + 1
+    destroyedStock.syncStatus = 'S'
+    DestroyedStock.localDbUpdate(destroyedStock).then(entr => {
+     DestroyedStock.insert(
+       { data: destroyedStock })
+     setTimeout(this.apiDestroyedStocks(destroyedStToSync, i), 200)
+})
+}).catch(error => {
+ console.log(error)
+})
+}
+},
+
     async getRolesToSend () {
       Role.localDbGetAll().then((roles) => {
         const rolesToSync = roles.filter((role) =>
@@ -878,16 +905,13 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('role_menus', response.response.data.menus)
           this.syncronizeAudit()
           //   await this.sendUsers()
-       // this.sendEntrances()
-  //     this.sendStocks()
-    //  await this.sendReferedStocks()
-         // this.sendEntrances()
-          this.sendInventory()
-  // await this.sendStockAdjustment()
-        //  this.sendEntrances()
-       /*  this.getRolesToSend()
+        this.sendEntrances()
+        this.sendReferedStocks()
+        this.sendDestroyedStocks()
+        this.sendInventory()
+        this.getRolesToSend()
           this.getUsersToSend()
-          this.getPatientsToSend() */
+          this.getPatientsToSend()
         //  this.getPatientServiceIdentifierToSend()
         //  this.getEpisodeToSend()
        //   this.getPrescriptionAndPackAndVisitToSend()

@@ -113,20 +113,24 @@
 </template>
 
 <script>
-import { QSpinnerBall, useQuasar } from 'quasar'
 import Clinic from '../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
 export default {
   mixins: [mixinplatform, mixinutils],
-  data () {
-    return {
-      $q: useQuasar()
-    }
-  },
   components: {},
   methods: {
+    init () {
+      this.showloading()
+      if (this.website) {
+        this.loadWebParamsToVueX()
+      } else {
+        if (this.isAppSyncDone) {
+          this.loadParamsToVueX()
+        }
+      }
+    },
     menusVisible (name) {
       const menus = localStorage.getItem('role_menus')
       if (!menus.includes(name)) {
@@ -134,21 +138,6 @@ export default {
       } else {
         return true
       }
-    },
-    showloading () {
-      this.$q.loading.show({
-        spinner: QSpinnerBall,
-        spinnerColor: 'gray',
-        spinnerSize: 140,
-        message: 'Carregando, aguarde por favor...',
-        messageColor: 'white'
-      })
-      if (this.mobile) {
-        this.loadParamsToVueX()
-      }
-    },
-    hideLoading () {
-      this.$q.loading.hide()
     },
     loadClinics () {
       Clinic.localDbGetAll().then((clinics) => {
@@ -159,7 +148,7 @@ export default {
   mounted () {
      // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
         // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
-        console.log(this.mobile)
+    this.init()
     setTimeout(() => {
       if (this.mobile) {
         console.log(this.isAppSyncDone)
