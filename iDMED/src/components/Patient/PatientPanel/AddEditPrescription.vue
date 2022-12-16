@@ -922,12 +922,49 @@ export default {
             this.patientVisit.patientVisitDetails.push(visitDetails)
           }
         }.bind(this))
-
         // const i = 0
         // this.saveVisitPrescriptionAndPack(this.patientVisit, i)
         this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
-        PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit)))
+
+        if (this.mobile) {
+          PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
+            PatientVisit.insert({ data: JSON.parse(JSON.stringify(this.patientVisit)) })
+            this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
+          })
+          .catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', listErrors)
+          })
+        } else {
+          PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
+            PatientVisit.insert({ data: JSON.parse(JSON.stringify(this.patientVisit)) })
+            this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
+          }).catch(error => {
+              const listErrors = []
+              if (error.request.response != null) {
+                const arrayErrors = JSON.parse(error.request.response)
+                if (arrayErrors.total == null) {
+                  listErrors.push(arrayErrors.message)
+                } else {
+                  arrayErrors._embedded.errors.forEach(element => {
+                    listErrors.push(element.message)
+                  })
+                }
+              }
+              this.displayAlert('error', listErrors)
+            })
+        }
       }
     },
     saveVisitPrescriptionAndPack (patientVisit, i) {
@@ -935,9 +972,9 @@ export default {
         if (patientVisit.patientVisitDetails[i] !== null && patientVisit.patientVisitDetails[i] !== undefined) {
           const patientVDetails = JSON.parse(JSON.stringify(patientVisit.patientVisitDetails[i]))
           patientVDetails.episode = Episode.query()
-                                      .withAll()
-                                      .where('id', patientVDetails.episode.id)
-                                      .first()
+                                          .withAll()
+                                          .where('id', patientVDetails.episode.id)
+                                          .first()
           patientVDetails.episode.patientVisitDetails = []
           console.log(patientVDetails)
           if (patientVDetails.prescription.syncStatus === '' || (patientVDetails.prescription.syncStatus === 'R' && this.isEditPackStep)) {
