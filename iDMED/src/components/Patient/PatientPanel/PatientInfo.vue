@@ -111,7 +111,7 @@ export default {
       }
       if (this.mobile) {
         Province.localDbGetAll().then(idTypes => {
-          Province.update({ data: idTypes })
+          Province.insertOrUpdate({ data: idTypes })
         })
       }
     },

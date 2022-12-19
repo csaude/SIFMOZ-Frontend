@@ -38,6 +38,7 @@ import Pack from '../../../store/models/packaging/Pack'
 import Prescription from '../../../store/models/prescription/Prescription'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   mixins: [mixinplatform, mixinutils],
   data () {
@@ -52,6 +53,29 @@ export default {
   methods: {
     async init () {
       console.log('On PrescriptionInfo initialization')
+      if (this.mobile) {
+            PatientVisit.localDbGetAll().then(visitList => {
+              visitList.forEach((visit) => {
+                  console.log(visit)
+                if (visit.patient.id === this.patient.id) {
+                  console.log(visit)
+                  PatientVisit.insert({ data: visit })
+                  /* visit.patientVisitDetails.forEach((pvd) => {
+                      PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
+                      PatientVisitDetails.insert({ data: visitDetails })
+                  })
+                  Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
+                      Prescription.insert({ data: prescription })
+                    })
+                    Pack.localDbGetById(pvd.pack_id).then(pack => {
+                      Pack.insert({ data: pack })
+                    })
+                  }) */
+                }
+              })
+            })
+            this.flagGoReady = true
+      }
       if (this.identifiers.length <= 0) {
             this.flagGoReady = true
       } else {
@@ -65,7 +89,7 @@ export default {
                                         .get()
            episodeList.forEach((episode) => {
                PatientVisitDetails.localDbGetAll().then(pvds => {
-                pvds.forEach((p) => {
+                /* pvds.forEach((p) => {
                   if (p.episode_id === episode.id) {
                     PatientVisitDetails.insert({ data: p })
                   }
@@ -75,10 +99,9 @@ export default {
                 Pack.localDbGetById(p.pack_id).then(pack => {
                     Pack.insert({ data: pack })
                 })
-                })
+                }) */
               })
             })
-            this.flagGoReady = true
           } else {
             Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
               if (resp.response.data.length > 0) {
