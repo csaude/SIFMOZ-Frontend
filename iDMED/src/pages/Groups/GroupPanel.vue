@@ -148,7 +148,8 @@ export default {
       membersInfoLoaded: false,
       $q: useQuasar(),
       selectedMember: null,
-      defaultPickUpDate: null
+      defaultPickUpDate: null,
+      showMembers: ref(false)
     }
   },
   watch: {
@@ -160,6 +161,15 @@ export default {
     }
   },
   methods: {
+    async init () {
+      await PatientServiceIdentifier.localDbGetAll().then(identifiers => {
+       PatientServiceIdentifier.insertOrUpdate({ data: identifiers })
+      })
+      await Patient.localDbGetAll().then(patients => {
+        Patient.insertOrUpdate({ data: patients })
+        this.showMembers = true
+      })
+    },
     showGroupDetails () {
       this.showGroupInfo = !this.showGroupInfo
     },
@@ -206,7 +216,6 @@ export default {
             }
           })
         })
-
         this.membersInfoLoaded = true
       } else {
         DispenseMode.apiGetAll()
@@ -357,8 +366,12 @@ export default {
     }
   },
   mounted () {
-    this.loadMemberInfo()
+    this.init()
+    if (this.showMembers) this.loadMemberInfo()
   },
+  // created () {
+  //   this.init()
+  // },
   computed: {
     group: {
       get () {

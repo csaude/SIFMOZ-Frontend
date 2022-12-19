@@ -132,7 +132,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.mobile) { // Depois mudar para mobile
+      if (this.mobile) {
         GroupType.localDbGetAll().then(groupTypes => {
           GroupType.insert({ data: groupTypes })
         })
@@ -159,6 +159,8 @@ export default {
                 GroupMember.insert({ data: member })
               })
             }
+            console.log('GROUP: ', group)
+            Group.insertOrUpdate({ data: group })
           })
         })
         Pack.localDbGetAll().then(packs => {
