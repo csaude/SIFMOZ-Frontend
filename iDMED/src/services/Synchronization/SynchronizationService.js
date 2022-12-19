@@ -48,6 +48,7 @@ import Encryption from 'src/services/Encryption'
 import Doctor from 'src/store/models/doctor/Doctor'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 import GroupType from 'src/store/models/groupType/GroupType'
+import Group from 'src/store/models/group/Group'
 
 export default {
   // mixins: [mixinEncryption],
@@ -271,6 +272,17 @@ export default {
             console.log(error)
         })
     },
+    doGroupGet (clinicId, offset, max) {
+      Group.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
+        resp.response.data.forEach((item) => {
+          Group.localDbAdd(item)
+        })
+        offset = offset + max
+        setTimeout(this.doGroupGet(clinicId, offset, max), 2)
+      }).catch(error => {
+          console.log(error)
+      })
+    },
     doClinicGet (offset, max) {
       Clinic.apiGetAll(offset, max).then(resp => {
         if (resp.response.data.length > 0) {
@@ -357,6 +369,7 @@ export default {
       this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
       this.doPrescriptionGet(clinicId, 0, 100)
+      this.doGroupGet(clinicId, 0, 100)
       this.doInventoryGet(clinicId, 0, 100)
       this.doGetAllStockAlert(clinicId, 0, 100)
       this.doGetDrugFileMobile(clinicId, 0, 100)
@@ -567,6 +580,44 @@ async getEpisodeToSend () {
       console.log(episodesToSync[0])
       this.apiSendEpisode(episodesToSync, 0)
 })
+},
+async getGroupsToSend () {
+  Group.localDbGetAll().then((groups) => {
+    const groupsToSync = groups.filter((group) =>
+    (group.syncStatus === 'R' || group.syncStatus === 'U'))
+    return groupsToSync
+  }).then(groupsToSync => {
+    console.log('Groups_To_Sync: ', groupsToSync)
+    this.apiSendGroups(groupsToSync, 0)
+  })
+},
+
+async apiSendGroups (groupsToSync, i) {
+  const group = groupsToSync[i]
+  if (group !== undefined) {
+    group.clinic = SessionStorage.getItem('currClinic')
+    await Group.apiSave(group).then(resp => {
+      i = i + 1
+      group.syncStatus = 'S'
+      Group.localDbUpdate(group).then((group) => {
+        console.log('Group_Syncronized: ', group)
+        setTimeout(this.apiSendGroups(groupsToSync, i), 200)
+      })
+    }).catch(error => {
+      const listErrors = []
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response)
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message)
+        } else {
+          arrayErrors._embedded.errors.forEach(element => {
+            listErrors.push(element.message)
+          })
+        }
+      }
+      console.log('error', listErrors)
+    })
+  }
 },
 getPrescriptionsToSend () {
   Prescription.localDbGetAll().then((prescriptions) => {
@@ -873,6 +924,7 @@ if (patientVisitDetails !== undefined) {
                 this.getRolesToSend()
           this.getUsersToSend()
           this.getPatientsToSend()
+          this.getGroupsToSend()
         //  this.getPatientServiceIdentifierToSend()
         //  this.getEpisodeToSend()
        //   this.getPrescriptionAndPackAndVisitToSend()
