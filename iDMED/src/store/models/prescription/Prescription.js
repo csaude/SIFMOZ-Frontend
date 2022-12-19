@@ -43,7 +43,7 @@ export default class Prescription extends Model {
       if (this.leftDuration === 0) {
         this.leftDuration = Number((Number(this.duration.weeks) - Number(weeksSupply)) / 4)
       } else {
-        this.leftDuration = Number((Number(this.leftDuration) - Number(weeksSupply)) / 4)
+        this.leftDuration = Number((Number(this.leftDuration * 4) - Number(weeksSupply)) / 4)
       }
     }
 

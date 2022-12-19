@@ -110,7 +110,6 @@
                   class="col q-mr-sm"
                   dense outlined
                   v-model="curPrescription.duration"
-                  @blur="updateLeftDuration()"
                   :options="durations"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="duration"
@@ -701,28 +700,28 @@ export default {
       if (hasSomePrescribed) {
       Object.keys(this.curPatientVisitDetails).forEach(function (k) {
         const visitDetails = this.curPatientVisitDetails[k]
-        let prescriptionCopy = null
+        this.selectedClinicalService = visitDetails.episode.patientServiceIdentifier.service
         if (visitDetails.createPackLater) {
           hasSomePrescribed = true
         }
-        if (visitDetails.prescription.id !== null) {
-          prescriptionCopy = new Prescription(JSON.parse(JSON.stringify(visitDetails.prescription)))
-          prescriptionCopy.patientVisitDetails = PatientVisitDetails.query()
-                                                                    .with('pack')
-                                                                    .where('prescription_id', prescriptionCopy.id)
-                                                                    .get()
-        }
+        const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(visitDetails)))
+          if (this.isNewPackStep) {
+            tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
+          } else {
+            tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
+          }
+          visitDetails.prescription.leftDuration = tempPvd.prescription.leftDuration
         if (!visitDetails.createPackLater && visitDetails.prescription.prescribedDrugs.length > 0) {
           hasSomePrescribed = true
           if (Number(visitDetails.pack.weeksSupply) <= 0) {
             hasError = true
             const errorMsg = 'Por favor indicar o período para o qual pretende efectuar a dispensa dos medicamento de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
-          } else if (prescriptionCopy !== null && (Number((visitDetails.pack.weeksSupply / 4)) > Number(prescriptionCopy.leftDuration))) {
+          } else if ((Number((visitDetails.pack.weeksSupply / 4)) > Number(tempPvd.prescription.leftDuration))) {
             hasError = true
             const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente na prescrição de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
-          } else if (prescriptionCopy === null && (Number((visitDetails.pack.weeksSupply / 4)) > Number(visitDetails.prescription.leftDuration))) {
+          } else if ((Number((visitDetails.pack.weeksSupply / 4)) > Number(tempPvd.prescription.leftDuration))) {
             hasError = true
             const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período de validade da prescrição de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
@@ -989,8 +988,11 @@ export default {
               })
             })
             const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(pvd)))
-            tempPvd.prescription.calculateLeftDuration(tempPvd.pack.weeksSupply)
-            console.log(tempPvd)
+            if (this.isNewPackStep) {
+              tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
+            } else {
+              tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
+            }
             pvd = tempPvd
             if (this.lastPackFull !== null) {
               const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(pvd.pack.pickupDate), 'days')
@@ -1008,7 +1010,11 @@ export default {
         } else {
           this.patientVisit.patientVisitDetails.forEach((pvd) => {
             const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(pvd)))
-            tempPvd.prescription.calculateLeftDuration(tempPvd.pack.weeksSupply)
+            if (this.isNewPackStep) {
+              tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
+            } else {
+              tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
+            }
             console.log(tempPvd)
             pvd = tempPvd
             if (this.lastPackFull !== null) {
