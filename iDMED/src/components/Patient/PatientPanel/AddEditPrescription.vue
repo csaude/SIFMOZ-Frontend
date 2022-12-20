@@ -299,6 +299,9 @@ import Group from '../../../store/models/group/Group'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttribute/ClinicalServiceAttribute'
+import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
+import EpisodeType from '../../../store/models/episodeType/EpisodeType'
+import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 export default {
   mixins: [mixinplatform, mixinutils],
   props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
@@ -558,6 +561,9 @@ export default {
       }
     },
     saveCurPatientVisitDetails () {
+      if (this.curPatientVisitDetail.episode.startStopReason === null) this.curPatientVisitDetail.episode.startStopReason = StartStopReason.find(this.curPatientVisitDetail.episode.startStopReason_id)
+      if (this.curPatientVisitDetail.episode.episodeType === null) this.curPatientVisitDetail.episode.episodeType = EpisodeType.find(this.curPatientVisitDetail.episode.episodeType_id)
+      if (this.curPatientVisitDetail.episode.clinicSector === null) this.curPatientVisitDetail.episode.clinicSector = ClinicSector.find(this.curPatientVisitDetail.episode.clinicSector_id)
       SessionStorage.set(this.curPatientVisitDetail.episode.patientServiceIdentifier.service.code, this.curPatientVisitDetail)
       this.selectedClinicalService = null
       this.inFormEdition = false
@@ -692,7 +698,6 @@ export default {
           this.curPatientVisitDetails.push(SessionStorage.getItem(service.code))
         }
       })
-      console.log(this.curPatientVisitDetails)
       let hasSomePrescribed = true
       if (this.curPatientVisitDetails.length <= 0) hasSomePrescribed = false
       let hasError = false
@@ -933,17 +938,49 @@ export default {
         }.bind(this))
         this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
-          let packDateError = false
+        const packDateError = this.setRelationIdentifiers()
 
         if (this.mobile) {
-          this.patientVisit.clinic_id = this.patientVisit.clinic.id
+          if (!packDateError) this.doMobileSave()
+        } else {
+          /* this.patientVisit.patientVisitDetails.forEach((pvd) => {
+            const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(pvd)))
+            if (this.isNewPackStep) {
+              tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
+            } else {
+              tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
+            }
+            console.log(tempPvd)
+            pvd = tempPvd
+            if (this.lastPackFull !== null) {
+            const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(pvd.pack.pickupDate), 'days')
+              if (pickUpDiferrence > 0) {
+                packDateError = true
+                this.msgObject.patientVDetails = pvd
+                this.msgObject.patientVisit = this.patientVisit
+                this.msgObject.nextPickUpDate = moment(pvd.pack.nextPickUpDate, 'DD-MM-YYYY').add('d', pickUpDiferrence)
+                this.displayAlert('YesNo', 'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?')
+              }
+            }
+          }) */
+          if (!packDateError) this.doWebSave()
+        }
+      }
+    },
+    setRelationIdentifiers () {
+      let packDateError = false
+      this.patientVisit.clinic_id = this.patientVisit.clinic.id
           this.patientVisit.patient_id = this.patientVisit.patient.id
           if (this.patientVisit.syncStatus === 'S' && this.isEditPackStep) {
               this.patientVisit.syncStatus = 'U'
             } else {
               this.patientVisit.syncStatus = 'R'
             }
-          this.patientVisit.patientVisitDetails.forEach((pvd) => {
+          this.patientVisit.patientVisitDetails.forEach((tempPvd) => {
+            const pvd = new PatientVisitDetails(JSON.parse(JSON.stringify(tempPvd)))
+            if (pvd.episode.startStopReason === null) pvd.episode.startStopReason = StartStopReason.find(pvd.episode.startStopReason_id)
+            if (pvd.episode.episodeType === null) pvd.episode.episodeType = EpisodeType.find(pvd.episode.episodeType_id)
+            if (pvd.episode.clinicSector === null) pvd.episode.clinicSector = ClinicSector.find(pvd.episode.clinicSector_id)
             pvd.episode_id = pvd.episode.id
             pvd.clinic_id = pvd.clinic.id
             pvd.patient_visit_id = this.patientVisit.id
@@ -984,16 +1021,15 @@ export default {
               pDrug.packagedDrugStocks.forEach((pDrugStock) => {
                 pDrugStock.pack_id = pvd.pack.id
                 pDrugStock.drug_id = pDrugStock.drug.id
+                pDrugStock.stock_id = pDrugStock.stock.id
                 pDrugStock.packagedDrug_id = pDrug.id
               })
             })
-            const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(pvd)))
             if (this.isNewPackStep) {
-              tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
+              pvd.prescription.leftDuration = Number((((Number(pvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
             } else {
-              tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
+              pvd.prescription.leftDuration = Number((Number(pvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
             }
-            pvd = tempPvd
             if (this.lastPackFull !== null) {
               const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(pvd.pack.pickupDate), 'days')
               if (pickUpDiferrence > 0) {
@@ -1005,32 +1041,7 @@ export default {
               }
             }
           })
-
-          if (!packDateError) this.doMobileSave()
-        } else {
-          this.patientVisit.patientVisitDetails.forEach((pvd) => {
-            const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(pvd)))
-            if (this.isNewPackStep) {
-              tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
-            } else {
-              tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
-            }
-            console.log(tempPvd)
-            pvd = tempPvd
-            if (this.lastPackFull !== null) {
-            const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(pvd.pack.pickupDate), 'days')
-              if (pickUpDiferrence > 0) {
-                packDateError = true
-                this.msgObject.patientVDetails = pvd
-                this.msgObject.patientVisit = this.patientVisit
-                this.msgObject.nextPickUpDate = moment(pvd.pack.nextPickUpDate, 'DD-MM-YYYY').add('d', pickUpDiferrence)
-                this.displayAlert('YesNo', 'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?')
-              }
-            }
-          })
-          if (!packDateError) this.doWebSave()
-        }
-      }
+          return packDateError
     },
     doMobileSave () {
       if (this.isEditPackStep) {
@@ -1074,6 +1085,7 @@ export default {
       }
     },
     doWebSave () {
+      console.log(JSON.parse(JSON.stringify(this.patientVisit)))
       PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
         PatientVisit.insert({ data: JSON.parse(JSON.stringify(this.patientVisit)) })
         this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
