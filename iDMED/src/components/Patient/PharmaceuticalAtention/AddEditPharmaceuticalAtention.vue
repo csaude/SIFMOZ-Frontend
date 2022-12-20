@@ -300,6 +300,8 @@ export default {
 
                 this.patientVisit.syncStatus = this.isCreateStep ? 'R' : 'U'
 
+                if (this.pregnancyScreening.pregnant === '') this.pregnancyScreening.pregnant = false
+                if (this.pregnancyScreening.menstruationLastTwoMonths === '') this.pregnancyScreening.menstruationLastTwoMonths = false
                 this.patientVisit.vitalSigns.push(this.vitalSigns)
                 this.patientVisit.tbScreening.push(this.TBScreening)
                 this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
