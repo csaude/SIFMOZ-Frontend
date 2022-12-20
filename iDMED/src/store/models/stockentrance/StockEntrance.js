@@ -75,4 +75,8 @@ export default class StockEntrance extends Model {
     static localDbGetByStockEntranceId (id) {
       return db.newDb().collection('stockEntrances').doc({ id: id }).get()
     }
+
+    static getClassName () {
+      return 'stockEntrance'
+    }
 }
