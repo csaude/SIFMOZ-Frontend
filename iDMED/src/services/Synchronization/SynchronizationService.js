@@ -343,7 +343,6 @@ export default {
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
       this.doStockEntranceGet(clinicId, 0, 100)
-      /*
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
       this.doIdentifiersGet(clinicId, 0, 100)
@@ -357,7 +356,6 @@ export default {
       this.doGetDrugFileMobile(clinicId, 0, 100)
       await this.loadAndSaveAppParameters(clinicId)
       this.loadAndSaveRolesAndUsers(clinicId)
-      */
       Stock.apiGetAll(0, 100).then(resp => {
         resp.response.data.forEach((item) => {
           Stock.localDbAdd(item)
@@ -372,7 +370,7 @@ export default {
      // const userId = LocalStorage.getItem('userLocalId')
      // User.localDbGetById(130).then((user) => {
        // if (user !== undefined) {
-      //   this.login('admin', 'admin')
+         this.login('admin', 'admin')
       //  }
     // })
   },
@@ -418,7 +416,7 @@ async apiSendEntrances (entrancesToSync, i) {
  const entrance = entrancesToSync[i]
  if (entrance !== undefined) {
    entrance.clinic = SessionStorage.getItem('currClinic')
-   StockEntrance.apiSave(entrance).then(resp => {
+   StockEntrance.syncStockEntrance(entrance).then(resp => {
      i = i + 1
      entrance.syncStatus = 'S'
      StockEntrance.localDbUpdate(entrance).then(entr => {
@@ -455,7 +453,7 @@ apiReferedStocks (referedStocksToSync, i) {
   const referedStock = referedStocksToSync[i]
   if (referedStock !== undefined) {
    referedStock.clinic = SessionStorage.getItem('currClinic')
-   ReferedStockMoviment.apiSave(referedStock).then(resp => {
+   ReferedStockMoviment.syncReferedStock(referedStock).then(resp => {
     i = i + 1
     referedStock.syncStatus = 'S'
     ReferedStockMoviment.localDbUpdate(referedStock).then(entr => {
@@ -485,7 +483,7 @@ apiDestroyedStocks (destroyedStToSync, i) {
   const destroyedStock = destroyedStToSync[i]
   if (destroyedStock !== undefined) {
     destroyedStock.clinic = SessionStorage.getItem('currClinic')
-    DestroyedStock.apiSave(destroyedStock).then(resp => {
+    DestroyedStock.syncDestroyedStock(destroyedStock).then(resp => {
     i = i + 1
     destroyedStock.syncStatus = 'S'
     DestroyedStock.localDbUpdate(destroyedStock).then(entr => {
@@ -875,11 +873,6 @@ if (patientVisitDetails !== undefined) {
           localStorage.setItem('role_menus', response.response.data.menus)
           this.syncronizeAudit()
           this.sendEntrances()
-          //   await this.sendUsers()
-        this.sendEntrances()
-        this.sendReferedStocks()
-        this.sendDestroyedStocks()
-        this.sendInventory()
         this.getRolesToSend()
       //    this.getUsersToSend()
           this.getPatientsToSend()
@@ -918,7 +911,7 @@ async apiSendInventory (inventoryToSync, i) {
   const inventory = inventoryToSync[i]
   if (inventory !== undefined) {
     inventory.clinic = SessionStorage.getItem('currClinic')
-    Inventory.apiSave(inventory).then(resp => {
+    Inventory.syncInventory(inventory).then(resp => {
       i = i + 1
       inventory.syncStatus = 'S'
       Inventory.localDbUpdate(inventory).then(entr => {

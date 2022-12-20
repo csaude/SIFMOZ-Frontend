@@ -121,6 +121,11 @@ export default class Inventory extends Model {
       return db.newDb().collection('inventorys').doc({ id: id }).delete()
     }
 
+    static async syncInventory (inventory) {
+      if (inventory.syncStatus === 'R') await this.apiSave(inventory)
+      if (inventory.syncStatus === 'U') await this.apiUpdate(inventory)
+    }
+
     static getClassName () {
       return 'Inventory'
     }

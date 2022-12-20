@@ -70,4 +70,9 @@ export default class StockReferedStockMoviment extends Model {
     static localDbDeleteById (id) {
       return db.newDb().collection('referedStockMoviments').doc({ id: id }).delete()
     }
+
+    static async syncReferedStock (referedStock) {
+      if (referedStock.syncStatus === 'R') await this.apiSave(referedStock)
+      if (referedStock.syncStatus === 'U') await this.apiUpdate(referedStock)
+    }
 }

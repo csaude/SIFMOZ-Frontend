@@ -64,4 +64,9 @@ export default class DestroyedStock extends Model {
     static localDbDeleteAll () {
       return db.newDb().collection('destroyedStocks').delete()
     }
+
+    static async syncDestroyedStock (destroyedStock) {
+      if (destroyedStock.syncStatus === 'R') await this.apiSave(destroyedStock)
+      if (destroyedStock.syncStatus === 'U') await this.apiUpdate(destroyedStock)
+    }
 }
