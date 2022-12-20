@@ -308,8 +308,11 @@ export default {
       })
     },
     doPrescriptionGet (clinicId, offset, max) {
+      console.log('IN [Prescription_Sync]')
       Prescription.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+        console.log('Response [Prescription_Sync]')
         if (resp.response.data.length > 0) {
+          console.log('Found [Prescription_Sync]')
           resp.response.data.forEach((item) => {
             Prescription.localDbAdd(item)
           })
@@ -350,6 +353,7 @@ export default {
       this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
       this.doPrescriptionGet(clinicId, 0, 100)
+      this.doEpisodesGet(clinicId, 0, 100)
       this.doGroupGet(clinicId, 0, 100)
       this.doInventoryGet(clinicId, 0, 100)
       this.doGetAllStockAlert(clinicId, 0, 100)

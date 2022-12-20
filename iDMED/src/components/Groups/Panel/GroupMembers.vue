@@ -253,7 +253,7 @@ export default {
     getGroupMembers () {
         const group = Group.query()
                           .with('service')
-                          .with('members.patient.identifiers.identifierType')
+                          .with('members')
                           .with('groupType')
                           .where('id', SessionStorage.getItem('selectedGroup').id)
                           .first()
@@ -262,11 +262,13 @@ export default {
                                                                     .with('prescription.*')
                                                                     .where('member_id', member.id)
                                                                     .first()
-            member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
+            member.patient = Patient.query()
+                                    .with(['identifiers.identifierType', 'identifiers.episodes', 'identifiers.service.identifierType'])
                                     .with('province')
                                     .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                                    .where('id', member.patient.id)
+                                    .where('id', member.patient_id)
                                     .first()
+
             member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
               return identifier.service.id === this.selectedGroup.service.id
             })
@@ -283,7 +285,7 @@ export default {
         }
     },
     fecthMemberPrescriptionData (visitDetails) {
-      if (this.mobile) { // Depois mudar para mobile
+      if (this.mobile) {
         if (visitDetails.pack !== null) {
           this.fecthedMemberData = this.fecthedMemberData + 1
         }
