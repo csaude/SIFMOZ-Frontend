@@ -56,21 +56,8 @@ export default {
       if (this.mobile) {
             PatientVisit.localDbGetAll().then(visitList => {
               visitList.forEach((visit) => {
-                  console.log(visit)
                 if (visit.patient.id === this.patient.id) {
-                  console.log(visit)
                   PatientVisit.insert({ data: visit })
-                  /* visit.patientVisitDetails.forEach((pvd) => {
-                      PatientVisitDetails.localDbGetById(pvd.id).then(visitDetails => {
-                      PatientVisitDetails.insert({ data: visitDetails })
-                  })
-                  Prescription.localDbGetById(pvd.prescription_id).then(prescription => {
-                      Prescription.insert({ data: prescription })
-                    })
-                    Pack.localDbGetById(pvd.pack_id).then(pack => {
-                      Pack.insert({ data: pack })
-                    })
-                  }) */
                 }
               })
             })
@@ -89,17 +76,19 @@ export default {
                                         .get()
            episodeList.forEach((episode) => {
                PatientVisitDetails.localDbGetAll().then(pvds => {
-                /* pvds.forEach((p) => {
-                  if (p.episode_id === episode.id) {
-                    PatientVisitDetails.insert({ data: p })
-                  }
-                Prescription.localDbGetById(p.prescription_id).then(prescription => {
-                    Prescription.insert({ data: prescription })
-                })
-                Pack.localDbGetById(p.pack_id).then(pack => {
-                    Pack.insert({ data: pack })
-                })
-                }) */
+                 if (pvds.length > 0) {
+                  pvds.forEach((p) => {
+                    if (p.episode_id === episode.id) {
+                      PatientVisitDetails.insert({ data: p })
+                    }
+                  Prescription.localDbGetById(p.prescription_id).then(prescription => {
+                      Prescription.insert({ data: prescription })
+                  })
+                  Pack.localDbGetById(p.pack_id).then(pack => {
+                      Pack.insert({ data: pack })
+                  })
+                  })
+                }
               })
             })
           } else {
