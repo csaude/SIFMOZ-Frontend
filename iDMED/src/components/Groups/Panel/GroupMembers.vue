@@ -258,7 +258,6 @@ export default {
                           .where('id', SessionStorage.getItem('selectedGroup').id)
                           .first()
         group.members.forEach((member) => {
-          console.log('Member: ', member)
             member.groupMemberPrescription = GroupMemberPrescription.query()
                                                                     .with('prescription.*')
                                                                     .where('member_id', member.id)
@@ -269,12 +268,7 @@ export default {
                                     .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                     .where('id', member.patient_id)
                                     .first()
-            console.log('pat: ', Patient.query()
-                                    .with(['identifiers.identifierType', 'identifiers.episodes', 'identifiers.service.identifierType'])
-                                    .with('province')
-                                    .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                                    .where('id', member.patient_id)
-                                    .first())
+
             member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
               return identifier.service.id === this.selectedGroup.service.id
             })
