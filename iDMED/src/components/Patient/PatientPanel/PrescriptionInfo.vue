@@ -38,6 +38,7 @@ import Pack from '../../../store/models/packaging/Pack'
 import Prescription from '../../../store/models/prescription/Prescription'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 export default {
   mixins: [mixinplatform, mixinutils],
   data () {
@@ -52,6 +53,16 @@ export default {
   methods: {
     async init () {
       console.log('On PrescriptionInfo initialization')
+      if (this.mobile) {
+            PatientVisit.localDbGetAll().then(visitList => {
+              visitList.forEach((visit) => {
+                if (visit.patient.id === this.patient.id) {
+                  PatientVisit.insert({ data: visit })
+                }
+              })
+            })
+            this.flagGoReady = true
+      }
       if (this.identifiers.length <= 0) {
             this.flagGoReady = true
       } else {
@@ -65,20 +76,21 @@ export default {
                                         .get()
            episodeList.forEach((episode) => {
                PatientVisitDetails.localDbGetAll().then(pvds => {
-                pvds.forEach((p) => {
-                  if (p.episode_id === episode.id) {
-                    PatientVisitDetails.insert({ data: p })
-                  }
-                Prescription.localDbGetById(p.prescription_id).then(prescription => {
-                    Prescription.insert({ data: prescription })
-                })
-                Pack.localDbGetById(p.pack_id).then(pack => {
-                    Pack.insert({ data: pack })
-                })
-                })
+                 if (pvds.length > 0) {
+                  pvds.forEach((p) => {
+                    if (p.episode_id === episode.id) {
+                      PatientVisitDetails.insert({ data: p })
+                    }
+                  Prescription.localDbGetById(p.prescription_id).then(prescription => {
+                      Prescription.insert({ data: prescription })
+                  })
+                  Pack.localDbGetById(p.pack_id).then(pack => {
+                      Pack.insert({ data: pack })
+                  })
+                  })
+                }
               })
             })
-            this.flagGoReady = true
           } else {
             Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
               if (resp.response.data.length > 0) {
