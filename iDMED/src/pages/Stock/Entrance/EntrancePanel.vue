@@ -521,10 +521,21 @@ export default {
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
       } else {
-        StockEntrance.localDbDelete(this.currStockEntrance).then(item => {
-          StockEntrance.delete(this.currStockEntrance.id)
-        })
-        this.$router.go(-1)
+        const targetEntrance = JSON.parse(JSON.stringify(this.currStockEntrance))
+         StockEntrance.localDbGetById(targetEntrance.id).then(item => {
+          if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
+                        const auditSync = new AuditSyncronization()
+                          auditSync.operationType = 'remove'
+                          auditSync.className = StockEntrance.getClassName()
+                          auditSync.syncStatus = 'D'
+                          auditSync.entity = item
+                          AuditSyncronization.localDbAdd(auditSync)
+                    }
+                    StockEntrance.localDbDelete(item).then(stock => {
+                      StockEntrance.delete(item.id)
+                      })
+                     this.$router.go(-1)
+                  })
       }
     },
     formatDate (dateString) {

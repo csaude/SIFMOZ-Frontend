@@ -121,6 +121,6 @@ export default class Stock extends Model {
     }
 
     static getClassName () {
-      return 'Stock'
+      return 'stock'
     }
 }

@@ -149,6 +149,9 @@ export default {
       IdentifierType.insert({ data: idTypes })
     })
 
+    await Clinic.localDbGetAll().then(clinics => {
+      Clinic.insert({ data: clinics })
+    })
     this.hideLoading()
   },
   idadeCalculator (birthDate) {

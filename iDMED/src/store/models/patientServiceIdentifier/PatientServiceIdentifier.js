@@ -122,6 +122,10 @@ export default class PatientServiceIdentifier extends Model {
     return await this.api().post('/patientServiceIdentifier', identifier)
   }
 
+  static async apiUpdate (identifier) {
+    return await this.api().patch('/patientServiceIdentifier/' + identifier.id, identifier)
+  }
+
   static async apiFetchById (id) {
     return await this.api().get(`/patientServiceIdentifier/${id}`)
   }
@@ -163,7 +167,12 @@ export default class PatientServiceIdentifier extends Model {
     return db.newDb().collection('identifiers').delete()
   }
 
-  // static async apiGetAllIdentifiersByClinicalService (serviveId) {
-  //   return await this.api().get('/patientServiceIdentifier/service/' + serviveId + '?offset=0&max=100')
-  // }
+  static async syncPatientServiceIdentifier (identifier) {
+    if (identifier.syncStatus === 'R') await this.apiSave(identifier)
+    if (identifier.syncStatus === 'U') await this.apiUpdate(identifier)
+  }
+
+  static getClassName () {
+    return 'patientServiceIdentifier'
+  }
 }
