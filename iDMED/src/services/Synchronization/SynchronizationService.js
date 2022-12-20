@@ -29,7 +29,7 @@ import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/Inven
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
-import { LocalStorage, SessionStorage, Notify } from 'quasar'
+import { LocalStorage, SessionStorage } from 'quasar'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import Pack from 'src/store/models/packaging/Pack'
