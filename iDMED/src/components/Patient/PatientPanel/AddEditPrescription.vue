@@ -711,9 +711,9 @@ export default {
         }
         const tempPvd = new PatientVisitDetails(JSON.parse(JSON.stringify(visitDetails)))
           if (this.isNewPackStep) {
-            tempPvd.prescription.leftDuration = Number((((Number(tempPvd.prescription.leftDuration * 4)) - Number(tempPvd.pack.weeksSupply)) / 4))
+            tempPvd.prescription.leftDuration = Number(tempPvd.prescription.leftDuration)
           } else {
-            tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
+            tempPvd.prescription.leftDuration = Number((Number(tempPvd.prescription.duration.weeks)) / 4)
           }
           visitDetails.prescription.leftDuration = tempPvd.prescription.leftDuration
         if (!visitDetails.createPackLater && visitDetails.prescription.prescribedDrugs.length > 0) {
@@ -1085,24 +1085,51 @@ export default {
       }
     },
     doWebSave () {
-      console.log(JSON.parse(JSON.stringify(this.patientVisit)))
-      PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
-        PatientVisit.insert({ data: JSON.parse(JSON.stringify(this.patientVisit)) })
-        this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
-      }).catch(error => {
-        const listErrors = []
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response)
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message)
-          } else {
-            arrayErrors._embedded.errors.forEach(element => {
-              listErrors.push(element.message)
-            })
+      if (!this.isEditPackStep) {
+        PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
+          const pv = JSON.parse(JSON.stringify(this.patientVisit))
+          PatientVisit.insert({ data: pv })
+          pv.patientVisitDetails.forEach((pvd) => {
+            PatientVisitDetails.insertOrUpdate({ data: pvd })
+            Prescription.insertOrUpdate({ data: pvd.prescription })
+            Pack.insertOrUpdate({ data: pvd.pack })
+          })
+
+          this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
+        }).catch(error => {
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
           }
-        }
-        this.displayAlert('error', listErrors)
-      })
+          this.displayAlert('error', listErrors)
+        })
+      } else {
+        console.log(JSON.parse(JSON.stringify(this.patientVisit)))
+        PatientVisit.apiUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
+          PatientVisit.update({ where: this.patientVisit.id, data: JSON.parse(JSON.stringify(this.patientVisit)) })
+          this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
+        }).catch(error => {
+          const listErrors = []
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response)
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message)
+            } else {
+              arrayErrors._embedded.errors.forEach(element => {
+                listErrors.push(element.message)
+              })
+            }
+          }
+          this.displayAlert('error', listErrors)
+        })
+      }
     },
     async loadVitisToVueX (pv) {
       PatientVisit.localDbGetById(pv.id).then(visit => {
