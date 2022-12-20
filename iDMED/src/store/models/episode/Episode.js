@@ -93,6 +93,10 @@ export default class Episode extends Model {
     return await this.api().post('/episode', episode)
   }
 
+  static async apiUpdate (episode) {
+    return await this.api().patch('/episode/' + episode.id, episode)
+  }
+
   static async apiRemove (episode) {
     return await this.api().delete(`/episode/${episode.id}`)
   }
@@ -139,5 +143,14 @@ export default class Episode extends Model {
 
   static localDbDeleteAll () {
     return db.newDb().collection('episodes').delete()
+  }
+
+  static async syncEpisode (episode) {
+    if (episode.syncStatus === 'R') await this.apiSave(episode)
+    if (episode.syncStatus === 'U') await this.apiUpdate(episode)
+  }
+
+  static getClassName () {
+    return 'episode'
   }
 }

@@ -156,6 +156,10 @@ export default class Patient extends Model {
     return await this.api().post('/patient', patient)
   }
 
+  static async apiUpdate (patient) {
+    return await this.api().patch('/patient/' + patient.id, patient)
+  }
+
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
@@ -186,5 +190,14 @@ export default class Patient extends Model {
 
   static localDbDeleteAll () {
     return db.newDb().collection('patients').delete()
+  }
+
+  static async syncPatient (patient) {
+    if (patient.syncStatus === 'R') await this.apiSave(patient)
+    if (patient.syncStatus === 'U') await this.apiUpdate(patient)
+  }
+
+  static getClassName () {
+    return 'patient'
   }
 }

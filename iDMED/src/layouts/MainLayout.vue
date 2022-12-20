@@ -50,7 +50,7 @@
                     </q-item-section>
                   </q-item>
                   <q-item clickable>
-                    <q-item-section avatar>
+                    <q-item-section avatar clickable @click="sync()">
                       <q-avatar icon="sync">
                       </q-avatar>
                     </q-item-section>
@@ -110,11 +110,12 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
-// import { Notify } from 'quasar'
+ import { Notify } from 'quasar'
 import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-// import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
-// import isOnline from 'is-online'
+import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
+import isOnline from 'is-online'
+// import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default defineComponent({
   name: 'MainLayout',
   mixins: [mixinplatform],
@@ -159,7 +160,8 @@ export default defineComponent({
         }
       },
       async sync () {
-        /* await isOnline().then(resp => {
+      //  SynchronizationService.send()
+         await isOnline().then(resp => {
           if (resp === true) {
             SynchronizationService.send()
           } else if (resp === false) {
@@ -175,7 +177,7 @@ export default defineComponent({
                     classes: 'glossy'
           })
         }
-        }) */
+        })
       }
   }
 })

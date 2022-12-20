@@ -29,7 +29,7 @@ import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/Inven
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
-import { LocalStorage, SessionStorage } from 'quasar'
+import { LocalStorage, SessionStorage, Notify } from 'quasar'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import Pack from 'src/store/models/packaging/Pack'
@@ -208,10 +208,8 @@ export default {
         })
     },
     doGetDrugFileMobile (clinicId, offset, max) {
-      console.log('Iniciando a sincronizacao DRUG FILE MOBILE...')
       DrugStockFileEvent.apiGetDrugFileMobile(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
-              console.log('DadosDrug File : ', resp.response.data)
               db.newDb().collection('drugFile').set(resp.response.data)
             }
         }).catch(error => {
@@ -219,7 +217,6 @@ export default {
         })
     },
     doGetAllStockAlert (clinicId, offset, max) {
-      console.log('Iniciando a sincronizacao STOCK ALERT...')
       StockAlert.apiGetAlertStockMobile(clinicId, 'TARV', offset, 100).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
@@ -231,23 +228,6 @@ export default {
     })
        },
     doInventoryGet (clinicId, offset, max) {
-      /*
-      ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
-        resp.response.data.forEach((item) => {
-          ReferedStockMoviment.localDbAdd(item)
-        })
-      })
-      InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
-        resp.response.data.forEach((item) => {
-          InventoryStockAdjustment.localDbAdd(item)
-        })
-      })
-      DestroyedStock.apiGetAll(offset, max).then(resp => {
-        resp.response.data.forEach((item) => {
-          DestroyedStock.localDbAdd(item)
-        })
-      })
-      */
       Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
@@ -379,18 +359,9 @@ export default {
      // const userId = LocalStorage.getItem('userLocalId')
      // User.localDbGetById(130).then((user) => {
        // if (user !== undefined) {
-         this.login('admin', 'admin')
+      //   this.login('admin', 'admin')
       //  }
     // })
-    /*
-    PatientVisit.localDbGetById('84aff62e-7969-4a15-87eb-3d58ec6b4da5').then(pvd => {
-      Patient.localDbGetById('6d660887-46e2-42fc-9432-cf95a69b069b').then(pack1 => {
-        pvd.patient = pack1
-        pvd.patient_id = pack1.id
-        PatientVisit.localDbUpdate(pvd)
-      })
-    })
-    */
   },
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
@@ -398,7 +369,6 @@ export default {
           (user.syncStatus === 'R' || user.syncStatus === 'U'))
           return usersToSync
         }).then(usersToSync => {
-            console.log(usersToSync[0])
             this.apiSendUsers(usersToSync, 0)
   })
 },
@@ -423,13 +393,11 @@ export default {
 }
     },
     async sendEntrances () {
-      console.log('Iniciando a sincronizacao....')
      StockEntrance.localDbGetAll().then((entrances) => {
         const entrancesToSync = entrances.filter((entrance) =>
         (entrance.syncStatus === 'R' || entrance.syncStatus === 'U'))
         return entrancesToSync
       }).then(entrancesToSync => {
-          console.log('Entrances to SYNC', entrancesToSync[0])
           this.apiSendEntrances(entrancesToSync, 0)
 })
 },
@@ -459,7 +427,6 @@ async apiSendEntrances (entrancesToSync, i) {
  }
  },
  async sendReferedStocks () {
-  console.log('Iniciando a sincronizacao ReferedStockMoviment....')
   ReferedStockMoviment.localDbGetAll().then((referedSt) => {
     const referedStToSync = referedSt.filter((referd) =>
     (referd.syncStatus === 'R' || referd.syncStatus === 'U'))
@@ -542,6 +509,8 @@ if (role !== undefined) {
 }).catch(error => {
  console.log(error)
 })
+} else {
+  this.getUsersToSend()
 }
 },
 
@@ -612,18 +581,15 @@ getPatientVisitToSend () {
    return patientVisitToSync
   }).then(patientVisitToSync => {
     console.log(patientVisitToSync[0])
-    this.apiSendPatientVisits(patientVisitToSync, 0)
+    this.apiSendPatientVisit(patientVisitToSync, 0)
 })
 },
 async apiSendPatients (patientsToSync, i) {
   const patient = patientsToSync[i]
 if (patient !== undefined) {
-  // const idToDelete = patient.id
- // patient.id = null
-await Patient.apiSave(patient).then(resp => {
+await Patient.syncPatient(patient).then(resp => {
     i = i + 1
     patient.syncStatus = 'S'
-    // patient.id = resp.response.data.id
     // Get Childs TO Update
  Patient.localDbUpdate(patient).then(patient => {
     setTimeout(this.apiSendPatients(patientsToSync, i), 200)
@@ -638,10 +604,7 @@ await Patient.apiSave(patient).then(resp => {
 async apiSendPatientServiceIdentifier (identifiersToSync, i) {
   const identifier = identifiersToSync[i]
 if (identifier !== undefined) {
-  // const idToDelete = identifier.id
-  // identifier.id = null
-  await PatientServiceIdentifier.apiSave(identifier).then(resp => {
-    // apiSendUsers(usersToSync , i)
+  await PatientServiceIdentifier.syncPatientServiceIdentifier(identifier).then(resp => {
     i = i + 1
     identifier.syncStatus = 'S'
   //  identifier.id = resp.response.data.id
@@ -659,13 +622,10 @@ if (identifier !== undefined) {
 async apiSendEpisode (episodesToSync, i) {
   const episode = episodesToSync[i]
 if (episode !== undefined) {
-   // const idToDelete = episode.id
-  // episode.id = null
-   await Episode.apiSave(episode).then(resp => {
-    // apiSendUsers(usersToSync , i)
+   await Episode.syncEpisode(episode).then(resp => {
     i = i + 1
     episode.syncStatus = 'S'
-    episode.id = resp.response.data.id
+   // episode.id = resp.response.data.id
     // Get Childs TO Update
     Episode.localDbUpdate(episode).then(episode => {
        setTimeout(this.apiSendEpisode(episodesToSync, i), 200)
@@ -674,9 +634,10 @@ if (episode !== undefined) {
  console.log(error)
 })
 } else {
-    this.getPatientVisitDetailsToSend()
+    this.getPatientVisitToSend()
 }
 },
+/*
 apiSendPrescription (prescriptionsToSync, i) {
   const prescription = prescriptionsToSync[i]
 if (prescription !== undefined) {
@@ -736,6 +697,33 @@ if (pack !== undefined) {
 })
 } else {
   this.getPatientVisitDetailsToSend()
+}
+},
+*/
+async apiSendPatientVisit (patientVisitToSync, i) {
+  const patientVisit = patientVisitToSync[i]
+if (patientVisit !== undefined) {
+  patientVisit.patientVisitDetails.forEach(patientVisitDetail => {
+    patientVisitDetail.prescription.prescriptionDetails.forEach(prescriptionDetail => {
+      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.code = 'NID'
+      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.description = 'NID'
+      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.pattern = '########01/####/#####'
+   })
+  })
+   await PatientVisit.apiSave(patientVisit).then(resp => {
+    // apiSendUsers(usersToSync , i)
+    i = i + 1
+    patientVisit.syncStatus = 'S'
+    patientVisit.id = resp.response.data.id
+    // Get Childs TO Update
+    PatientVisit.localDbUpdate(patientVisit).then(patientVisit => {
+       setTimeout(this.apiSendPatientVisit(patientVisitToSync, i), 200)
+      })
+}).catch(error => {
+ console.log(error)
+})
+} else {
+  console.log('Fim Visita')
 }
 },
   apiSendPatientVisitDetailsVisits (patientVisitDetailsToSync, i) {
@@ -837,12 +825,11 @@ if (patientVisitDetails !== undefined) {
         this.sendDestroyedStocks()
         this.sendInventory()
         this.getRolesToSend()
-          this.getUsersToSend()
+      //    this.getUsersToSend()
           this.getPatientsToSend()
         //  this.getPatientServiceIdentifierToSend()
         //  this.getEpisodeToSend()
        //   this.getPrescriptionAndPackAndVisitToSend()
-         // this.testSequence()
         })
         .catch((error) => {
           console.log(error)
