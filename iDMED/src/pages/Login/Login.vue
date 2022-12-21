@@ -409,6 +409,7 @@ export default {
       await SystemConfigs.apiSave(this.systemConfigs)
         .then((resp) => {
           SystemConfigs.localDbAdd(resp.response.data)
+          this.$saveCurrClinic(this.clinic)
         })
         .catch((error) => {
           this.listErrors = []
@@ -454,6 +455,7 @@ export default {
                 localStorage.setItem('username', userLoged.username)
                 localStorage.setItem('user', this.username)
                 localStorage.setItem('encodeBase64', encodedStringBtoA)
+                localStorage.setItem('sync_pass', this.encryptPlainText('user.sync'))
                 console.log(userLoged.authorities)
                 var menus = userLoged.authorities.map((m) => m.menus).flat()
                 var menusIds = menus.map((m) => m.id).flat()
@@ -500,6 +502,7 @@ export default {
           localStorage.setItem('user', this.username)
           localStorage.setItem('encodeBase64', encodedStringBtoA)
           localStorage.setItem('role_menus', response.response.data.menus)
+          localStorage.setItem('sync_pass', this.encryptPlainText('user.sync'))
           this.$router.push({ path: '/' })
         })
         .catch((error) => {

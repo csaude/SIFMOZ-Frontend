@@ -49,7 +49,7 @@
                       </q-item-label>
                     </q-item-section>
                   </q-item>
-                  <q-item clickable>
+                  <q-item clickable v-if="mobile">
                     <q-item-section avatar clickable @click="sync()">
                       <q-avatar icon="sync">
                       </q-avatar>
@@ -115,10 +115,13 @@ import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
 import isOnline from 'is-online'
+// import schedule from 'node-schedule'
+import mixinEncryption from 'src/mixins/mixin-encryption'
 // import mixinIsOnline from 'src/mixins/mixin-is-online'
+const schedule = require('node-schedule')
 export default defineComponent({
   name: 'MainLayout',
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinEncryption],
   setup () {
     return {
       leftDrawerOpen: false,
@@ -137,6 +140,9 @@ export default defineComponent({
     //  SystemConfigs.apiGetAll()
     }
    // this.getRolesToMenu()
+   if (this.mobile) {
+    this.schedulerSync()
+   }
   },
   computed: {
     activateMigration () {
@@ -159,11 +165,32 @@ export default defineComponent({
         }
         }
       },
+      schedulerSync () {
+       schedule.scheduleJob('0 * * * *', () => {
+        this.sync()
+})
+      },
       async sync () {
-      //  SynchronizationService.send()
          await isOnline().then(resp => {
           if (resp === true) {
-            SynchronizationService.send()
+           if (localStorage.getItem('isSyncronizing') === 'true') {
+             Notify.create({
+                            icon: 'announcement',
+                            message: 'Já Existe uma sincronização em curso.',
+                            type: 'warning',
+                            progress: true,
+                            timeout: 3000,
+                            position: 'top',
+                            color: 'warning',
+                            textColor: 'white',
+                            classes: 'glossy'
+                          })
+                        } else {
+         localStorage.setItem('isSyncronizing', 'true')
+          const userPass = localStorage.getItem('sync_pass')
+          const decryptedPass = this.decryptPlainText(userPass)
+            SynchronizationService.send(decryptedPass)
+                        }
           } else if (resp === false) {
            Notify.create({
                     icon: 'announcement',
