@@ -97,11 +97,11 @@ VuexORM.use(VuexORMAxios, {
   },
  //  baseURL: 'http://10.10.2.199:8884/'
   //   baseURL: 'http://localhost:8884/api'
- //  baseURL: 'http://localhost:8884/api'
+ baseURL: 'http://localhost:8884/api'
  // baseURL: 'http://10.10.2.173:8884/api'
- //    baseURL: 'http://192.168.18.9:8884/api'
+  //   baseURL: 'http://192.168.18.9:8884/api'
    // baseURL: 'http://10.10.2.230:8884/api'
-   baseURL: 'http://10.10.2.215:8884/api'
+ //  baseURL: 'http://10.10.2.215:8884/api'
 })
 let numTries = 0
 // Request interceptor for API calls

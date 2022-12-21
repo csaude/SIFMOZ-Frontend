@@ -28,6 +28,7 @@
     "jspdf-autotable": "^3.5.25",
     "localbase": "^0.7.5",
     "moment": "^2.29.1",
+    "node-schedule": "^2.1.0",
     "quasar": "^2.0.0",
     "randomcolor": "^0.6.2",
     "vue-awesome": "^4.5.0",
