@@ -29,7 +29,7 @@ import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/Inven
 import StockOperationType from 'src/store/models/stockoperation/StockOperationType'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import DestroyedStock from 'src/store/models/stockdestruction/DestroyedStock'
-import { LocalStorage, SessionStorage } from 'quasar'
+import { LocalStorage, SessionStorage, Notify } from 'quasar'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 import Pack from 'src/store/models/packaging/Pack'
@@ -55,7 +55,7 @@ export default {
   async loadAndSaveAppParameters (clinicId) {
     const offset = 0
     const max = 100
- //   this.doClinicGet(0, 100)
+    this.doClinicGet(0, 100)
 
     await Duration.apiGetAll(offset, max).then(resp => {
       Duration.localDbUpdateAll(resp.response.data)
@@ -180,19 +180,15 @@ export default {
       })
     },
     async loadAndSaveRolesAndUsers () {
-    //  const offset = 0
-    // const max = 100
+      const offset = 0
+     const max = 100
       await Role.apiGetAll().then(resp => {
         console.log(resp.response.data)
           Role.localDbUpdateAll(resp.response.data)
      })
-     /*
-     if (User.all().length > 0) {
     await User.apiGetAll(offset, max).then(resp => {
     User.localDbUpdateAll(resp.response.data)
   })
-}
-*/
     },
     doStockEntranceGet (clinicId, offset, max) {
       StockEntrance.deleteAll()
@@ -343,7 +339,6 @@ export default {
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
       this.doStockEntranceGet(clinicId, 0, 100)
-      /*
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
       this.doIdentifiersGet(clinicId, 0, 100)
@@ -356,26 +351,30 @@ export default {
       this.doGetAllStockAlert(clinicId, 0, 100)
       this.doGetDrugFileMobile(clinicId, 0, 100)
       await this.loadAndSaveAppParameters(clinicId)
-      this.loadAndSaveRolesAndUsers(clinicId)
-      */
-      Stock.apiGetAll(0, 100).then(resp => {
-        resp.response.data.forEach((item) => {
-          Stock.localDbAdd(item)
-        })
-      })
+      await this.loadAndSaveRolesAndUsers()
         LocalStorage.set('system-sync-status', 'done')
-
       $q.loading.hide()
     },
 
-    async send () {
-     // const userId = LocalStorage.getItem('userLocalId')
-     // User.localDbGetById(130).then((user) => {
-       // if (user !== undefined) {
-      //   this.login('admin', 'admin')
-      //  }
-    // })
+    async send (decryptedPass) {
+      User.localDbGetAll().then((users) => {
+        const userLogin = users.filter((user) => user.username === 'user.sync')
+        if (userLogin.length > 0) {
+         this.login(userLogin[0].username, decryptedPass)
+        }
+     })
   },
+
+  async getRolesToSend () {
+    Role.localDbGetAll().then((roles) => {
+      const rolesToSync = roles.filter((role) =>
+      (role.syncStatus === 'R' || role.syncStatus === 'U'))
+      return rolesToSync
+    }).then(rolesToSync => {
+        console.log(rolesToSync[0])
+        this.apiSendRoles(rolesToSync, 0)
+})
+},
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
@@ -496,18 +495,19 @@ apiDestroyedStocks (destroyedStToSync, i) {
 }).catch(error => {
  console.log(error)
 })
+} else {
+  Notify.create({
+    icon: 'announcement',
+    message: 'Sincronização de Stocks Terminada',
+    type: 'positive',
+    progress: true,
+    timeout: 3000,
+    position: 'top',
+    color: 'positive',
+    textColor: 'white',
+    classes: 'glossy'
+  })
 }
-},
-
-    async getRolesToSend () {
-      Role.localDbGetAll().then((roles) => {
-        const rolesToSync = roles.filter((role) =>
-        (role.syncStatus === 'R' || role.syncStatus === 'U'))
-        return rolesToSync
-      }).then(rolesToSync => {
-          console.log(rolesToSync[0])
-          this.apiSendRoles(rolesToSync, 0)
-})
 },
 apiSendRoles (rolesToSync, i) {
   const role = rolesToSync[i]
@@ -597,37 +597,20 @@ async apiSendGroups (groupsToSync, i) {
       }
       console.log('error', listErrors)
     })
+  } else {
+    localStorage.setItem('isSyncronizing', 'false')
+    Notify.create({
+      icon: 'announcement',
+      message: 'Sincronização de dados de Pacientes Terminada',
+      type: 'positive',
+      progress: true,
+      timeout: 3000,
+      position: 'top',
+      color: 'positive',
+      textColor: 'white',
+      classes: 'glossy'
+    })
   }
-},
-getPrescriptionsToSend () {
-  Prescription.localDbGetAll().then((prescriptions) => {
-    const prescriptionsToSync = prescriptions.filter((prescription) =>
-    (prescription.syncStatus === 'R' || prescription.syncStatus === 'U'))
-  return prescriptionsToSync
-  }).then(prescriptionsToSync => {
-    console.log(prescriptionsToSync[0])
-    this.apiSendPrescription(prescriptionsToSync, 0)
-})
-},
-getPacksToSend () {
-  Pack.localDbGetAll().then((packs) => {
-    const packsToSync = packs.filter((pack) =>
-    (pack.syncStatus === 'R' || pack.syncStatus === 'U'))
-    return packsToSync
-  }).then(packsToSync => {
-    console.log(packsToSync[0])
-    this.apiSendPack(packsToSync, 0)
-})
-},
-getPatientVisitDetailsToSend () {
-  PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
-    const patientVisitDetailsToSync = patientVisitDetails.filter((patientVisitDetail) =>
-    (patientVisitDetail.syncStatus === 'R' || patientVisitDetail.syncStatus === 'U'))
-   return patientVisitDetailsToSync
-  }).then(patientVisitDetailsToSync => {
-    console.log(patientVisitDetailsToSync[0])
-    this.apiSendPatientVisitDetailsVisits(patientVisitDetailsToSync, 0)
-})
 },
 getPatientVisitToSend () {
   PatientVisit.localDbGetAll().then((patientVisit) => {
@@ -692,7 +675,164 @@ if (episode !== undefined) {
     this.getPatientVisitToSend()
 }
 },
+async apiSendPatientVisit (patientVisitToSync, i) {
+  const patientVisit = patientVisitToSync[i]
+if (patientVisit !== undefined) {
+  patientVisit.patientVisitDetails.forEach(patientVisitDetail => {
+    patientVisitDetail.prescription.prescriptionDetails.forEach(prescriptionDetail => {
+      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.code = 'NID'
+      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.description = 'NID'
+      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.pattern = '########01/####/#####'
+   })
+  })
+   await PatientVisit.apiSave(patientVisit).then(resp => {
+    i = i + 1
+    patientVisit.syncStatus = 'S'
+    patientVisit.id = resp.response.data.id
+    // Get Childs TO Update
+    PatientVisit.localDbUpdate(patientVisit).then(patientVisit => {
+       setTimeout(this.apiSendPatientVisit(patientVisitToSync, i), 200)
+      })
+}).catch(error => {
+  i = i + 1
+  setTimeout(this.apiSendPatientVisit(patientVisitToSync, i), 200)
+ console.log(error)
+})
+} else {
+  this.getGroupsToSend()
+}
+},
+async sendInventory () {
+  Inventory.localDbGetAll().then((inventory) => {
+    const inventoryToSync = inventory.filter((inv) =>
+    ((inv.syncStatus === 'R' || inv.syncStatus === 'U') && inv.open === false))
+    return inventoryToSync
+  }).then(inventoryToSync => {
+      this.apiSendInventory(inventoryToSync, 0)
+})
+},
+async apiSendInventory (inventoryToSync, i) {
+  const inventory = inventoryToSync[i]
+  if (inventory !== undefined) {
+    inventory.clinic = SessionStorage.getItem('currClinic')
+    Inventory.apiSave(inventory).then(resp => {
+      i = i + 1
+      inventory.syncStatus = 'S'
+      Inventory.localDbUpdate(inventory).then(entr => {
+        Inventory.insert(
+         { data: inventory })
+         InventoryStockAdjustment.localDbGetAll().then((adjustments) => {
+           const toUpdates = adjustments.filter((adjustment) => adjustment.inventory_id === inventory.id)
+             toUpdates.forEach(toUpdate => {
+               toUpdate.syncStatus = 'S'
+               InventoryStockAdjustment.localDbUpdate(toUpdate)
+             })
+           })
+       setTimeout(this.apiSendInventory(inventoryToSync, i), 200)
+     })
+      // Get Childs TO Update
+  }).catch(error => {
+   console.log(error)
+  })
+  } else {
+    this.sendReferedStocks()
+  }
+},
+async syncronizeAudit () {
+  AuditSyncronization.localDbGetAll().then(lista => {
+  AuditSyncronization.apiSyncDeletedRecords(lista)
+  })
+},
+login (username, password) {
+  UsersService.login({
+    username: username,
+    password: password
+  })
+    .then((response) => {
+      console.log('Login >>>>>>>>', response)
+      localStorage.setItem('id_token', response.response.data.access_token)
+      localStorage.setItem('refresh_token', response.response.data.refresh_token)
+      localStorage.setItem('username', response.response.data.username)
+      localStorage.setItem('user', this.username)
+      localStorage.setItem('role_menus', response.response.data.menus)
+      Notify.create({
+        icon: 'announcement',
+        message: 'Sincronização de Dados Iniciada',
+        type: 'positive',
+        progress: true,
+        timeout: 3000,
+        position: 'top',
+        color: 'positive',
+        textColor: 'white',
+        classes: 'glossy'
+      })
+      localStorage.setItem('isSyncronizing', 'true')
+      this.syncronizeAudit()
+    this.sendEntrances()
+    this.getRolesToSend()
+  //    this.getUsersToSend()
+      this.getPatientsToSend()
+    //  this.getGroupsToSend()
+    })
+    .catch((error) => {
+      localStorage.setItem('isSyncronizing', 'false')
+      console.log(error)
+      this.submitting = false
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response)
+        if (arrayErrors.total == null) {
+          this.listErrors.push(arrayErrors.message)
+        } else {
+          arrayErrors._embedded.errors.forEach((element) => {
+            this.listErrors.push(element.message)
+          })
+        }
+        console.log(this.listErrors)
+        Notify.create({
+          icon: 'announcement',
+          message: this.listErrors + ', Sincronização nao efectuda',
+          type: 'negative',
+          progress: true,
+          timeout: 3000,
+          position: 'top',
+          color: 'negative',
+          textColor: 'white',
+          classes: 'glossy'
+        })
+      }
+})
+}
 /*
+getPrescriptionsToSend () {
+  Prescription.localDbGetAll().then((prescriptions) => {
+    const prescriptionsToSync = prescriptions.filter((prescription) =>
+    (prescription.syncStatus === 'R' || prescription.syncStatus === 'U'))
+  return prescriptionsToSync
+  }).then(prescriptionsToSync => {
+    console.log(prescriptionsToSync[0])
+    this.apiSendPrescription(prescriptionsToSync, 0)
+})
+},
+getPacksToSend () {
+  Pack.localDbGetAll().then((packs) => {
+    const packsToSync = packs.filter((pack) =>
+    (pack.syncStatus === 'R' || pack.syncStatus === 'U'))
+    return packsToSync
+  }).then(packsToSync => {
+    console.log(packsToSync[0])
+    this.apiSendPack(packsToSync, 0)
+})
+},
+getPatientVisitDetailsToSend () {
+  PatientVisitDetails.localDbGetAll().then((patientVisitDetails) => {
+    const patientVisitDetailsToSync = patientVisitDetails.filter((patientVisitDetail) =>
+    (patientVisitDetail.syncStatus === 'R' || patientVisitDetail.syncStatus === 'U'))
+   return patientVisitDetailsToSync
+  }).then(patientVisitDetailsToSync => {
+    console.log(patientVisitDetailsToSync[0])
+    this.apiSendPatientVisitDetailsVisits(patientVisitDetailsToSync, 0)
+})
+},
 apiSendPrescription (prescriptionsToSync, i) {
   const prescription = prescriptionsToSync[i]
 if (prescription !== undefined) {
@@ -755,32 +895,7 @@ if (pack !== undefined) {
 }
 },
 */
-async apiSendPatientVisit (patientVisitToSync, i) {
-  const patientVisit = patientVisitToSync[i]
-if (patientVisit !== undefined) {
-  patientVisit.patientVisitDetails.forEach(patientVisitDetail => {
-    patientVisitDetail.prescription.prescriptionDetails.forEach(prescriptionDetail => {
-      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.code = 'NID'
-      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.description = 'NID'
-      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.pattern = '########01/####/#####'
-   })
-  })
-   await PatientVisit.apiSave(patientVisit).then(resp => {
-    // apiSendUsers(usersToSync , i)
-    i = i + 1
-    patientVisit.syncStatus = 'S'
-    patientVisit.id = resp.response.data.id
-    // Get Childs TO Update
-    PatientVisit.localDbUpdate(patientVisit).then(patientVisit => {
-       setTimeout(this.apiSendPatientVisit(patientVisitToSync, i), 200)
-      })
-}).catch(error => {
- console.log(error)
-})
-} else {
-  console.log('Fim Visita')
-}
-},
+/*
   apiSendPatientVisitDetailsVisits (patientVisitDetailsToSync, i) {
    // const patientVisitDetailsCopy = []
   const patientVisitDetails = patientVisitDetailsToSync[i]
@@ -860,90 +975,5 @@ if (patientVisitDetails !== undefined) {
   console.log('Fim Visita')
 }
 },
-    login (username, password) {
-      UsersService.login({
-        username: username,
-        password: password
-      })
-        .then((response) => {
-          this.submitting = false
-          console.log('Login >>>>>>>>', response)
-          localStorage.setItem('id_token', response.response.data.access_token)
-          localStorage.setItem('refresh_token', response.response.data.refresh_token)
-          localStorage.setItem('username', response.response.data.username)
-          localStorage.setItem('user', this.username)
-          localStorage.setItem('role_menus', response.response.data.menus)
-          this.syncronizeAudit()
-          this.sendEntrances()
-          //   await this.sendUsers()
-        this.sendEntrances()
-        this.sendReferedStocks()
-        this.sendDestroyedStocks()
-        this.sendInventory()
-        this.getRolesToSend()
-      //    this.getUsersToSend()
-          this.getPatientsToSend()
-          this.getGroupsToSend()
-        //  this.getPatientServiceIdentifierToSend()
-        //  this.getEpisodeToSend()
-       //   this.getPrescriptionAndPackAndVisitToSend()
-        })
-        .catch((error) => {
-          console.log(error)
-          this.submitting = false
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              this.listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                this.listErrors.push(element.message)
-              })
-            }
-            console.log(this.listErrors)
-          }
-})
-},
-async sendInventory () {
-  console.log('Iniciando a sincronizacao Stock....')
-  Inventory.localDbGetAll().then((inventory) => {
-    const inventoryToSync = inventory.filter((inv) =>
-    ((inv.syncStatus === 'R' || inv.syncStatus === 'U') && inv.open === false))
-    return inventoryToSync
-  }).then(inventoryToSync => {
-      this.apiSendInventory(inventoryToSync, 0)
-})
-},
-async apiSendInventory (inventoryToSync, i) {
-  const inventory = inventoryToSync[i]
-  if (inventory !== undefined) {
-    inventory.clinic = SessionStorage.getItem('currClinic')
-    Inventory.apiSave(inventory).then(resp => {
-      i = i + 1
-      inventory.syncStatus = 'S'
-      Inventory.localDbUpdate(inventory).then(entr => {
-        Inventory.insert(
-         { data: inventory })
-         InventoryStockAdjustment.localDbGetAll().then((adjustments) => {
-           const toUpdates = adjustments.filter((adjustment) => adjustment.inventory_id === inventory.id)
-             toUpdates.forEach(toUpdate => {
-               toUpdate.syncStatus = 'S'
-               InventoryStockAdjustment.localDbUpdate(toUpdate)
-             })
-           })
-       setTimeout(this.apiSendInventory(inventoryToSync, i), 200)
-     })
-      // Get Childs TO Update
-  }).catch(error => {
-   console.log(error)
-  })
-  } else {
-    this.sendReferedStocks()
-  }
-},
-async syncronizeAudit () {
-  AuditSyncronization.localDbGetAll().then(lista => {
-  AuditSyncronization.apiSyncDeletedRecords(lista)
-  })
-}
+*/
 }
