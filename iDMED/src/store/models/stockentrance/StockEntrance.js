@@ -25,7 +25,7 @@ export default class StockEntrance extends Model {
     }
 
     static async apiUpdate (stockEntrance) {
-      return await this.api().patch('/stockEntrance', stockEntrance)
+      return await this.api().patch('/stockEntrance/' + stockEntrance.id, stockEntrance)
     }
 
     static async apiRemove (id) {

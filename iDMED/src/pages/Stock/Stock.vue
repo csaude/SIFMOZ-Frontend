@@ -18,7 +18,6 @@ import Province from '../../store/models/province/Province'
 import Drug from '../../store/models/drug/Drug'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Inventory from '../../store/models/stockinventory/Inventory'
-import db from 'src/store/localbase'
 export default {
   mixins: [mixinplatform],
   components: {
@@ -28,23 +27,20 @@ export default {
     init () {
    // copoia o stock do localbase para o VueX
      if (this.mobile) {
-        db.newDb().collection('stocks').get().then(stock => {
-                    Stock.insert(
-                      {
-                        data: stock
+        Stock.localDbGetAll().then(stocks => {
+            stocks.forEach(item => {
+               Stock.update({ where: item.id, data: item })
                       })
-                      })
-        db.newDb().collection('inventorys').get().then(inventory => {
-                          Inventory.insert(
-                            {
-                              data: inventory
+                  })
+        Inventory.localDbGetAll().then(inventories => {
+                          inventories.forEach(item => {
+                            Inventory.update({ where: item.id, data: item })
+                          })
                             })
-                            })
-        db.newDb().collection('stockEntrances').get().then(stockEntrance => {
-          StockEntrance.deleteAll()
-        StockEntrance.insert(
-          {
-            data: stockEntrance
+
+        StockEntrance.localDbGetAll().then(stockEntrances => {
+          stockEntrances.forEach((item) => {
+            StockEntrance.update({ where: item.id, data: item })
           })
           }).then(item => {
               Clinic.insert({
@@ -52,23 +48,21 @@ export default {
             })
           })
 
-          Drug.localDbGetAll().then(drugs => {
-            drugs.forEach((drug) => {
-              Drug.insert({ data: drug })
+          StockCenter.localDbGetAll().then(stockCenters => {
+            stockCenters.forEach((item) => {
+              StockCenter.update({ where: item.id, data: item })
             })
           })
-
-          StockCenter.localDbGetAll().then(drugs => {
-            drugs.forEach((drug) => {
-              StockCenter.insert({ data: drug })
+          StockOperationType.localDbGetAll().then(stockOperationTypes => {
+             stockOperationTypes.forEach((item) => {
+              StockOperationType.update({ where: item.id, data: item })
             })
+                  })
+         Drug.localDbGetAll().then(drugs => {
+          drugs.forEach((drug) => {
+            Drug.update({ where: drug.id, data: drug })
           })
-          db.newDb().collection('stockOperationTypes').get().then(stockOperationType => {
-                StockOperationType.insert(
-                  {
-                    data: stockOperationType
-                  })
-                  })
+        })
       } else {
           const offset = 0
           const max = 300
