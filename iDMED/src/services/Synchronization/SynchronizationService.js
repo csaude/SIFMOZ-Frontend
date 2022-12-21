@@ -420,27 +420,30 @@ async apiSendEntrances (entrancesToSync, i) {
  const entrance = entrancesToSync[i]
  if (entrance !== undefined) {
    entrance.clinic = SessionStorage.getItem('currClinic')
+   let toUpdates = []
+   Stock.localDbGetAll().then((stocks) => {
+   toUpdates = stocks.filter((stock) => stock.entrance_id === entrance.id)
+   entrance.stocks = toUpdates
    StockEntrance.syncStockEntrance(entrance).then(resp => {
-     i = i + 1
-     entrance.syncStatus = 'S'
-     StockEntrance.localDbUpdate(entrance).then(entr => {
-      StockEntrance.insert(
-        { data: entrance })
-        Stock.localDbGetAll().then((stocks) => {
-          const toUpdates = stocks.filter((stock) => stock.entrance_id === entrance.id)
-            toUpdates.forEach(toUpdate => {
-              toUpdate.syncStatus = 'S'
-              Stock.localDbUpdate(toUpdate)
-            })
-          })
-      setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
-    })
-     // Get Childs TO Update
- }).catch(error => {
-  console.log(error)
-  i = i + 1
-  setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
- })
+      i = i + 1
+      entrance.syncStatus = 'S'
+      toUpdates.forEach(toUpdate => {
+        toUpdate.syncStatus = 'S'
+        Stock.localDbUpdate(toUpdate)
+      })
+      StockEntrance.localDbUpdate(entrance).then(entr => {
+        StockEntrance.insert(
+          { data: entrance })
+
+        setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
+      })
+      // Get Childs TO Update
+  }).catch(error => {
+    console.log(error)
+    i = i + 1
+    setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
+  })
+  })
  } else {
   this.sendInventory()
  }

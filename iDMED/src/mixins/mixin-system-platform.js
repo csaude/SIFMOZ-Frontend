@@ -1,8 +1,8 @@
 export default {
   data () {
     return {
-      website: typeof cordova === 'undefined', // this.$q.platform.is.mobile,
-      mobile: typeof cordova !== 'undefined'
+      mobile: typeof cordova === 'undefined', // this.$q.platform.is.mobile,
+      website: typeof cordova !== 'undefined'
     }
  }
 }

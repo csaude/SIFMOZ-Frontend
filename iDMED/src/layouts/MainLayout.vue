@@ -110,7 +110,7 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
- import { Notify } from 'quasar'
+ // import { Notify } from 'quasar'
 import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
@@ -171,8 +171,11 @@ export default defineComponent({
 })
       },
       async sync () {
+                 const userPass = localStorage.getItem('sync_pass')
+          const decryptedPass = this.decryptPlainText(userPass)
+            SynchronizationService.send(decryptedPass)
          await isOnline().then(resp => {
-          if (resp === true) {
+       /*   if (resp === true) {
            if (localStorage.getItem('isSyncronizing') === 'true') {
              Notify.create({
                             icon: 'announcement',
@@ -203,7 +206,7 @@ export default defineComponent({
                     textColor: 'white',
                     classes: 'glossy'
           })
-        }
+        } */
         })
       }
   }
