@@ -256,31 +256,35 @@ export default {
                                  .first()
       inventory.endDate = new Date()
       inventory.open = false
-      const adjustmentsList = inventory.adjustments
-      adjustmentsList.forEach((adjustment) => {
-        this.processAdjustment(adjustment, inventory)
-        adjustment.inventory.endDate = new Date()
-        adjustment.inventory.open = false
-        const targetCopy = JSON.parse(JSON.stringify(adjustment))
-        InventoryStockAdjustment.update({
-          where: targetCopy.id,
-          data: targetCopy
-        })
-        InventoryStockAdjustment.localDbUpdate(targetCopy)
+
+        InventoryStockAdjustment.localDbGetAll().then((adjustments) => {
+        const adjustmentsList = adjustments.filter((adjustment) => adjustment.inventory_id === inventory.id)
+        inventory.adjustments = []
+        adjustmentsList.forEach((adjustment) => {
+            adjustment.clinic = this.currClinic
+            adjustment.finalised = true
+            adjustment.adjustedStock.stockMoviment = adjustment.balance
+            adjustment.inventory.endDate = new Date()
+            adjustment.inventory.open = false
+            this.processedAdjustments.push(adjustment)
+          //  this.doSaveAdjustmentMobile(0)
+            inventory.syncStatus = 'R'
+            inventory.clinic = this.currClinic
+            inventory.adjustments = this.processedAdjustments
+
+              const targetCopyAdj = JSON.parse(JSON.stringify(adjustment))
+            InventoryStockAdjustment.localDbUpdate(targetCopyAdj).then(item => {
+                    InventoryStockAdjustment.update(targetCopyAdj)
+              })
       })
-    //  this.doSaveAdjustmentMobile(0)
-      inventory.syncStatus = 'U'
-      inventory.clinic = this.currClinic
-       const targetCopy = JSON.parse(JSON.stringify(inventory))
+      const targetCopy = JSON.parse(JSON.stringify(inventory))
       Inventory.localDbUpdate(targetCopy).then(item => {
-        Inventory.update({
-          where: targetCopy.id,
-          data: targetCopy
-        })
+        Inventory.update(targetCopy)
       }).then(item => {
               this.step = 'display'
         this.currInventory.open = false
         this.displayAlert('info', 'Operação efectuada com sucesso.')
+        })
         })
      // SessionStorage.set('currInventory', inventory)
     },
@@ -316,7 +320,7 @@ export default {
       adjustment.adjustedStock.stockMoviment = adjustment.balance
       this.processedAdjustments.push(adjustment)
     },
-    formatDate (dateString) {
+     ormatDate (dateString) {
       return date.formatDate(dateString, 'YYYY-MM-DD')
     },
     getAllStockOfClinic () {
