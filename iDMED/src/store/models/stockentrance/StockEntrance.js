@@ -75,4 +75,13 @@ export default class StockEntrance extends Model {
     static localDbGetByStockEntranceId (id) {
       return db.newDb().collection('stockEntrances').doc({ id: id }).get()
     }
+
+    static async syncStockEntrance (stockEntrance) {
+      if (stockEntrance.syncStatus === 'R') await this.apiSave(stockEntrance)
+      if (stockEntrance.syncStatus === 'U') await this.apiUpdate(stockEntrance)
+    }
+
+    static getClassName () {
+      return 'stockEntrance'
+    }
 }

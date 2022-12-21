@@ -50,7 +50,7 @@ export default class PatientVisit extends Model {
   }
 
   static async apiUpdate (patientVisit) {
-    return await this.api().patch('/patientVisit', patientVisit)
+    return await this.api().patch(`/patientVisit/${patientVisit.id}`, patientVisit)
   }
 
   static async apiRemove (id) {

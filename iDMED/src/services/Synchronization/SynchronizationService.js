@@ -304,8 +304,11 @@ export default {
       })
     },
     doPrescriptionGet (clinicId, offset, max) {
+      console.log('IN [Prescription_Sync]')
       Prescription.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
+        console.log('Response [Prescription_Sync]')
         if (resp.response.data.length > 0) {
+          console.log('Found [Prescription_Sync]')
           resp.response.data.forEach((item) => {
             Prescription.localDbAdd(item)
           })
@@ -346,6 +349,7 @@ export default {
       this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
       this.doPrescriptionGet(clinicId, 0, 100)
+      this.doEpisodesGet(clinicId, 0, 100)
       this.doGroupGet(clinicId, 0, 100)
       this.doInventoryGet(clinicId, 0, 100)
       this.doGetAllStockAlert(clinicId, 0, 100)
@@ -417,7 +421,7 @@ async apiSendEntrances (entrancesToSync, i) {
  const entrance = entrancesToSync[i]
  if (entrance !== undefined) {
    entrance.clinic = SessionStorage.getItem('currClinic')
-   StockEntrance.apiSave(entrance).then(resp => {
+   StockEntrance.syncStockEntrance(entrance).then(resp => {
      i = i + 1
      entrance.syncStatus = 'S'
      StockEntrance.localDbUpdate(entrance).then(entr => {
@@ -454,7 +458,7 @@ apiReferedStocks (referedStocksToSync, i) {
   const referedStock = referedStocksToSync[i]
   if (referedStock !== undefined) {
    referedStock.clinic = SessionStorage.getItem('currClinic')
-   ReferedStockMoviment.apiSave(referedStock).then(resp => {
+   ReferedStockMoviment.syncReferedStock(referedStock).then(resp => {
     i = i + 1
     referedStock.syncStatus = 'S'
     ReferedStockMoviment.localDbUpdate(referedStock).then(entr => {
@@ -484,7 +488,7 @@ apiDestroyedStocks (destroyedStToSync, i) {
   const destroyedStock = destroyedStToSync[i]
   if (destroyedStock !== undefined) {
     destroyedStock.clinic = SessionStorage.getItem('currClinic')
-    DestroyedStock.apiSave(destroyedStock).then(resp => {
+    DestroyedStock.syncDestroyedStock(destroyedStock).then(resp => {
     i = i + 1
     destroyedStock.syncStatus = 'S'
     DestroyedStock.localDbUpdate(destroyedStock).then(entr => {
@@ -703,6 +707,7 @@ if (patientVisit !== undefined) {
 }
 },
 async sendInventory () {
+  console.log('Iniciando a sincronizacao Stock....')
   Inventory.localDbGetAll().then((inventory) => {
     const inventoryToSync = inventory.filter((inv) =>
     ((inv.syncStatus === 'R' || inv.syncStatus === 'U') && inv.open === false))
@@ -715,7 +720,7 @@ async apiSendInventory (inventoryToSync, i) {
   const inventory = inventoryToSync[i]
   if (inventory !== undefined) {
     inventory.clinic = SessionStorage.getItem('currClinic')
-    Inventory.apiSave(inventory).then(resp => {
+    Inventory.syncInventory(inventory).then(resp => {
       i = i + 1
       inventory.syncStatus = 'S'
       Inventory.localDbUpdate(inventory).then(entr => {
