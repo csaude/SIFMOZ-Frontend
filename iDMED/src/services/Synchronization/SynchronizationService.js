@@ -345,7 +345,6 @@ export default {
     },
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
-      this.doStockEntranceGet(clinicId, 0, 100)
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
       this.doIdentifiersGet(clinicId, 0, 100)
@@ -438,6 +437,8 @@ async apiSendEntrances (entrancesToSync, i) {
      // Get Childs TO Update
  }).catch(error => {
   console.log(error)
+  i = i + 1
+  setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
  })
  } else {
   this.sendInventory()
@@ -467,6 +468,8 @@ apiReferedStocks (referedStocksToSync, i) {
 })
 }).catch(error => {
  console.log(error)
+ i = i + 1
+ setTimeout(this.apiReferedStocks(referedStocksToSync, i), 200)
 })
 } else {
   this.sendDestroyedStocks()
@@ -497,6 +500,8 @@ apiDestroyedStocks (destroyedStToSync, i) {
 })
 }).catch(error => {
  console.log(error)
+ i = i + 1
+ setTimeout(this.apiDestroyedStocks(destroyedStToSync, i), 200)
 })
 }
 },
@@ -933,6 +938,8 @@ async apiSendInventory (inventoryToSync, i) {
       // Get Childs TO Update
   }).catch(error => {
    console.log(error)
+   i = i + 1
+   setTimeout(this.apiSendInventory(inventoryToSync, i), 200)
   })
   } else {
     this.sendReferedStocks()

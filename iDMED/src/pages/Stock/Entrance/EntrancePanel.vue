@@ -677,11 +677,27 @@ export default {
                   {
                     data: stock1.data.data
                   })
-                      this.currStockEntrance.stocks.push(targetCopy)
-                      StockEntrance.localDbUpdate(this.currStockEntrance)
-                  /* if (stock.id === null) {
-                  stock.id = stock1.data.data.id
-                  } */
+                      if (this.step === 'edit') {
+                        Stock.localDbGetAll().then((stocks) => {
+                        const toUpdates = stocks.filter((stock) => stock.entrance.id === this.currStockEntrance.id)
+                        StockEntrance.localDbGetByStockEntranceId(this.currStockEntrance.id).then(entrance => {
+                          entrance.stocks = []
+                         entrance.syncStatus = (entrance.syncStatus === '' || entrance.syncStatus === 'S') && stock.syncStatus === 'U' ? 'U' : 'R'
+                         entrance.stocks = toUpdates
+                           StockEntrance.localDbUpdate(entrance).then(stockEntr => {
+                            StockEntrance.insert(
+                              {
+                              data: stockEntr.data
+                               }
+                              )
+                           })
+                        })
+                      })
+                      } else {
+                        this.currStockEntrance.syncStatus = 'R'
+                        this.currStockEntrance.stocks.push(targetCopy)
+                         StockEntrance.localDbUpdate(this.currStockEntrance)
+                      }
                     this.submitting = false
                     this.step = 'display'
                     this.displayAlert('info', 'Operação efectuada com sucesso.')
