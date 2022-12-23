@@ -727,7 +727,6 @@ async sendInventory () {
 async apiSendInventory (inventoryToSync, i) {
   const inventory = inventoryToSync[i]
   if (inventory !== undefined) {
-    inventory.clinic = SessionStorage.getItem('currClinic')
     Inventory.syncInventory(inventory).then(resp => {
       i = i + 1
       inventory.syncStatus = 'S'
