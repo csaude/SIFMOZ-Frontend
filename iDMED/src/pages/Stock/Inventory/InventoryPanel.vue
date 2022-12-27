@@ -250,10 +250,14 @@ export default {
     },
     doProcessAndCloseMobile () {
       const inventory = Inventory.query()
-                                 .with('adjustments.*')
                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                  .where('id', this.currInventory.id)
                                  .first()
+
+       Inventory.localDbGetById(this.currInventory.id).then(it => {
+         inventory.syncStatus = it.syncStatus
+      })
+
       inventory.endDate = new Date()
       inventory.open = false
 
@@ -262,21 +266,20 @@ export default {
         inventory.adjustments = []
         adjustmentsList.forEach((adjustment) => {
             adjustment.clinic = this.currClinic
-            adjustment.finalised = true
+            adjustment.adjustedStock.clinic = this.currClinic
             adjustment.adjustedStock.stockMoviment = adjustment.balance
             adjustment.inventory.endDate = new Date()
             adjustment.inventory.open = false
+            adjustment.inventory = null
             this.processedAdjustments.push(adjustment)
           //  this.doSaveAdjustmentMobile(0)
-            inventory.syncStatus = 'R'
-            inventory.clinic = this.currClinic
-            inventory.adjustments = this.processedAdjustments
-
-              const targetCopyAdj = JSON.parse(JSON.stringify(adjustment))
+            const targetCopyAdj = JSON.parse(JSON.stringify(adjustment))
             InventoryStockAdjustment.localDbUpdate(targetCopyAdj).then(item => {
                     InventoryStockAdjustment.update(targetCopyAdj)
               })
       })
+             inventory.clinic = this.currClinic
+             inventory.adjustments = this.processedAdjustments
       const targetCopy = JSON.parse(JSON.stringify(inventory))
       Inventory.localDbUpdate(targetCopy).then(item => {
         Inventory.update(targetCopy)

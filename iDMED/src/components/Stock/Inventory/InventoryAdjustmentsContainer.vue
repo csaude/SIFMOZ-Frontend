@@ -132,6 +132,7 @@ import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import { v4 as uuidv4 } from 'uuid'
 import Drug from '../../../store/models/drug/Drug'
+import Inventory from '../../../store/models/stockinventory/Inventory'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
@@ -280,10 +281,10 @@ export default {
                     })
             } else {
                     const targetCopy = new InventoryStockAdjustment(JSON.parse(JSON.stringify(this.adjustments[i])))
-                    targetCopy.syncStatus = 'R'
                     const id = targetCopy.id === null ? uuidv4() : targetCopy.id
                      InventoryStockAdjustment.localDbGetById(id).then(item => {
                     if (item !== null && item !== undefined) {
+                       targetCopy.syncStatus = 'R'
                       targetCopy.operation_id = targetCopy.operation.id
                       targetCopy.clinic = this.currClinic
                       targetCopy.clinic_id = targetCopy.clinic.id
@@ -298,6 +299,7 @@ export default {
                               this.displayAlert('info', 'Operação efectuada com sucesso.')
                               })
                         } else {
+                              targetCopy.syncStatus = 'U'
                               targetCopy.inventory_id = targetCopy.inventory.id
                               targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id
                               targetCopy.operation_id = targetCopy.operation.id
@@ -309,6 +311,15 @@ export default {
                                 setTimeout(this.doSave(i), 2)
                                 this.displayAlert('info', 'Operação efectuada com sucesso.')
                             })
+                        }
+                        if (this.inventory.open && (this.inventory.syncStatus !== 'R' && this.inventory.syncStatus !== 'U')) {
+                          Inventory.localDbGetById(this.inventory.id).then(item => {
+                            const target = JSON.parse(JSON.stringify(item))
+                             target.syncStatus = 'U'
+                            Inventory.localDbUpdate(target).then(item => {
+                               Inventory.update({ data: target })
+                            })
+                          })
                         }
                         })
                     }
