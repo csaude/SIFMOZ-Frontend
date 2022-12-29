@@ -81,8 +81,11 @@ import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 import { SessionStorage } from 'quasar'
 import { v4 as uuidv4 } from 'uuid'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
       props: ['selectedClinicSector', 'onlyView'],
+      mixins: [mixinplatform, mixinutils],
     data () {
         return {
             databaseCodes: [],
@@ -141,19 +144,41 @@ export default {
                 this.submitClinicSector()
             }
         },
-        submitClinicSector () {
+        async submitClinicSector () {
           this.clinicSector.active = true
           if (this.clinicSector.uuid === null) this.clinicSector.uuid = uuidv4()
           this.submitting = true
           console.log(this.clinicSector)
-           ClinicSector.apiSave(this.clinicSector).then(resp => {
-             this.submitting = false
-                console.log(resp.response.data)
-                this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
-            }).catch(error => {
-              this.submitting = false
-               this.displayAlert('error', error)
-            })
+          if (this.mobile) {
+            console.log('Mobile')
+            this.clinicSector.clinic_id = this.currClinic.id
+            this.clinicSector.clinic_sector_type_id = this.clinicSector.clinicSectorType.id
+            if (!this.isEditStep) {
+              console.log('Create Step')
+              this.clinicSector.syncStatus = 'R'
+              console.log(this.clinicSector)
+              await ClinicSector.localDbAdd(JSON.parse(JSON.stringify(this.clinicSector)))
+              await ClinicSector.insert({ data: this.clinicSector })
+            } else {
+              console.log('Edit Step')
+                if (this.clinicSector.syncStatus !== 'R') this.clinicSector.syncStatus = 'U'
+                const clinicSecUpdate = new ClinicSector(JSON.parse(JSON.stringify((this.clinicSector))))
+                  ClinicSector.localDbUpdate(clinicSecUpdate).then(groupRes => {
+                  ClinicSector.update({ data: clinicSecUpdate })
+                })
+            }
+            this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
+          } else {
+            console.log('Web')
+            ClinicSector.apiSave(this.clinicSector).then(resp => {
+            this.submitting = false
+              console.log(resp.response.data)
+              this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
+          }).catch(error => {
+            this.submitting = false
+              this.displayAlert('error', error)
+          })
+        }
         },
         getAllClinics (offset) {
         if (this.clinics.length <= 0) {

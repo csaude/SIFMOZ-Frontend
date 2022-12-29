@@ -58,8 +58,11 @@ import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import { ref } from 'vue'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { SessionStorage } from 'quasar'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
   props: ['selectedIdentifierType', 'step'],
+  mixins: [mixinplatform, mixinutils],
   data () {
         return {
             databaseCodes: [],
@@ -118,13 +121,28 @@ export default {
       doSave () {
           this.submitting = true
           console.log(this.identifierType)
-          IdentifierType.apiSave(this.identifierType).then(resp => {
-            this.submitting = false
-              this.displayAlert('info', this.identifierType.id === null ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
-          }).catch(error => {
-            this.submitting = false
-              this.displayAlert('error', error)
-          })
+          if (!this.mobile) {
+            console.log('Mobile')
+            if (!this.isEditStep) {
+               console.log('Create Step')
+              this.identifierType.syncStatus = 'R'
+              console.log(this.identifierType)
+              IdentifierType.localDbAdd(JSON.parse(JSON.stringify(this.identifierType)))
+              IdentifierType.insert({ data: this.identifierType })
+            } else {
+                if (this.identifierType.syncStatus !== 'R') this.identifierType.syncStatus = 'U'
+                const identifierTypeUpdate = new IdentifierType(JSON.parse(JSON.stringify((this.identifierType))))
+                IdentifierType.localDbUpdate(identifierTypeUpdate)
+            }
+          } else {
+            IdentifierType.apiSave(this.identifierType).then(resp => {
+              this.submitting = false
+                this.displayAlert('info', this.identifierType.id === null ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
+            }).catch(error => {
+              this.submitting = false
+                this.displayAlert('error', error)
+            })
+          }
       },
       displayAlert (type, msg) {
         this.alert.type = type

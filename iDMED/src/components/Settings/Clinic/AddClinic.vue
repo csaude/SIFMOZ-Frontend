@@ -181,14 +181,30 @@ export default {
             this.clinic.active = true
             this.clinic.province.districts = []
             if (this.clinic.uuid === null) this.clinic.uuid = uuidv4()
-            console.log(this.clinic)
-           Clinic.apiSave(this.clinic).then(resp => {
-              this.submitting = false
-                 this.displayAlert('info', this.clinic.id === null ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
-            }).catch(error => {
-               this.submitting = false
-                  this.displayAlert('error', error)
-            })
+            if (!this.mobile) {
+              console.log(this.clinic)
+              if (this.isCreateStep) {
+                this.clinic.syncStatus = 'R'
+                console.log(this.clinic)
+                Clinic.localDbAdd(JSON.parse(JSON.stringify(this.clinic)))
+                Clinic.insert({ data: this.clinic })
+              } else {
+                 if (this.clinic.syncStatus !== 'R') this.clinic.syncStatus = 'U'
+                 const gclinicUpdate = new Clinic(JSON.parse(JSON.stringify((this.clinic))))
+                 Clinic.localDbUpdate(gclinicUpdate).then(clinicRes => {
+                 Clinic.update({ data: gclinicUpdate })
+                })
+              }
+            } else {
+              console.log(this.clinic)
+              Clinic.apiSave(this.clinic).then(resp => {
+                  this.submitting = false
+                    this.displayAlert('info', this.clinic.id === null ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
+                }).catch(error => {
+                  this.submitting = false
+                      this.displayAlert('error', error)
+                })
+            }
     },
      displayAlert (type, msg) {
           this.alert.type = type

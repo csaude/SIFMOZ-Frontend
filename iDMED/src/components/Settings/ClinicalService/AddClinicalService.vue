@@ -188,6 +188,8 @@ import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttri
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 import Clinic from '../../../store/models/clinic/Clinic'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columnsRegimen = [
   { name: 'code', required: true, label: 'Code', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -204,7 +206,8 @@ const columnAttributes = [
 ]
 
 export default {
-      props: ['selectedClinicalService', 'onlyView', 'editMode'],
+    props: ['selectedClinicalService', 'onlyView', 'editMode'],
+    mixins: [mixinplatform, mixinutils],
   data () {
  const $q = useQuasar()
   const selected = ref([])
@@ -286,13 +289,31 @@ export default {
           this.clinicalService.attributes = this.clinicalServiceAttributeTypes
           this.clinicalService.active = true
             console.log(this.clinicalService)
-             ClinicalService.apiSave(this.clinicalService).then(resp => {
+            if (!this.mobile) {
+            console.log('Mobile')
+              if (!this.isEditStep) {
+                this.clinicalService.syncStatus = 'R'
+                console.log(this.clinicalService)
+                ClinicalService.localDbAdd(JSON.parse(JSON.stringify(this.clinicalService)))
+                ClinicalService.insert({ data: this.clinicalService })
+                this.closeDialog()
                 this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
-             ClinicalService.apiFetchById(resp.response.data.id)
-             console.log(resp.response.data)
-            }).catch(error => {
-                this.displayAlert('error', error)
-            })
+              } else {
+                  if (this.doctor.syncStatus !== 'R') this.doctor.syncStatus = 'U'
+                  const clinicalServiceUpdate = new ClinicalService(JSON.parse(JSON.stringify((this.clinicalService))))
+                  ClinicalService.localDbUpdate(clinicalServiceUpdate)
+                  this.closeDialog()
+                  this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
+              }
+            } else {
+              ClinicalService.apiSave(this.clinicalService).then(resp => {
+                  this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
+              ClinicalService.apiFetchById(resp.response.data.id)
+              console.log(resp.response.data)
+              }).catch(error => {
+                  this.displayAlert('error', error)
+              })
+            }
         },
         displayAlert (type, msg) {
           this.alert.type = type
