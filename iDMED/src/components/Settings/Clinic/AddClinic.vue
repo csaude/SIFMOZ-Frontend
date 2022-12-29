@@ -181,7 +181,7 @@ export default {
             this.clinic.active = true
             this.clinic.province.districts = []
             if (this.clinic.uuid === null) this.clinic.uuid = uuidv4()
-            if (!this.mobile) {
+            if (this.mobile) {
               console.log(this.clinic)
               if (this.isCreateStep) {
                 this.clinic.syncStatus = 'R'
