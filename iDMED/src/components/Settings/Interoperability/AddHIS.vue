@@ -88,6 +88,8 @@ import { ref } from 'vue'
 import HealthInformationSystem from '../../../store/models/healthInformationSystem/HealthInformationSystem'
 import InteroperabilityAttribute from '../../../store/models/interoperabilityAttribute/InteroperabilityAttribute'
 import InteroperabilityType from '../../../store/models/interoperabilityType/InteroperabilityType'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columnsAttributes = [
   { name: 'name', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
@@ -99,7 +101,8 @@ const columnsSelectedAttributes = [
 ]
 
 export default {
-      props: ['selectedHis', 'createMode', 'editMode'],
+    props: ['selectedHis', 'createMode', 'editMode'],
+    mixins: [mixinplatform, mixinutils],
     data () {
         return {
             databaseCodes: [],
@@ -160,6 +163,22 @@ export default {
           })
 
            this.his.active = true
+           if (this.mobile) {
+              if (!this.isEditStep) {
+                this.his.syncStatus = 'R'
+                console.log(this.his)
+                HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(this.his)))
+                HealthInformationSystem.insert({ data: this.his })
+                this.closeDialog()
+                this.displayAlert('info', this.his.id === null ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+              } else {
+                if (this.his.syncStatus !== 'R') this.his.syncStatus = 'U'
+                const hisUpdate = new HealthInformationSystem(JSON.parse(JSON.stringify((this.his))))
+                HealthInformationSystem.localDbUpdate(hisUpdate)
+                this.closeDialog()
+                this.displayAlert('info', this.his.id === null ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+              }
+           } else {
             HealthInformationSystem.apiSave(this.his).then(resp => {
                 // console.log(resp.response.data)
              this.displayAlert('info', 'Sistema De Informação de Saúde gravado com sucesso.')
@@ -167,6 +186,7 @@ export default {
             }).catch(error => {
                 this.displayAlert('error', error)
             })
+          }
         },
         goToNextStep () {
           let i = 0

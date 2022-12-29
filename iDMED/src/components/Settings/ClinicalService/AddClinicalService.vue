@@ -289,7 +289,7 @@ export default {
           this.clinicalService.attributes = this.clinicalServiceAttributeTypes
           this.clinicalService.active = true
             console.log(this.clinicalService)
-            if (!this.mobile) {
+            if (this.mobile) {
             console.log('Mobile')
               if (!this.isEditStep) {
                 this.clinicalService.syncStatus = 'R'
@@ -299,7 +299,7 @@ export default {
                 this.closeDialog()
                 this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
               } else {
-                  if (this.doctor.syncStatus !== 'R') this.doctor.syncStatus = 'U'
+                  if (this.clinicalService.syncStatus !== 'R') this.doctor.syncStatus = 'U'
                   const clinicalServiceUpdate = new ClinicalService(JSON.parse(JSON.stringify((this.clinicalService))))
                   ClinicalService.localDbUpdate(clinicalServiceUpdate)
                   this.closeDialog()
