@@ -203,6 +203,7 @@ export default {
               }
               if (this.mobile) {
                 console.log('FrontEnd')
+                if (clinic.syncStatus !== 'R') clinic.syncStatus = 'U'
                 Clinic.localDbAdd(JSON.parse(JSON.stringify(clinic)))
                 Clinic.insert({ data: clinic })
                 this.displayAlert('info', msg)

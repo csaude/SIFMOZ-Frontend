@@ -175,6 +175,7 @@ export default {
               console.log(clinicalService)
               if (this.mobile) {
                 console.log('FrontEnd')
+                if (clinicalService.syncStatus !== 'R') clinicalService.syncStatus = 'U'
                 ClinicalService.localDbAdd(JSON.parse(JSON.stringify(clinicalService)))
                 ClinicalService.insert({ data: clinicalService })
                 this.displayAlert('info', 'Servico Clínico actualizado com sucesso')

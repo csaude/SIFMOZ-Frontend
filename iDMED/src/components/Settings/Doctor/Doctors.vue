@@ -184,6 +184,7 @@ export default {
               }
               if (this.mobile) {
                 console.log('FrontEnd')
+                if (doctor.syncStatus !== 'R') doctor.syncStatus = 'U'
                 Doctor.localDbAdd(JSON.parse(JSON.stringify(doctor)))
                 Doctor.insert({ data: doctor })
                 this.displayAlert('info', msg)
