@@ -194,12 +194,13 @@
                   :selectedClinicalService="selectedClinicalService"
                   :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
                   :lastPack="lastPack"
-                  :step="step"
+                  :stepp="step"
                   :prescription="curPatientVisitDetail.prescription"
                   :oldPrescribedDrugs="prescribedDrugs"
                   @updatePrescribedDrugs="updatePrescribedDrugs"
                   :visitDetails="curPatientVisitDetail"
-                  :visitClone="visitClone"/>
+                  :visitClone="visitClone"
+                  :isAlreadyEdited="isAlreadyEdited"/>
               </div>
           </div>
         </div>
@@ -302,6 +303,7 @@ import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttri
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 export default {
   mixins: [mixinplatform, mixinutils],
   props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
@@ -329,6 +331,7 @@ export default {
       msgObject: {},
       visitClone: {},
       inFormEdition: false,
+      isAlreadyEdited: false,
       contentStyle: {
         backgroundColor: '#ffffff',
         color: '#555'
@@ -356,6 +359,7 @@ export default {
           ClinicalServiceAttribute.insert({ data: regimens })
         })
       }
+      console.log(this.isEditPackStep)
       if (this.isNewPackStep || this.isEditPackStep) {
         this.initPatientVisitDetailsForDispense()
       } else {
@@ -422,6 +426,8 @@ export default {
           this.curPatientVisitDetail.pack = null
           if (this.isFirstPack) {
             pack.pickupDate = this.curPatientVisitDetail.prescription.prescriptionDate
+          } else if (this.isAlreadyEdited) {
+            pack.pickupDate = this.curPatientVisitDetail.prescription.pickupDate
           } else {
             pack.pickupDate = this.lastPack.nextPickUpDate
           }
@@ -568,6 +574,7 @@ export default {
       this.selectedClinicalService = null
       this.inFormEdition = false
       this.checkPrescribedDrugs()
+      if (this.isEditPackStep) this.isAlreadyEdited = true
     },
     setCurVisitDetails () {
       this.spetialPrescription = false
@@ -590,10 +597,12 @@ export default {
                                                    .first()
         if (identifier.lastVisitPrescription() !== null) {
           const prescription = identifier.lastVisitPrescription().prescription
-          prescription.patientVisitDetails = PatientVisitDetails.query()
+          if (prescription !== null) {
+            prescription.patientVisitDetails = PatientVisitDetails.query()
                                                                    .with('pack')
                                                                    .where('prescription_id', prescription.id)
                                                                    .get()
+          }
           if (prescription.leftDuration > 0) {
             this.lastVisitPrescription = prescription
             this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
@@ -610,7 +619,7 @@ export default {
     doOnYes (object) {
       const patientVDetails = object.patientVDetails
       patientVDetails.pack.nextPickUpDate = object.nextPickUpDate
-
+    //  patientVDetails.pack.pickupDate = object.pickupDate
       patientVDetails.pack.packagedDrugs.forEach((pd) => {
         if (pd.toContinue) {
           pd.nextPickUpDate = object.nextPickUpDate
@@ -971,11 +980,13 @@ export default {
       let packDateError = false
       this.patientVisit.clinic_id = this.patientVisit.clinic.id
           this.patientVisit.patient_id = this.patientVisit.patient.id
-          if (this.patientVisit.syncStatus === 'S' && this.isEditPackStep) {
+          if (this.mobile) {
+            if (this.patientVisit.syncStatus === 'S' && this.isEditPackStep) {
               this.patientVisit.syncStatus = 'U'
             } else {
               this.patientVisit.syncStatus = 'R'
             }
+          }
           this.patientVisit.patientVisitDetails.forEach((tempPvd) => {
             const pvd = new PatientVisitDetails(JSON.parse(JSON.stringify(tempPvd)))
             if (pvd.episode.startStopReason === null) pvd.episode.startStopReason = StartStopReason.find(pvd.episode.startStopReason_id)
@@ -1030,23 +1041,29 @@ export default {
             } else {
               pvd.prescription.leftDuration = Number((Number(pvd.prescription.duration.weeks) - Number(tempPvd.pack.weeksSupply)) / 4)
             }
-            if (this.lastPackFull !== null) {
+            if (this.lastPackFull !== null && !this.isEditPackStep) {
               const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(moment(pvd.pack.pickupDate), 'days')
               if (pickUpDiferrence > 0) {
                 packDateError = true
                 this.msgObject.patientVDetails = pvd
                 this.msgObject.patientVisit = this.patientVisit
-                this.msgObject.nextPickUpDate = moment(pvd.pack.nextPickUpDate, 'DD-MM-YYYY').add('d', pickUpDiferrence)
+                this.msgObject.nextPickUpDate = moment(pvd.pack.nextPickUpDate, 'YYYY-MM-DD').add('d', pickUpDiferrence).toDate()
                 this.displayAlert('YesNo', 'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?')
               }
             }
+            // tempPvd = pvd
+            const index = this.patientVisit.patientVisitDetails.findIndex(o => o.pack.id === tempPvd.pack.id)
+            this.patientVisit.patientVisitDetails.splice(index, 1, pvd)
           })
           return packDateError
     },
     doMobileSave () {
       if (this.isEditPackStep) {
-        PatientVisit.localDbUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
+        PatientVisit.localDbGetById(this.patientVisit.id).then(patientVisit => {
+          this.addOrRemoveStockPackagedDrugs(patientVisit, false)
+          PatientVisit.localDbUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
             this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
+            this.addOrRemoveStockPackagedDrugs(this.patientVisit, true)
             this.displayAlert('info', 'Dispensa actualizada com sucesso.')
           })
           .catch(error => {
@@ -1063,9 +1080,11 @@ export default {
             }
             this.displayAlert('error', listErrors)
         })
+        })
       } else {
         PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
-            this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
+          this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
+          this.addOrRemoveStockPackagedDrugs(this.patientVisit, true)
             this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
           })
           .catch(error => {
@@ -1113,7 +1132,15 @@ export default {
       } else {
         console.log(JSON.parse(JSON.stringify(this.patientVisit)))
         PatientVisit.apiUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
-          PatientVisit.update({ where: this.patientVisit.id, data: JSON.parse(JSON.stringify(this.patientVisit)) })
+          const pv = JSON.parse(JSON.stringify(this.patientVisit))
+          PatientVisit.update({ where: pv.id, data: pv })
+          pv.patientVisitDetails.forEach((pvd) => {
+            PatientVisitDetails.insertOrUpdate({ data: pvd })
+            Prescription.insertOrUpdate({ data: pvd.prescription })
+            Pack.delete(pvd.pack.id)
+            PackagedDrug.deleteAll()
+            Pack.insertOrUpdate({ data: pvd.pack })
+          })
           this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
         }).catch(error => {
           const listErrors = []
@@ -1147,6 +1174,9 @@ export default {
         })
         Pack.localDbGetById(pvd.pack_id).then(pack => {
           if (pack !== null && pack !== undefined) {
+            Pack.delete(pvd.pack.id)
+            PackagedDrug.deleteAll()
+            Pack.insertOrUpdate({ data: pvd.pack })
           Pack.insert({ data: pack })
           }
         })
@@ -1198,6 +1228,27 @@ export default {
         return SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0
       })
       return somePrescribed
+    },
+    addOrRemoveStockPackagedDrugs (patientVisit, addDispense) {
+      patientVisit.patientVisitDetails.forEach(pvd => {
+            pvd.pack.packagedDrugs.forEach(pd => {
+              pd.packagedDrugStocks.forEach(pds => {
+                  Stock.localDbGetById(pds.stock.id).then(stock => {
+                    if (addDispense) {
+                      stock.stockMoviment -= pds.quantitySupplied
+                    } else {
+                      stock.stockMoviment += pds.quantitySupplied
+                    }
+                    stock.syncStatus = 'U'
+                    Stock.localDbUpdate(stock)
+                    StockEntrance.localDbGetById(stock.entrance.id).then(entrance => {
+                     entrance.syncStatus = 'U'
+                     StockEntrance.localDbUpdate(entrance)
+                    })
+                  })
+              })
+            })
+          })
     }
   },
   computed: {

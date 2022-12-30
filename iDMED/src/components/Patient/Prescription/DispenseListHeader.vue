@@ -7,14 +7,12 @@
         <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
         <template v-slot:action>
         <q-btn
-            v-if="!isClosed"
             @click="$emit('removePack')"
             dense unelevated
             color="red"
             label="Remover"
             class="float-right q-mr-md q-pa-none q-px-sm" />
         <q-btn
-            v-if="!isClosed"
             @click="$emit('editPack')"
             dense unelevated
             color="orange-5"

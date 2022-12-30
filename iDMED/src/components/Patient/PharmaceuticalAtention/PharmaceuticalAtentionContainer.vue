@@ -115,6 +115,7 @@ import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import { ref } from 'vue'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 const columns = [
   { name: 'vitalSigns', required: true, field: 'row.vitalSigns', label: 'Dados Vitais', align: 'left', sortable: false },
   { name: 'tb', align: 'left', field: 'row.tbScreening', label: 'Rastreio TB', sortable: false },
@@ -169,7 +170,8 @@ export default {
     },
     promptToConfirm (patientVisit) {
             this.$q.dialog({ title: 'Confirm', message: 'Deseja Apagar a atenção farmaceutica?', cancel: true, persistent: true }).onOk(() => {
-           if (patientVisit.patientVisitDetails.length === 0) {
+              if (this.website) {
+                if (patientVisit.patientVisitDetails.length === 0) {
         PatientVisit.apiRemove(patientVisit.id).then(resp => {
             PatientVisit.delete(patientVisit.id)
           const i = this.patientVisits.map(toRemove => toRemove.id).indexOf(patientVisit.id) // find index of your object
@@ -201,6 +203,20 @@ export default {
              this.displayAlert('error', error)
           })
            }
+              } else {
+                PatientVisit.localDbGetById(patientVisit.id).then(item => {
+          if (item.syncStatus !== 'R') {
+                        const auditSync = new AuditSyncronization()
+                          auditSync.operationType = 'remove'
+                          auditSync.className = PatientVisit.getClassName()
+                          auditSync.entity = item
+                          AuditSyncronization.localDbAdd(auditSync)
+                    }
+         PatientVisit.localDbDelete(patientVisit)
+         PatientVisit.delete(patientVisit.id)
+        this.displayAlert('info', 'Operação efectuada com sucesso.')
+              })
+            }
         })
       },
     formatDate (dateString) {

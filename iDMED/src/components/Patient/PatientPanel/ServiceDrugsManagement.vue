@@ -1,6 +1,6 @@
 <template>
   <div>
-      <PrescriptionDrugsLestHeader
+      <PrescriptionDrugsListHeader
           :addVisible="true"
           :mainContainer="false"
           bgColor="bg-grey-6"
@@ -8,9 +8,10 @@
           :newPickUpDate="newPickUpDate"
           @updateQtyPrescribed="updateQtyPrescribed"
           :visitDetails="visitDetails"
-          @showAdd="addEditDrugs">
+          @showAdd="addEditDrugs"
+          :step="stepp">
         Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.code}}
-      </PrescriptionDrugsLestHeader>
+      </PrescriptionDrugsListHeader>
       <div class="col prescription-box q-pa-md q-mb-md">
         <q-table
             class="col"
@@ -91,7 +92,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'step', 'visitClone'],
+  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'stepp', 'visitClone', 'isAlreadyEdited'],
   mixins: [mixinplatform, mixinutils],
   data () {
     return {
@@ -174,6 +175,7 @@ export default {
       }
     },
     init () {
+      console.log(this.step)
       this.pickupDate = this.newPickUpDate
       if (this.isNewPrescriptionStep) {
         const pvd = new PatientVisitDetails(this.visitClone)
@@ -222,6 +224,8 @@ export default {
       get () {
         if (this.isNewPrescriptionStep || this.lastPack === null) {
           return this.currPrescription.prescriptionDate
+        } else if (this.isAlreadyEdited) {
+          return this.curVisitDetails.pack.pickupDate
         } else if (this.isEditPackStep) {
           return this.lastPack.pickupDate
         } else {
@@ -246,6 +250,7 @@ export default {
     }
   },
   created () {
+    this.setStep(this.stepp)
     this.curVisitDetails = Object.assign({}, this.visitDetails)
     this.currPrescription = new Prescription(this.prescription)
     this.loadParams()
@@ -253,7 +258,7 @@ export default {
   components: {
     AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-    PrescriptionDrugsLestHeader: require('components/Patient/Prescription/PrescriptionDrugsListHeader.vue').default
+    PrescriptionDrugsListHeader: require('components/Patient/Prescription/PrescriptionDrugsListHeader.vue').default
   }
 }
 </script>
