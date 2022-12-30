@@ -86,6 +86,10 @@ import Drug from '../../../store/models/drug/Drug'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
+import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
+import Stock from '../../../store/models/stock/Stock'
+import StockEntrance from 'src/store/models/stockentrance/StockEntrance'
 export default {
   props: ['identifier'],
   mixins: [mixinplatform, mixinutils],
@@ -128,9 +132,53 @@ export default {
       this.$emit('editPack', this.patientVisitDetais)
     },
     removePack () {
-      PatientVisitDetails.apiDelete(this.patientVisitDetais).then(resp => {
-        console.log(resp)
+      if (this.mobile) {
+        //
+         PatientVisit.localDbGetById(this.patientVisitDetais.patient_visit_id).then(item => {
+          if (item.syncStatus !== 'R') {
+                        const auditSync = new AuditSyncronization()
+                          auditSync.operationType = 'remove'
+                          auditSync.className = PatientVisit.getClassName()
+                          auditSync.entity = item
+                          AuditSyncronization.localDbAdd(auditSync)
+                    }
+                    item.patientVisitDetails.forEach(pvd => {
+                      console.log(this.patientVisitDetais)
+                      if (pvd.id === this.patientVisitDetais.id) {
+                        console.log(this.patientVisitDetais)
+                        pvd.pack.packagedDrugs.forEach(pd => {
+              pd.packagedDrugStocks.forEach(pds => {
+                  Stock.localDbGetById(pds.stock.id).then(stock => {
+                    stock.stockMoviment += pds.quantitySupplied
+                    stock.syncStatus = 'U'
+                    Stock.localDbUpdate(stock)
+                    StockEntrance.localDbGetById(stock.entrance.id).then(entrance => {
+                     entrance.syncStatus = 'U'
+                     StockEntrance.localDbUpdate(entrance)
+                    })
+                  })
+              })
+            })
+            Prescription.delete(pvd.prescription.id)
+                      Pack.delete(pvd.pack.id)
+                      console.log(this.patientVisitDetais)
+                      const index = item.patientVisitDetails.findIndex(o => o.id === pvd.id)
+                      item.patientVisitDetails.splice(index, 1)
+                      PatientVisit.localDbUpdate(item)
+                      PatientVisit.update({ data: item })
+                   }
+                      if (item.patientVisitDetails.length === 0) {
+                        PatientVisit.localDbDelete(item)
+                    PatientVisit.delete(item)
+                      }
+          })
+                  })
+      } else {
+        PatientVisitDetails.apiDelete(this.patientVisitDetais).then(resp => {
+          PatientVisitDetails.delete(this.patientVisitDetais.id)
+          this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
+      }
     },
     removePrescription () {
       if (this.lastPack !== null) {
@@ -257,6 +305,12 @@ export default {
       get () {
         if (this.prescription === null) return null
         return PatientVisitDetails.query().with('pack').with('prescription.*').where('id', this.prescription.patientVisitDetails[0].id).first()
+      }
+    },
+    patientVisit: {
+      get () {
+        if (this.prescription === null) return null
+        return PatientVisit.query().with('patientVisitDetails.*').where('id', this.lastStartEpisode.lastVisit().id).first()
       }
     },
 
