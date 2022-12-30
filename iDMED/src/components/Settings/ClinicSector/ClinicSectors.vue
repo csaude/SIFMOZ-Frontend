@@ -90,6 +90,8 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -98,6 +100,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -171,11 +174,19 @@ export default {
                   clinicSector.active = true
               }
               console.log(clinicSector)
-             ClinicSector.apiSave(clinicSector).then(resp => {
+              if (this.mobile) {
+                console.log('FrontEnd')
+                ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSector)))
+                ClinicSector.insert({ data: clinicSector })
+                this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
+              } else {
+                console.log('BackEnd')
+                ClinicSector.apiSave(clinicSector).then(resp => {
                   this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

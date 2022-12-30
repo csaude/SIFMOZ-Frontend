@@ -98,6 +98,8 @@
 import { useQuasar } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
@@ -108,6 +110,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -198,11 +201,19 @@ export default {
                   clinic.active = true
                 msg = 'Farmácia activada com sucesso.'
               }
-             Clinic.apiSave(clinic).then(resp => {
-                  this.displayAlert('info', msg)
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                Clinic.localDbAdd(JSON.parse(JSON.stringify(clinic)))
+                Clinic.insert({ data: clinic })
+                this.displayAlert('info', msg)
+              } else {
+                console.log('BackEnd')
+                Clinic.apiSave(clinic).then(resp => {
+                      this.displayAlert('info', msg)
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

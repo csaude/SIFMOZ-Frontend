@@ -84,6 +84,8 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import HealthInformationSystem from '../../../store/models/healthInformationSystem/HealthInformationSystem'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
    { name: '', required: true, label: '' },
@@ -101,6 +103,7 @@ const columnsSelectedAttributes = [
   { name: 'value', required: true, label: 'Valor', align: 'left', field: row => row.value, format: val => `${val}`, sortable: true }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -172,11 +175,20 @@ export default {
               } else if (!his.active) {
                   his.active = true
               }
-             HealthInformationSystem.apiSave(his).then(resp => {
-                  this.displayAlert('info', 'Sistema da Interoperabilidade inactivado com sucesso')
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (his.syncStatus !== 'R') his.syncStatus = 'U'
+                HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)))
+                HealthInformationSystem.insert({ data: his })
+                this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
+              } else {
+                console.log('BackEnd')
+                HealthInformationSystem.apiSave(his).then(resp => {
+                      this.displayAlert('info', 'Sistema da Interoperabilidade inactivado com sucesso')
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

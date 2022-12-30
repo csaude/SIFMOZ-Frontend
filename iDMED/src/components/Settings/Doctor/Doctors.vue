@@ -95,6 +95,8 @@
 import { useQuasar } from 'quasar'
 import Doctor from '../../../store/models/doctor/Doctor'
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'firstnames', required: true, label: 'Nome', align: 'left', field: row => row.firstnames, format: val => `${val}`, sortable: true },
@@ -104,6 +106,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -179,12 +182,19 @@ export default {
                   doctor.active = true
                      msg = 'Clínico activado com sucesso.'
               }
-              console.log(doctor)
-             Doctor.apiSave(doctor).then(resp => {
-                  this.displayAlert('info', msg)
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                Doctor.localDbAdd(JSON.parse(JSON.stringify(doctor)))
+                Doctor.insert({ data: doctor })
+                this.displayAlert('info', msg)
+              } else {
+                console.log('BackEnd')
+                Doctor.apiSave(doctor).then(resp => {
+                      this.displayAlert('info', msg)
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {
