@@ -364,6 +364,8 @@ export default {
         const userLogin = users.filter((user) => user.username === 'user.sync')
         if (userLogin.length > 0) {
          this.login(userLogin[0].username, decryptedPass)
+        } else {
+          localStorage.setItem('isSyncronizing', 'false')
         }
      })
   },
@@ -645,6 +647,8 @@ await Patient.syncPatient(patient).then(resp => {
     setTimeout(this.apiSendPatients(patientsToSync, i), 200)
 })
 }).catch(error => {
+  i = i + 1
+  setTimeout(this.apiSendPatients(patientsToSync, i), 200)
  console.log(error)
 })
 } else {
@@ -663,6 +667,8 @@ if (identifier !== undefined) {
       setTimeout(this.apiSendPatientServiceIdentifier(identifiersToSync, i), 200)
     })
 }).catch(error => {
+  i = i + 1
+  setTimeout(this.apiSendPatientServiceIdentifier(identifiersToSync, i), 200)
  console.log(error)
 })
 } else {
@@ -681,6 +687,8 @@ if (episode !== undefined) {
        setTimeout(this.apiSendEpisode(episodesToSync, i), 200)
       })
 }).catch(error => {
+  i = i + 1
+  setTimeout(this.apiSendPatientServiceIdentifier(episodesToSync, i), 200)
  console.log(error)
 })
 } else {
