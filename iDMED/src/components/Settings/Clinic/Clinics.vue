@@ -81,8 +81,9 @@
           <q-dialog persistent v-model="showClinicRegistrationScreen">
           <addClinic
             :selectedClinic="clinic"
-             :editMode=editMode
-           :onlyView="viewMode"
+            :stepp="step"
+            :editMode=editMode
+            :onlyView="viewMode"
             @close="showClinicRegistrationScreen = false" />
       </q-dialog>
        <q-dialog v-model="alert.visible">
@@ -97,6 +98,8 @@
 import { useQuasar } from 'quasar'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
@@ -107,21 +110,23 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
     return {
         columns,
         $q,
-         showClinicRegistrationScreen: false,
-         editMode: false,
-         viewMode: false,
-           alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
-           filter: ref('')
+        showClinicRegistrationScreen: false,
+        editMode: false,
+        viewMode: false,
+        step: '',
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
+        filter: ref('')
     }
   },
  computed: {
@@ -168,12 +173,14 @@ export default {
        },
        editClinic (clinic) {
         this.clinic = Object.assign({}, clinic)
+        this.step = 'edit'
          this.showClinicRegistrationScreen = true
          this.editMode = true
           this.viewMode = false
       },
         addClinic () {
           this.clinic = new Clinic()
+          this.step = 'create'
          this.showClinicRegistrationScreen = true
            this.editMode = false
            this.viewMode = false
@@ -194,11 +201,20 @@ export default {
                   clinic.active = true
                 msg = 'Farmácia activada com sucesso.'
               }
-             Clinic.apiSave(clinic).then(resp => {
-                  this.displayAlert('info', msg)
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (clinic.syncStatus !== 'R') clinic.syncStatus = 'U'
+                Clinic.localDbAdd(JSON.parse(JSON.stringify(clinic)))
+                Clinic.insert({ data: clinic })
+                this.displayAlert('info', msg)
+              } else {
+                console.log('BackEnd')
+                Clinic.apiSave(clinic).then(resp => {
+                      this.displayAlert('info', msg)
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

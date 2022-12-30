@@ -64,6 +64,7 @@
         <q-dialog persistent v-model="showAddEditIdentifierType">
           <AddEditIdentifierType
             :selectedIdentifierType="selectedIdentifierType"
+            :stepp="step"
             :step=step
             @close="showAddEditIdentifierType = false" />
         </q-dialog>
@@ -79,6 +80,8 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import IdentifierType from '../../../store/models/identifierType/IdentifierType'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -87,12 +90,14 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
     return {
         columns,
         $q,
+        step: '',
          showAddEditIdentifierType: false,
            alert: ref({
               type: '',
@@ -100,7 +105,6 @@ export default {
               msg: ''
             }),
             filter: ref(''),
-            step: 'display',
             selectedIdentifierType: null
     }
   },
@@ -133,12 +137,12 @@ export default {
        },
        editIdentifierType (identifierType) {
           this.selectedIdentifierType = identifierType
-          this.showAddEditIdentifierType = true
           this.step = 'edit'
+          this.showAddEditIdentifierType = true
       },
       addIdentifierType () {
-          this.showAddEditIdentifierType = true
-          this.step = 'create'
+        this.step = 'create'
+        this.showAddEditIdentifierType = true
       },
       showIdentifierType (identifierType) {
           this.selectedIdentifierType = identifierType
@@ -148,11 +152,20 @@ export default {
       promptToConfirm (identifierType) {
         this.$q.dialog({ title: 'Confirm', message: identifierType.active ? 'Deseja Inactivar o Sector Clinico?' : 'Deseja Activar o Sector Clinico?', cancel: true, persistent: true }).onOk(() => {
           identifierType.active = !identifierType.active
-          IdentifierType.apiSave(identifierType).then(resp => {
-            this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
-          }).catch(error => {
-                this.displayAlert('error', error)
-          })
+          if (this.mobile) {
+                console.log('FrontEnd')
+                if (identifierType.syncStatus !== 'R') identifierType.syncStatus = 'U'
+                IdentifierType.localDbAdd(JSON.parse(JSON.stringify(identifierType)))
+                IdentifierType.insert({ data: identifierType })
+                this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
+              } else {
+                console.log('BackEnd')
+                IdentifierType.apiSave(identifierType).then(resp => {
+                  this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

@@ -78,6 +78,7 @@
           <q-dialog persistent v-model="showDoctorRegistrationScreen">
           <addDoctor
           :selectedDoctor="doctor"
+          :stepp="step"
           :editMode=editMode
            :onlyView="viewMode"
             @close="showDoctorRegistrationScreen = false" />
@@ -94,6 +95,8 @@
 import { useQuasar } from 'quasar'
 import Doctor from '../../../store/models/doctor/Doctor'
 import { ref } from 'vue'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'firstnames', required: true, label: 'Nome', align: 'left', field: row => row.firstnames, format: val => `${val}`, sortable: true },
@@ -103,21 +106,23 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
     return {
         columns,
         $q,
-         editMode: false,
-         viewMode: false,
-         showDoctorRegistrationScreen: false,
-           alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
-             filter: ref('')
+        step: '',
+        editMode: false,
+        viewMode: false,
+        showDoctorRegistrationScreen: false,
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
+        filter: ref('')
     }
   },
  computed: {
@@ -149,12 +154,14 @@ export default {
        },
        editDoctor (doctor) {
         this.doctor = Object.assign({}, doctor)
+        this.step = 'edit'
          this.showDoctorRegistrationScreen = true
          this.editMode = true
           this.viewMode = false
       },
         addDoctor () {
           this.doctor = new Doctor()
+          this.step = 'create'
          this.showDoctorRegistrationScreen = true
            this.editMode = false
            this.viewMode = false
@@ -175,12 +182,20 @@ export default {
                   doctor.active = true
                      msg = 'Clínico activado com sucesso.'
               }
-              console.log(doctor)
-             Doctor.apiSave(doctor).then(resp => {
-                  this.displayAlert('info', msg)
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (doctor.syncStatus !== 'R') doctor.syncStatus = 'U'
+                Doctor.localDbAdd(JSON.parse(JSON.stringify(doctor)))
+                Doctor.insert({ data: doctor })
+                this.displayAlert('info', msg)
+              } else {
+                console.log('BackEnd')
+                Doctor.apiSave(doctor).then(resp => {
+                      this.displayAlert('info', msg)
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

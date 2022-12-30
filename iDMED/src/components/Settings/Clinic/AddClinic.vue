@@ -115,8 +115,11 @@ import District from '../../../store/models/district/District'
 import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import FacilityType from '../../../store/models/facilityType/FacilityType'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 export default {
-      props: ['selectedClinic', 'onlyView'],
+    props: ['selectedClinic', 'onlyView', 'stepp'],
+    mixins: [mixinplatform, mixinutils],
     data () {
         return {
             databaseCodes: [],
@@ -136,6 +139,7 @@ export default {
           }
     },
       mounted () {
+        this.setStep(this.stepp)
         this.extractDatabaseCodes()
     },
     computed: {
@@ -181,14 +185,32 @@ export default {
             this.clinic.active = true
             this.clinic.province.districts = []
             if (this.clinic.uuid === null) this.clinic.uuid = uuidv4()
-            console.log(this.clinic)
-           Clinic.apiSave(this.clinic).then(resp => {
-              this.submitting = false
-                 this.displayAlert('info', this.clinic.id === null ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
-            }).catch(error => {
-               this.submitting = false
-                  this.displayAlert('error', error)
-            })
+            if (this.mobile) {
+              console.log(this.clinic)
+              if (this.isCreateStep) {
+                this.clinic.syncStatus = 'R'
+                console.log(this.clinic)
+                Clinic.localDbAdd(JSON.parse(JSON.stringify(this.clinic)))
+                Clinic.insert({ data: this.clinic })
+                this.displayAlert('info', !this.isEditStep ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
+              } else {
+                 if (this.clinic.syncStatus !== 'R') this.clinic.syncStatus = 'U'
+                 const gclinicUpdate = new Clinic(JSON.parse(JSON.stringify((this.clinic))))
+                 Clinic.localDbUpdate(gclinicUpdate).then(clinicRes => {
+                 Clinic.update({ data: gclinicUpdate })
+                 this.displayAlert('info', !this.isEditStep ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
+                })
+              }
+            } else {
+              console.log(this.clinic)
+              Clinic.apiSave(this.clinic).then(resp => {
+                  this.submitting = false
+                    this.displayAlert('info', !this.isEditStep ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
+                }).catch(error => {
+                  this.submitting = false
+                      this.displayAlert('error', error)
+                })
+            }
     },
      displayAlert (type, msg) {
           this.alert.type = type

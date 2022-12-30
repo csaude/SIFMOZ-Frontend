@@ -80,11 +80,14 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import Doctor from '../../../store/models/doctor/Doctor'
 import { SessionStorage } from 'quasar'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
 export default {
-    props: ['clinic', 'selectedDoctor', 'onlyView'],
+    props: ['clinic', 'selectedDoctor', 'onlyView', 'stepp'],
+    mixins: [mixinplatform, mixinutils],
     data () {
         return {
           submitting: false,
@@ -120,11 +123,29 @@ export default {
           this.doctor.dateofbirth = new Date()
           this.doctor.active = true
           console.log(this.doctor)
+          if (this.mobile) {
+            console.log('Mobile')
+            if (!this.isEditStep) {
+              console.log('Create')
+              this.doctor.syncStatus = 'R'
+              console.log(this.doctor)
+              Doctor.localDbAdd(JSON.parse(JSON.stringify(this.doctor)))
+              Doctor.insert({ data: this.doctor })
+              this.closeDialog()
+              this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+            } else {
+                if (this.doctor.syncStatus !== 'R') this.doctor.syncStatus = 'U'
+                const doctorUpdate = new Doctor(JSON.parse(JSON.stringify((this.doctor))))
+                Doctor.localDbUpdate(doctorUpdate)
+                this.closeDialog()
+                this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+            }
+          } else {
             Doctor.apiSave(this.doctor).then(resp => {
                this.submitting = false
                 console.log(resp.response.data)
                  Doctor.apiFetchById(resp.response.data.id)
-                 this.displayAlert('info', this.doctor.id === null ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+                 this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                 this.listErrors = []
@@ -140,6 +161,7 @@ export default {
               }
                 this.displayAlert('error', this.listErrors)
             })
+          }
         },
          displayAlert (type, msg) {
           this.alert.type = type
@@ -165,6 +187,7 @@ export default {
         Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     mounted () {
+      this.setStep(this.stepp)
       this.doctor.clinic = this.currClinic
     },
     computed: {

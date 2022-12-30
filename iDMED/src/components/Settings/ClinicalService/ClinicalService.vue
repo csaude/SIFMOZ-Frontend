@@ -65,6 +65,7 @@
           <q-dialog persistent v-model="showClinicServiceRegistrationScreen" >
           <addClinicalService
           :selectedClinicalService="clinicalService"
+          :stepp="step"
           :editMode=editMode
            :onlyView="viewMode"
             @close="showClinicServiceRegistrationScreen = false" />
@@ -81,6 +82,8 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -89,20 +92,22 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
     return {
         columns,
         $q,
-         showClinicServiceRegistrationScreen: false,
-         editMode: false,
-         viewMode: false,
-           alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
+        showClinicServiceRegistrationScreen: false,
+        editMode: false,
+        viewMode: false,
+        step: '',
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
              filter: ref('')
     }
   },
@@ -142,12 +147,14 @@ export default {
        },
        editClinicService (clinicalService) {
         this.clinicalService = Object.assign({}, clinicalService)
+        this.step = 'edit'
          this.showClinicServiceRegistrationScreen = true
          this.editMode = true
           this.viewMode = false
       },
         addClinicService () {
           this.clinicalService = new ClinicalService()
+          this.step = 'create'
          this.showClinicServiceRegistrationScreen = true
            this.editMode = false
            this.viewMode = false
@@ -166,12 +173,21 @@ export default {
                   clinicalService.active = true
               }
               console.log(clinicalService)
-              clinicalService.therapeuticRegimens = []
-             ClinicalService.apiSave(clinicalService).then(resp => {
-                  this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (clinicalService.syncStatus !== 'R') clinicalService.syncStatus = 'U'
+                ClinicalService.localDbAdd(JSON.parse(JSON.stringify(clinicalService)))
+                ClinicalService.insert({ data: clinicalService })
+                this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
+              } else {
+                console.log('BackEnd')
+                clinicalService.therapeuticRegimens = []
+                ClinicalService.apiSave(clinicalService).then(resp => {
+                      this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {

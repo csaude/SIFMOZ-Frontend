@@ -72,9 +72,10 @@
         </div>
           <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
           <addClinicSector
-          :selectedClinicSector="clinicSector"
-          :editMode=editMode
-           :onlyView="viewMode"
+            :selectedClinicSector="clinicSector"
+            :editMode=editMode
+            :stepp="step"
+            :onlyView="viewMode"
             @close="showClinicSectorRegistrationScreen = false" />
       </q-dialog>
          <q-dialog v-model="alert.visible">
@@ -89,6 +90,8 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -97,6 +100,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+    mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -105,6 +109,7 @@ export default {
         $q,
          showClinicSectorRegistrationScreen: false,
          editMode: false,
+         step: '',
          viewMode: false,
            alert: ref({
               type: '',
@@ -143,15 +148,17 @@ export default {
        },
        editClinicSector (clinicSector) {
         this.clinicSector = Object.assign({}, clinicSector)
-         this.showClinicSectorRegistrationScreen = true
-         this.editMode = true
-          this.viewMode = false
+        this.step = 'edit'
+        this.showClinicSectorRegistrationScreen = true
+        this.editMode = true
+        this.viewMode = false
       },
-        addClinicSector () {
-          this.clinicSector = new ClinicSector()
-         this.showClinicSectorRegistrationScreen = true
-           this.editMode = false
-           this.viewMode = false
+      addClinicSector () {
+        this.clinicSector = new ClinicSector()
+        this.step = 'create'
+        this.showClinicSectorRegistrationScreen = true
+        this.editMode = false
+        this.viewMode = false
       },
         visualizeClinicSector (clinicSector) {
            this.clinicSector = Object.assign({}, clinicSector)
@@ -167,11 +174,20 @@ export default {
                   clinicSector.active = true
               }
               console.log(clinicSector)
-             ClinicSector.apiSave(clinicSector).then(resp => {
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (clinicSector.syncStatus !== 'R') clinicSector.syncStatus = 'U'
+                ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSector)))
+                ClinicSector.insert({ data: clinicSector })
+                this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
+              } else {
+                console.log('BackEnd')
+                ClinicSector.apiSave(clinicSector).then(resp => {
                   this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
-            }).catch(error => {
-                   this.displayAlert('error', error)
-            })
+                }).catch(error => {
+                      this.displayAlert('error', error)
+                })
+              }
         })
       },
        displayAlert (type, msg) {
