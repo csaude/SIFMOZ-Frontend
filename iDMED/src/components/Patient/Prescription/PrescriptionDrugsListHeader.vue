@@ -83,7 +83,7 @@ import { date } from 'quasar'
 import Duration from '../../../store/models/Duration/Duration'
 import moment from 'moment'
 export default {
-    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate', 'duration'],
+    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate', 'duration', 'step'],
     data () {
       return {
         alert: ref({

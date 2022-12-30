@@ -80,6 +80,7 @@ import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 export default {
   props: ['identifier', 'selectedPatient'],
    mixins: [mixinplatform, mixinutils],
@@ -166,9 +167,18 @@ export default {
           this.displayAlert('error', listErrors)
         })
       } else {
-        Episode.localDbDelete(this.selectedEpisode)
+        Episode.localDbGetById(this.selectedEpisode.id).then(item => {
+          if (item.syncStatus !== 'R') {
+                        const auditSync = new AuditSyncronization()
+                          auditSync.operationType = 'remove'
+                          auditSync.className = Episode.getClassName()
+                          auditSync.entity = item
+                          AuditSyncronization.localDbAdd(auditSync)
+                    }
+       Episode.localDbDelete(this.selectedEpisode)
         Episode.delete(this.selectedEpisode.id)
         this.displayAlert('info', 'Operação efectuada com sucesso.')
+  })
       }
     },
     cancelOperation () {

@@ -100,4 +100,8 @@ export default class PatientVisit extends Model {
   static localDbDeleteAll () {
     return db.newDb().collection('patientVisits').delete()
   }
+
+  static getClassName () {
+    return 'patientVisit'
+  }
 }
