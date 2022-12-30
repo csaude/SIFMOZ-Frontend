@@ -73,6 +73,7 @@
           <q-dialog persistent v-model="showHISRegistrationScreen">
           <addHIS
           :selectedHis="healthInformationSystem"
+          :stepp="step"
            :createMode=createMode
            :editMode="editMode"
             @close="showHISRegistrationScreen = false" />
@@ -108,6 +109,7 @@ export default {
         columnInteroperabilityTypes,
         columnsSelectedAttributes,
         $q,
+        step: '',
          showHISRegistrationScreen: false,
           alert: ref({
               type: '',
@@ -151,12 +153,14 @@ export default {
        },
        editHealthInformationSystem (healthInformationSystem) {
         this.healthInformationSystem = Object.assign({}, healthInformationSystem)
+        this.step = 'edit'
          this.showHISRegistrationScreen = true
            this.editMode = true
            this.createMode = false
       },
        addHealthInformationSystem () {
-          this.healthInformationSystem = new HealthInformationSystem()
+        this.healthInformationSystem = new HealthInformationSystem()
+        this.step = 'create'
          this.showHISRegistrationScreen = true
            this.editMode = false
            this.createMode = true

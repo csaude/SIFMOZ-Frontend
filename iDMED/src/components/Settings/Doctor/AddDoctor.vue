@@ -86,7 +86,7 @@ const stringOptions = [
   'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
 ]
 export default {
-    props: ['clinic', 'selectedDoctor', 'onlyView'],
+    props: ['clinic', 'selectedDoctor', 'onlyView', 'stepp'],
     mixins: [mixinplatform, mixinutils],
     data () {
         return {
@@ -132,20 +132,20 @@ export default {
               Doctor.localDbAdd(JSON.parse(JSON.stringify(this.doctor)))
               Doctor.insert({ data: this.doctor })
               this.closeDialog()
-              this.displayAlert('info', this.doctor.id === null ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+              this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
             } else {
                 if (this.doctor.syncStatus !== 'R') this.doctor.syncStatus = 'U'
                 const doctorUpdate = new Doctor(JSON.parse(JSON.stringify((this.doctor))))
                 Doctor.localDbUpdate(doctorUpdate)
                 this.closeDialog()
-                this.displayAlert('info', this.doctor.id === null ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+                this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
             }
           } else {
             Doctor.apiSave(this.doctor).then(resp => {
                this.submitting = false
                 console.log(resp.response.data)
                  Doctor.apiFetchById(resp.response.data.id)
-                 this.displayAlert('info', this.doctor.id === null ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+                 this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
             }).catch(error => {
                this.submitting = false
                 this.listErrors = []
@@ -161,7 +161,7 @@ export default {
               }
                 this.displayAlert('error', this.listErrors)
             })
-        }
+          }
         },
          displayAlert (type, msg) {
           this.alert.type = type
@@ -187,6 +187,7 @@ export default {
         Dialog: require('components/Shared/Dialog/Dialog.vue').default
     },
     mounted () {
+      this.setStep(this.stepp)
       this.doctor.clinic = this.currClinic
     },
     computed: {

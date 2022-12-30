@@ -81,8 +81,9 @@
           <q-dialog persistent v-model="showClinicRegistrationScreen">
           <addClinic
             :selectedClinic="clinic"
-             :editMode=editMode
-           :onlyView="viewMode"
+            :stepp="step"
+            :editMode=editMode
+            :onlyView="viewMode"
             @close="showClinicRegistrationScreen = false" />
       </q-dialog>
        <q-dialog v-model="alert.visible">
@@ -113,15 +114,16 @@ export default {
     return {
         columns,
         $q,
-         showClinicRegistrationScreen: false,
-         editMode: false,
-         viewMode: false,
-           alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
-           filter: ref('')
+        showClinicRegistrationScreen: false,
+        editMode: false,
+        viewMode: false,
+        step: '',
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
+        filter: ref('')
     }
   },
  computed: {
@@ -168,12 +170,14 @@ export default {
        },
        editClinic (clinic) {
         this.clinic = Object.assign({}, clinic)
+        this.step = 'edit'
          this.showClinicRegistrationScreen = true
          this.editMode = true
           this.viewMode = false
       },
         addClinic () {
           this.clinic = new Clinic()
+          this.step = 'create'
          this.showClinicRegistrationScreen = true
            this.editMode = false
            this.viewMode = false

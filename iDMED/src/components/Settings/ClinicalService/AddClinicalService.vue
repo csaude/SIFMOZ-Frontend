@@ -206,7 +206,7 @@ const columnAttributes = [
 ]
 
 export default {
-    props: ['selectedClinicalService', 'onlyView', 'editMode'],
+    props: ['selectedClinicalService', 'onlyView', 'editMode', 'stepp'],
     mixins: [mixinplatform, mixinutils],
   data () {
  const $q = useQuasar()
@@ -379,6 +379,7 @@ export default {
     }
   },
   mounted () {
+    this.setStep(this.stepp)
       const offset = 0
       const max = 100
     ClinicalServiceAttributeType.apiGetAll(offset, max)

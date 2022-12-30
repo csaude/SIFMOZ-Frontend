@@ -72,9 +72,10 @@
         </div>
           <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
           <addClinicSector
-          :selectedClinicSector="clinicSector"
-          :editMode=editMode
-           :onlyView="viewMode"
+            :selectedClinicSector="clinicSector"
+            :editMode=editMode
+            :stepp="step"
+            :onlyView="viewMode"
             @close="showClinicSectorRegistrationScreen = false" />
       </q-dialog>
          <q-dialog v-model="alert.visible">
@@ -105,6 +106,7 @@ export default {
         $q,
          showClinicSectorRegistrationScreen: false,
          editMode: false,
+         step: '',
          viewMode: false,
            alert: ref({
               type: '',
@@ -143,15 +145,17 @@ export default {
        },
        editClinicSector (clinicSector) {
         this.clinicSector = Object.assign({}, clinicSector)
-         this.showClinicSectorRegistrationScreen = true
-         this.editMode = true
-          this.viewMode = false
+        this.step = 'edit'
+        this.showClinicSectorRegistrationScreen = true
+        this.editMode = true
+        this.viewMode = false
       },
-        addClinicSector () {
-          this.clinicSector = new ClinicSector()
-         this.showClinicSectorRegistrationScreen = true
-           this.editMode = false
-           this.viewMode = false
+      addClinicSector () {
+        this.clinicSector = new ClinicSector()
+        this.step = 'create'
+        this.showClinicSectorRegistrationScreen = true
+        this.editMode = false
+        this.viewMode = false
       },
         visualizeClinicSector (clinicSector) {
            this.clinicSector = Object.assign({}, clinicSector)

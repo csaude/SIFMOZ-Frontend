@@ -84,7 +84,7 @@ import { v4 as uuidv4 } from 'uuid'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 export default {
-      props: ['selectedClinicSector', 'onlyView'],
+      props: ['selectedClinicSector', 'onlyView', 'stepp'],
       mixins: [mixinplatform, mixinutils],
     data () {
         return {
@@ -105,6 +105,7 @@ export default {
           }
     },
       mounted () {
+        this.setStep(this.stepp)
         const offset = 0
         this.getAllClinics(offset)
         this.extractDatabaseCodes()
@@ -167,13 +168,13 @@ export default {
                   ClinicSector.update({ data: clinicSecUpdate })
                 })
             }
-            this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
+            this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
           } else {
             console.log('Web')
             ClinicSector.apiSave(this.clinicSector).then(resp => {
             this.submitting = false
               console.log(resp.response.data)
-              this.displayAlert('info', this.clinicSector.id === null ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
+              this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
           }).catch(error => {
             this.submitting = false
               this.displayAlert('error', error)

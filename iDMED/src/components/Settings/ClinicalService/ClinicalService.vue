@@ -65,6 +65,7 @@
           <q-dialog persistent v-model="showClinicServiceRegistrationScreen" >
           <addClinicalService
           :selectedClinicalService="clinicalService"
+          :stepp="step"
           :editMode=editMode
            :onlyView="viewMode"
             @close="showClinicServiceRegistrationScreen = false" />
@@ -95,14 +96,15 @@ export default {
     return {
         columns,
         $q,
-         showClinicServiceRegistrationScreen: false,
-         editMode: false,
-         viewMode: false,
-           alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            }),
+        showClinicServiceRegistrationScreen: false,
+        editMode: false,
+        viewMode: false,
+        step: '',
+        alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        }),
              filter: ref('')
     }
   },
@@ -142,12 +144,14 @@ export default {
        },
        editClinicService (clinicalService) {
         this.clinicalService = Object.assign({}, clinicalService)
+        this.step = 'edit'
          this.showClinicServiceRegistrationScreen = true
          this.editMode = true
           this.viewMode = false
       },
         addClinicService () {
           this.clinicalService = new ClinicalService()
+          this.step = 'create'
          this.showClinicServiceRegistrationScreen = true
            this.editMode = false
            this.viewMode = false

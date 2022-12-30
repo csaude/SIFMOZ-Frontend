@@ -64,6 +64,7 @@
         <q-dialog persistent v-model="showAddEditIdentifierType">
           <AddEditIdentifierType
             :selectedIdentifierType="selectedIdentifierType"
+            :stepp="step"
             :step=step
             @close="showAddEditIdentifierType = false" />
         </q-dialog>
@@ -93,6 +94,7 @@ export default {
     return {
         columns,
         $q,
+        step: '',
          showAddEditIdentifierType: false,
            alert: ref({
               type: '',
@@ -100,7 +102,6 @@ export default {
               msg: ''
             }),
             filter: ref(''),
-            step: 'display',
             selectedIdentifierType: null
     }
   },
@@ -133,12 +134,12 @@ export default {
        },
        editIdentifierType (identifierType) {
           this.selectedIdentifierType = identifierType
-          this.showAddEditIdentifierType = true
           this.step = 'edit'
+          this.showAddEditIdentifierType = true
       },
       addIdentifierType () {
-          this.showAddEditIdentifierType = true
-          this.step = 'create'
+        this.step = 'create'
+        this.showAddEditIdentifierType = true
       },
       showIdentifierType (identifierType) {
           this.selectedIdentifierType = identifierType

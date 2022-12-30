@@ -101,7 +101,7 @@ const columnsSelectedAttributes = [
 ]
 
 export default {
-    props: ['selectedHis', 'createMode', 'editMode'],
+    props: ['selectedHis', 'createMode', 'editMode', 'stepp'],
     mixins: [mixinplatform, mixinutils],
     data () {
         return {
@@ -135,6 +135,7 @@ export default {
         }
     },
       mounted () {
+        this.setStep(this.stepp)
           this.fetchInteroperabilityAttributes()
        // this.extractDatabaseCodes()
     },
@@ -170,18 +171,18 @@ export default {
                 HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(this.his)))
                 HealthInformationSystem.insert({ data: this.his })
                 this.closeDialog()
-                this.displayAlert('info', this.his.id === null ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+                this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
               } else {
                 if (this.his.syncStatus !== 'R') this.his.syncStatus = 'U'
                 const hisUpdate = new HealthInformationSystem(JSON.parse(JSON.stringify((this.his))))
                 HealthInformationSystem.localDbUpdate(hisUpdate)
                 this.closeDialog()
-                this.displayAlert('info', this.his.id === null ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+                this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
               }
            } else {
             HealthInformationSystem.apiSave(this.his).then(resp => {
                 // console.log(resp.response.data)
-             this.displayAlert('info', 'Sistema De Informação de Saúde gravado com sucesso.')
+              this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
              HealthInformationSystem.apiFetchById(resp.response.data.id)
             }).catch(error => {
                 this.displayAlert('error', error)
