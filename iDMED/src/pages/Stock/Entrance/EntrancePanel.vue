@@ -694,7 +694,7 @@ export default {
                         })
                       })
                       } else {
-                        this.currStockEntrance.syncStatus = 'R'
+                        this.currStockEntrance.syncStatus = (this.currStockEntrance.syncStatus !== 'R' && this.currStockEntrance.syncStatus !== 'U') ? 'U' : 'R'
                         this.currStockEntrance.stocks.push(targetCopy)
                          StockEntrance.localDbUpdate(this.currStockEntrance)
                       }
