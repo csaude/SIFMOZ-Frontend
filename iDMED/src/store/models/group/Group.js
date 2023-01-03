@@ -44,7 +44,8 @@ export default class Group extends Model {
   }
 
   static async apiUpdate (group) {
-    return await this.api().post('/groupInfo', group)
+    // return await this.api().post('/groupInfo', group)
+    return await this.api().patch('/groupInfo/' + group.id, group)
   }
 
   static async apiGetAllByClinicId (clinicId, offset, max) {

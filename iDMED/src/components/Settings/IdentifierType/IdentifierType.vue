@@ -138,13 +138,25 @@ export default {
                 this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
             }
           } else {
-            IdentifierType.apiSave(this.identifierType).then(resp => {
-              this.submitting = false
-              this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
-            }).catch(error => {
-              this.submitting = false
-                this.displayAlert('error', error)
-            })
+            if (this.isCreateStep) {
+                console.log('Create Step_Online_Mode')
+                IdentifierType.apiSave(this.identifierType).then(resp => {
+                  this.submitting = false
+                  this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
+                }).catch(error => {
+                  this.submitting = false
+                    this.displayAlert('error', error)
+                })
+              } else {
+                console.log('Edit Step_Online_Mode')
+                IdentifierType.apiUpdate(this.identifierType).then(resp => {
+                  this.submitting = false
+                  this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
+                }).catch(error => {
+                  this.submitting = false
+                    this.displayAlert('error', error)
+                })
+              }
           }
       },
       displayAlert (type, msg) {

@@ -109,6 +109,10 @@ export default class Drug extends Model {
     return await this.api().post('/drug', drug)
   }
 
+  static async apiUpdate (drug) {
+    return await this.api().patch('/drug/' + drug.id, drug)
+  }
+
   static localDbAdd (drug) {
     return db.newDb().collection('drugs').add(drug)
   }

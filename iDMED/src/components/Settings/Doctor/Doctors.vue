@@ -186,11 +186,11 @@ export default {
                 console.log('FrontEnd')
                 if (doctor.syncStatus !== 'R') doctor.syncStatus = 'U'
                 Doctor.localDbAdd(JSON.parse(JSON.stringify(doctor)))
-                Doctor.insert({ data: doctor })
+                Doctor.insertOrUpdate({ data: doctor })
                 this.displayAlert('info', msg)
               } else {
                 console.log('BackEnd')
-                Doctor.apiSave(doctor).then(resp => {
+                Doctor.apiUpdate(doctor).then(resp => {
                       this.displayAlert('info', msg)
                 }).catch(error => {
                       this.displayAlert('error', error)

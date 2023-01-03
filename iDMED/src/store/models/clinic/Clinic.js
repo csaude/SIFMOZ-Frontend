@@ -57,6 +57,11 @@ export default class Clinic extends Model {
     return await this.api().post('/clinic', clinic)
   }
 
+  static async apiUpdate (clinic) {
+    // return await this.api().post('/clinic', clinic)
+    return await this.api().patch('/clinic/' + clinic.id, clinic)
+  }
+
   static localDbAdd (clinic) {
     return db.newDb().collection('clinics').add(clinic)
   }

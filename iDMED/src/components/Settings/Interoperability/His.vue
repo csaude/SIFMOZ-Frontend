@@ -179,11 +179,11 @@ export default {
                 console.log('FrontEnd')
                 if (his.syncStatus !== 'R') his.syncStatus = 'U'
                 HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)))
-                HealthInformationSystem.insert({ data: his })
+                HealthInformationSystem.insertOrUpdate({ data: his })
                 this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
               } else {
                 console.log('BackEnd')
-                HealthInformationSystem.apiSave(his).then(resp => {
+                HealthInformationSystem.apiUpdate(his).then(resp => {
                       this.displayAlert('info', 'Sistema da Interoperabilidade inactivado com sucesso')
                 }).catch(error => {
                       this.displayAlert('error', error)

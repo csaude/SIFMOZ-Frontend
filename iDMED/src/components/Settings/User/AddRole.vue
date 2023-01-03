@@ -133,10 +133,10 @@ export default {
               const roleDescription = this.userRoles.filter(role => role.description === this.role.description)
               if (roleExist.length > 0 || roleDescription.length > 0) {
           this.displayAlert('error', 'Ja Existe um Perfil com esse nome')
-        }
-      } else {
+        } else {
                    this.submitUser()
             }
+      }
         },
         submitUser () {
            this.submitting = true

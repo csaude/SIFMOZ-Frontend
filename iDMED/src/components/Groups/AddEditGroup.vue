@@ -222,14 +222,15 @@ import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientV
 import PatientServiceIdentifier from '../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Episode from 'src/store/models/episode/Episode'
+import mixinutils from 'src/mixins/mixin-utils'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  props: ['step'],
-  mixins: [mixinplatform],
+  props: ['step', 'stepp'],
+  mixins: [mixinplatform, mixinutils],
   data () {
     return {
       columns,
@@ -505,7 +506,8 @@ export default {
         }
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       } else {
-        Group.apiSave(this.curGroup).then(resp => {
+        if (this.isCreateStep) {
+          Group.apiSave(this.curGroup).then(resp => {
           Group.apiFetchById(resp.response.data.id).then(resp => {
             this.loadMembersData()
             this.curGroup = Group.query()
@@ -532,6 +534,36 @@ export default {
             }
             this.displayAlert('error', listErrors)
           })
+        } else {
+          console.log('Edit Step')
+          Group.apiUpdate(this.curGroup).then(resp => {
+          Group.apiFetchById(resp.response.data.id).then(resp => {
+            this.loadMembersData()
+            this.curGroup = Group.query()
+                                .with('groupType')
+                                .with('members.patient.*')
+                                .with('service.*')
+                                .with('packHeaders.*')
+                                .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
+                                .where('id', resp.response.data.id)
+                                .first()
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          })
+        }).catch(error => {
+            const listErrors = []
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response)
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message)
+              } else {
+                arrayErrors._embedded.errors.forEach(element => {
+                  listErrors.push(element.message)
+                })
+              }
+            }
+            this.displayAlert('error', listErrors)
+          })
+        }
     }
     },
     loadMembersData () {
@@ -592,6 +624,7 @@ export default {
     }
   },
   mounted () {
+    this.setStep(this.stepp)
     this.init()
   },
   components: {

@@ -170,15 +170,27 @@ export default {
             }
             this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
           } else {
-            console.log('Web')
-            ClinicSector.apiSave(this.clinicSector).then(resp => {
-            this.submitting = false
-              console.log(resp.response.data)
-              this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
-          }).catch(error => {
-            this.submitting = false
-              this.displayAlert('error', error)
-          })
+            if (this.isCreateStep) {
+              console.log('Create Step_Online_Mode')
+              ClinicSector.apiSave(this.clinicSector).then(resp => {
+              this.submitting = false
+                console.log(resp.response.data)
+                this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
+              }).catch(error => {
+                this.submitting = false
+                  this.displayAlert('error', error)
+              })
+            } else {
+              console.log('Edit Step_Online_Mode')
+              ClinicSector.apiUpdate(this.clinicSector).then(resp => {
+              this.submitting = false
+                console.log(resp.response.data)
+                this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
+              }).catch(error => {
+                this.submitting = false
+                  this.displayAlert('error', error)
+              })
+            }
         }
         },
         getAllClinics (offset) {

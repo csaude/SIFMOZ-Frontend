@@ -47,6 +47,10 @@ export default class Doctor extends Model {
       return await this.api().post('/doctor', doctor)
     }
 
+    static async apiUpdate (doctor) {
+      return await this.api().patch('/doctor/' + doctor.id, doctor)
+    }
+
     static localDbAdd (doctor) {
       return db.newDb().collection('doctors').add(doctor)
     }

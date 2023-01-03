@@ -141,26 +141,51 @@ export default {
                 this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
             }
           } else {
-            Doctor.apiSave(this.doctor).then(resp => {
-               this.submitting = false
-                console.log(resp.response.data)
-                 Doctor.apiFetchById(resp.response.data.id)
-                 this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
-            }).catch(error => {
-               this.submitting = false
-                this.listErrors = []
-              if (error.request !== undefined && error.request.status !== 0) {
-                const arrayErrors = JSON.parse(error.request.response)
-                if (arrayErrors.total == null) {
-                  this.listErrors.push(arrayErrors.message)
-                } else {
-                  arrayErrors._embedded.errors.forEach(element => {
-                    this.listErrors.push(element.message)
-                  })
+            if (this.isCreateStep) {
+              console.log('Create Step_Online_Mode')
+              Doctor.apiSave(this.doctor).then(resp => {
+                this.submitting = false
+                  console.log(resp.response.data)
+                  Doctor.apiFetchById(resp.response.data.id)
+                  this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+              }).catch(error => {
+                this.submitting = false
+                  this.listErrors = []
+                if (error.request !== undefined && error.request.status !== 0) {
+                  const arrayErrors = JSON.parse(error.request.response)
+                  if (arrayErrors.total == null) {
+                    this.listErrors.push(arrayErrors.message)
+                  } else {
+                    arrayErrors._embedded.errors.forEach(element => {
+                      this.listErrors.push(element.message)
+                    })
+                  }
                 }
-              }
-                this.displayAlert('error', this.listErrors)
-            })
+                  this.displayAlert('error', this.listErrors)
+              })
+            } else {
+              console.log('Edit Step_Online_Mode')
+              Doctor.apiUpdate(this.doctor).then(resp => {
+                this.submitting = false
+                  console.log(resp.response.data)
+                  Doctor.apiFetchById(resp.response.data.id)
+                  this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
+              }).catch(error => {
+                this.submitting = false
+                  this.listErrors = []
+                if (error.request !== undefined && error.request.status !== 0) {
+                  const arrayErrors = JSON.parse(error.request.response)
+                  if (arrayErrors.total == null) {
+                    this.listErrors.push(arrayErrors.message)
+                  } else {
+                    arrayErrors._embedded.errors.forEach(element => {
+                      this.listErrors.push(element.message)
+                    })
+                  }
+                }
+                  this.displayAlert('error', this.listErrors)
+              })
+            }
           }
         },
          displayAlert (type, msg) {

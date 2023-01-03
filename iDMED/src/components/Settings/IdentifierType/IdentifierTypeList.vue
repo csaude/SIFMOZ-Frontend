@@ -156,11 +156,11 @@ export default {
                 console.log('FrontEnd')
                 if (identifierType.syncStatus !== 'R') identifierType.syncStatus = 'U'
                 IdentifierType.localDbAdd(JSON.parse(JSON.stringify(identifierType)))
-                IdentifierType.insert({ data: identifierType })
+                IdentifierType.insertOrUpdate({ data: identifierType })
                 this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
               } else {
                 console.log('BackEnd')
-                IdentifierType.apiSave(identifierType).then(resp => {
+                IdentifierType.apiUpdate(identifierType).then(resp => {
                   this.displayAlert('info', 'Tipo de identificador actualizado com sucesso')
                 }).catch(error => {
                       this.displayAlert('error', error)

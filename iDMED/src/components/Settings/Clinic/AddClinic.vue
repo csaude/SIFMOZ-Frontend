@@ -180,6 +180,7 @@ export default {
             }
         },
         submitClinic () {
+          this.clinic = new Clinic(JSON.parse(JSON.stringify(this.clinic)))
            this.submitting = true
             this.clinic.mainClinic = 0
             this.clinic.active = true
@@ -202,14 +203,25 @@ export default {
                 })
               }
             } else {
-              console.log(this.clinic)
-              Clinic.apiSave(this.clinic).then(resp => {
-                  this.submitting = false
-                    this.displayAlert('info', !this.isEditStep ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
-                }).catch(error => {
-                  this.submitting = false
-                      this.displayAlert('error', error)
-                })
+              if (this.isCreateStep) {
+                console.log('Create Step_Online_Mode')
+                Clinic.apiSave(this.clinic).then(resp => {
+                    this.submitting = false
+                      this.displayAlert('info', !this.isEditStep ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
+                  }).catch(error => {
+                    this.submitting = false
+                        this.displayAlert('error', error)
+                  })
+              } else {
+                console.log('Edit Step_Online_Mode')
+                Clinic.apiUpdate(this.clinic).then(resp => {
+                    this.submitting = false
+                      this.displayAlert('info', !this.isEditStep ? 'Farmácia Cadastrada Com Sucesso' : 'Farmácia actualizada com sucesso.')
+                  }).catch(error => {
+                    this.submitting = false
+                        this.displayAlert('error', error)
+                  })
+              }
             }
     },
      displayAlert (type, msg) {

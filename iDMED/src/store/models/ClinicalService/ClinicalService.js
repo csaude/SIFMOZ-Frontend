@@ -42,6 +42,10 @@ export default class ClinicalService extends Model {
     return await this.api().post('/clinicalService', clinicalService)
   }
 
+  static async apiUpdate (clinicalService) {
+    return await this.api().patch('/clinicalService/' + clinicalService.id, clinicalService)
+  }
+
   static localDbAdd (clinicalService) {
     return db.newDb().collection('clinicalServices').add(clinicalService)
   }
