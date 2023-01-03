@@ -29,18 +29,27 @@ export default {
      if (this.mobile) {
         Stock.localDbGetAll().then(stocks => {
             stocks.forEach(item => {
-               Stock.update({ where: item.id, data: item })
+              Stock.delete(item.id)
+                            Stock.insert({
+                              data: item
+                            })
                       })
                   })
         Inventory.localDbGetAll().then(inventories => {
                           inventories.forEach(item => {
-                            Inventory.update({ where: item.id, data: item })
+                            Inventory.delete(item.id)
+                            Inventory.insert({
+                              data: item
+                            })
                           })
                             })
 
         StockEntrance.localDbGetAll().then(stockEntrances => {
           stockEntrances.forEach((item) => {
-            StockEntrance.update({ where: item.id, data: item })
+            StockEntrance.delete(item.id)
+            StockEntrance.insert({
+                              data: item
+                            })
           })
           }).then(item => {
               Clinic.insert({
@@ -102,7 +111,6 @@ export default {
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
     spinner: QSpinnerBall
-    // delay: 400 // ms
   })
 
   setTimeout(() => {

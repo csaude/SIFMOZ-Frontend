@@ -130,9 +130,8 @@ import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import { v4 as uuidv4 } from 'uuid'
 import Drug from '../../../store/models/drug/Drug'
-import Inventory from '../../../store/models/stockinventory/Inventory'
+ import Inventory from '../../../store/models/stockinventory/Inventory'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
@@ -229,7 +228,6 @@ export default {
       newAdjustment.adjustedStock.auxExpireDate = this.getDDMMYYYFromJSDate(newAdjustment.adjustedStock.expireDate)
       newAdjustment.adjustedStock.drug = drug
       this.adjustments.push(newAdjustment)
-      console.log('AJUSTEEEEEEE: ' + i, newAdjustment)
     },
     saveAdjustments () {
       Object.keys(this.adjustments).forEach(function (k) {
@@ -281,10 +279,10 @@ export default {
                     })
             } else {
                     const targetCopy = new InventoryStockAdjustment(JSON.parse(JSON.stringify(this.adjustments[i])))
-                    const id = targetCopy.id === null ? uuidv4() : targetCopy.id
+                    const id = targetCopy.id
                      InventoryStockAdjustment.localDbGetById(id).then(item => {
                     if (item !== null && item !== undefined) {
-                       targetCopy.syncStatus = 'R'
+                       targetCopy.syncStatus = 'U'
                       targetCopy.operation_id = targetCopy.operation.id
                       targetCopy.clinic = this.currClinic
                       targetCopy.clinic_id = targetCopy.clinic.id
@@ -299,7 +297,7 @@ export default {
                               this.displayAlert('info', 'Operação efectuada com sucesso.')
                               })
                         } else {
-                              targetCopy.syncStatus = 'U'
+                              targetCopy.syncStatus = 'R'
                               targetCopy.inventory_id = targetCopy.inventory.id
                               targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id
                               targetCopy.operation_id = targetCopy.operation.id

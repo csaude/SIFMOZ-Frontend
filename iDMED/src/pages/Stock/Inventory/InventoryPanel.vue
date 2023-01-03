@@ -268,8 +268,6 @@ export default {
             adjustment.clinic = this.currClinic
             adjustment.adjustedStock.clinic = this.currClinic
             adjustment.adjustedStock.stockMoviment = adjustment.balance
-            adjustment.inventory.endDate = new Date()
-            adjustment.inventory.open = false
             adjustment.inventory = null
             this.processedAdjustments.push(adjustment)
           //  this.doSaveAdjustmentMobile(0)
