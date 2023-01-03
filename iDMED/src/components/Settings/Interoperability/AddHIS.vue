@@ -180,13 +180,25 @@ export default {
                 this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
               }
            } else {
-            HealthInformationSystem.apiSave(this.his).then(resp => {
-                // console.log(resp.response.data)
-              this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-             HealthInformationSystem.apiFetchById(resp.response.data.id)
-            }).catch(error => {
-                this.displayAlert('error', error)
-            })
+             if (this.isCreateStep) {
+                console.log('Create Step_Online_Mode')
+                HealthInformationSystem.apiSave(this.his).then(resp => {
+                    // console.log(resp.response.data)
+                  this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+                HealthInformationSystem.apiFetchById(resp.response.data.id)
+                }).catch(error => {
+                    this.displayAlert('error', error)
+                })
+              } else {
+                console.log('Edit Step_Online_Mode')
+                HealthInformationSystem.apiUpdate(this.his).then(resp => {
+                    // console.log(resp.response.data)
+                  this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+                HealthInformationSystem.apiFetchById(resp.response.data.id)
+                }).catch(error => {
+                    this.displayAlert('error', error)
+                })
+              }
           }
         },
         goToNextStep () {

@@ -32,6 +32,10 @@ export default class HealthInformationSystem extends Model {
     return await this.api().post('/healthInformationSystem', his)
   }
 
+  static async apiUpdate (his) {
+    return await this.api().patch('/healthInformationSystem/' + his.id, his)
+  }
+
   static localDbAdd (healthInformationSystem) {
     return db.newDb().collection('healthInformationSystems').add(healthInformationSystem)
   }

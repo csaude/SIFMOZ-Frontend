@@ -205,11 +205,11 @@ export default {
                 console.log('FrontEnd')
                 if (clinic.syncStatus !== 'R') clinic.syncStatus = 'U'
                 Clinic.localDbAdd(JSON.parse(JSON.stringify(clinic)))
-                Clinic.insert({ data: clinic })
+                Clinic.insertOrUpdate({ data: clinic })
                 this.displayAlert('info', msg)
               } else {
                 console.log('BackEnd')
-                Clinic.apiSave(clinic).then(resp => {
+                Clinic.apiUpdate(clinic).then(resp => {
                       this.displayAlert('info', msg)
                 }).catch(error => {
                       this.displayAlert('error', error)
@@ -229,7 +229,7 @@ export default {
         }
   },
   mounted () {
-       const offset = 0
+    const offset = 0
     this.getAllClinics(offset)
   },
   components: {

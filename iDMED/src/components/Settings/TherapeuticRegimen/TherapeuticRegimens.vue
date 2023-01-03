@@ -84,6 +84,8 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'regimenScheme', required: true, label: 'Esquema do Regime', align: 'left', field: row => row.regimenScheme, format: val => `${val}`, sortable: true },
@@ -92,6 +94,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -155,12 +158,21 @@ export default {
                   therapeuticRegimen.active = true
                      msg = 'Regime activado com sucesso.'
               }
-             TherapeuticRegimen.apiSave(therapeuticRegimen).then(resp => {
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (therapeuticRegimen.syncStatus !== 'R') therapeuticRegimen.syncStatus = 'U'
+                TherapeuticRegimen.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimen)))
+                TherapeuticRegimen.insertOrUpdate({ data: therapeuticRegimen })
+                // this.displayAlert('info', msg)
+              } else {
+                TherapeuticRegimen.apiUpdate(therapeuticRegimen).then(resp => {
                 this.$emit('therapeuticRegimen', msg)
-            }).catch(error => {
-              console.log(therapeuticRegimen.id)
-                console.log(error)
-            })
+                // this.displayAlert('info', msg)
+                }).catch(error => {
+                  console.log(therapeuticRegimen.id)
+                  console.log(error)
+                })
+              }
         })
       }
   },

@@ -177,15 +177,15 @@ export default {
                 console.log('FrontEnd')
                 if (clinicalService.syncStatus !== 'R') clinicalService.syncStatus = 'U'
                 ClinicalService.localDbAdd(JSON.parse(JSON.stringify(clinicalService)))
-                ClinicalService.insert({ data: clinicalService })
+                ClinicalService.insertOrUpdate({ data: clinicalService })
                 this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
               } else {
                 console.log('BackEnd')
                 clinicalService.therapeuticRegimens = []
-                ClinicalService.apiSave(clinicalService).then(resp => {
-                      this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
+                ClinicalService.apiUpdate(clinicalService).then(resp => {
+                  this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
                 }).catch(error => {
-                      this.displayAlert('error', error)
+                  this.displayAlert('error', error)
                 })
               }
         })

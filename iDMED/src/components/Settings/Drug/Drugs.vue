@@ -75,6 +75,12 @@
           :onlyView="viewMode"
             @close="showDrugRegistrationScreen = false" />
       </q-dialog>
+      <q-dialog v-model="alert.visible">
+        <Dialog :type="alert.type" @closeDialog="closeDialog">
+          <template v-slot:title> Informação</template>
+          <template v-slot:msg> {{alert.msg}} </template>
+      </Dialog>
+      </q-dialog>
     </div>
 </template>
 <script>
@@ -82,6 +88,8 @@ import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import Drug from '../../../store/models/drug/Drug'
 import Form from '../../../store/models/form/Form'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 
 const columns = [
   { name: 'name', required: true, label: 'Nome', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true },
@@ -92,15 +100,22 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinplatform, mixinutils],
   data () {
     const $q = useQuasar()
 
     return {
         columns,
         $q,
+        step: '',
          showDrugRegistrationScreen: false,
          viewMode: false,
-         filter: ref('')
+         filter: ref(''),
+         alert: ref({
+          type: '',
+          visible: false,
+          msg: ''
+        })
     }
   },
  computed: {
@@ -149,26 +164,51 @@ export default {
            this.showDrugRegistrationScreen = true
       },
          promptToConfirm (drug) {
+           let msg = ''
             this.$q.dialog({ title: 'Confirm', message: drug.active ? 'Deseja Inactivar o medicamento?' : 'Deseja Activar o medicamento?', cancel: true, persistent: true }).onOk(() => {
               if (drug.active) {
                 drug.active = false
+                  msg = 'Medicamento inactivado com sucesso.'
               } else if (!drug.active) {
                   drug.active = true
+                  msg = 'Medicamento activado com sucesso.'
               }
-             Drug.apiSave(drug).then(resp => {
-                this.$emit('drug', resp.response.data)
-            }).catch(error => {
-              console.log(drug.id)
-                console.log(error)
-            })
+              if (this.mobile) {
+                console.log('FrontEnd')
+                if (drug.syncStatus !== 'R') drug.syncStatus = 'U'
+                Drug.localDbAdd(JSON.parse(JSON.stringify(drug)))
+                Drug.insertOrUpdate({ data: drug })
+                this.displayAlert('info', msg)
+              } else {
+                console.log('BackEnd')
+                Drug.apiUpdate(drug).then(resp => {
+                    this.$emit('drug', resp.response.data)
+                    this.displayAlert('info', msg)
+                }).catch(error => {
+                  this.displayAlert('error', error)
+                  console.log(drug.id)
+                  console.log(error)
+                })
+              }
         })
-      }
+      },
+       displayAlert (type, msg) {
+          this.alert.type = type
+          this.alert.msg = msg
+          this.alert.visible = true
+        },
+        closeDialog () {
+          if (this.alert.type === 'info') {
+            this.$emit('close')
+          }
+        }
   },
   mounted () {
    // this.getDrugs()
   },
   components: {
-    addDrug: require('components/Settings/Drug/AddDrug.vue').default
+    addDrug: require('components/Settings/Drug/AddDrug.vue').default,
+    Dialog: require('components/Shared/Dialog/Dialog.vue').default
   //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
   }
 }

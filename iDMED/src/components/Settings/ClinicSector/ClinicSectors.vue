@@ -178,11 +178,11 @@ export default {
                 console.log('FrontEnd')
                 if (clinicSector.syncStatus !== 'R') clinicSector.syncStatus = 'U'
                 ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSector)))
-                ClinicSector.insert({ data: clinicSector })
+                ClinicSector.insertOrUpdate({ data: clinicSector })
                 this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
               } else {
                 console.log('BackEnd')
-                ClinicSector.apiSave(clinicSector).then(resp => {
+                ClinicSector.apiUpdate(clinicSector).then(resp => {
                   this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
                 }).catch(error => {
                       this.displayAlert('error', error)

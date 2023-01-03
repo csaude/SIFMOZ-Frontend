@@ -40,6 +40,10 @@ export default class TherapeuticRegimen extends Model {
     return await this.api().post('/therapeuticRegimen', therapeuticRegimen)
   }
 
+  static async apiUpdate (therapeuticRegimen) {
+    return await this.api().patch('/therapeuticRegimen/' + therapeuticRegimen.id, therapeuticRegimen)
+  }
+
   static localDbAdd (therapeuticRegimen) {
     return db.newDb().collection('therapeuticRegimens').add(therapeuticRegimen)
   }

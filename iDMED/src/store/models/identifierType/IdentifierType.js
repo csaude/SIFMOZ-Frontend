@@ -27,6 +27,10 @@ export default class IdentifierType extends Model {
     return await this.api().post('/identifierType', identifierType)
   }
 
+  static async apiUpdate (identifierType) {
+    return await this.api().patch('/identifierType/' + identifierType.id, identifierType)
+  }
+
   static localDbAdd (identifierType) {
     return db.newDb().collection('identifierTypes').add(identifierType)
   }

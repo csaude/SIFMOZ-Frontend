@@ -36,6 +36,10 @@ export default class ClinicSector extends Model {
     return await this.api().post('/clinicSector', clinicSector)
   }
 
+  static async apiUpdate (clinicSector) {
+    return await this.api().patch('/clinicSector/' + clinicSector.id, clinicSector)
+  }
+
   static async apiGetAllByClinicId (clinicId, offset, max) {
     return await this.api().get('/clinicSector/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }

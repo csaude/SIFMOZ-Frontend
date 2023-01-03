@@ -160,14 +160,6 @@ export default {
     }
   },
   methods: {
-    init () {
-      // PatientServiceIdentifier.localDbGetAll().then(identifiers => {
-      //   PatientServiceIdentifier.insertOrUpdate({ data: identifiers })
-      // })
-      // Patient.localDbGetAll().then(identifiers => {
-      //   PatientServiceIdentifier.insertOrUpdate({ data: identifiers })
-      // })
-    },
     showGroupDetails () {
       this.showGroupInfo = !this.showGroupInfo
     },
@@ -366,9 +358,6 @@ export default {
   },
   mounted () {
     this.loadMemberInfo()
-  },
-  created () {
-    this.init()
   },
   computed: {
     group: {
