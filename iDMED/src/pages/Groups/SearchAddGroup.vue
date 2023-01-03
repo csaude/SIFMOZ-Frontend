@@ -86,6 +86,7 @@
     <q-dialog persistent v-model="showGroupRegister">
           <groupRegister
             :step="step"
+            :stepp="step"
             @close="showGroupRegister = false" />
       </q-dialog>
   </div>
