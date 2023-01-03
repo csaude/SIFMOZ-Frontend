@@ -111,7 +111,6 @@ export default {
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
     spinner: QSpinnerBall
-    // delay: 400 // ms
   })
 
   setTimeout(() => {
