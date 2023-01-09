@@ -84,6 +84,7 @@ import { ref } from 'vue'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 
 const columns = [
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -119,6 +120,9 @@ export default {
           .with('clinicSectors.clinic')
           .with('clinicSectors.clinicSectorType')
           .has('code').get()
+      },
+      therapeuticRegimens () {
+          return TherapeuticRegimen.query().with('drugs.form').where('active', true).get()
       }
   },
   methods: {

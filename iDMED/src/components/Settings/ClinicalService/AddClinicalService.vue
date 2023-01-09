@@ -152,7 +152,7 @@
             :columns="columnsRegimen"
             row-key="code"
             selection="multiple"
-            v-model:selected="clinicalService.therapeuticRegimens"
+            v-model:selected="selectedTherapeuticRegimens"
             class="my-sticky-header-table"
         />
         </div>
@@ -230,14 +230,15 @@ export default {
               msg: ''
             }),
       databaseCodes: [],
-      filter: ref('')
+      filter: ref(''),
+      selectedTherapeuticRegimens: []
   }
   },
   computed: {
       therapeuticRegimens () {
         if (this.editMode) {
      return TherapeuticRegimen.query().with('drugs.form').with('clinicalService').where((therapeuticRegimen) => {
-     return therapeuticRegimen.clinical_service_id === this.clinicalService.id || therapeuticRegimen.clinical_service_id === ''
+     return (therapeuticRegimen.clinical_service_id === this.clinicalService.id || therapeuticRegimen.clinical_service_id === '') && therapeuticRegimen.active === true
       }).get()
         } if (this.onlyView) {
       return TherapeuticRegimen.query().with('drugs.form').with('clinicalService').where((therapeuticRegimen) => {
@@ -311,6 +312,7 @@ export default {
                   this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
               ClinicalService.apiFetchById(resp.response.data.id)
               console.log(resp.response.data)
+              TherapeuticRegimen.apiGetAll(0, 200)
               }).catch(error => {
                   this.displayAlert('error', error)
               })
@@ -324,6 +326,7 @@ export default {
                 ClinicalService.apiFetchById(resp.response.data.id).then(resp0 => {
                   console.log(resp0)
                 })
+                TherapeuticRegimen.apiGetAll(0, 200)
                   this.displayAlert('info', 'Serviço Clínico actualizado com sucesso.')
               }).catch(error => {
                   this.displayAlert('error', error)
@@ -367,6 +370,7 @@ export default {
           }
         }
         } else if (this.stepScreens === 4) {
+          this.clinicalService.therapeuticRegimens = this.selectedTherapeuticRegimens
              if (this.clinicalService.therapeuticRegimens.length <= 0) {
            this.displayAlert('error', 'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clínicos')
             } else {
@@ -409,7 +413,10 @@ export default {
             this.clinicalService.attributes.forEach(attribute => {
           this.selectedAttributes.push(attribute.clinicalServiceAttributeType)
         })
-          }
+        const serviceId = this.clinicalService.id
+        this.selectedTherapeuticRegimens = this.therapeuticRegimens.filter(x => x.clinical_service_id === serviceId)
+        console.log(this.selectedTherapeuticRegimens)
+      }
         }
         this.extractDatabaseCodes()
     },
