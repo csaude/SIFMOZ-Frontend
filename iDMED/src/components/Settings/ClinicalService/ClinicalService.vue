@@ -117,6 +117,7 @@ export default {
           .with('identifierType')
           .with('therapeuticRegimens')
           .with('clinicSectors.clinic')
+          .with('clinicSectors.clinicSectorType')
           .has('code').get()
       }
   },
