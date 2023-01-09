@@ -12,7 +12,7 @@
         <form  >
         <q-scroll-area style="height: 600px;">
         <q-stepper
-          v-model="step"
+          v-model="stepScreens"
           ref="stepper"
           animated
         >
@@ -164,7 +164,7 @@
            <q-card-actions align="right" class="q-mb-md">
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-                <q-btn v-if="step > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+                <q-btn v-if="stepScreens > 1 && !onlyView" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
           <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="submitNextButtonLabel" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
@@ -218,7 +218,7 @@ export default {
       columnAttributes,
       columnsSectors,
       $q,
-       step: ref(1),
+       stepScreens: ref(1),
        clinicalService: new ClinicalService(),
        clinicalServiceAttributeTypes: [],
        regimenDrugs: [],
@@ -279,7 +279,7 @@ export default {
         return isSelected
       },
       submitNextButtonLabel () {
-        if ((this.step === 3 && !this.isRegimenAttrSelected) || this.step === 4) return 'Submeter'
+        if ((this.stepScreens === 3 && !this.isRegimenAttrSelected) || this.stepScreens === 4) return 'Submeter'
         return 'Próximo'
       }
   },
@@ -306,6 +306,7 @@ export default {
                   this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
               }
             } else {
+              if (!this.isEditStep) {
               ClinicalService.apiSave(this.clinicalService).then(resp => {
                   this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
               ClinicalService.apiFetchById(resp.response.data.id)
@@ -313,7 +314,22 @@ export default {
               }).catch(error => {
                   this.displayAlert('error', error)
               })
+            } else {
+              ClinicalService.apiUpdate(this.clinicalService).then(resp => {
+                ClinicalServiceAttribute.delete((clinicalServiceAttribute) => {
+                 return clinicalServiceAttribute.service_id === this.clinicalService.id
+                  })
+                ClinicalService.update({ where: this.clinicalService.id, data: this.clinicalService })
+                ClinicalServiceAttribute.insertOrUpdate({ data: this.clinicalService.attributes })
+                ClinicalService.apiFetchById(resp.response.data.id).then(resp0 => {
+                  console.log(resp0)
+                })
+                  this.displayAlert('info', 'Serviço Clínico actualizado com sucesso.')
+              }).catch(error => {
+                  this.displayAlert('error', error)
+              })
             }
+         }
         },
         displayAlert (type, msg) {
           this.alert.type = type
@@ -326,20 +342,20 @@ export default {
           }
         },
         goToNextStep () {
-           if (this.step === 1) {
+           if (this.stepScreens === 1) {
              this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
             this.$refs.identifierType.validate()
              if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError && !this.$refs.identifierType.hasError) {
                 this.$refs.stepper.next()
             }
-           } else if (this.step === 2) {
+           } else if (this.stepScreens === 2) {
             if (this.selectedAttributes.length <= 0) {
            this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para o Serviço Clínicos')
             } else {
                 this.$refs.stepper.next()
            }
-           } else if (this.step === 3) {
+           } else if (this.stepScreens === 3) {
              if (this.clinicalService.clinicSectors.length <= 0) {
            this.displayAlert('error', 'Por Favor seleccione pelo menos um sector para o Serviço Clínicos')
             } else {
@@ -350,7 +366,7 @@ export default {
           this.submitClinicalService()
           }
         }
-        } else if (this.step === 4) {
+        } else if (this.stepScreens === 4) {
              if (this.clinicalService.therapeuticRegimens.length <= 0) {
            this.displayAlert('error', 'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clínicos')
             } else {
