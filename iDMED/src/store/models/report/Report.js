@@ -22,11 +22,11 @@ export default class Report extends Model {
 
     // Received Stock report
     static async apiInitReceivedStockProcessing (params) {
-      return await this.api().post('/receivedStockReport/initReportProcess', params)
+      return await this.api().post('/stockReportTemp/initReportProcess', params)
     }
 
     static async apiReceivedStockReport (reportId, fileType) {
-      return await this.api().get(`/receivedStockReport/printReport/${reportId}/${fileType}`)
+      return await this.api().get(`/stockReportTemp/printReport/${reportId}/${fileType}`)
     }
 
     // Used Stock Report

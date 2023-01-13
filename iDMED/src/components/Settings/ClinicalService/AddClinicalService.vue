@@ -393,8 +393,9 @@ export default {
     codeRules (val) {
       if (this.clinicalService.code === '') {
         return 'o Código é obrigatorio'
-      } else if (!this.clinicalService.id && this.selectedClinicalService.id === this.clinicalService.id) {
-      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
+      } else if ((this.databaseCodes.includes(val) && this.selectedClinicalService.id === this.clinicalService.id && !this.isEditStep) ||
+      ((this.databaseCodes.includes(val) && this.clinicalServices.filter(x => x.code === val)[0].id !== this.clinicalService.id && this.isEditStep))) {
+      return 'o Código indicado ja existe'
          }
     }
   },

@@ -81,8 +81,7 @@ import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
         this.$refs.filterArvDailyRegisterSection.remove()
       },
       initReportProcessing (params) {
-        /*
-        if (params.localOrOnline !== 'online') {
+        if (params.localOrOnline === 'online') {
           Report.apiInitArvDailyRegisterProcessing(params).then(resp => {
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
@@ -90,8 +89,7 @@ import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
         } else {
           this.getDataLocalDb(params)
         }
-        */
-         this.getDataLocalDb(params)
+     //  this.getDataLocalDb(params)
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {

@@ -44,13 +44,14 @@ import reportDatesParams from '../../../reports/ReportDatesParams'
 // import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
 // import Pack from 'src/store/models/packaging/Pack'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-// import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
+import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
+import mixinplatform from 'src/mixins/mixin-system-platform'
   export default {
     name: 'AbsentPatients',
     props: ['selectedService', 'menuSelected', 'id', 'params'],
+    mixins: [mixinplatform],
     setup () {
       return {
         totalRecords: ref(0),
@@ -82,14 +83,16 @@ import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/
         LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
-        /*
-         Report.api().post('/absentPatientsReport/initReportProcess', params).then((response) => {
+        if (params.localOrOnline === 'online') {
+          Report.api().post('/absentPatientsReport/initReportProcess', params).then((response) => {
          setTimeout(this.getProcessingStatus(params), 2)
       })
-      */
-        this.getDataLocalDb(params)
+        } else {
+          this.getDataLocalDb(params)
+        }
       },
       getProcessingStatus (params) {
+        if (this.website) {
         Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
           this.progress = resp.response.data.progress
           if (this.progress < 100) {
@@ -99,6 +102,7 @@ import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/
             LocalStorage.set(params.id, params)
           }
         })
+      }
       },
       generateReport (id, fileType) {
             Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
