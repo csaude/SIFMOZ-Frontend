@@ -71,20 +71,20 @@ import StockReceivedReport from 'src/store/models/report/stock/StockReceivedRepo
         LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
-        /*
+        if (params.localOrOnline === 'online') {
           Report.apiInitReceivedStockProcessing(params).then(resp => {
             console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
           })
-          */
+        } else {
           reportDatesParams.determineStartEndDate(params)
           console.log(params)
           this.getDataLocalDb(params)
-         // Pack.api().post('/receivedStockReport/initReportProcess', params)
+        }
       },
       getProcessingStatus (params) {
-        Report.getProcessingStatus('receivedStockReport', params).then(resp => {
+        Report.getProcessingStatus('stockReportTemp', params).then(resp => {
           this.progress = resp.response.data.progress
           if (this.progress < 100) {
             setTimeout(this.getProcessingStatus(params), 2)

@@ -51,9 +51,11 @@ import Prescription from 'src/store/models/prescription/Prescription'
  import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import { v4 as uuidv4 } from 'uuid'
+import mixinplatform from 'src/mixins/mixin-system-platform'
   export default {
     name: 'PatientHistory',
     props: ['selectedService', 'menuSelected', 'id'],
+    mixins: [mixinplatform],
     setup () {
      return {
         totalRecords: ref(0),
@@ -76,7 +78,8 @@ import { v4 as uuidv4 } from 'uuid'
     methods: {
       closeSection () {
         this.$refs.filterDPatientHistorySection.remove()
-        PatientHistoryReport.localDbGetByReportId().then(reports => {
+        if (this.mobile) {
+          PatientHistoryReport.localDbGetByReportId().then(reports => {
       //   const reportData = []
          reports.forEach(report => {
                  if (report.reportId === this.id) {
@@ -85,22 +88,20 @@ import { v4 as uuidv4 } from 'uuid'
                  }
             })
         })
+        }
       },
       initReportProcessing (params) {
-        if (params.localOrOnline === 'local') {
-         // reportDatesParams.determineStartEndDate(params)
-        } else {
-          /*
-          Report.apiInitPatientsHistryProcessing(params).then(resp => {
+        if (params.localOrOnline === 'online') {
+            Report.apiInitPatientsHistryProcessing(params).then(resp => {
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
           })
-          */
-          reportDatesParams.determineStartEndDate(params)
+          } else {
+            reportDatesParams.determineStartEndDate(params)
           console.log(params)
           this.getDataLocalDb(params)
-        }
-      },
+          }
+        },
       getProcessingStatus (params) {
         Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
           this.progress = resp.response.data.progress
@@ -113,8 +114,32 @@ import { v4 as uuidv4 } from 'uuid'
         })
       },
       generateReport (id, fileType) {
-      //  UID da tab corrente
-        PatientHistoryReport.localDbGetByReportId(id).then(reports => {
+         //  UID da tab corrente
+        if (this.website) {
+          Report.api().get(`/historicoLevantamentoReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
+           if (!resp.response.data[0]) {
+              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            } else {
+              const firstReg = resp.response.data[0]
+              if (fileType === 'PDF') {
+                patientHistoryTS.downloadPDF(
+                  firstReg.province,
+                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
+              } else {
+                patientHistoryTS.downloadExcel(
+                  firstReg.province,
+                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+                  resp.response.data
+                )
+              }
+            }
+            })
+        } else {
+          PatientHistoryReport.localDbGetByReportId(id).then(reports => {
          const reportData = []
          reports.forEach(report => {
                  if (report.reportId === id) {
@@ -128,6 +153,7 @@ import { v4 as uuidv4 } from 'uuid'
                   moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
                 reportData)
         })
+        }
       },
     getDataLocalDb (params) {
         const reportParams = reportDatesParams.determineStartEndDate(params)

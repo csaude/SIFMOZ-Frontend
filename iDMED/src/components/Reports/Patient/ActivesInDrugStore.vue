@@ -50,9 +50,11 @@ import Patient from '../../../store/models/patient/Patient'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 import Prescription from 'src/store/models/prescription/Prescription'
 import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
+import mixinplatform from 'src/mixins/mixin-system-platform'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
+    mixins: [mixinplatform],
     setup () {
      return {
         totalRecords: ref(0),
@@ -78,14 +80,15 @@ import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLi
         this.$refs.filterDrugStoreSection.remove()
       },
       initReportProcessing (params) {
-        /*
+        if (params.localOrOnline === 'online') {
           Report.apiInitActiveInDrugStoreProcessing(params).then(resp => {
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
           })
          // Pack.api().post('/receivedStockReport/initReportProcess', params)
-       */
+        } else {
           this.getDataLocalDb(params)
+        }
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('activePatientReport', params).then(resp => {
@@ -99,7 +102,7 @@ import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLi
         })
       },
       generateReport (id, fileType) {
-        /*
+        if (this.website) {
           Report.api().get(`/activePatientReport/printReport/${id}`, { responseType: 'json' }).then(resp => {
             if (!resp.response.data[0]) {
               this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
@@ -123,8 +126,8 @@ import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLi
               }
             }
         })
-        */
-        ActiveInDrugStore.localDbGetAll().then(reports => {
+        } else {
+          ActiveInDrugStore.localDbGetAll().then(reports => {
          const reportData = []
          reports.forEach(report => {
                  if (report.reportId === id) {
@@ -141,6 +144,7 @@ import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLi
                 )
               }
         })
+        }
       },
        displayAlert (type, msg) {
         this.alert.type = type

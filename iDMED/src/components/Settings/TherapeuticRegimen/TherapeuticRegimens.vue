@@ -108,7 +108,7 @@ export default {
   },
  computed: {
       therapeuticRegimens () {
-             return TherapeuticRegimen.query().with('drugs.form').get()
+             return TherapeuticRegimen.query().with('drugs.form').orderBy('regimenScheme').get()
       }
   },
   methods: {

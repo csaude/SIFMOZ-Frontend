@@ -31,6 +31,7 @@
                 <q-select
                     dense outlined
                     class="col"
+                    :disable="onlyView"
                     v-model="clinicSector.clinicSectorType"
                     :options="clinicSectorTypes"
                     transition-show="flip-up"

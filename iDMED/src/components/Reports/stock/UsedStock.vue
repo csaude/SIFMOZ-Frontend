@@ -79,13 +79,14 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
         this.$refs.filterUsedStockSection.remove()
       },
        initReportProcessing (params) {
-        /*
+        if (params.localOrOnline === 'online') {
           Report.apiInitUsedStockProcessing(params).then(resp => {
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
           })
-          */
+        } else {
           this.getDataLocalDb(params)
+        }
       },
       getProcessingStatus (params) {
         Report.getProcessingStatus('usedStockReportTemp', params).then(resp => {
