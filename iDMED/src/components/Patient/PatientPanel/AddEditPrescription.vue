@@ -871,7 +871,7 @@ export default {
                                                   .where('id', SessionStorage.getItem('currClinic').id)
                                                   .first()
           memberPrescription.member.group = Group.query()
-                                                  .with('service')
+                                                  .with('service.identifierType')
                                                   .with('groupType')
                                                   .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                                   .where('id', SessionStorage.getItem('selectedGroup').id)
