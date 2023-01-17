@@ -466,10 +466,27 @@ export default {
           patientVisit.patientVisitDetails.push(groupPacks[i].pack.patientVisitDetails[0])
           patientVisit.patientVisitDetails[0].patientVisit = null
           groupPacks[i].pack.patientVisitDetails = []
-          Pack.apiSave(groupPacks[i].pack).then(resp => {
-            groupPacks[i].pack.id = resp.response.data.id
-            groupPacks[i].pack.$id = resp.response.data.id
-            patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
+          groupPacks[i].pack.packagedDrugs.forEach(pck => {
+          pck.drug = Drug.query()
+                   .with('form')
+                   .with('stocks')
+                   .with('clinicalService.identifierType')
+                    .where('id', pck.drug.id)
+                    .first()
+          pck.packagedDrugStocks.forEach(pck1 => {
+          pck1.drug = Drug.query()
+                   .with('form')
+                   .with('stocks')
+                   .with('clinicalService.identifierType')
+                    .where('id', pck.drug.id)
+                    .first()
+                  })
+                })
+                patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack
+        //  Pack.apiSave(groupPacks[i].pack).then(resp => {
+        //    groupPacks[i].pack.id = resp.response.data.id
+        //    groupPacks[i].pack.$id = resp.response.data.id
+         //   patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
 
             console.log(patientVisit)
             PatientVisit.apiSave(patientVisit).then(resp => {
@@ -477,7 +494,7 @@ export default {
               i = i + 1
               setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
             })
-          })
+         // })
         } else {
           this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
             groupPack.pack.patientVisitDetails = []
@@ -505,7 +522,7 @@ export default {
     initGroupPackHeader () {
       this.curGroupPackHeader = new GroupPackHeader()
       this.curGroupPackHeader.group = Group.query()
-                                            .with('service')
+                                            .with('service.identifierType')
                                             .with('groupType')
                                             .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                             .where('id', this.group.id)
