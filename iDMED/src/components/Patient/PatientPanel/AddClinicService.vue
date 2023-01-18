@@ -680,7 +680,7 @@ export default {
       provinces: {
         get () {
            if (this.isReferenceEpisode) {
-            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).first()
+            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).get()
           } else {
             return Province.query().with('districts.*').has('code').get()
           }
@@ -689,7 +689,7 @@ export default {
       districts: {
         get () {
           if (this.selectedProvince !== null && this.selectedProvince !== undefined) {
-            if (this.isReferenceEpisode) this.loadProvince()
+           // if (this.isReferenceEpisode) // this.loadProvince()
             return District.query().with('province').where('province_id', this.selectedProvince.id).has('code').get()
           } else {
             return null

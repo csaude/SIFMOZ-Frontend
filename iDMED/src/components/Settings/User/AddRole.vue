@@ -143,7 +143,7 @@ export default {
             console.log(this.role)
             this.role.active = true
             this.role.authority = 'ROLE_' + this.role.name
-            if (!this.website) {
+            if (this.website) {
               Role.apiSave(this.role).then(resp => {
               this.submitting = false
                  this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')

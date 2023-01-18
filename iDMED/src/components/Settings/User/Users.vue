@@ -243,7 +243,7 @@ export default {
     }
   },
   mounted () {
-    if (!this.website) {
+    if (this.website) {
     UserLogin.apiGetAll(0, 100)
     Role.apiGetAll()
     if (this.configs.value === 'PROVINCIAL') {

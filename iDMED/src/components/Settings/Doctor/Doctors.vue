@@ -127,7 +127,7 @@ export default {
   },
  computed: {
       doctors () {
-          return Doctor.query().with(['clinic.province', 'clinic.district.province', 'clinic.facilityType']).get()
+          return Doctor.query().with(['clinic.province', 'clinic.district.province', 'clinic.facilityType']).orderBy('firstnames').get()
       }
   },
   methods: {

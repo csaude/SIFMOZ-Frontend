@@ -12,7 +12,7 @@
     <form @submit.prevent="validateHis" >
       <q-scroll-area style="height: 600px;">
         <q-stepper
-            v-model="step"
+            v-model="stepScreens"
             ref="stepper"
             animated
         >
@@ -69,8 +69,8 @@
       <q-card-actions align="right" class="q-mb-md">
         <q-stepper-navigation >
           <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-          <q-btn v-if="step > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep" color="primary" :label="step === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
+          <q-btn v-if="stepScreens > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
+          <q-btn @click="goToNextStep" color="primary" :label="stepScreens === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
         </q-stepper-navigation>
       </q-card-actions>
       <q-dialog v-model="alert.visible">
@@ -108,7 +108,7 @@ export default {
             databaseCodes: [],
            his: new HealthInformationSystem(),
            codes: [],
-           step: ref(1),
+           stepScreens: ref(1),
            columnsAttributes,
            columnsSelectedAttributes,
             healthInformationAttributeTypes: [],
@@ -203,7 +203,7 @@ export default {
         },
         goToNextStep () {
           let i = 0
-          if (this.step === 1) {
+          if (this.stepScreens === 1) {
             this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
                 if (this.selectedAttributes.length <= 0) {

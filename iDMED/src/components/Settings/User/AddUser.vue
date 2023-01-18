@@ -294,7 +294,7 @@ export default {
              this.user.clinics[0] = clinicCurr
               this.selectedClinics[0] = clinicCurr
     } else {
-         this.isProvincial = false
+         this.isProvincial = true
     }
     this.getClinicSectorTypeToVue()
     },
@@ -377,7 +377,7 @@ export default {
             this.user.clinics = this.selectedClinics
             this.user.clinicSectors = this.selectedClinicSectors
             this.user.accountLocked = false
-            if (!this.website) {
+            if (this.website) {
            UserLogin.apiSave(this.user).then(resp => {
                this.submitting = false
                  this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
