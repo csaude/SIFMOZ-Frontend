@@ -9,6 +9,7 @@
             :rows="clinics"
             :columns="columns"
             :filter="filter"
+            row-key="id"
           >
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
@@ -34,7 +35,7 @@
                 {{ props.row.code }}
             </q-td>
              <q-td key="province" :props="props">
-                {{ props.row.province.description }}
+                {{  props.row.province !== undefined && props.row.province !== null ? props.row.province.description : '' }}
             </q-td>
              <q-td key="district" :props="props">
               {{  props.row.district !== undefined && props.row.district !== null ? props.row.district.description : '' }}
@@ -47,7 +48,7 @@
                     <q-btn flat round
                     color="amber-8"
                     icon="edit"
-                   v-if="props.row.active === true"
+                   v-if="props.row.active === true && this.showAddButton"
                    @click="editClinic(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn>
@@ -64,6 +65,7 @@
                       :color="getColorActive(props.row)"
                       :icon="getIconActive(props.row)"
                       @click.stop="promptToConfirm(props.row)"
+                      v-if="this.showAddButton"
                      >
                      <q-tooltip :class="getTooltipClass(props.row)">{{props.row.active ? 'Inactivar': 'Activar'}}</q-tooltip>
                      </q-btn>
@@ -73,7 +75,7 @@
         </template>
     </q-table>
         </div>
-         <div class="absolute-bottomg">
+         <div class="absolute-bottomg" v-if="this.showAddButton">
               <q-page-sticky position="bottom-right" :offset="[18, 18]">
                 <q-btn size="xl" fab icon="add" @click="addClinic" color="primary" />
              </q-page-sticky>
@@ -100,7 +102,7 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
-
+import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
 const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -126,7 +128,8 @@ export default {
           visible: false,
           msg: ''
         }),
-        filter: ref('')
+        filter: ref(''),
+        showAddButton: false
     }
   },
  computed: {
@@ -136,19 +139,23 @@ export default {
                       .with('district.province')
                       .with('facilityType')
                       .has('code')
+                      .orderBy('province.code')
                       .get()
+      },
+      configs () {
+       return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
       }
   },
   methods: {
       getAllClinics (offset) {
-        if (this.clinics.length <= 0) {
+     //   if (this.clinics.length <= 1) {
                 Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
                     offset = offset + 100
                     if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
                 }).catch(error => {
                     console.log(error)
                 })
-        }
+       // }
       },
         getIconActive (clinic) {
            if (clinic.active) {
@@ -231,6 +238,9 @@ export default {
   mounted () {
     const offset = 0
     this.getAllClinics(offset)
+    if (this.configs.value === 'PROVINCIAL') {
+      this.showAddButton = true
+    }
   },
   components: {
      addClinic: require('components/Settings/Clinic/AddClinic.vue').default,

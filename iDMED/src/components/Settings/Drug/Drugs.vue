@@ -120,7 +120,7 @@ export default {
   },
  computed: {
       drugs () {
-             return Drug.query().with('form').get()
+             return Drug.query().with('form').orderBy('name').get()
       },
        forms () {
             return Form.all()
