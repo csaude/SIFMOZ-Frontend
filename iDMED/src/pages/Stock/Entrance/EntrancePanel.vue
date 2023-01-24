@@ -5,6 +5,7 @@
        <div class="col q-mx-md q-mt-md">
         <ListHeader
             :addVisible="false"
+            :expandVisible="false"
             :mainContainer="true"
             bgColor="bg-primary">Notas da Guia
           </ListHeader>
@@ -50,6 +51,7 @@
       <div>
           <ListHeader
             :addVisible="isGuiaDisplayStep"
+            :expandVisible="false"
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary">Medicamentos
@@ -196,6 +198,7 @@
         <div>
           <ListHeader
             :addVisible="false"
+            :expandVisible="false"
             :mainContainer="true"
             bgColor="bg-primary">Notas da Guia
           </ListHeader>
@@ -243,6 +246,7 @@
       <div>
           <ListHeader
             :addVisible="isGuiaDisplayStep"
+            :expandVisible="false"
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary">Medicamentos
@@ -334,7 +338,7 @@
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="props.row.auxExpireDate" mask="DD-MM-YYYY">
+                                <q-date v-model="props.row.auxExpireDate" mask="DD-MM-YYYY" :options="blockDataFutura">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -384,12 +388,12 @@
       </div>
     </div>
     <q-dialog v-model="alert.visible" persistent>
-      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemove">
+      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemoveOrCreateAfterValidate" @cancelOperation="cancelOperation">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{alert.msg}} </template>
       </Dialog>
     </q-dialog>
-  </div>
+    </div>
 </template>
 
 <script>
@@ -430,13 +434,18 @@ export default {
       guiaStep: 'display',
       selectedStock: '',
       drugs: ref([]),
-      stockList: ref([])
+      stockList: ref([]),
+      stock: ''
     }
   },
   methods: {
     goBack () {
       this.$router.go(-1)
     },
+    date: ref(moment(date).format('YYYY/MM/DD')),
+        blockDataFutura (date) {
+            return date >= moment(new Date()).add(30, 'd').format('YYYY/MM/DD')
+        },
     filterFn (val, update, abort) {
       if (val === '') {
           update(() => {
@@ -466,13 +475,15 @@ export default {
     },
     cancelOperation () {
       this.guiaStep = 'display'
+      this.submitting = false
     },
     doSaveGuia () {
-          this.currStockEntrance.dateReceived = moment(this.dateReceived).format() // this.getJSDateFromDDMMYYY()
+          this.currStockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived) // this.getJSDateFromDDMMYYY()
           console.log(this.currStockEntrance)
           this.currStockEntrance.clinic = this.currClinic
           if (this.website) {
-            StockEntrance.apiSave(this.currStockEntrance).then(resp => {
+            if (this.guiaStep === 'create') {
+             StockEntrance.apiSave(this.currStockEntrance).then(resp => {
             SessionStorage.set('currStockEntrance', resp.response.data)
             this.guiaStep = 'display'
             this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -490,6 +501,26 @@ export default {
               }
               this.displayAlert('error', listErrors)
             })
+            } else if (this.guiaStep === 'edit') {
+              StockEntrance.apiUpdate(this.currStockEntrance).then(resp => {
+            SessionStorage.set('currStockEntrance', resp.response.data)
+            this.guiaStep = 'display'
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          }).catch(error => {
+              const listErrors = []
+              if (error.request.response != null) {
+                const arrayErrors = JSON.parse(error.request.response)
+                if (arrayErrors.total == null) {
+                  listErrors.push(arrayErrors.message)
+                } else {
+                  arrayErrors._embedded.errors.forEach(element => {
+                    listErrors.push(element.message)
+                  })
+                }
+              }
+              this.displayAlert('error', listErrors)
+            })
+            }
           } else {
             this.currStockEntrance.syncStatus = 'U'
             StockEntrance.localDbUpdate(this.currStockEntrance).then(stockEnt => {
@@ -517,6 +548,7 @@ export default {
     doRemoveGuia () {
       if (this.website) {
       StockEntrance.apiRemove(this.currStockEntrance.id).then(resp => {
+        StockEntrance.delete(this.currStockEntrance.id)
         this.goBack()
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
@@ -548,8 +580,18 @@ export default {
     getDDMMYYYFromJSDate (jsDate) {
       return moment(jsDate).format('DD-MM-YYYY')
     },
-    doRemove () {
-      if (!this.isGuiaDeletionStep) {
+    doRemoveOrCreateAfterValidate () {
+        if (this.isCreationStep || this.isEditionStep) {
+        this.doSave(this.stock)
+      } else {
+        this.doRemove()
+      }
+    },
+     doRemove () {
+    //  if (this.isCreationStep) {
+     //   this.doSave(this.stock)
+    //  } else
+     if (!this.isGuiaDeletionStep) {
         this.doRemoveStock()
       } else {
         this.doRemoveGuia()
@@ -610,10 +652,20 @@ export default {
         this.stockList.push(newStock)
       }
     },
+     isPositiveInteger (str) {
+        const num = Number(str)
+        if (Number.isInteger(num) && num > 0) {
+          return true
+        }
+        if (typeof str !== 'string') {
+          return false
+        }
+        return false
+      },
     validateStock (stock) {
       this.submitting = true
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
-      if (stock.drug.id === null) {
+      if (stock.drug.name === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o medicamento')
       } else if (stock.manufacture === '') {
@@ -628,37 +680,70 @@ export default {
       } else if (stock.expireDate.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) {
         this.submitting = false
         this.displayAlert('error', 'A data de validade não pode ser anterior a data corrente!')
-      } else if (Number(stock.unitsReceived) <= 0) {
+      } else if (!this.isPositiveInteger(stock.unitsReceived)) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma quantidade válida!')
       } else {
+        this.stock = stock
+        if (stock.expireDate <= moment(new Date()).add(91, 'd')) {
+        //  this.
+        const expireDate = moment(stock.expireDate)
+               const todayDate = moment(new Date())
+               const months = expireDate.diff(todayDate, 'months')
+            this.displayAlert('confirmation', ' O stock especificado irá expirar em menos de [' + months + '] meses. Deseja continuar')
+       } else {
         this.doSave(stock)
+      }
       }
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
       if (this.website) {
-      await Stock.apiSave(stock).then(resp => {
-        stock.id = resp.response.data.id
-        this.submitting = false
-        stock.enabled = false
-        this.step = 'display'
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
-      }).catch(error => {
-          this.submitting = false
-          const listErrors = []
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response)
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message)
-            } else {
-              arrayErrors._embedded.errors.forEach(element => {
-                listErrors.push(element.message)
-              })
-            }
-          }
-          this.displayAlert('error', listErrors)
-        })
+        if (this.isCreationStep) {
+              await Stock.apiSave(stock).then(resp => {
+                stock.id = resp.response.data.id
+                this.submitting = false
+                stock.enabled = false
+                this.step = 'display'
+                this.displayAlert('info', 'Operação efectuada com sucesso.')
+              }).catch(error => {
+                  this.submitting = false
+                  const listErrors = []
+                  if (error.request.response != null) {
+                    const arrayErrors = JSON.parse(error.request.response)
+                    if (arrayErrors.total == null) {
+                      listErrors.push(arrayErrors.message)
+                    } else {
+                      arrayErrors._embedded.errors.forEach(element => {
+                        listErrors.push(element.message)
+                      })
+                    }
+                  }
+                  this.displayAlert('error', listErrors)
+                })
+      } else if (this.isEditionStep) {
+            await Stock.apiUpdate(stock).then(resp => {
+            stock.id = resp.response.data.id
+            this.submitting = false
+            stock.enabled = false
+            this.step = 'display'
+            this.displayAlert('info', 'Operação efectuada com sucesso.')
+          }).catch(error => {
+              this.submitting = false
+              const listErrors = []
+              if (error.request.response != null) {
+                const arrayErrors = JSON.parse(error.request.response)
+                if (arrayErrors.total == null) {
+                  listErrors.push(arrayErrors.message)
+                } else {
+                  arrayErrors._embedded.errors.forEach(element => {
+                    listErrors.push(element.message)
+                  })
+                }
+              }
+              this.displayAlert('error', listErrors)
+            })
+      }
       } else {
                    //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
                    stock.entrance_id = this.currStockEntrance.id // stock.entrance.id
@@ -773,7 +858,7 @@ export default {
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                           .where('id', e.id)
                           .first()
-    },
+                        },
     loadStockList () {
       this.stockList = ref([])
       if (this.currStockEntrance.stocks.length > 0) {
@@ -783,6 +868,7 @@ export default {
                                    .with('entrance.clinic.province')
                                    .with('center.clinic.province')
                                    .with('packagedDrugs')
+                                   .with('packagedDrugStocks')
                                    .with('adjustments')
                                    .with('drug.form')
                                    .where('id', this.currStockEntrance.stocks[k].id)

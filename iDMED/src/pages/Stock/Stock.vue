@@ -18,6 +18,7 @@ import Province from '../../store/models/province/Province'
 import Drug from '../../store/models/drug/Drug'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Inventory from '../../store/models/stockinventory/Inventory'
+import PackagedDrugStock from '../../store/models/packagedDrug/PackagedDrugStock'
 export default {
   mixins: [mixinplatform],
   components: {
@@ -84,6 +85,7 @@ export default {
           Province.apiGetAll(offset, max)
           this.getAllStockOfClinic()
           InventoryStockAdjustment.apiGetAll(offset, max)
+          PackagedDrugStock.apiGetAll(offset, max)
         }
     },
    getAllStockOfClinic () {

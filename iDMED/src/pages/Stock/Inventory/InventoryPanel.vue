@@ -225,10 +225,17 @@ export default {
     doProcessAndClose () {
       const offset = 0
       const max = 100
+      var doo = new Date(this.currInventory.startDate)
+      var currInv2 = this.currInventory
+      Inventory.delete(this.currInventory.id)
+      currInv2.startDate = new Date(doo.getTime() + Math.abs(doo.getTimezoneOffset() * 60000))
+      Inventory.insert({
+              data: currInv2
+                          })
       const inventory = Inventory.query()
                                  .with('adjustments.*')
                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                                 .where('id', this.currInventory.id)
+                                 .where('id', currInv2.id)
                                  .first()
       inventory.endDate = new Date()
       inventory.open = false

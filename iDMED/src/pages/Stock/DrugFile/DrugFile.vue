@@ -215,11 +215,11 @@ export default {
               Stock.apiGetDrugSummary(this.clinic.id, this.drug.id).then(resp => {
                 console.log(resp.response.data)
                 const t = resp.response.data
-                t.sort((a, b) => {
+                /* t.sort((a, b) => {
                   const d1 = new Date(a.eventDate)
                   const d2 = new Date(b.eventDate)
                   return d2 - d1
-                })
+                }) */
                 this.drugEventList = t
                 this.hideLoading()
               })
