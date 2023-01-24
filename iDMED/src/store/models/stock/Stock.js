@@ -51,7 +51,7 @@ export default class Stock extends Model {
     }
 
     static async apiUpdate (stock) {
-      return await this.api().post('/stock', stock)
+      return await this.api().patch('/stock/' + stock.id, stock)
     }
 
     static async apiGetAll (offset, max) {
@@ -59,7 +59,7 @@ export default class Stock extends Model {
     }
 
     isInUse () {
-      return (this.packagedDrugs !== undefined && this.packagedDrugs.length > 0) || this.adjustments.length > 0
+      return (this.packagedDrugStocks !== undefined && this.packagedDrugStocks.length > 0) || this.adjustments.length > 0
     }
 
     getFormatedExpireDate () {

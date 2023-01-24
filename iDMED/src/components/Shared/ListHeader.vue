@@ -9,7 +9,7 @@
           <q-btn dense v-if="closeVisible" flat round color="white" icon="close" class="float-right" @click="closeSection"/>
           <q-btn v-if="doneVisible" flat dense round color="white" icon="done" @click="$emit('done')"/>
           <q-btn v-if="editVisible" flat dense round color="white" icon="edit" @click="$emit('initEdition')"/>
-          <q-btn dense flat round color="white" :icon="expanded ? 'expand_less' : 'expand_more'" class="float-right" @click="expand"/>
+          <q-btn dense flat round v-if="expandVisible"  color="white" :icon="expanded ? 'expand_less' : 'expand_more'" class="float-right" @click="expand"/>
           <q-btn dense v-if="addVisible" flat round color="white" icon="add" class="float-right" @click="$emit('showAdd')"/>
         </template>
     </q-banner>
@@ -18,7 +18,7 @@
 <script>
 import { ref } from 'vue'
 export default {
-    props: ['addVisible', 'bgColor', 'mainContainer', 'doneVisible', 'closeVisible', 'editVisible'],
+    props: ['addVisible', 'bgColor', 'mainContainer', 'doneVisible', 'closeVisible', 'editVisible', 'expandVisible'],
     setup () {
       return {
         headerClass: '',
