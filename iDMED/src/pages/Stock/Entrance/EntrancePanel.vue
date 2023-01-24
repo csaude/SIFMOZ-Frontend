@@ -687,10 +687,10 @@ export default {
         this.stock = stock
         if (stock.expireDate <= moment(new Date()).add(91, 'd')) {
         //  this.
-        const expireDate = moment(stock.expireDate)
-               const todayDate = moment(new Date())
-               const months = expireDate.diff(todayDate, 'months')
-            this.displayAlert('confirmation', ' O stock especificado irá expirar em menos de [' + months + '] meses. Deseja continuar')
+       // const expireDate = moment(stock.expireDate)
+      // const todayDate = moment(new Date())
+      // const months = expireDate.diff(todayDate, 'months')
+            this.displayAlert('confirmation', ' O stock especificado irá expirar em menos de 3 meses. Deseja continuar')
        } else {
         this.doSave(stock)
       }
