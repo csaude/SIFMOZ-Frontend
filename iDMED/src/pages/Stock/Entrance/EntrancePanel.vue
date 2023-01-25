@@ -353,6 +353,7 @@
                         v-model="props.row.unitsReceived"
                         :disable="!props.row.enabled"
                         label="Quantidade"
+                        type="number"
                         dense
                         class="col" />
                     </q-td>
@@ -667,7 +668,7 @@ export default {
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.name === '') {
         this.submitting = false
-        this.displayAlert('error', 'Por favor indicar o medicamento')
+        this.displayAlert('error', 'Por favor indicar o medicamento!')
       } else if (stock.manufacture === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o fabricante!')
