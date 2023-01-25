@@ -353,6 +353,7 @@
                         v-model="props.row.unitsReceived"
                         :disable="!props.row.enabled"
                         label="Quantidade"
+                        type="number"
                         dense
                         class="col" />
                     </q-td>
@@ -667,7 +668,7 @@ export default {
       stock.expireDate = this.getJSDateFromDDMMYYY(stock.auxExpireDate)
       if (stock.drug.name === '') {
         this.submitting = false
-        this.displayAlert('error', 'Por favor indicar o medicamento')
+        this.displayAlert('error', 'Por favor indicar o medicamento!')
       } else if (stock.manufacture === '') {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar o fabricante!')
@@ -687,10 +688,10 @@ export default {
         this.stock = stock
         if (stock.expireDate <= moment(new Date()).add(91, 'd')) {
         //  this.
-        const expireDate = moment(stock.expireDate)
-               const todayDate = moment(new Date())
-               const months = expireDate.diff(todayDate, 'months')
-            this.displayAlert('confirmation', ' O stock especificado irá expirar em menos de [' + months + '] meses. Deseja continuar')
+       // const expireDate = moment(stock.expireDate)
+      // const todayDate = moment(new Date())
+      // const months = expireDate.diff(todayDate, 'months')
+            this.displayAlert('confirmation', ' O stock especificado irá expirar em menos de 3 meses. Deseja continuar')
        } else {
         this.doSave(stock)
       }
