@@ -856,6 +856,8 @@ export default {
       }
       this.patientVisit.patientVisitDetails = []
       if (this.member !== null && this.member !== undefined) {
+        this.curPatientVisitDetails[0].prescription.prescriptionDate = this.getJSDateFromDDMMYYY(this.prescriptionDate)
+        this.curPatientVisitDetails[0].prescription.leftDuration = Number((this.curPatientVisitDetails[0].prescription.duration.weeks / 4))
           const memberPrescription = new GroupMemberPrescription({
             prescription: this.curPatientVisitDetails[0].prescription,
             member: GroupMember.query()
@@ -924,6 +926,7 @@ export default {
                   }
                 })
                 this.displayAlert('info', 'Prescrição gravada com sucesso.')
+                this.$emit('getGroupMembers')
               })
             })
         }
@@ -1113,7 +1116,6 @@ export default {
             Prescription.insertOrUpdate({ data: pvd.prescription })
             Pack.insertOrUpdate({ data: pvd.pack })
           })
-
           this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
         }).catch(error => {
           const listErrors = []

@@ -23,16 +23,16 @@
                         v-model="curGroup.service"
                         option-value="id"
                         option-label="code"
-                        label="Serviço de Saúde" />
+                        label="Serviço de Saúde *" />
                       <TextField
-                        label="Numero do grupo"
+                        label="Numero do grupo *"
                         v-model="curGroup.code"
                         :disable="isMemberEditionStep"
                         class="col q-ml-md"
                         dense
                         :rules="[]"/>
                       <TextField
-                        label="Nome"
+                        label="Nome *"
                         v-model="curGroup.name"
                         :disable="isMemberEditionStep"
                         dense
@@ -49,7 +49,7 @@
                         v-model="curGroup.groupType"
                         option-value="id"
                         option-label="description"
-                        label="Tipo" />
+                        label="Tipo *" />
                       <q-input
                           dense
                           outlined
@@ -86,16 +86,21 @@
                     outlined
                     v-model="searchParam"
                     label="Pesquisar por Identificador/Nome"
-                    @blur="search()"
                     style="width: 400px"
                     :disable="curGroup.service === null"
                     class="q-mt-md"
                     dense>
-                    <template v-slot:append>
-                      <q-icon v-if="searchParam !== ''" name="close" @click="searchParam = '', searchResults = []" class="cursor-pointer" />
-                      <q-icon name="search" />
+                    <template v-slot:append class="q-mr-none">
+                      <q-btn  @click="search()" class="q-mt-md q-mb-md q-mr-none"  square color="primary" icon="search" >
+                        <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
+                      </q-btn>
+                      <!-- <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
                     </template>
                   </q-input>
+                   <!-- <q-btn  @click="search()" class="q-mt-md q-ml-md q-mb-md"  square color="primary" icon="search" :disable="curGroup.service === null">
+                    <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
+                  </q-btn>
+                  <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
                 </div>
                 <q-separator color="grey-13" size="1px"/>
                 <div class="row q-mt-none">
@@ -407,13 +412,15 @@ export default {
           return this.stringContains(patient.firstNames, this.searchParam) || this.stringContains(patient.middleNames, this.searchParam) || this.stringContains(patient.lastNames, this.searchParam)
         })
       } else {
-        Patient.delete((patient) => {
+        if (this.searchParam.length > 0) {
+          Patient.delete((patient) => {
           return this.notMember(patient)
         })
           Patient.apisearchByParam(this.searchParam, this.clinic.id).then(resp => {
               if (resp.response.data.length >= 0) {
                 this.searchResults = Patient.query()
                                     .has('identifiers')
+                                    .has('patientVisits')
                                     .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                                     .with('province')
                                     .with('members.group.service')
@@ -423,6 +430,9 @@ export default {
                                     .get()
               }
           })
+        } else {
+          this.hideLoading()
+        }
         }
     },
     isAssociatedToSelectedService (patient) {
@@ -548,6 +558,8 @@ export default {
                                 .where('id', resp.response.data.id)
                                 .first()
             this.displayAlert('info', 'Operação efectuada com sucesso.')
+            this.$emit('getGroupMembers')
+            console.log('emitsGetGroupMembers')
           })
         }).catch(error => {
             const listErrors = []
@@ -626,6 +638,9 @@ export default {
   mounted () {
     this.setStep(this.stepp)
     this.init()
+  },
+  unmounted () {
+    console.log('unMounted')
   },
   components: {
       TextField: require('components/Shared/Input/TextField.vue').default,

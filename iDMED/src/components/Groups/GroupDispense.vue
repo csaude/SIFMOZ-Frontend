@@ -30,7 +30,7 @@
                   <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                          <q-date v-model="pickupDate" mask="DD-MM-YYYY" @update:model-value="determineNextPickUpDate()" >
+                          <q-date v-model="pickupDate" mask="DD-MM-YYYY" @update:model-value="determineNextPickUpDate()" :options="blockDataFutura">
                           <div class="row items-center justify-end">
                               <q-btn v-close-popup label="Close" color="primary" flat />
                           </div>
@@ -94,10 +94,12 @@
                   <ListHeader
                     :addVisible="true"
                     :mainContainer="true"
+                    @expandLess="expandLess"
+                    :expandVisible="false"
                     @showAdd="openAddPrescribedDrugForm(member.patient)"
                     bgColor="bg-primary">{{member.patient.preferedIdentifier().value}} - {{member.patient.fullName}}
                   </ListHeader>
-                  <div class="col">
+                  <div class="col" >
                     <q-table
                       class="col"
                       dense
@@ -105,6 +107,7 @@
                       :rows="member.groupMemberPrescription !== null ? member.groupMemberPrescription.prescription.prescribedDrugs : member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescribedDrugs"
                       :columns="columns"
                       row-key="id"
+                      v-if="showDispensesData"
                       >
                       <template v-slot:no-data="{ icon, filter }">
                         <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
@@ -197,6 +200,7 @@ import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescri
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import Drug from '../../store/models/drug/Drug'
+import moment from 'moment'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -220,7 +224,9 @@ export default {
       selectedGroup: ref(null),
       showAddEditDrug: false,
       selectedVisitDetails: new PatientVisitDetails(),
-      hasTherapeuticalRegimen: false
+      hasTherapeuticalRegimen: false,
+      patientVisitDetailsToAdd: [],
+      showDispensesData: ref(true)
     }
   },
   methods: {
@@ -242,6 +248,10 @@ export default {
         })
       }
     },
+      date: ref(moment(date).format('YYYY/MM/DD')),
+        blockDataFutura (date) {
+            return date <= moment(new Date()).format('YYYY/MM/DD')
+        },
     getNextPickUpDate () {
       const dates = []
       if (this.selectedGroup.packHeaders.length > 0) {
@@ -270,30 +280,56 @@ export default {
         return null
       }
     },
+    checkMembersPrescriptionsDate (pickupDate) {
+      let error = 'A data de levantamento não pode ser menor que a data das ultimas prescrições dos pacientes : ['
+      let invalidPrescription = ''
+      this.selectedGroup.members.forEach((member) => {
+        const memberPrescriptionDate = moment(member.groupMemberPrescription.prescription.prescriptionDate).format('YYYY-MM-DD')
+        const dispenseDate = moment(pickupDate, 'DD-MM-YYYY').format('YYYY-MM-DD')
+        if (moment(dispenseDate).isBefore(memberPrescriptionDate, 'day')) {
+          invalidPrescription += invalidPrescription === '' ? member.patient.fullName : ', ' + member.patient.fullName
+        }
+      })
+      if (invalidPrescription !== '') {
+        error += invalidPrescription + ']'
+        return error
+      } else {
+        return null
+      }
+    },
     doFormValidation () {
+    const momentPickUpdate = this.getDateFormatYYYYMMDDFromDDMMYYYY(this.pickupDate)
+    const getNextPickUpDate = this.getDateFormatYYYYMMDDFromDDMMYYYY(this.getNextPickUpDate())
+    const momentNextPickUpdate = this.getDateFormatYYYYMMDDFromDDMMYYYY(this.nextPDate)
       const prescriptionError = this.checkMembersPrescriptions()
       if (prescriptionError !== null) {
         this.displayAlert('error', prescriptionError)
       } else if (this.pickupDate === '' || this.pickupDate === undefined) {
         this.displayAlert('error', 'Por favor, indique a data do levantamento.')
-      } else if (new Date(this.pickupDate) > new Date()) {
-        this.displayAlert('error', 'A data da dispensa indicada é maior que a data da corrente')
-      } else if (new Date(this.pickupDate) < this.getNextPickUpDate()) {
+      } else if (moment(momentPickUpdate).isBefore(getNextPickUpDate, 'day')) {
         this.displayAlert('error', 'A data da dispensa não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.getNextPickUpDate()))
       } else if (this.drugsDuration === '') {
         this.displayAlert('error', 'Por favor, o período para o qual está a efectuar a dispensa.')
       } else if (this.nextPDate === '' || this.nextPDate === undefined) {
         this.displayAlert('error', 'Por favor, indique a data do próximo levantamento.')
-      } else if (new Date(this.nextPDate) < new Date(this.pickupDate)) {
+      } else if (moment(momentNextPickUpdate).isBefore((momentPickUpdate))) {
         this.displayAlert('error', 'A data do próximo levantamento não pode ser anterior a data do levantamento.')
       } else if (this.dispenseMode === '') {
         this.displayAlert('error', 'Por favor indicar o modo de dispensa.')
       } else {
+        const prescriptionDateError = this.checkMembersPrescriptionsDate(this.pickupDate)
+        if (prescriptionDateError !== null) {
+        this.displayAlert('error', prescriptionDateError)
+      } else {
         this.generatepacks()
+      }
       }
     },
     memerHasGroupPrescription (member) {
       return member.groupMemberPrescription !== null
+    },
+    expandLess (value) {
+      this.showDispensesData = !value
     },
     addPrescribedDrug (prescribedDrug, visitDetails) {
       console.log(visitDetails)
@@ -489,8 +525,16 @@ export default {
          //   patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
 
             console.log(patientVisit)
+            patientVisit.patientVisitDetails[0].prescription.calculateLeftDuration(JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
             PatientVisit.apiSave(patientVisit).then(resp => {
               // groupPacks[i].pack.patientVisitDetails = []
+              const pv = JSON.parse(JSON.stringify(patientVisit))
+              PatientVisit.insert({ data: pv })
+          pv.patientVisitDetails.forEach((pvd) => {
+            patientVisit.patientVisitDetails = []
+            pvd.patientVisit = JSON.parse(JSON.stringify(patientVisit))
+            this.patientVisitDetailsToAdd.push(pvd)
+          })
               i = i + 1
               setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
             })
@@ -498,11 +542,30 @@ export default {
         } else {
           this.curGroupPackHeader.groupPacks.forEach((groupPack) => {
             groupPack.pack.patientVisitDetails = []
+            groupPack.pack_id = groupPack.pack.id
           })
           GroupPackHeader.apiSave(this.curGroupPackHeader).then(resp => {
+            console.log(resp)
             this.curGroupPackHeader.id = resp.response.data.id
-            Group.apiFetchById(this.curGroupPackHeader.group.id)
+            Group.apiFetchById(this.curGroupPackHeader.group.id).then(resp => {
+              console.log(resp)
+              resp.response.data.packHeaders.forEach(packHeader => {
+                      GroupPackHeader.apiFetchById(packHeader.id).then(resp => {
+                        console.log(resp)
+                      })
+                    })
+            })
+            this.patientVisitDetailsToAdd.forEach(pvd => {
+              pvd.episode_id = pvd.episode.id
+              pvd.clinic_id = pvd.clinic.id
+              pvd.patient_visit_id = pvd.patientVisit.id
+              pvd.prescription_id = pvd.prescription.id
+              pvd.pack_id = pvd.pack.id
+              console.log(pvd)
+              PatientVisitDetails.insert({ data: pvd })
+            })
             this.displayAlert('info', 'Operação efectuada com sucesso.')
+            this.$emit('getGroupMembers')
           })
         }
       }

@@ -37,6 +37,10 @@ export default class GroupPackHeader extends Model {
     return await this.api().post('/groupPackHeader', groupPackHeader)
   }
 
+  static async apiDelete (groupPackHeader) {
+    return await this.api().delete(`/groupPackHeader/${groupPackHeader.id}`)
+  }
+
   static localDbAdd (groupPackHeader) {
     return db.newDb().collection('groupPackHeaders').add(groupPackHeader)
   }
