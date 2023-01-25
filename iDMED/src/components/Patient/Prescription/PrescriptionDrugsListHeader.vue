@@ -121,7 +121,7 @@ export default {
         // this.$refs.pickupDate.validate()
         // this.$refs.nextPickupDate.validate()
         if (this.visitDetails.createPackLater) {
-          this.$emit('showAdd', null, null, null)
+          this.$emit('showAdd', null, null, this.drugsDuration)
         } else {
           if (!date.isValid(this.getJSDateFromDDMMYYY(this.pickupDate))) {
             this.displayAlert('error', 'A data de levantamento é inválida')

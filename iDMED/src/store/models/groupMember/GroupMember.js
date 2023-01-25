@@ -32,7 +32,8 @@ export default class GroupMember extends Model {
   }
 
   static async apiUpdate (member) {
-    return await this.api().post('/groupMember', member)
+   // return await this.api().post('/groupMember', member)
+    return await this.api().patch('/groupMember/' + member.id, member)
   }
 
   static localDbAdd (member) {

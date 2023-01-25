@@ -3,11 +3,13 @@
     <ListHeader
         :addVisible="!selectedGroup.isDesintegrated()"
         :mainContainer="true"
-        @showAdd="addMember"
+        @showAdd="$emit('addMember')"
+        :expandVisible="true"
+        @expandLess="expandLess"
         bgColor="bg-primary">Membros do Grupo
       </ListHeader>
-    <span v-if="!dataFechComplete && loadedMembers.length > 0">
-      <div class="q-mb-md box-border">
+    <span v-if="(!dataFechComplete && loadedMembers.length > 0)">
+      <div class="q-mb-md box-border" v-if="showPrescriptionData">
         <q-table
           class="col"
           dense
@@ -128,7 +130,8 @@ export default {
       dialogTitle: 'Informação',
       selectedMember: null,
       $q: useQuasar(),
-      step: 'display'
+      step: 'display',
+      showPrescriptionData: ref(true)
     }
   },
   watch: {
@@ -191,7 +194,10 @@ export default {
       }
     },
     addMember () {
-      this.$emit('addNewMember')
+      this.$emit('addMember')
+    },
+    expandLess (value) {
+      this.showPrescriptionData = !value
     },
     removeMember (member) {
       this.selectedMember = member
@@ -274,8 +280,9 @@ export default {
             })
             member.patient.identifiers[0].episodes = []
             member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-
-            this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+            if (member.patient.identifiers[0].episodes.length > 0) {
+         this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+            }
         })
         this.allMembers = group.members
         if (!group.isDesintegrated()) {
@@ -367,6 +374,9 @@ export default {
   },
   mounted () {
     this.getGroupMembers()
+  },
+  updated () {
+    console.log('updated')
   },
   computed: {
     selectedGroup: {

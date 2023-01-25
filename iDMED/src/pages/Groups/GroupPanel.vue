@@ -30,7 +30,7 @@
         <q-scroll-area style="height: 565px">
         <group-members
               v-if="dataFetchDone"
-              @addNewMember="addNewMember"
+              @addMember="addMember"
               @newPrescription="newPrescription"
               @desintagrateGroup="desintagrateGroup"/>
             <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
@@ -54,10 +54,12 @@
             <span>
               <group-members
                 v-if="dataFetchDone"
-                @addNewMember="addNewMember"
+                ref="groupMembers"
+                @addMember="addMember"
+                @getGroupMembers="getGroupMembers"
                 @newPrescription="newPrescription"
                 @desintagrateGroup="desintagrateGroup"/>
-              <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking" />
+              <groupPacks :packHeaders="group.packHeaders" @newPacking="newPacking"   @getGroupMembers="getGroupMembers"/>
             </span>
           </q-scroll-area>
         </div>
@@ -73,11 +75,13 @@
       <q-dialog persistent v-model="showRegisterRegister">
         <groupRegister
           :step="groupAddEditStep"
-          @close="showRegisterRegister = false" />
+          @getGroupMembers="getGroupMembers"
+          @close="showRegisterRegister = false , loadMembers2 = false" />
       </q-dialog>
       <q-dialog persistent v-model="showNewPackingForm" >
         <groupPack
           :group="group"
+          @getGroupMembers="getGroupMembers"
           :defaultPickUpDate="defaultPickUpDate"
           @close="showNewPackingForm = false" />
       </q-dialog>
@@ -86,6 +90,7 @@
             :selectedVisitDetails="patientVisitDetails"
             :service="group.service"
             :member="selectedMember"
+            @getGroupMembers="getGroupMembers"
             step="create"
             @close="showAddPrescription = false" />
       </q-dialog>
@@ -234,6 +239,11 @@ export default {
                         }
                       })
                     })
+                    this.group.packHeaders.forEach(packHeader => {
+                      GroupPackHeader.apiFetchById(packHeader.id).then(resp => {
+                        console.log(resp)
+                      })
+                    })
                   }
                 })
               }
@@ -343,7 +353,7 @@ export default {
       SessionStorage.set('selectedMember', member)
       this.showAddPrescription = true
     },
-    addNewMember () {
+    addMember () {
       this.groupAddEditStep = 'addMember'
       this.showRegisterRegister = true
     },
@@ -354,6 +364,9 @@ export default {
     newPacking (lasHeader) {
       if (lasHeader !== null && lasHeader !== undefined) this.defaultPickUpDate = lasHeader.nextPickUpDate
       this.showNewPackingForm = true
+    },
+    getGroupMembers () {
+      this.$refs.groupMembers.getGroupMembers()
     }
   },
   mounted () {

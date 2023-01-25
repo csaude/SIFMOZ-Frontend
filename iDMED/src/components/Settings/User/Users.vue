@@ -95,6 +95,7 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
+import mixinEncryption from 'src/mixins/mixin-encryption'
 const columns = [
   { name: 'fullName', required: true, label: 'Nome Completo', align: 'left', field: row => row.fullName, format: val => `${val}`, sortable: true },
   { name: 'username', required: true, label: 'Nome do Utilizador', align: 'left', field: row => row.username, format: val => `${val}`, sortable: true },
@@ -102,7 +103,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinSystemPlatform],
+  mixins: [mixinSystemPlatform, mixinEncryption],
   data () {
     const $q = useQuasar()
 
