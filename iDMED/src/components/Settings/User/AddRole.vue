@@ -17,7 +17,7 @@
                     ref="nome"
                     square
                     v-model="role.name"
-                    :rules="[ val => val.length >= 3 || 'O nome indicado nao pode ter mais que 9 digitos']"
+                    :rules="[ val => val.length >=3 || 'O nome indicado deve ter no mínimo 3 caracteres']"
                     lazy-rules
                     :disable="onlyView"
                     class="col fild-radius"
@@ -28,7 +28,7 @@
                     ref="description"
                     square
                     v-model="role.description"
-                    :rules="[ val => val.length >= 3 || 'A Descrição indicada é inválida']"
+                    :rules="[ val => val.length >=3 || 'A descrição indicado deve ter no mínimo 3 caracteres']"
                     lazy-rules
                     :disable="onlyView"
                     class="col fild-radius"
@@ -88,7 +88,7 @@ const columns1 = [
 ]
 
 export default {
-      props: ['selectedRole', 'onlyView'],
+      props: ['selectedRole', 'onlyView', 'editMode'],
       mixins: [mixinSystemPlatform],
     data () {
         return {
@@ -128,11 +128,13 @@ export default {
       this.$refs.nome.$refs.ref.validate()
         this.$refs.description.$refs.ref.validate()
         if (!this.$refs.nome.$refs.ref.hasError &&
-            !this.$refs.description.hasError) {
+            !this.$refs.description.$refs.ref.hasError) {
               const roleExist = this.userRoles.filter(role => role.name === this.role.name)
               const roleDescription = this.userRoles.filter(role => role.description === this.role.description)
-              if (roleExist.length > 0 || roleDescription.length > 0) {
-          this.displayAlert('error', 'Ja Existe um Perfil com esse nome')
+              if (roleExist.length > 0 && roleDescription.length > 0) {
+          this.displayAlert('error', 'Ja Existe um Perfil com esse nome!')
+        } else if (this.role.menus.length === 0) {
+          this.displayAlert('error', 'Seleccione pelo menos uma funcionalidade!')
         } else {
                    this.submitUser()
             }

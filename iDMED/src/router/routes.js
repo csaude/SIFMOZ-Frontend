@@ -1,4 +1,4 @@
-
+import AccessControlUtils from '../utils/AccessControlUtils'
 const routes = [
   {
     path: '/',
@@ -13,20 +13,173 @@ const routes = [
     },
     children: [
       { path: '', component: () => import('pages/Home/Home.vue') },
-      { path: 'patients', component: () => import('pages/Patient/Patient.vue') },
-      { path: 'patientpanel', component: () => import('pages/Patient/Panel/PatientPanel.vue') },
-      { path: 'group/panel', component: () => import('pages/Groups/GroupPanel.vue') },
-      { path: 'group/search', component: () => import('pages/Groups/SearchAddGroup.vue') },
-      { path: 'stock', component: () => import('pages/Stock/Stock.vue') },
-      { path: 'stock/entrance', component: () => import('pages/Stock/Entrance/EntrancePanel.vue') },
-      { path: 'stock/drugFile', component: () => import('pages/Stock/DrugFile/DrugFile.vue') },
-      { path: 'stock/inventory', component: () => import('pages/Stock/Inventory/InventoryPanel.vue') },
-      { path: 'dashboard', component: () => import('pages/Dashboard/Dashboard.vue') },
-      { path: 'reports', component: () => import('pages/Reports/Reports.vue') },
-      { path: 'settings', component: () => import('pages/Settings/Settings.vue') },
-      { path: 'migration', component: () => import('pages/Migration/Migration.vue') },
-      { path: 'home', component: () => import('pages/Home/Home.vue') },
-      { path: 'add-clinic', component: () => import('components/Settings/Clinic/AddClinic.vue') }
+      {
+        path:
+           'patients',
+            component: () => import('pages/Patient/Patient.vue'),
+            beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Pacientes')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+      },
+      {
+        path:
+          'patientpanel',
+           component: () => import('pages/Patient/Panel/PatientPanel.vue'),
+           beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Pacientes')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+     },
+      {
+        path:
+        'group/panel',
+         component: () => import('pages/Groups/GroupPanel.vue'),
+         beforeEnter (to, from, next) {
+            if (!AccessControlUtils.menusVisible('Grupos')) {
+              next('/:catchAll(.*)*')
+            } else {
+              next()
+            }
+          }
+     },
+      {
+        path:
+        'group/search',
+         component: () => import('pages/Groups/SearchAddGroup.vue'),
+         beforeEnter (to, from, next) {
+                if (!AccessControlUtils.menusVisible('Grupos')) {
+                  next('/:catchAll(.*)*')
+                } else {
+                  next()
+                }
+              }
+      },
+      {
+        path:
+        'stock',
+        component: () => import('pages/Stock/Stock.vue'),
+        beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Stock')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+       },
+      {
+        path:
+        'stock/entrance',
+         component: () => import('pages/Stock/Entrance/EntrancePanel.vue'),
+         beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('stock/entrance')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+     },
+      {
+        path:
+        'stock/drugFile',
+         component: () => import('pages/Stock/DrugFile/DrugFile.vue'),
+         beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('stock/drugFile')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+    },
+      {
+        path:
+         'stock/inventory',
+          component: () => import('pages/Stock/Inventory/InventoryPanel.vue'),
+          beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('stock/inventory')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+          },
+      {
+        path: 'dashboard',
+        component: () => import('pages/Dashboard/Dashboard.vue'),
+            beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Dashboard')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+          },
+      {
+        path:
+        'reports',
+        component: () => import('pages/Reports/Reports.vue'),
+            beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Relatorios')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+       },
+      {
+        path:
+        'settings',
+         component: () => import('pages/Settings/Settings.vue'),
+          beforeEnter (to, from, next) {
+            if (!AccessControlUtils.menusVisible('Administração')) {
+              next('/:catchAll(.*)*')
+            } else {
+              next()
+            }
+          }
+      },
+      {
+        path:
+        'migration',
+         component: () => import('pages/Migration/Migration.vue'),
+            beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Migração')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+     },
+      {
+        path:
+        'home',
+         component: () => import('pages/Home/Home.vue'),
+         beforeEnter (to, from, next) {
+              if (!AccessControlUtils.menusVisible('Tela Inicial')) {
+                next('/:catchAll(.*)*')
+              } else {
+                next()
+              }
+            }
+       },
+      {
+        path:
+        'add-clinic',
+         component: () => import('components/Settings/Clinic/AddClinic.vue'),
+          beforeEnter (to, from, next) {
+            if (!AccessControlUtils.menusVisible('add-clinic')) {
+              next('/:catchAll(.*)*')
+            } else {
+              next()
+            }
+          }
+        }
     ]
   },
   {

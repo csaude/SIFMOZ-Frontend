@@ -144,16 +144,16 @@ export default {
             })
       },
         getIconActive (user) {
-           if (!user.accountLocked) {
+           if (user.accountLocked) {
               return 'play_circle'
-              } else if (user.accountLocked) {
+              } else if (!user.accountLocked) {
               return 'stop_circle'
               }
        },
        getColorActive (user) {
-           if (!user.accountLocked) {
+           if (user.accountLocked) {
               return 'green'
-              } else if (user.accountLocked) {
+              } else if (!user.accountLocked) {
               return 'red'
               }
        },
