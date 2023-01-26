@@ -311,10 +311,11 @@ export default {
                         .get()
         },
         clinicSectors () {
-           return ClinicSector.query().with('clinic.province')
+           const allClinicSectors = ClinicSector.query().with('clinic.province')
                         .with('clinic.district.province')
                         .with('clinic.facilityType')
                         .with('clinicSectorType').has('code').where('active', true).get()
+           return this.onlyView ? this.user.clinicSectors : allClinicSectors
         },
         configs () {
        return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
@@ -329,7 +330,7 @@ export default {
          this.$refs.contact.$refs.ref.validate()
         if (!this.$refs.nome.$refs.ref.hasError &&
             !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
-             !this.$refs.contact.hasError) {
+             !this.$refs.contact.$refs.ref.hasError) {
              this.$refs.stepper.next()
         }
            } else if (this.step === 2) {
@@ -357,9 +358,10 @@ export default {
         this.$refs.nome.$refs.ref.validate()
         this.$refs.password.validate()
          this.$refs.username.$refs.ref.validate()
+         this.$refs.contact.$refs.ref.validate()
         if (!this.$refs.nome.$refs.ref.hasError &&
             !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
-            !this.$refs.role.hasError) {
+            !this.$refs.role.hasError && !this.$refs.contact.ref.hasError) {
             this.submitUser()
         }
         },
@@ -377,8 +379,14 @@ export default {
             this.user.clinics = this.selectedClinics
             this.user.clinicSectors = this.selectedClinicSectors
             this.user.accountLocked = false
+            this.user.authorities = this.selectedRoles
             if (this.website) {
-           UserLogin.apiSave(this.user).then(resp => {
+            UserLogin.apiSave(this.user).then(resp => {
+            const userResp = resp.response.data
+            userResp.authorities = this.selectedRoles
+            UserLogin.insert({
+              data: userResp
+            })
                this.submitting = false
                  this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
             }).catch(error => {
