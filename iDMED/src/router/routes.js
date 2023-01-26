@@ -78,7 +78,7 @@ const routes = [
         'stock/entrance',
          component: () => import('pages/Stock/Entrance/EntrancePanel.vue'),
          beforeEnter (to, from, next) {
-              if (!AccessControlUtils.menusVisible('stock/entrance')) {
+              if (!AccessControlUtils.menusVisible('Stock')) {
                 next('/:catchAll(.*)*')
               } else {
                 next()
@@ -90,7 +90,7 @@ const routes = [
         'stock/drugFile',
          component: () => import('pages/Stock/DrugFile/DrugFile.vue'),
          beforeEnter (to, from, next) {
-              if (!AccessControlUtils.menusVisible('stock/drugFile')) {
+              if (!AccessControlUtils.menusVisible('Stock')) {
                 next('/:catchAll(.*)*')
               } else {
                 next()
@@ -102,7 +102,7 @@ const routes = [
          'stock/inventory',
           component: () => import('pages/Stock/Inventory/InventoryPanel.vue'),
           beforeEnter (to, from, next) {
-              if (!AccessControlUtils.menusVisible('stock/inventory')) {
+              if (!AccessControlUtils.menusVisible('Stock')) {
                 next('/:catchAll(.*)*')
               } else {
                 next()
