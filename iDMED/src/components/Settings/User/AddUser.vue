@@ -310,6 +310,9 @@ export default {
                         .has('code')
                         .get()
         },
+        users () {
+            return UserLogin.query().with('clinicSectors').with('clinics').get()
+        },
         clinicSectors () {
            const allClinicSectors = ClinicSector.query().with('clinic.province')
                         .with('clinic.district.province')
@@ -328,7 +331,10 @@ export default {
         this.$refs.password.validate()
          this.$refs.username.$refs.ref.validate()
          this.$refs.contact.$refs.ref.validate()
-        if (!this.$refs.nome.$refs.ref.hasError &&
+         const usersList = this.users.filter(user => user.username === this.user.username)
+         if (usersList.length > 0) {
+              this.displayAlert('erro', 'Já existe um utilizador com esse nome de utilizador!')
+         } else if (!this.$refs.nome.$refs.ref.hasError &&
             !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
              !this.$refs.contact.$refs.ref.hasError) {
              this.$refs.stepper.next()
