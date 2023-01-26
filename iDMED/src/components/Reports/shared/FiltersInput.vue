@@ -253,7 +253,7 @@ export default {
         return true
       },
       currClinic () {
-        return Clinic.query().with('province').where('id', SessionStorage.getItem('currClinic').id).first()
+        return Clinic.query().with('province').with('district').where('id', SessionStorage.getItem('currClinic').id).first()
       },
       currProvince () {
         return Province.query().with('districts').where('id', SessionStorage.getItem('currProvince').id).first()
@@ -281,11 +281,12 @@ export default {
       },
       initParams () {
         if (this.isClinicLevel) {
-          console.log('trsteee' + this.currClinic.id)
+          console.log('trsteee' + this.currClinic)
           this.reportParams.clinicId = this.currClinic.id
           this.reportParams.clinic = this.currClinic
         } else {
-          this.reportParams.provinceId = this.currProvince.id
+          this.reportParams.provinceId = this.currClinic.province.id
+          this.reportParams.province = this.currClinic.province
         }
         if (this.mobile) {
         this.reportParams.localOrOnline = 'local'

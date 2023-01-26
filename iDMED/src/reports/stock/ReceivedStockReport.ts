@@ -53,9 +53,19 @@ export default {
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
     const data = this.createArrayOfArrayRow(rowsAux.response.data)
   */   
+    let data = ''
+    if (params.localOrOnline === 'online') {
+      data = await Report.api().get(`/stockReportTemp/printReport/${id}`,{ responseType: 'json' }) 
+      console.log(data)
+      if (data.response.status === 204) return data.response.status
+      console.log(data)
+   //   data = data.response.data
+      data = this.createArrayOfArrayRow(data.response.data)
+    } else {
+       data = await this.getDataLocalReport(id)
+      if(data.length === 0) return 204
+    }
    
-   const data = await this.getDataLocalReport(id)
-   if(data.length === 0) return 204
    params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate)
    params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate)
    console.log(data)
@@ -84,8 +94,8 @@ export default {
           )
         doc.setFontSize(10)
        // doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, data.settings.margin.left + 2, 32)
-        doc.text('Província: ' + (params.province === null ? '' : params.province.description), data.settings.margin.left + 2, 40)
-        doc.text('Distrito: ' + (params.district === null ? '' : params.district.description), data.settings.margin.left + 2, 48)
+        doc.text('Província: ' + (params.province === null ? params.clinic.province.description : params.province.description), data.settings.margin.left + 2, 40)
+        doc.text('Distrito: ' + (params.district === null ? params.clinic.district.description : params.district.description), data.settings.margin.left + 2, 48)
         doc.text('Data Início: ' + params.startDateParam, width / 2 + 95, 32)
         doc.text('Data Fim: ' + params.endDateParam, width / 2 + 95, 40)
 

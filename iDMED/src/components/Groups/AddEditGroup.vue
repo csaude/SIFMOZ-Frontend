@@ -91,16 +91,16 @@
                     class="q-mt-md"
                     dense>
                     <template v-slot:append class="q-mr-none">
-                      <q-btn  @click="search()" class="q-mt-md q-mb-md q-mr-none"  square color="primary" icon="search" >
+                     <!--   <q-btn  @click="search()" class="q-mt-md q-mb-md q-mr-none"  square color="primary" icon="search" >
                         <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
-                      </q-btn>
+                      </q-btn> -->
                       <!-- <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
                     </template>
                   </q-input>
-                   <!-- <q-btn  @click="search()" class="q-mt-md q-ml-md q-mb-md"  square color="primary" icon="search" :disable="curGroup.service === null">
+                  <q-btn  @click="search()" class="q-mt-md q-ml-md q-mb-md"  square color="primary" icon="search" :disable="curGroup.service === null">
                     <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
                   </q-btn>
-                  <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
+                   <!-- <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
                 </div>
                 <q-separator color="grey-13" size="1px"/>
                 <div class="row q-mt-none">
@@ -418,7 +418,7 @@ export default {
         })
           Patient.apisearchByParam(this.searchParam, this.clinic.id).then(resp => {
               if (resp.response.data.length >= 0) {
-                this.searchResults = Patient.query()
+                const patients = Patient.query()
                                     .has('identifiers')
                                     .has('patientVisits')
                                     .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
@@ -428,6 +428,9 @@ export default {
                                     .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                     .where('clinic_id', this.clinic.id)
                                     .get()
+             this.searchResults = patients.filter((patient) => {
+          return this.stringContains(patient.firstNames, this.searchParam) || this.stringContains(patient.middleNames, this.searchParam) || this.stringContains(patient.lastNames, this.searchParam)
+        })
               }
           })
         } else {

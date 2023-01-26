@@ -55,6 +55,7 @@
               <q-input
                 outlined dense
                 v-model="nextPDate"
+                @update:model-value="determineNextPickUpDate()"
                 label="Proximo Levantamento"
                 bg-color="white"
                 class="col"
