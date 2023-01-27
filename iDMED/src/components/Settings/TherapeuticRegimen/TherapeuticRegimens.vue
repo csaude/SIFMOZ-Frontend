@@ -78,6 +78,12 @@
           :onlyView="viewMode"
             @close="showTherapeuticRegimenRegistrationScreen = false" />
       </q-dialog>
+      <q-dialog v-model="alert.visible">
+             <Dialog :type="alert.type" @closeDialog="closeDialog">
+            <template v-slot:title> Informação</template>
+            <template v-slot:msg> {{alert.msg}} </template>
+          </Dialog>
+             </q-dialog>
     </div>
 </template>
 <script>
@@ -108,7 +114,7 @@ export default {
   },
  computed: {
       therapeuticRegimens () {
-             return TherapeuticRegimen.query().with('drugs.form').orderBy('regimenScheme').get()
+             return TherapeuticRegimen.query().with('drugs.form').with('clinicalService.identifierType').with('drugs.clinicalService').orderBy('regimenScheme').get()
       }
   },
   methods: {
@@ -163,11 +169,10 @@ export default {
                 if (therapeuticRegimen.syncStatus !== 'R') therapeuticRegimen.syncStatus = 'U'
                 TherapeuticRegimen.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimen)))
                 TherapeuticRegimen.insertOrUpdate({ data: therapeuticRegimen })
-                // this.displayAlert('info', msg)
+                this.displayAlert('info', msg)
               } else {
                 TherapeuticRegimen.apiUpdate(therapeuticRegimen).then(resp => {
-                this.$emit('therapeuticRegimen', msg)
-                // this.displayAlert('info', msg)
+                  this.displayAlert('info', msg)
                 }).catch(error => {
                   console.log(therapeuticRegimen.id)
                   console.log(error)

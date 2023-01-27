@@ -119,7 +119,7 @@ export default {
           .with('therapeuticRegimens')
           .with('clinicSectors.clinic')
           .with('clinicSectors.clinicSectorType')
-          .has('code').get()
+          .has('code').orderBy('description').get()
       },
       therapeuticRegimens () {
           return TherapeuticRegimen.query().with('drugs.form').where('active', true).get()
@@ -188,7 +188,8 @@ export default {
                 console.log('BackEnd')
                 clinicalService.therapeuticRegimens = []
                 ClinicalService.apiUpdate(clinicalService).then(resp => {
-                  this.displayAlert('info', 'Servico Clínico actualizado com sucesso')
+                  const operation = clinicalService.active ? 'activado' : 'inactivado'
+                  this.displayAlert('info', `Servico Clínico ${operation} com sucesso`)
                 }).catch(error => {
                   this.displayAlert('error', error)
                 })

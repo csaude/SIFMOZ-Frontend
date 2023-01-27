@@ -183,7 +183,8 @@ export default {
               } else {
                 console.log('BackEnd')
                 ClinicSector.apiUpdate(clinicSector).then(resp => {
-                  this.displayAlert('info', 'Sector Clinico actualizado com sucesso')
+                  const operation = clinicSector.active ? 'activado' : 'inactivado'
+                  this.displayAlert('info', `Sector Clinico ${operation} com sucesso`)
                 }).catch(error => {
                       this.displayAlert('error', error)
                 })
