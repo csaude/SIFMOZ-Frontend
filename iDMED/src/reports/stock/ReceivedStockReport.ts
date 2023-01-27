@@ -119,7 +119,7 @@ export default {
   },
 
   async downloadExcel (id, fileType2, params) {
-    const rows = await Report.api().get(`/receivedStockReport/printReport/${id}/${fileType2}`) 
+  const rows = await Report.api().get(`/stockReportTemp/printReport/${id}`,{ responseType: 'json' }) 
     if (rows.response.status === 204) return rows.response.status
     const firstReg = rows.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
