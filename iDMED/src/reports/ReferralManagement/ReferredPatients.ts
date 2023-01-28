@@ -41,6 +41,8 @@ export default {
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
       if(rows.response.status === 204) return rows.response.status
       console.log(rows.response.data)
+      params.startDateParam =  moment(rows.response.data[0].startDate).format('DD-MM-YYYY')
+      params.endDateParam = moment(rows.response.data[0].endDate).format('DD-MM-YYYY')
       const data = this.createArrayOfArrayRow(rows.response.data)
 
       autoTable(doc, {
@@ -72,7 +74,7 @@ export default {
           doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, width / 15, 57)
          // doc.text('Data Início: ' + params.startDateParam, width / 2 + 98, 49)
          // doc.text('Data Fim: ' + params.endDateParam, width / 2 + 98, 57)
-         doc.text('Periodo: ' + params.startDateParam +' à '+ params.endDateParam, width / 2 + 90, 57)
+         doc.text('Periodo: ' + params.startDateParam +' à '+  params.endDateParam, width / 2 + 90, 57)
         // doc.line(0, 35, 400, 50);
         },
         theme: 'grid',
@@ -85,6 +87,8 @@ export default {
     async downloadExcel(params) {
 
       const rows = await Report.api().get(`/referredPatientsReport/printReport/${params.id}`)
+      params.startDateParam =  moment(rows.response.data[0].startDate).format('DD-MM-YYYY')
+      params.endDateParam = moment(rows.response.data[0].endDate).format('DD-MM-YYYY')
       if(rows.response.status === 204) return rows.response.status
       const data =  this.createArrayOfArrayRow(rows.response.data)
 
@@ -176,13 +180,9 @@ export default {
       cellRepublica.value = logoTitle;
       cellTitle.value = title;
       cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName : '';
-      cellProvinceParamValue.value = params.province !== null ? params.province.description : ''
-      cellDistrictParamValue.value = params.district !== null ? params.district.description : '';
       cellStartDateParamValue.value = moment(params.startDateParam, 'DD-MM-YYYY').format('DD-MM-YYYY');
       cellEndDateParamValue.value = moment(params.endDateParam, 'DD-MM-YYYY').format('DD-MM-YYYY');
       cellPharm.value = 'Farmácia';
-      cellDistrict.value = 'Distrito';
-      cellProvince.value = 'Província';
       cellStartDate.value = 'Data Início';
       cellEndDate.value = 'Data Fim';
 
