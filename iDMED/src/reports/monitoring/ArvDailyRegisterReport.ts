@@ -74,14 +74,14 @@ export default {
       ],
       [
         {
-          content: 'Distrito: ' + (params.district === null ? '' : params.district.description),
+          content: 'Distrito: ' + (params.district === null ? params.clinic.district.description : params.district.description),
           halign: 'center',
           valign: 'middle',
           fontStyle: 'bold',
           fontSize: '14'
         },
         {
-          content: 'Província: ' + (params.province === null ? '' : params.province.description),
+          content: 'Província: ' + (params.province === null ? params.clinic.province.description : params.province.description),
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
@@ -225,19 +225,23 @@ export default {
 
   async downloadExcel (id, fileType2, params) {
    
-    let rowsAux = [];
-    let data = [];
-    if(!SystemPlatform.isWebsite()) {
-      const rows = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType2}`) 
-      if (rows.response.status === 204) return rows.response.status
-      data = this.createArrayOfArrayRow(rows.response.data)
-    } else  {
-       rowsAux = await this.getDataLocalReport(id)
-      if(rowsAux.length === 0) return 204
-      data = this.createArrayOfArrayRow(rowsAux)
-    }
-    params.startDateParam = Report.getFormatDDMMYYYY(rowsAux[0].startDate)
-    params.endDateParam = Report.getFormatDDMMYYYY(rowsAux[0].endDate)
+ //   let rowsAux = [];
+   // let data = [];
+  //  if(SystemPlatform.isWebsite()) {
+    const rows = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType2}`) 
+    if (rows.response.status === 204) return rows.response.status
+    const firstReg = rows.response.data[0]
+    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
+    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
+    const data = this.createArrayOfArrayRow(rows.response.data)
+  //  } else  {
+  //     rowsAux = await this.getDataLocalReport(id)
+  //    if(rowsAux.length === 0) return 204
+  //    data = this.createArrayOfArrayRow(rowsAux)
+  //    params.startDateParam = Report.getFormatDDMMYYYY(rowsAux[0].startDate)
+  //    params.endDateParam = Report.getFormatDDMMYYYY(rowsAux[0].endDate)
+//    }
+   
     console.log('DADOS: ', data)
     const workbook = new ExcelJS.Workbook()
     workbook.creator = 'FGH'
@@ -353,8 +357,8 @@ export default {
     cellRepublica.value = logoTitle
      cellTitle.value = title
     cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName : ''
-    cellProvinceParamValue.value = params.province !== null ? params.province.description : ''
-    cellDistrictParamValue.value = params.district !== null ? params.district.description : ''
+    cellProvinceParamValue.value = params.province !== null ? params.province.description : params.clinic.province.description
+    cellDistrictParamValue.value = params.district !== null ? params.district.description : params.clinic.district.description
     cellStartDateParamValue.value = params.startDateParam
     cellEndDateParamValue.value = params.endDateParam
     cellPharm.value = 'Farmácia'
@@ -631,12 +635,12 @@ export default {
       })
     }
     let p = 15
-    console.log('(rows.response.data).length: ', (rowsAux).length)
+    console.log('(rows.response.data).length: ', (rows).length)
      // Loop through all table's row
-     for (let j = 0; j <= (rowsAux).length; j++) {
+     for (let j = 0; j <= (rows.response.data).length; j++) {
      // const row = worksheet.getRow(i)
       // Now loop through every row's cell and finally set alignment
-       const reportData = (rowsAux)[j]
+       const reportData = (rows.response.data)[j]
       //  console.log('ReportDataLenght: ', (rows.response.data).length)
        if (reportData !== undefined) {
      // const subReport = this.createArraySubReport(reportData.drugQuantityTemps)
