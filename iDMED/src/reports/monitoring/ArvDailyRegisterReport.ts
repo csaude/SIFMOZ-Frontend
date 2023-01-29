@@ -187,7 +187,7 @@ export default {
  didDrawCell: function (data) {
  if (data.row.section === 'body' && data.column.dataKey === 10) {
       console.log(rowsAux)
-      const dataRow = (rowsAux)[data.row.index]
+      const dataRow = rowsAux.response.data[data.row.index]
       if (dataRow !== undefined) {
         const dataAux2 = (dataRow.drugQuantityTemps) //  cell.row.index
         const datax = []
