@@ -9,6 +9,7 @@ import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegim
 import db from 'src/store/localbase'
 // import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import { v4 as uuidv4 } from 'uuid'
+import moment from 'moment'
 
 export default class Drug extends Model {
   static entity = 'drugs'
@@ -26,11 +27,11 @@ export default class Drug extends Model {
       defaultPeriodTreatment: this.attr(''),
       active: this.boolean(true),
       form_id: this.attr(''),
-      clinicalService_id: this.attr(''),
+      clinical_service_id: this.attr(''),
       syncStatus: this.attr(''),
       // Relationships
       form: this.belongsTo(Form, 'form_id'),
-      clinicalService: this.belongsTo(ClinicalService, 'clinicalService_id'),
+      clinicalService: this.belongsTo(ClinicalService, 'clinical_service_id'),
       packaged_drugs: this.hasMany(PackagedDrug, 'drug_id'),
       packagedDrugStocks: this.hasMany(PackagedDrugStock, 'drug_id'),
       stocks: this.hasMany(Stock, 'drug_id'),
@@ -50,7 +51,12 @@ export default class Drug extends Model {
   hasStock () {
     if (this.stocks === null || this.stocks === undefined) return false
     const hasStock = this.stocks.some((stock) => {
-      return stock.stockMoviment > 0
+      const meses = moment().diff(moment(stock.expireDate, 'DD-MM-YYYY'), 'months')
+      if (meses === null || meses === undefined) {
+        this.meses = 0
+      }
+
+      return stock.stockMoviment > 0 && meses < 0
     })
 
     return hasStock

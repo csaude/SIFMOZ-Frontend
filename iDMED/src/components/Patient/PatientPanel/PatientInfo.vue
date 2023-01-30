@@ -16,7 +16,7 @@
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Idade</div>
-        <div class="col text-grey-10">{{selectedPatient.age()}} Anos</div>
+        <div class="col text-grey-10">{{this.idadeCalculator(this.getDDMMYYYFromJSDate(selectedPatient.dateOfBirth))}} Anos </div>
       </div>
       <div class="row q-mb-sm">
         <div class="col-5 text-grey-9">Gênero</div>
@@ -99,12 +99,13 @@ export default {
   data () {
     return {
       showPatientRegister: false,
-      patient: []
+      patient: {}
     }
   },
   props: ['selectedPatient'],
   methods: {
     init () {
+      this.patient = this.selectedPatient
       this.changeToDisplayStep()
       if (this.selectedPatient === null && this.website) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
@@ -116,12 +117,16 @@ export default {
       }
     },
     editPatient () {
+      console.log(this.selectedPatient)
       this.patient = this.selectedPatient
       this.changeToEditStep()
       this.showPatientRegister = true
     }
   },
   created () {
+    this.init()
+  },
+  mounted () {
     this.init()
   },
   computed: {

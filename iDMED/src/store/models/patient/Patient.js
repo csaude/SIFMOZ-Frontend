@@ -152,8 +152,12 @@ export default class Patient extends Model {
     return await this.api().get(`/patient/searchByParam/${searchParam}/${clinicId}`)
   }
 
-  static async apiSave (patient) {
-    return await this.api().post('/patient', patient)
+  static async apiSave (patient, isNew) {
+    if (isNew) {
+      return await this.api().post('/patient', patient)
+    } else {
+      return await this.api().patch('/patient/' + patient.id, patient)
+    }
   }
 
   static async apiUpdate (patient) {

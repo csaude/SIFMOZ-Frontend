@@ -3,7 +3,7 @@
   <ListHeader
     :addVisible="false"
     @expandLess="expandLess"
-    :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code }} </ListHeader>
+    :bgColor="headerColor" >{{ (curIdentifier.service === null || curIdentifier.service === undefined) ? 'Sem Info' : curIdentifier.service.code}} </ListHeader>
     <div v-show="infoVisible">
       <q-card
       v-if="lastStartEpisode !== null && lastStartEpisode.lastVisit() !== null && prescriptionDetails !== null"
@@ -11,16 +11,16 @@
       <q-card-section class="row q-pa-none">
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
+            <div class="col text-grey-9 text-weight-medium">Data da Prescrição:</div>
+            <div v-if="prescription.prescriptionDate !== null" class="col text-grey-8">{{ (prescription.prescriptionDate === null || prescription.prescriptionDate === undefined) ? 'Sem Info' : getYYYYMMDDFromJSDate(getDateFromHyphenYYYYMMDD(prescription.prescriptionDate)) }}</div>
             <div class="col text-grey-9 text-weight-medium">Regime Terapêutico:</div>
             <div class="col text-grey-8">{{ (prescriptionDetails.therapeuticRegimen === null || prescriptionDetails.therapeuticRegimen === undefined) ? 'Sem Info' : prescriptionDetails.therapeuticRegimen.description }}</div>
-            <div class="col text-grey-9 text-weight-medium">Tipo Paciente:</div>
-            <div class="col text-grey-8">Manutenção</div>
           </div>
           <div class="row ">
             <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-9 text-weight-medium">Linha Terapêutica:</div>
             <div v-if="prescriptionDetails.therapeuticLine !== null" class="col text-grey-8">{{ (prescriptionDetails.therapeuticLine === null || prescriptionDetails.therapeuticLine === undefined) ? 'Sem Info' : prescriptionDetails.therapeuticLine.description }}</div>
             <div class="col text-grey-10">Clínico:</div>
-            <div v-if="prescription.doctor !== null" class="col text-grey-10">{{ (prescription.doctor === null || prescription.doctor === undefined) ? 'Sem Info' : prescription.doctor.fullName }}</div>
+            <div v-if="prescription.doctor !== null" class="col text-grey-8">{{ (prescription.doctor === null || prescription.doctor === undefined) ? 'Sem Info' : prescription.doctor.fullName }}</div>
           </div>
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Tipo Dispensa:</div>
@@ -31,8 +31,8 @@
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Duração:</div>
             <div class="col text-grey-8">{{ (prescription === null || prescription === undefined || prescription.duration === null) ? 'Sem Info' : prescription.duration.description }}</div>
-            <div class="col text-grey-9 text-weight-medium"></div>
-            <div class="col text-grey-8"></div>
+            <div class="col text-grey-9 text-weight-medium">Tipo Paciente:</div>
+            <div class="col text-grey-8">{{ (prescription === null || prescription === undefined || prescription.patientStatus === null) ? 'Sem Info' : prescription.patientStatus }}</div>
           </div>
           <q-separator/>
           <div class="row q-my-md">
@@ -313,7 +313,6 @@ export default {
         return PatientVisit.query().with('patientVisitDetails.*').where('id', this.lastStartEpisode.lastVisit().id).first()
       }
     },
-
     prescription () {
       if (this.lastStartEpisode === null || this.lastStartEpisode.lastVisit() === null || this.lastStartEpisode.lastVisit().prescription === null) return null
         const presc = Prescription.query()

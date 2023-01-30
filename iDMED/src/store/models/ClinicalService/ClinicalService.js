@@ -8,6 +8,7 @@ import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServic
 // import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import Drug from '../drug/Drug'
 
 export default class ClinicalService extends Model {
   static entity = 'clinicalServices'
@@ -24,8 +25,8 @@ export default class ClinicalService extends Model {
 
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
       attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),
-      clinicSectors: this.belongsToMany(ClinicSector, ClinicalServiceSector, 'clinical_service_id', 'clinic_sector_id')
-      // groups: this.hasMany(Group, 'clinical_service_id'),
+      clinicSectors: this.belongsToMany(ClinicSector, ClinicalServiceSector, 'clinical_service_id', 'clinic_sector_id'),
+      drugs: this.hasMany(Drug, 'clinical_service_id')
       // patientServiceIdentifiers: this.hasMany(PatientServiceIdentifier, 'service_id')
     }
   }

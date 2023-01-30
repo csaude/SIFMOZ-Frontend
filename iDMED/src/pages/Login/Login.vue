@@ -204,6 +204,7 @@
                   </q-avatar>
                 </div>
               </div>
+              <div class="row justify-center">Versão v.1.0.0 Beta</div>
             </q-card-section>
           </q-card>
         </transition>

@@ -35,6 +35,7 @@
                                   <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                                       <q-date
                                       v-model="dateOfBirth"
+                                      :options="optionsNonFutureDate"
                                       mask="DD-MM-YYYY"
                                       @update:model-value="idadeCalculator(dateOfBirth)">
                                       <div class="row items-center justify-end">
@@ -143,6 +144,9 @@
                           </q-item-section>
                         </q-item>
                       </template>
+                      <template v-slot:append>
+                        <q-btn round dense flat icon="add" @click.stop.prevent />
+                      </template>
                     </q-select>
                     <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
                     <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
@@ -200,12 +204,15 @@ export default {
             dateOfBirth: '',
             selectedProvince: {},
             genders: ['Masculino', 'Feminino'],
-            age: '',
+           // age: '',
             submitLoading: false,
             patient: new Patient(),
             filterRedDistricts: ref([]),
             filterRedPostos: ref([]),
-            filterRedBairros: ref([])
+            filterRedBairros: ref([]),
+            optionsNonFutureDate (dateOfBirth) {
+                  return dateOfBirth <= moment().format('YYYY/MM/DD')
+            }
         }
     },
     methods: {
@@ -270,17 +277,15 @@ export default {
         this.$refs.gender.validate()
         this.$refs.province.validate()
         this.$refs.district.validate()
+
         if (!this.$refs.firstNames.$refs.nome.$refs.ref.hasError &&
             // !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
             !this.$refs.lastNames.$refs.lastName.$refs.ref.hasError &&
             !this.$refs.province.hasError &&
             !this.$refs.gender.hasError &&
             !this.$refs.district.hasError) {
-              const dateObject = this.getJSDateFromDDMMYYY(this.dateOfBirth)
-              if (dateObject > new Date()) {
-                this.displayAlert('error', 'A data de nascimento indicada é maior que a data da corrente.')
-                this.submitLoading = false
-              } else if (this.isEditStep && (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate) < dateObject))) {
+              const dateObject = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.dateOfBirth)) // this.getDDMMYYYFromJSDate(this.dateOfBirth)
+              if (this.isEditStep && (this.patient.hasIdentifiers() && (this.getYYYYMMDDFromJSDate(this.patient.getOldestIdentifier().startDate) < dateObject))) {
                 this.displayAlert('error', 'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
                 this.submitLoading = false
               } else {
@@ -297,7 +302,7 @@ export default {
         if (this.patient.identifiers.length > 0 && this.patient.identifiers[0].clinic === null) {
           this.patient.identifiers = []
         }
-          this.patient.dateOfBirth = this.getJSDateFromDDMMYYY(this.dateOfBirth)
+          this.patient.dateOfBirth = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.dateOfBirth))
           if (this.patient.bairro !== null && this.patient.bairro.district === null) {
             this.patient.bairro.district = this.patient.district
           }
@@ -336,12 +341,14 @@ export default {
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false
         } else {
-          Localidade.insertOrUpdate({ data: this.patient.bairro })
-          await Patient.apiSave(this.patient).then(resp => {
+         // Localidade.insertOrUpdate({ data: this.patient.bairro })
+
+          await Patient.apiSave(this.patient, this.newPatient).then(resp => {
             this.patient.id = resp.response.data.id
             this.patient.$id = resp.response.data.id
             SessionStorage.set('selectedPatient', new Patient(this.patient))
             if (!this.newPatient) {
+              SessionStorage.set('selectedPatient', new Patient(this.patient))
               Patient.update({
                 where: this.patient.id,
                 data: this.patient
@@ -425,7 +432,7 @@ export default {
                                         .with('bairro')
                                         .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                         .where('id', this.selectedPatient.id).first()
-              this.dateOfBirth = moment(this.patient.dateOfBirth).format('DD-MM-YYYY')
+              this.dateOfBirth = moment(this.selectedPatient.dateOfBirth).format('DD-MM-YYYY')
           }
         } else {
               if (this.selectedPatient === null) {
@@ -448,9 +455,10 @@ export default {
         this.setStep(this.stepp)
         if (this.website) {
           const offset = 0
-          const max = 200
+          const max = 100
           Province.apiGetAll(offset, max)
           PostoAdministrativo.apiGetAll(offset, max)
+          District.apiGetAll(offset, max)
           Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
         } else {
           Province.localDbGetAll().then(provinceList => {
@@ -484,7 +492,7 @@ export default {
       districts: {
         get () {
           if (this.patient.province !== null && this.patient.province !== undefined) {
-            return District.query().with('province').where('province_id', this.patient.province.id).has('code').get()
+            return District.query().with('province').where('province_id', this.patient.province.id).get()
           } else {
             return null
           }
@@ -503,6 +511,16 @@ export default {
         get () {
           if (this.patient.postoAdministrativo !== null && this.patient.postoAdministrativo !== undefined) {
             return Localidade.query().with('postoAdministrativo.district').where('postoAdministrativo_id', this.patient.postoAdministrativo.id).has('code').get()
+          } else {
+            return null
+          }
+        }
+      },
+      age: {
+        get () {
+          const idade = this.idadeCalculator(this.dateOfBirth)
+          if (!isNaN(idade)) {
+            return idade
           } else {
             return null
           }

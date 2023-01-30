@@ -29,7 +29,7 @@
           style="height: 690px;"
           class="q-pr-md"
         >
-          <PatientInfo :selectedPatient="patient"/>
+          <PatientInfo v-model:selectedPatient.sync="patient"/>
         </q-scroll-area>
       </q-drawer>
       <div v-else class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel" style="max-width: 500px">

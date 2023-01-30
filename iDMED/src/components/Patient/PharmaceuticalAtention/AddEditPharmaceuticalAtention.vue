@@ -6,7 +6,9 @@
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
+                <div class="text-grey-10 q-ml-sm"  v-if="patient.age() <= 14"><span class="text-bold text-h6"> |
+                  <q-icon name="child_care" /> </span> {{patient.age()}} Ano(s) de Idade</div>
+                <div class="text-grey-10 q-ml-sm"  v-else><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
               </div>
               <q-separator/>
             </q-card-section>
@@ -17,7 +19,7 @@
               :thumb-style="thumbStyle"
               :content-style="contentStyle"
               :content-active-style="contentActiveStyle"
-              style="height: 410px; width: 1200px"
+              style="height: 600px; width: 1200px"
               class="q-pr-md"
             >
             <div class="text-left text-h7 bold q-ml-sm q-pa-md q-my-lg">
@@ -334,7 +336,9 @@ export default {
                 this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
                 this.patientVisit.adherenceScreening.push(this.adherenceScreening)
                 this.patientVisit.ramScreening.push(this.rAMScreening)
-                await PatientVisit.apiSave(this.patientVisit).then(resp => {
+                console.log('Responde Antes', this.patientVisit)
+
+                PatientVisit.apiSave(this.patientVisit).then(resp => {
                   PatientVisit.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                 }).catch(error => {

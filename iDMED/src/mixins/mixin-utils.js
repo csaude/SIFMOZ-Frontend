@@ -34,6 +34,8 @@ import PatientTransReferenceType from 'src/store/models/tansreference/PatientTra
 import SpetialPrescriptionMotive from 'src/store/models/prescription/SpetialPrescriptionMotive'
 import ProvincialServer from 'src/store/models/provincialServer/ProvincialServer'
 import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
+import District from 'src/store/models/district/District'
+import Province from 'src/store/models/province/Province'
 
 export default {
   data () {
@@ -68,6 +70,27 @@ export default {
   getDDMMYYYFromJSDate (jsDate) {
     return moment(jsDate).format('DD-MM-YYYY')
   },
+  getYYYYMMDDFromJSDate (jsDate) {
+    return moment(jsDate).format('YYYY-MM-DD')
+  },
+  getHyphenDDMMYYYYFromJSDate (jsDate) {
+    return moment(jsDate).format('DD/MM/YYYY')
+  },
+  getHyphenYYYYMMDDFromJSDate (jsDate) {
+    return moment(jsDate).format('YYYY/MM/DD')
+  },
+  getDateFromSlashDDMMYYYY (jsDate) {
+    return date.extractDate(jsDate, 'DD/MM/YYYY')
+  },
+  getDateFromHyphenDDMMYYYY (jsDate) {
+    return date.extractDate(jsDate, 'DD-MM-YYYY')
+  },
+  getDateFromSlashYYYYMMDD (jsDate) {
+    return date.extractDate(jsDate, 'YYYY/MM/DD')
+  },
+  getDateFromHyphenYYYYMMDD (jsDate) {
+    return date.extractDate(jsDate, 'YYYY-MM-DD')
+  },
   displayAlert (type, msg) {
     this.alert.type = type
     this.alert.msg = msg
@@ -86,6 +109,7 @@ export default {
   formatDate (dateString) {
     return date.formatDate(dateString, 'DD-MM-YYYY')
   },
+  // For Off-line
   async loadParamsToVueX () {
     TherapeuticRegimen.localDbGetAll().then(regimens => {
       regimens.forEach((regimen) => {
@@ -154,13 +178,11 @@ export default {
     })
     this.hideLoading()
   },
-  idadeCalculator (birthDate) {
-    if (moment(birthDate, 'YYYY/MM/DDDD').isValid()) {
-       const utentBirthDate = moment(birthDate, 'YYYY/MM/DDDD')
-       const todayDate = moment(new Date())
-       const idade = todayDate.diff(utentBirthDate, 'years')
-       console.log(idade)
-      return idade
+  idadeCalculator (dateOfBirth) {
+    if (dateOfBirth !== undefined && dateOfBirth !== null) {
+      return moment().diff(moment(dateOfBirth, 'DD-MM-YYYY'), 'years')
+    } else {
+      return null
     }
   },
   setStep (value) {
@@ -189,6 +211,30 @@ export default {
   },
   setAsInitializing () {
     this.initialized = false
+  },
+    // For On-line
+  doProvinceGet (offset, max) {
+    Province.apiGetAll(offset, max).then(resp => {
+      if (resp.response.data.length > 0) {
+        offset = offset + max
+        setTimeout(this.doProvinceGet(offset, max), 2)
+      }
+    })
+  },
+  doDistrictGet (offset, max) {
+    District.apiGetAll(offset, max).then(resp => {
+        if (resp.response.data.length > 0) {
+          offset = offset + max
+          setTimeout(this.doDistrictGet(offset, max), 2)
+        }
+      })
+  },
+  loadProvinceDistricts () {
+    const offset = 0
+    const max = 100
+
+    this.doProvinceGet(offset, max)
+    this.doDistrictGet(offset, max)
   },
   async loadWebParamsToVueX () {
     const offset = 0
@@ -231,29 +277,6 @@ export default {
     await DispenseMode.apiGetAll()
     await GroupType.apiGetAll()
     this.hideLoading()
-  },
-  getDateFormatDDMMYYYY (date) {
-    return moment(date, 'DD-MM-YYYY').format('DD-MM-YYYY')
-  },
-
-  getDateFormatMMDDYYYY (date) {
-    return moment(date, 'MM-DD-YYYY').format('MM-DD-YYYY')
-  },
-
-  getDateFormatYYYYMMDD (date) {
-    return moment(date, 'MM-DD-YYYY').format('MM-DD-YYYY')
-  },
-
-  getDateFormatYYYYMMDDFromDDMMYYYY (date) {
-    return moment(date, 'DD-MM-YYYY').format('YYYY-MM-DD')
-  },
-
-  getDateFormatDDMMYYYYFromYYYYMMDD (date) {
-    return moment(date, 'YYYY-MM-DD').format('DD-MM-YYYY')
-  },
-
-  getDateFormatDDMMYYYYDash (date) {
-    return moment(date, 'DD-MM-YYYY').format('DD/MM/YYYY')
   }
  },
   computed: {
