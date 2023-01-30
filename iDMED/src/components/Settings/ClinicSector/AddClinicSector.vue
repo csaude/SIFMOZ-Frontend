@@ -142,10 +142,7 @@ export default {
              this.$refs.code.$refs.ref.validate()
              this.$refs.clinicSectorRef.validate()
               this.$refs.clinic.validate()
-              const cliSectors = this.clinicSectors.filter(clinicSector => clinicSector.code === this.clinicSector.code)
-              if (cliSectors.length > 0) {
-                this.displayAlert('error', 'Já existe um sector clínico com esse código')
-              } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
+               if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
              !this.$refs.clinic.hasError && !this.$refs.clinicSectorRef.hasError) {
                 this.submitClinicSector()
             }
@@ -226,7 +223,8 @@ export default {
     codeRules (val) {
       if (this.clinicSector.code === '') {
         return 'o Código é obrigatorio'
-      } else if (!this.clinicSector.id && this.selectedClinicSector.id === this.clinicSector.id) {
+      } else if ((this.databaseCodes.includes(val) && this.selectedClinicSector.id === this.clinicSector.id && !this.isEditStep) ||
+      ((this.databaseCodes.includes(val) && this.clinicSectors.filter(x => x.code === val)[0].id !== this.clinicSector.id && this.isEditStep))) {
       return !this.databaseCodes.includes(val) || 'o Código indicado já existe'
          }
     }

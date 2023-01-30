@@ -132,6 +132,7 @@ export default {
          // this.healthInformationAttributeTypes.push(this.selectedHis.interoperabilityAttributes)
           }
          // this.selectedAttributes = this.selectedHis.interoperabilityAttributes
+         this.extractDatabaseCodes()
         }
     },
       mounted () {
@@ -142,6 +143,9 @@ export default {
     computed: {
         interoperabilityAttributes () {
            return InteroperabilityType.all()
+      },
+      healthInformationSystemList () {
+       return HealthInformationSystem.all()
       }
     },
     methods: {
@@ -226,13 +230,24 @@ export default {
           this.$refs.stepper.next()
             }
           // console.log(this.healthInformationAttributeTypes)
-        } else {
-          this.submitHis()
-             }
+        } else if (this.stepScreens === 2) {
+            //  this.his.interoperabilityAttributes.push(this.healthInformationAttributeTypes)
+            var control = 0
+            this.healthInformationAttributeTypes.forEach(attribute => {
+              if (attribute.value === '') {
+                control++
+              }
+          })
+          if (control > 0) {
+            this.displayAlert('error', 'Por Favor preencha o valor dos atributos seleccionados para a Interoperabilidade')
+          } else {
+            this.submitHis()
+          }
+        }
         },
     extractDatabaseCodes () {
-        this.codes.forEach(element => {
-            this.databaseCodes.push(element.code)
+        this.healthInformationSystemList.forEach(element => {
+            this.databaseCodes.push(element.abbreviation)
     })
     },
     displayAlert (type, msg) {
@@ -251,10 +266,11 @@ export default {
       InteroperabilityType.apiGetAll(offset, max)
     },
       codeRules (val) {
-      if (this.his.code === '') {
+      if (this.his.abbreviation === '') {
         return 'o Código e obrigatório'
-      } else if (!this.his.id && this.selectedHis.id === this.his.id) {
-      return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
+      } else if ((this.databaseCodes.includes(val) && this.selectedHis.id === this.his.id && !this.isEditStep) ||
+      ((this.databaseCodes.includes(val) && this.healthInformationSystemList.filter(x => x.abbreviation === val)[0].id !== this.his.id && this.isEditStep))) {
+      return !this.databaseCodes.includes(val) || 'o Código indicado já existe'
          }
     },
     addAttributesOnHealthInformationSystem () {
