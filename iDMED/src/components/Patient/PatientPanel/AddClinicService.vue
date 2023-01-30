@@ -6,7 +6,9 @@
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos</div>
+                <div class="text-grey-10 q-ml-sm"  v-if="patient.age() <= 14"><span class="text-bold text-h6"> |
+                  <q-icon name="child_care" /> </span> {{patient.age()}} Ano(s) de Idade</div>
+                <div class="text-grey-10 q-ml-sm"  v-else><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
               </div>
               <q-separator/>
             </q-card-section>
@@ -49,7 +51,7 @@
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="identifierstartDate" mask="DD-MM-YYYY" >
+                              <q-date v-model="identifierstartDate"  :options="optionsNonFutureDate" mask="DD-MM-YYYY" >
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -66,7 +68,7 @@
                     :rules="[ val => !!val || 'Por favor indicar o estado']"
                     :disable="isCloseStep || isReOpenStep"
                     v-model="identifier.state"
-                    :options="estados"
+                    :options="isCreateStep ? estado : estados"
                     label="Estado *" />
               </div>
 
@@ -291,6 +293,7 @@ import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSecto
 import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import moment from 'moment'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'stepp'],
    mixins: [mixinplatform, mixinutils],
@@ -302,6 +305,7 @@ export default {
             identifier: new PatientServiceIdentifier(),
             closureEpisode: new Episode(),
             estados: ['Activo', 'Inactivo'],
+            estado: ['Activo'],
             endDate: '',
             reOpenDate: '',
             usePreferedId: false,
@@ -309,7 +313,10 @@ export default {
             selectedProvince: null,
             selectedDistrict: null,
             selectedClinicSectorType: null,
-            selectedClinicSector: null
+            selectedClinicSector: null,
+            optionsNonFutureDate (dateOfBirth) {
+                  return dateOfBirth <= moment().format('YYYY/MM/DD')
+            }
         }
     },
     methods: {
@@ -767,7 +774,7 @@ export default {
       },
       clinicalServices: {
         get () {
-          return ClinicalService.query().with('identifierType').has('code').get()
+          return ClinicalService.query().with('identifierType').has('code').orderBy('code', 'asc').get()
         }
       },
       notAssociatedServices: {
@@ -776,17 +783,17 @@ export default {
         }
       },
       clinicSerctors () {
-        return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).get()
+        return ClinicSector.query().with('clinic').where('clinic_id', this.currClinic.id).orderBy('code', 'asc').get()
       },
       identifierTypes () {
         return IdentifierType.all()
       },
       pharmacies () {
-        return Clinic.query().with('province').where('mainClinic', false).get()
+        return Clinic.query().with('province').where('mainClinic', false).orderBy('code', 'asc').get()
       },
       stopReasons () {
         const allReasons = StartStopReason.query()
-                              .where('isStartReason', false).get()
+                              .where('isStartReason', false).orderBy('reason', 'asc').get()
         let resonList = []
         if (this.lastEpisode.isReferenceOrTransferenceEpisode()) {
           resonList = allReasons.filter((reason) => {

@@ -6,7 +6,9 @@
                 <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
                 <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
                 <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-                <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos</div>
+                <div class="text-grey-10 q-ml-sm"  v-if="patient.age() <= 14"><span class="text-bold text-h6"> |
+                  <q-icon name="child_care" /> </span> {{patient.age()}} Ano(s) de Idade</div>
+                <div class="text-grey-10 q-ml-sm"  v-else><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
               </div>
               <q-separator/>
             </q-card-section>
@@ -87,7 +89,7 @@
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                              <q-date v-model="startDate" mask="DD-MM-YYYY">
+                              <q-date v-model="startDate"  :options="optionsNonFutureDate" mask="DD-MM-YYYY">
                               <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="primary" flat />
                               </div>
@@ -242,6 +244,7 @@ import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import moment from 'moment'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     mixins: [mixinplatform, mixinutils],
@@ -256,7 +259,10 @@ export default {
             selectedProvince: null,
             selectedDistrict: null,
             selectedClinicSectorType: null,
-            selectedClinicSector: null
+            selectedClinicSector: null,
+            optionsNonFutureDate (dateOfBirth) {
+                  return dateOfBirth <= moment().format('YYYY/MM/DD')
+            }
         }
     },
     methods: {
@@ -292,9 +298,9 @@ export default {
           this.$refs.clinicSerctor.validate()
           if (!this.$refs.startReason.hasError &&
               !this.$refs.clinicSerctor.hasError) {
-                if (this.getJSDateFromDDMMYYY(this.startDate) > new Date(new Date().setHours(0, 0, 0, 0))) {
+                if (this.getJSDateFromDDMMYYY(this.startDate) > moment().format('DD-MM-YYYY')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (this.getJSDateFromDDMMYYY(this.startDate) < new Date(new Date(this.curIdentifier.startDate).setHours(0, 0, 0, 0))) {
+                } else if (this.getJSDateFromDDMMYYY(this.startDate) < this.getJSDateFromDDMMYYY(this.curIdentifier.startDate)) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {
@@ -304,7 +310,7 @@ export default {
                                       .with('patientVisitDetails.*')
                                       .where('id', this.episodeToEdit.id)
                                       .first()
-                    if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.startDate) < new Date(new Date(episode.lastVisit().lastPack().pickupDate).setHours(0, 0, 0, 0)))) {
+                    if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.startDate) < this.getJSDateFromDDMMYYY(episode.lastVisit().lastPack().pickupDate))) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
                     } else {
                       this.doSave()
@@ -322,7 +328,7 @@ export default {
           this.episode.notes = 'Inicio ao tratamento'
           this.episode.clinic = this.currClinic
           this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
-          this.episode.creationDate = new Date(new Date().setHours(0, 0, 0, 0))
+          this.episode.creationDate = moment().format('DD-MM-YYYY')
         } else {
           if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
             this.step = 'close'
@@ -334,12 +340,12 @@ export default {
                     this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
                     this.closureEpisode.clinic = this.currClinic
                     this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.stopDate)
-                    this.closureEpisode.creationDate = new Date(new Date().setHours(0, 0, 0, 0))
+                    this.closureEpisode.creationDate = moment().format('DD-MM-YYYY')
                     this.closureEpisode.patientServiceIdentifier = this.identifier
 
-                    if (this.getJSDateFromDDMMYYY(this.stopDate) > new Date(new Date().setHours(0, 0, 0, 0))) {
+                    if (this.getJSDateFromDDMMYYY(this.stopDate) > moment().format('DD-MM-YYYY')) {
                       this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
-                    } else if (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(this.episode.episodeDate)) {
+                    } else if (this.getJSDateFromDDMMYYY(this.stopDate) < this.getJSDateFromDDMMYYY(this.episode.episodeDate)) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data de inicio ao tratamento.')
                     } else {
                       console.log(this.episodeToEdit)
@@ -355,7 +361,7 @@ export default {
                                                                                                     .where('prescription_id', episode.lastVisit().prescription.id)
                                                                                                     .get()
                       }
-                      if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+                      if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < this.getJSDateFromDDMMYYY(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode || this.isDCReferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
                         this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
@@ -423,12 +429,12 @@ export default {
             Episode.insert({ data: lastEpisodeCopy })
             this.displayAlert('info', 'Operação efectuada com sucesso.')
           } else {
-            Episode.apiSave(this.episode).then(resp => {
+            Episode.apiSave(this.episode, !this.isEditStep).then(resp => {
             if (new Episode(this.episode).isBackReferenceEpisode()) {
               const transReference = new PatientTransReference({
                 syncStatus: 'P',
                 operationDate: this.episode.episodeDate,
-                creationDate: new Date(),
+                creationDate: moment().format('DD-MM-YYYY'),
                 operationType: PatientTransReferenceType.query().where('code', 'VOLTOU_DA_REFERENCIA').first(),
                 origin: this.currClinic,
                 destination: new Episode(lastEpisodeCopy).isDCReferenceEpisode() ? this.lastEpisode.clinicSector.uuid : this.lastEpisode.referralClinic.uuid,
@@ -451,7 +457,7 @@ export default {
           const transReference = new PatientTransReference({
             syncStatus: 'P',
             operationDate: this.closureEpisode.episodeDate,
-            creationDate: new Date(),
+            creationDate: moment().format('DD-MM-YYYY'),
             operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
             origin: this.currClinic,
             destination: this.closureEpisode.referralClinic.uuid,
@@ -470,7 +476,7 @@ export default {
           const transReference = new PatientTransReference({
             syncStatus: 'P',
             operationDate: this.closureEpisode.episodeDate,
-            creationDate: new Date(),
+            creationDate: moment().format('DD-MM-YYYY'),
             operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
             origin: this.currClinic,
             destination: this.selectedClinicSector.uuid,
@@ -542,14 +548,14 @@ export default {
         get () {
            if (this.isReferenceEpisode) {
              this.loadProvince()
-            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).get()
+            return Province.query().with('districts.*').has('code').where('id', this.currClinic.province.id).orderBy('code', 'asc').get()
           } else {
-            return Province.query().with('districts.*').has('code').get()
+            return Province.query().with('districts.*').has('code').orderBy('code', 'asc').get()
           }
         }
       },
       clinicSectorTypes () {
-        return ClinicSectorType.query().with('clinicSectorList').get()
+        return ClinicSectorType.query().with('clinicSectorList').orderBy('code', 'asc').get()
       },
       referealClinicSectors () {
         if (this.selectedClinicSectorType === null) return []
@@ -559,7 +565,7 @@ export default {
         get () {
           if (this.selectedProvince !== null && this.selectedProvince !== undefined) {
             if (this.isReferenceEpisode) this.loadProvince()
-            return District.query().with('province').where('province_id', this.selectedProvince.id).has('code').get()
+            return District.query().with('province').where('province_id', this.selectedProvince.id).has('code').orderBy('code', 'asc').get()
           } else {
             return null
           }
@@ -591,6 +597,7 @@ export default {
                                     .with('clinic')
                                     .with('clinicSectorType')
                                     .where((sector) => { return sector.clinic_id === this.currClinic.id && sector.active === true })
+                                    .orderBy('code', 'asc')
                                     .get()
         const sectorList = sectors.filter((sector) => {
           return sector.clinicSectorType.code === 'PARAGEM_UNICA'
@@ -608,7 +615,9 @@ export default {
                             .with('facilityType')
                             .where((clinic) => {
                               return clinic.mainClinic === false && clinic.active === true
-                            }).get()
+                            })
+                            .orderBy('code', 'asc')
+                            .get()
             const filteredList = clinicList.filter((clinic) => {
               return clinic.facilityType.code !== 'US' && clinic.province.id === this.selectedProvince.id && clinic.district.id === this.selectedDistrict.id
             })
@@ -621,7 +630,9 @@ export default {
                             .with('facilityType')
                             .where((clinic) => {
                               return clinic.mainClinic === false && clinic.active === true
-                            }).get()
+                            })
+                            .orderBy('code', 'asc')
+                            .get()
             const filteredList = clinicList.filter((clinic) => {
               return clinic.facilityType.code === 'US' && clinic.province.id === this.selectedProvince.id && clinic.district.id === this.selectedDistrict.id
             })
@@ -663,7 +674,7 @@ export default {
       },
       stopReasons () {
         const allReasons = StartStopReason.query()
-                              .where('isStartReason', false).get()
+                              .where('isStartReason', false).orderBy('reason', 'asc').get()
         let resonList = []
         if (this.lastEpisode !== null && this.lastEpisode.isReferenceOrTransferenceEpisode()) {
           resonList = allReasons.filter((reason) => {

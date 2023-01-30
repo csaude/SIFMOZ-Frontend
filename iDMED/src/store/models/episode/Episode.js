@@ -89,8 +89,12 @@ export default class Episode extends Model {
     return lastVisit
   }
 
-  static async apiSave (episode) {
-    return await this.api().post('/episode', episode)
+  static async apiSave (episode, isNew) {
+    if (isNew) {
+      return await this.api().post('/episode', episode)
+    } else {
+      return await this.api().patch('/episode/' + episode.id, episode)
+    }
   }
 
   static async apiUpdate (episode) {

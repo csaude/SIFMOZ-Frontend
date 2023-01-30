@@ -85,7 +85,7 @@
                   {{props.row.fullName}}
                 </q-td>
                 <q-td key="age" :props="props">
-                  {{props.row.age()}}
+                  {{this.idadeCalculator(this.getDDMMYYYFromJSDate(props.row.dateOfBirth))}}
                 </q-td>
                 <q-td key="gender" :props="props">
                   {{props.row.gender}}
@@ -363,6 +363,8 @@ export default {
                                       .with('bairro')
                                       .with(['clinic.province', 'clinic.district.province'])
                                       .where('clinic_id', this.clinic.id)
+                                      .orderBy('firstNames')
+                                      .orderBy('identifiers.value', 'asc')
                                       .get()
             }
           })
@@ -378,6 +380,8 @@ export default {
                                 .with('bairro')
                                 .with(['clinic.province', 'clinic.district.province'])
                                 .where('clinic_id', this.clinic.id)
+                                .orderBy('firstNames')
+                                .orderBy('identifiers.value', 'asc')
                                 .get()
           this.patients = patients.filter((patient) => {
             return this.filterPatient(patient)
@@ -522,6 +526,7 @@ export default {
     mounted () {
       this.saveDefaultHIS()
       this.getAllDataSources(0)
+      this.loadProvinceDistricts()
       // this.getAllPatientsOfClinic()
       // this.loadAppParameters()
     },

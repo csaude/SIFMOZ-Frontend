@@ -168,8 +168,14 @@ export default {
         this.tryToDetermineDefaultTakePeriod()
       },
       getJSDateFromDDMMYYY (dateString) {
-        const dateParts = dateString.split('-')
-        return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+        if (dateString !== null && dateString !== undefined) {
+          return moment(dateString).format('DD-MM-YYYY')
+        } else {
+          return moment().format('DD-MM-YYYY')
+        }
+
+        // const dateParts = dateString.split('-')
+        // return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
       },
       getDDMMYYYFromJSDate (jsDate) {
         return moment(jsDate).format('DD-MM-YYYY')

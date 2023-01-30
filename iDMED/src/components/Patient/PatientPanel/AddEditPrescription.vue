@@ -1,11 +1,13 @@
 <template>
-  <q-card style="width: 1250px; max-width: 100vw;">
-      <q-card-section class="q-pa-none bg-green-2" >
+  <q-card style="width: 1350px; max-width: 110vw;">
+      <q-card-section style="max-height: 50vh" class="q-pa-none bg-green-2" >
         <div class="row items-center text-subtitle1 q-pa-md">
           <q-icon  :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary"/>
           <div class="text-bold text-grey-10 q-ml-sm">{{patient.fullName}}</div>
           <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.gender}}</div>
-          <div class="text-grey-10 q-ml-sm"><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
+          <div class="text-grey-10 q-ml-sm"  v-if="patient.age() <= 14"><span class="text-bold text-h6"> |
+            <q-icon name="child_care" /> </span> {{patient.age()}} Ano(s) de Idade</div>
+          <div class="text-grey-10 q-ml-sm"  v-else><span class="text-bold text-h6">|</span> {{patient.age()}} Anos de Idade</div>
         </div>
         <q-separator/>
       </q-card-section>
@@ -14,7 +16,7 @@
           :thumb-style="thumbStyle"
           :content-style="contentStyle"
           :content-active-style="contentActiveStyle"
-          style="height: 500px;"
+          style="height: 650px;"
           class="q-pr-md"
         >
         <span>
@@ -28,7 +30,8 @@
           @done="saveCurPatientVisitDetails"
           @closeSection="cancelEdition"
           class="q-mt-xs"
-          :bgColor="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id) ? 'bg-amber-9' : 'bg-primary'">Prescrição {{clinicalService.code}}
+          :bgColor="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id) ? 'bg-amber-9' : 'bg-primary'">
+          Prescrição {{clinicalService.code}} - {{ this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).identifierType.code }}: {{ this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).value }}
         </ListHeader>
         <div class="box-border q-pa-sm" v-if="selectedClinicalService !== null && (clinicalService.id === selectedClinicalService.id)">
         <ListHeader
@@ -205,7 +208,7 @@
           </div>
         </div>
       </span>
-      <div class="row q-mt-xs"  v-if="showDispenseMd">
+      <div class="row q-mt-xs">
         <q-banner
           dense
           inline-actions
@@ -239,6 +242,7 @@
             class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events">
 
               <q-btn
+                v-if="!inFormEdition"
                 label="Cancelar"
                 color="red"
                 class="all-pointer-events"
@@ -351,6 +355,7 @@ export default {
   },
   methods: {
     async init () {
+      console.log('Init Step', this.stepp)
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
       if (this.mobile) {
@@ -359,7 +364,6 @@ export default {
           ClinicalServiceAttribute.insert({ data: regimens })
         })
       }
-      console.log(this.isEditPackStep)
       if (this.isNewPackStep || this.isEditPackStep) {
         this.initPatientVisitDetailsForDispense()
       } else {
@@ -377,7 +381,7 @@ export default {
       const pack = new Pack({
         clinic: this.currClinic
       })
-
+      console.log('Prescricao init ', this.curPatientVisitDetail)
       this.curPatientVisitDetail = PatientVisitDetails.query().with('clinic.*')
                                                               .with('episode.patientServiceIdentifier.service')
                                                               .with('patientVisit')
@@ -389,7 +393,6 @@ export default {
                                                                                       .where('id', this.curPatientVisitDetail.prescription.prescriptionDetails[0].id)
                                                                                       .get()
       this.prescriptionDate = this.getDDMMYYYFromJSDate(this.curPatientVisitDetail.prescription.prescriptionDate)
-
       this.selectedClinicalService = ClinicalService.query()
                                                     .with('attributes.*')
                                                     .with('therapeuticRegimens')
@@ -400,11 +403,8 @@ export default {
                                                                                   .with('drug.form')
                                                                                   .where('prescription_id', this.curPatientVisitDetail.prescription.id)
                                                                                   .get()
-
       const prescribedDrugs = this.curPatientVisitDetail.prescription.prescribedDrugs
-
       let packagedDrugs = null
-
       if (this.curPatientVisitDetail.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
         this.spetialPrescription = true
       }
@@ -422,7 +422,6 @@ export default {
               }
           })
         })
-
           this.curPatientVisitDetail.pack = null
           if (this.isFirstPack) {
             pack.pickupDate = this.curPatientVisitDetail.prescription.prescriptionDate
@@ -431,7 +430,6 @@ export default {
           } else {
             pack.pickupDate = this.lastPack.nextPickUpDate
           }
-
           this.curPatientVisitDetail.pack = pack
           this.curPatientVisitDetail.id = null
           this.curPatientVisitDetail.$id = null
@@ -442,13 +440,11 @@ export default {
         this.curPatientVisitDetail.pack.packagedDrugs = []
         this.curPatientVisitDetail.pack.clinic = this.currClinic
       }
-
       if (this.isEditPackStep) {
         this.curPatientVisitDetail.pack.patientVisitDetails = []
         this.curPatientVisitDetail.pack.packagedDrugs = []
         this.curPatientVisitDetail.pack.clinic = this.currClinic
       }
-
       if (this.selectedVisitDetails !== null) {
         this.curPatientVisitDetail.createPackLater = this.selectedVisitDetails.createPackLater
       }
@@ -467,7 +463,7 @@ export default {
     },
     initPatientVisit () {
       if (this.isNewPackStep || !this.isEditPackStep) {
-        this.patientVisit.visitDate = new Date()
+        this.patientVisit.visitDate = this.getYYYYMMDDFromJSDate(moment())
       } else {
         this.patientVisit = PatientVisit.query()
                                         .with('clinic.*')
@@ -507,14 +503,12 @@ export default {
         clinic: this.currClinic,
         syncStatus: this.patient.his_id.length > 10 ? 'R' : 'N'
       })
-
       let prescription = null
       if (this.service === null || this.service === undefined) {
         prescription = new Prescription({
-          prescriptionDate: new Date(),
+          prescriptionDate: this.getYYYYMMDDFromJSDate(moment()),
           clinic: this.currClinic
         })
-
         const prescriptionDetail = new PrescriptionDetail()
         prescription.prescriptionDetails.push(prescriptionDetail)
       } else {
@@ -529,20 +523,16 @@ export default {
             pd.$id = null
           })
       }
-
       const curPatientVisitDetail = new PatientVisitDetails({
         patientVisit: this.patientVisit,
         clinic: this.currClinic,
         episode: Episode.query().with(['episodeType', 'startStopReason', 'clinicSector', 'patientServiceIdentifier.service']).where('id', episode.id).first()
       })
-
       curPatientVisitDetail.pack = pack
       curPatientVisitDetail.prescription = prescription
       curPatientVisitDetail.createPackLater = this.selectedVisitDetails.createPackLater
-
       episode.patientVisitDetails.push(curPatientVisitDetail)
       SessionStorage.set(curPatientVisitDetail.episode.patientServiceIdentifier.service.code, curPatientVisitDetail)
-
       this.curPatientVisitDetails.push(curPatientVisitDetail)
     },
     initEdition (clinicalService) {
@@ -625,13 +615,11 @@ export default {
           pd.nextPickUpDate = object.nextPickUpDate
         }
       })
-
       this.patientVisit.patientVisitDetails.forEach((pvd) => {
         if (pvd.id === patientVDetails.id) {
           pvd = patientVDetails
         }
       })
-
       if (this.mobile) {
         this.doMobileSave()
       } else {
@@ -651,7 +639,6 @@ export default {
     cancelYesNo () {
       this.alert.visible = false
     },
-
     checkClinicalServiceAttr (attr) {
       if (this.selectedClinicalService === '' || this.selectedClinicalService === null || this.selectedClinicalService === undefined) return false
       const has = this.selectedClinicalService.attributes.some((attribute) => {
@@ -668,7 +655,6 @@ export default {
         if (duration !== undefined) this.curPatientVisitDetail.pack.weeksSupply = duration.weeks
       }
     },
-
     validateForm () {
       // this.$refs.clinicalService.validate()
       if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
@@ -679,7 +665,6 @@ export default {
       this.$refs.patientStatus.validate()
       // if (this.hasPatientType) this.$refs.patientType.validate()
       this.$refs.dispenseType.validate()
-
       if (!this.$refs.patientStatus.hasError &&
           // !this.$refs.clinicalService.hasError &&
           // (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
@@ -688,14 +673,14 @@ export default {
           !this.$refs.doctor.hasError &&
           // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
-            if (this.getJSDateFromDDMMYYY(this.prescriptionDate) < new Date(this.curPatientVisitDetail.episode.episodeDate)) {
+            if (this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.prescriptionDate)) < this.getYYYYMMDDFromJSDate(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
             } else if (this.spetialPrescription && this.$refs.hasError) {
               this.displayAlert('error', 'Prescrição especial')
-            } else if (new Date(this.pickupDate) > new Date()) {
+            } else if (this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.pickupDate)) > this.getYYYYMMDDFromJSDate(moment())) {
               this.displayAlert('error', 'A data da prescrição indicada é maior que a data da corrente')
             } else {
-              this.curPatientVisitDetail.prescription.prescriptionDate = this.getJSDateFromDDMMYYY(this.prescriptionDate)
+              this.curPatientVisitDetail.prescription.prescriptionDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.prescriptionDate))
               this.showServiceDrugsManagement = true
             }
       }
@@ -739,7 +724,7 @@ export default {
             hasError = true
             const errorMsg = 'O Período para o qual pretende efectuar a dispensa é maior que o período de validade da prescrição de'
             error = error === '' ? errorMsg + ' ' + this.selectedClinicalService.description : error + ', ' + errorMsg + ' ' + this.selectedClinicalService.description
-          } else if (new Date(visitDetails.pack.pickupDate) > new Date()) {
+          } else if (new Date(visitDetails.pack.pickupDate) > this.getYYYYMMDDFromJSDate(moment())) {
             hasError = true
             error = 'A data de levantamento indicada é maior que a data corrente'
           } else if (this.dispenseMode === null || this.dispenseMode === undefined || this.dispenseMode === '') {
@@ -780,7 +765,7 @@ export default {
       packagedDrugStock.drug = drug
       packagedDrugStock.stock = stock
       packagedDrugStock.quantitySupplied = quantitySupplied
-      packagedDrugStock.creationDate = new Date()
+      packagedDrugStock.creationDate = this.getYYYYMMDDFromJSDate(moment())
       return packagedDrugStock
     },
     generatePacks (visitDetails) {
@@ -799,7 +784,7 @@ export default {
                             .orderBy('expireDate', 'asc')
                             .get()
         const validStock = stocks.filter((item) => {
-          return new Date(item.expireDate) > new Date() && item.stockMoviment > 0
+          return moment(item.expireDate).format('YYYY-MM-DD') > moment().format('YYYY-MM-DD') && item.stockMoviment > 0
         })
         if (validStock !== undefined && validStock !== null) {
           let avalivableStock = 0
@@ -810,7 +795,7 @@ export default {
             let i = 0
             while (qtyPrescribed > 0) {
               if (validStock[i].stockMoviment >= qtyPrescribed) {
-                validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
+                // validStock[i].stockMoviment = Number(validStock[i].stockMoviment - qtyPrescribed)
                 stocksToMoviment.push(validStock[i])
                 qtyPrescribed = 0
                 // const pkstock = this.initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
@@ -818,7 +803,7 @@ export default {
                 packagedDrugStock.drug = prescribedDrug.drug
                 packagedDrugStock.stock = validStock[i]
                 packagedDrugStock.quantitySupplied = prescribedDrug.qtyPrescribed
-                packagedDrugStock.creationDate = new Date()
+                packagedDrugStock.creationDate = moment().format('YYYY-MM-DD')
                 packagedDrugStocks.push(packagedDrugStock)
               } else {
                 const availableBalance = validStock[i].stockMoviment
@@ -829,7 +814,7 @@ export default {
                 packagedDrugStock.drug = prescribedDrug.drug
                 packagedDrugStock.stock = validStock[i]
                 packagedDrugStock.quantitySupplied = availableBalance
-                packagedDrugStock.creationDate = new Date()
+                packagedDrugStock.creationDate = moment().format('YYYY-MM-DD')
                 i = i + 1
               }
             }
@@ -848,7 +833,6 @@ export default {
     },
     proccedToDispense () {
       const encode64Credentials = localStorage.getItem('encodeBase64')
-
       if (this.isNewPackStep || this.isEditPackStep || this.isFirstPack) {
         this.curPatientVisitDetails[0].patientVisit = null
         this.curPatientVisitDetails[0].prescription.patientVisitDetails = null
@@ -895,7 +879,6 @@ export default {
             memberPrescription.prescription.doctor_id = memberPrescription.prescription.doctor.id
             memberPrescription.prescription.clinic_id = memberPrescription.prescription.clinic.id
             memberPrescription.prescription.duration_id = memberPrescription.prescription.duration.id
-
             memberPrescription.prescription.prescriptionDetails[0].prescription_id = memberPrescription.prescription.id
             memberPrescription.prescription.prescriptionDetails[0].therapeutic_line_id = memberPrescription.prescription.prescriptionDetails[0].therapeuticLine.id
             memberPrescription.prescription.prescriptionDetails[0].therapeutic_regimen_id = memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id
@@ -903,12 +886,10 @@ export default {
             if (memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
               memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = memberPrescription.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
             }
-
             memberPrescription.prescription.prescribedDrugs.forEach((pDrug) => {
               pDrug.prescription_id = memberPrescription.prescription.id
               pDrug.drug_id = pDrug.drug.id
             })
-
             Prescription.localDbAdd(memberPrescription.prescription)
             memberPrescription.prescription.prescribedDrugs = []
             GroupMemberPrescription.localDbAdd(memberPrescription)
@@ -951,7 +932,6 @@ export default {
         this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
         const packDateError = this.setRelationIdentifiers()
-
         if (this.mobile) {
           if (!packDateError) this.doMobileSave()
         } else {
@@ -1000,17 +980,14 @@ export default {
             pvd.patient_visit_id = this.patientVisit.id
             pvd.prescription_id = pvd.prescription.id
             pvd.pack_id = pvd.pack.id
-
             if (pvd.prescription.syncStatus === '' || (pvd.prescription.syncStatus === 'R' && this.isEditPackStep)) {
               pvd.prescription.syncStatus = 'R'
             } else if (pvd.prescription.syncStatus === 'S' && this.isEditPackStep) {
               pvd.prescription.syncStatus = 'U'
             }
-
             pvd.prescription.doctor_id = pvd.prescription.doctor.id
             pvd.prescription.clinic_id = pvd.prescription.clinic.id
             pvd.prescription.duration_id = pvd.prescription.duration.id
-
             pvd.prescription.prescriptionDetails[0].prescription_id = pvd.prescription.id
             pvd.prescription.prescriptionDetails[0].therapeutic_line_id = pvd.prescription.prescriptionDetails[0].therapeuticLine.id
             if (pvd.prescription.prescriptionDetails[0].therapeuticRegimen !== null) {
@@ -1020,15 +997,12 @@ export default {
             if (pvd.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null) {
               pvd.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id = pvd.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id
             }
-
              pvd.prescription.prescribedDrugs.forEach((pDrug) => {
               pDrug.prescription_id = pvd.prescription.id
               pDrug.drug_id = pDrug.drug.id
             })
-
             pvd.pack.dispenseMode_id = pvd.pack.dispenseMode.id
             pvd.pack.clinic_id = pvd.pack.clinic.id
-
             pvd.pack.packagedDrugs.forEach((pDrug) => {
               pDrug.pack_id = pvd.pack.id
               pDrug.drug_id = pDrug.drug.id
@@ -1108,6 +1082,7 @@ export default {
     },
     doWebSave () {
       if (!this.isEditPackStep) {
+        console.log('Regista Dipsnsa', this.patientVisit)
         PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
           const pv = JSON.parse(JSON.stringify(this.patientVisit))
           PatientVisit.insert({ data: pv })
@@ -1222,9 +1197,9 @@ export default {
         return dateString
       }
     },
-    getDDMMYYYFromJSDate (jsDate) {
-      return moment(jsDate).format('DD-MM-YYYY')
-    },
+    // getDDMMYYYFromJSDate (jsDate) {
+    //   return moment(jsDate).format('DD-MM-YYYY')
+    // },
     checkPrescribedDrugs () {
       const somePrescribed = this.clinicalServices.some((service) => {
         return SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0

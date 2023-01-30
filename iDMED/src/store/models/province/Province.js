@@ -30,7 +30,7 @@ export default class Province extends Model {
   }
 
   static async apiGetAll (offset, max) {
-    return await this.api().get('/province')
+    return await this.api().get('/province?offset=' + offset + '&max=' + max)
   }
 
   static localDbAdd (province) {
