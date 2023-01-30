@@ -67,7 +67,7 @@ export default {
       fontSize: '14'
     },
     {
-      content: 'Província: ' + province,
+      content: 'Província: ' + firstObject.province,
       halign: 'center',
       valign: 'left',
       fontStyle: 'bold',
