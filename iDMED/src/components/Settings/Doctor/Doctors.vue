@@ -177,7 +177,7 @@ export default {
             this.$q.dialog({ title: 'Confirm', message: doctor.active ? 'Deseja Inactivar o Clínico?' : 'Deseja Activar o Clínico?', cancel: true, persistent: true }).onOk(() => {
               if (doctor.active) {
                 doctor.active = false
-                  msg = 'Clínico inactivada com sucesso.'
+                  msg = 'Clínico inactivado com sucesso.'
               } else if (!doctor.active) {
                   doctor.active = true
                      msg = 'Clínico activado com sucesso.'

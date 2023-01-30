@@ -36,7 +36,7 @@
                     :options="clinicSectorTypes"
                     transition-show="flip-up"
                     transition-hide="flip-down"
-                    ref="clinic"
+                    ref="clinicSectorRef"
                     option-value="id"
                     option-label="description"
                     :rules="[ val => ( val != null ) || ' Por favor indique o tipo de Sector']"
@@ -140,9 +140,13 @@ export default {
     validateClinicSector () {
             this.$refs.nome.$refs.ref.validate()
              this.$refs.code.$refs.ref.validate()
+             this.$refs.clinicSectorRef.validate()
               this.$refs.clinic.validate()
-            if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
-             !this.$refs.clinic.hasError) {
+              const cliSectors = this.clinicSectors.filter(clinicSector => clinicSector.code === this.clinicSector.code)
+              if (cliSectors.length > 0) {
+                this.displayAlert('error', 'Já existe um sector clínico com esse código')
+              } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
+             !this.$refs.clinic.hasError && !this.$refs.clinicSectorRef.hasError) {
                 this.submitClinicSector()
             }
         },
