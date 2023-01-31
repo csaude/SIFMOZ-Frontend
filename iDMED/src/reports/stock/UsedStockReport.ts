@@ -64,8 +64,8 @@ export default {
           )
         doc.setFontSize(10)
         doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, data.settings.margin.left + 2, 32)
-        doc.text('Província: ' + (params.province === null ? '' : params.province.description), data.settings.margin.left + 2, 40)
-        doc.text('Distrito: ' + (params.district === null ? '' : params.district.description), data.settings.margin.left + 2, 48)
+        doc.text('Província: ' + (params.province === null ? params.clinic.province.description : params.province.description), data.settings.margin.left + 2, 40)
+        doc.text('Distrito: ' + (params.district === null ? params.clinic.district.description : params.district.description), data.settings.margin.left + 2, 48)
         doc.text('Data Início: ' + params.startDateParam, width / 2 + 95, 32)
         doc.text('Data Fim: ' + params.endDateParam, width / 2 + 95, 40)
 
@@ -177,8 +177,8 @@ export default {
     //  cellRepublica.value = logoTitle
        cellTitle.value = title
       cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName : ''
-      cellProvinceParamValue.value = params.province !== null ? params.province.description : ''
-      cellDistrictParamValue.value = params.district !== null ? params.district.description : ''
+      cellProvinceParamValue.value = params.province !== null ? params.province.description : params.clinic.province.description
+      cellDistrictParamValue.value = params.district !== null ? params.district.description : params.clinic.district.description
       cellStartDateParamValue.value = params.startDateParam
       cellEndDateParamValue.value = params.endDateParam
       cellPharm.value = 'Farmácia'
@@ -319,7 +319,7 @@ export default {
           const createRow = []
           createRow.push(rows[row].drugName)
           createRow.push(rows[row].fnName)
-          createRow.push(rows[row].balance)
+          createRow.push(rows[row].actualStock + rows[row].stockIssued - rows[row].adjustment)
           createRow.push(rows[row].receivedStock)
           createRow.push(rows[row].stockIssued)
           createRow.push(rows[row].adjustment)
