@@ -139,10 +139,8 @@ export default {
                       .with('district.province')
                       .with('facilityType')
                       .has('code')
-                      // .orderBy('province.code')
                       .get()
-                      const lista = clinics.sort((a, b) => a.clinicName.localeCompare(b.clinicName))
-                      return lista
+                     return clinics.sort((a, b) => a.province.code.localeCompare(b.province.code))
                       /* const grouped = this.groupBy(lista, (item) => item.clinicName)
                       return grouped */
                       // .sort((a, b) => a.clinicName.localeCompare(b.clinicName))
