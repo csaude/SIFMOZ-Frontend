@@ -17,7 +17,7 @@
                     ref="nome"
                     square
                     v-model="role.name"
-                    :rules="[ val => val.length >=3 || 'O nome indicado deve ter no mínimo 3 caracteres']"
+                    :rules="[val => codeRules (val)]"
                     lazy-rules
                     :disable="onlyView"
                     class="col fild-radius"
@@ -78,6 +78,7 @@ import Role from 'src/store/models/userLogin/Role'
 import { ref } from 'vue'
 import Menu from 'src/store/models/userLogin/Menu'
 import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 // import { v4 as uuidv4 } from 'uuid'
 const columns = [
   { name: 'descricao', required: true, label: 'Seleccionar Todas', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
@@ -89,7 +90,7 @@ const columns1 = [
 
 export default {
       props: ['selectedRole', 'onlyView', 'editMode'],
-      mixins: [mixinSystemPlatform],
+      mixins: [mixinSystemPlatform, mixinutils],
     data () {
         return {
             databaseCodes: [],
@@ -114,13 +115,14 @@ export default {
           }
     },
       mounted () {
+        this.extractDatabaseCodes()
     },
     computed: {
          userRoles () {
           return Role.query().with('menus').get()
         },
         menus () {
-          return Menu.all()
+          return Menu.all().filter(arrayItem => arrayItem.code !== '08')
         }
     },
     methods: {
@@ -129,11 +131,7 @@ export default {
         this.$refs.description.$refs.ref.validate()
         if (!this.$refs.nome.$refs.ref.hasError &&
             !this.$refs.description.$refs.ref.hasError) {
-              const roleExist = this.userRoles.filter(role => role.name === this.role.name)
-              const roleDescription = this.userRoles.filter(role => role.description === this.role.description)
-              if (roleExist.length > 0 && roleDescription.length > 0) {
-          this.displayAlert('error', 'Ja Existe um Perfil com esse nome!')
-        } else if (this.role.menus.length === 0) {
+            if (this.role.menus.length === 0) {
           this.displayAlert('error', 'Seleccione pelo menos uma funcionalidade!')
         } else {
                    this.submitUser()
@@ -167,6 +165,21 @@ export default {
                  this.displayAlert('info', this.role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
               })
             }
+    },
+    extractDatabaseCodes () {
+        this.userRoles.forEach(element => {
+            this.databaseCodes.push(element.name)
+    })
+    },
+    codeRules (val) {
+     if (val === '') {
+        return 'o Código é obrigatorio'
+      } else if (val.length < 3) {
+        return 'O nome indicado deve ter no mínimo 3 caracteres'
+      } else if ((this.databaseCodes.includes(val) && this.selectedRole.id === this.role.id && !this.isEditStep) ||
+      ((this.databaseCodes.includes(val) && this.userRoles.filter(x => x.name === val)[0].id !== this.role.id && this.isEditStep))) {
+      return !this.databaseCodes.includes(val) || 'o Código indicado já existe'
+         }
     },
      displayAlert (type, msg) {
           this.alert.type = type
