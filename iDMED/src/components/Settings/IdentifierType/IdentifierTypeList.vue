@@ -159,7 +159,7 @@ methods: {
         this.showAddEditIdentifierType = true
     },
     promptToConfirm (identifierType) {
-      this.$q.dialog({ title: 'Confirm', message: identifierType.active ? 'Deseja Inactivar o Sector Clinico?' : 'Deseja Activar o Sector Clinico?', cancel: true, persistent: true }).onOk(() => {
+      this.$q.dialog({ title: 'Confirmação', message: identifierType.active ? 'Deseja Inactivar o Sector Clinico?' : 'Deseja Activar o Sector Clinico?', cancel: true, persistent: true }).onOk(() => {
         identifierType.active = !identifierType.active
         if (this.mobile) {
               console.log('FrontEnd')

@@ -134,14 +134,28 @@ export default {
   },
  computed: {
       clinics () {
-          return Clinic.query()
+          const clinics = Clinic.query()
                       .with('province')
                       .with('district.province')
                       .with('facilityType')
                       .has('code')
-                      .orderBy('province.code')
+                      // .orderBy('province.code')
                       .get()
+                      const lista = clinics.sort((a, b) => a.clinicName.localeCompare(b.clinicName))
+                      return lista
+                      /* const grouped = this.groupBy(lista, (item) => item.clinicName)
+                      return grouped */
+                      // .sort((a, b) => a.clinicName.localeCompare(b.clinicName))
       },
+      groupBy (arr, keyGetter) {
+        const out = {}
+        for (const item of arr) {
+          const key = keyGetter(item)
+          out[key] ??= []
+          out[key].push(item)
+        }
+          return out
+        },
       configs () {
        return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
       }
@@ -200,7 +214,7 @@ export default {
       },
         promptToConfirm (clinic) {
          let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: clinic.active ? 'Deseja Inactivar a Farmácia?' : 'Deseja Activar a Farmácia?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: clinic.active ? 'Deseja Inactivar a Farmácia?' : 'Deseja Activar a Farmácia?', cancel: true, persistent: true }).onOk(() => {
                if (clinic.active) {
                 clinic.active = false
                 msg = 'Farmácia inactivada com sucesso.'

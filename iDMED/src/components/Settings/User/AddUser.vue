@@ -37,7 +37,7 @@
                     ref="username"
                     square
                     v-model="user.username"
-                    :rules="[ val => val.length >= 3 || 'O nome do utilizador indicado é inválido']"
+                    :rules="[val => codeRules (val)]"
                     lazy-rules
                      :disable="onlyView"
                     class="col fild-radius"
@@ -279,7 +279,7 @@ export default {
           }
     },
       mounted () {
-       // this.extractDatabaseCodes()
+        this.extractDatabaseCodes()
         if (this.configs.value === 'LOCAL') {
             this.isProvincial = false
             /*
@@ -331,10 +331,7 @@ export default {
         this.$refs.password.validate()
          this.$refs.username.$refs.ref.validate()
          this.$refs.contact.$refs.ref.validate()
-         const usersList = this.users.filter(user => user.username === this.user.username)
-         if (usersList.length > 0) {
-              this.displayAlert('erro', 'Já existe um utilizador com esse nome de utilizador!')
-         } else if (!this.$refs.nome.$refs.ref.hasError &&
+        if (!this.$refs.nome.$refs.ref.hasError &&
             !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
              !this.$refs.contact.$refs.ref.hasError) {
              this.$refs.stepper.next()
@@ -416,6 +413,21 @@ export default {
               })
           }
             },
+            extractDatabaseCodes () {
+                  this.users.forEach(element => {
+                      this.databaseCodes.push(element.username)
+              })
+            },
+            codeRules (val) {
+                  if (val === '') {
+                      return 'o nome do utilizador é obrigatorio'
+                    } else if (val.length < 3) {
+                      return 'O  nome do utilizador indicado deve ter no mínimo 3 caracteres'
+                    } else if ((this.databaseCodes.includes(val) && this.selectedUser.id === this.user.id && !this.isEditStep) ||
+                    ((this.databaseCodes.includes(val) && this.users.filter(x => x.username === val)[0].id !== this.user.id && this.isEditStep))) {
+                    return !this.databaseCodes.includes(val) || 'O  nome do utilizador indicado já existe'
+                      }
+        },
      displayAlert (type, msg) {
           this.alert.type = type
           this.alert.msg = msg
