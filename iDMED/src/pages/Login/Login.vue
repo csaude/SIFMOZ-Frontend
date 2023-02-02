@@ -236,6 +236,7 @@ export default {
       province: null,
       district: null,
       clinic: null,
+      clinicAux: {},
       systemConfigs: new SystemConfigs(),
       instalationConfig: null,
       context: 'login context',
@@ -254,7 +255,7 @@ export default {
       hasProvinciesOnLocalDB: false
     }
   },
-  created () {
+  mounted () {
     this.$q.loading.show({
       message: 'Carregando ...',
       spinnerColor: 'grey-4',
@@ -310,7 +311,6 @@ export default {
           })
         }
       })
-
       District.localDbGetAll().then((districts) => {
         if (districts !== null && districts.length > 0) {
           District.insert({ data: districts })
@@ -367,11 +367,13 @@ export default {
         await this.loadSystemConfigs()
         setTimeout(() => {
           const sysconfig = SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
-         Clinic.apiGetByUUID(sysconfig.description).then((resp) => {
-           Clinic.localDbAdd(resp.response.data)
-          this.saveCurrClinic(resp.response.data)
-          console.log('CURR CLINICas :' + resp.response.data.uuid + 'sysConfig:' + sysconfig)
-        })
+          if (sysconfig !== null && sysconfig !== undefined) {
+            Clinic.apiGetByUUID(sysconfig.description).then((resp) => {
+            Clinic.localDbAdd(resp.response.data)
+             this.saveCurrClinic(resp.response.data)
+            console.log('CURR CLINICas :' + resp.response.data.uuid + 'sysConfig:' + sysconfig)
+            })
+        }
            }, 900)
       }
     },
@@ -405,8 +407,7 @@ export default {
     async doSave () {
       this.systemConfigs.value = this.instalation_type
       this.systemConfigs.key = 'INSTALATION_TYPE'
-      this.systemConfigs.description =
-        this.instalation_type === 'LOCAL' ? this.clinic.uuid : this.province.code
+      this.systemConfigs.description = this.instalation_type === 'LOCAL' ? this.clinic.uuid : this.province.code
       await SystemConfigs.apiSave(this.systemConfigs)
         .then((resp) => {
           SystemConfigs.localDbAdd(resp.response.data)

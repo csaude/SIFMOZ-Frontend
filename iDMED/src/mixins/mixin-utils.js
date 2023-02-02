@@ -47,7 +47,8 @@ export default {
       }),
       step: '',
       initialized: false,
-      $q: useQuasar()
+      $q: useQuasar(),
+      clinicAux: {}
     }
   },
  methods: {
@@ -90,6 +91,9 @@ export default {
   },
   getDateFromHyphenYYYYMMDD (jsDate) {
     return date.extractDate(jsDate, 'YYYY-MM-DD')
+  },
+  extractHyphenDateFromDMYConvertYMD (jsDate) {
+    return this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(jsDate))
   },
   displayAlert (type, msg) {
     this.alert.type = type
@@ -229,6 +233,14 @@ export default {
         }
       })
   },
+  doGetClinics (offset, max) {
+    Clinic.apiGetAll(offset, max).then(resp => {
+      if (resp.response.data.length > 0) {
+        offset = offset + max
+        setTimeout(this.doGetClinics(offset, max), 2)
+      }
+       })
+  },
   loadProvinceDistricts () {
     const offset = 0
     const max = 100
@@ -276,8 +288,16 @@ export default {
     await Doctor.apiGetAll()
     await DispenseMode.apiGetAll()
     await GroupType.apiGetAll()
+    this.loadProvinceDistricts(offset, max)
+    this.doGetClinics(offset, max)
     this.hideLoading()
-  }
+    this.getClinicAux()
+  },
+  getClinicAux () {
+    Clinic.apiFetchMainClinic().then((resp) => {
+      this.clinicAux = resp.response.data
+    })
+}
  },
   computed: {
     isInitialized () {
@@ -290,16 +310,20 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     currClinic () {
-      console.log('Clinica:' + SessionStorage.getItem('currClinic'))
-      const clinic = Clinic.query()
+     const clinic = Clinic.query()
                                 .with('province')
                                 .with('facilityType')
                                 .with('district.province')
                                 .where('mainClinic', true)
                                 .first()
-       console.log('Clinica22:' + clinic)
-          if (clinic !== null) return clinic
+          if (clinic !== null) {
+            return clinic
+          } else if (this.clinicAux) {
+            SessionStorage.set('currClinic', this.clinicAux)
+            return this.clinicAux
+          } else {
           return new Clinic(SessionStorage.getItem('currClinic'))
+          }
     },
     getUUID () {
       return uuidv4()
