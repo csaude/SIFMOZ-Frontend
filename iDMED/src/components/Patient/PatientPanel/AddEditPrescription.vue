@@ -53,7 +53,7 @@
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="prescriptionDate" mask="DD-MM-YYYY">
+                        <q-date v-model="prescriptionDate" :options="optionsNonFutureDate" mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -71,15 +71,20 @@
                 class="col-4 q-mb-sm" />
               <q-select
                   class="col"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   dense outlined
                   v-if="spetialPrescription || curPrescriptionDetails.spetialPrescriptionMotive !== null"
                   v-model="curPrescriptionDetails.spetialPrescriptionMotive"
-                  :options="spetialPrescriptionMotives"
+                  :options="optionsspetialPrescriptionMotives"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="spetialMotive"
                   :rules="[ val => !!val || 'Por favor indicar o motivo da prescrição especial']"
                   option-value="id"
                   option-label="description"
+                  @filter="filterFnspetialPrescriptionMotives"
                   label="Motivo da prescrição especial" />
                 </div>
               </div>
@@ -88,48 +93,68 @@
               <q-select
                   v-if="hasTherapeuticalRegimen"
                   class="col q-mr-sm"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   :disable="isNewPackStep || isEditPackStep"
                   dense outlined
                   ref="therapeuticRegimen"
                   :rules="[ val => !!val || 'Por favor indicar o regime terapêutico']"
                   v-model="curPrescriptionDetails.therapeuticRegimen"
-                  :options="therapeuticRegimens"
+                  :options="optionstherapeuticRegimens"
                   option-value="id"
                   option-label="description"
+                  @filter="filterFntherapeuticRegimens"
                   label="Regime Terapêutico" />
               <q-select
                   v-if="hasTherapeuticalLine"
                   class="col q-mr-sm"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   dense outlined
                   :disable="isNewPackStep || isEditPackStep"
                   ref="therapeuticLine"
                   :rules="[ val => !!val || 'Por favor indicar a linha terapêutica']"
                   v-model="curPrescriptionDetails.therapeuticLine"
-                  :options="therapeuticLines"
+                  :options="optionstherapeuticLines"
                   option-value="id"
                   option-label="description"
+                  @filter="filterFntherapeuticLines"
                   label="Linha Terapêutica" />
               <q-select
                   class="col q-mr-sm"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   dense outlined
                   v-model="curPrescription.duration"
-                  :options="durations"
+                  :options="optionsdurations"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="duration"
                   :rules="[ val => !!val || 'Por favor indicar a duração']"
                   option-value="id"
                   option-label="description"
+                  @filter="filterFndurations"
                   label="Duração" />
               <q-select
                   class="col"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   dense outlined
                   :disable="isNewPackStep || isEditPackStep"
                   ref="doctor"
                   :rules="[ val => !!val || 'Por favor indicar o clínico']"
                   v-model="curPrescription.doctor"
-                  :options="doctors"
+                  :options="optionsdoctors"
                   option-value="id"
                   option-label="fullName"
+                  @filter="filterFndoctors"
                   label="Clínico" />
             </div>
             <div>
@@ -149,6 +174,10 @@
               <q-select
                   v-if="hasPrescriptionChangeMotive && String(curPrescription.patientType).includes('Alterar')"
                   class="col q-mr-sm"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   :disable="isNewPackStep || isEditPackStep"
                   ref="reasonForUpdate"
                   dense outlined
@@ -156,25 +185,36 @@
                   :options="reasonsForUpdate"
                   v-model="curPrescriptionDetails.reasonForUpdate"
                   option-label="description"
+                  @filter="filterFnreasonsForUpdate"
                   label="Motivo Alteração" />
                 <q-select
                   class="col q-mr-sm"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   dense outlined
                   ref="dispenseType"
                   :disable="isNewPackStep || isEditPackStep"
                   :rules="[ val => !!val || 'Por favor indicar o tipo de dispensa']"
                   v-model="curPrescriptionDetails.dispenseType"
-                  :options="dispenseTypes"
+                  :options="optionsdispenseTypes"
                   option-value="id"
                   option-label="description"
+                  @filter="filterFndispenseTypes"
                   label="Paciente em " />
                 <q-select
                   class="col"
+                  use-input
+                  hide-selected
+                  fill-input
+                  input-debounce="0"
                   ref="patientStatus"
                   :rules="[ val => !!val || 'Por favor indicar a situação do paciente (em relação aos modelos)']"
                   v-model="curPrescription.patientStatus"
                   :disable="isNewPackStep || isEditPackStep"
-                  :options="patientStatus"
+                  :options="optionspatientStatus"
+                  @filter="filterFnpatientStatus"
                   dense outlined
                   label="Situacao do paciente (em relação aos modelos)" />
             </div>
@@ -324,9 +364,17 @@ export default {
       patientStatus: ['Inicio', 'Manutenção'],
       patientTypes: ['Sim', 'Não'],
       showServiceDrugsManagement: false,
-      prescriptionDate: '',
+      prescriptionDate: moment().format('DD-MM-YYYY'),
       showDispenseMode: false,
       prescribedDrugs: [],
+      optionsspetialPrescriptionMotives: [],
+      optionstherapeuticRegimens: [],
+      optionstherapeuticLines: [],
+      optionsdurations: [],
+      optionsdoctors: [],
+      optionsreasonsForUpdate: [],
+      optionsdispenseTypes: [],
+      optionspatientStatus: [],
       dispenseMode: null,
       spetialPrescription: false,
       lastValidPrescription: null,
@@ -350,7 +398,10 @@ export default {
         backgroundColor: '#0ba58b',
         width: '5px',
         opacity: 0.75
-      }
+      },
+        optionsNonFutureDate (date) {
+              return date <= moment().format('YYYY/MM/DD')
+        }
     }
   },
   methods: {
@@ -1226,6 +1277,174 @@ export default {
               })
             })
           })
+    },
+    filterFnspetialPrescriptionMotives (val, update, abort) {
+      const stringOptions = this.spetialPrescriptionMotives
+      if (val === '') {
+        update(() => {
+          this.optionsspetialPrescriptionMotives = stringOptions.map(spetialPrescriptionMotive => spetialPrescriptionMotive)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionsspetialPrescriptionMotives = []
+        })
+      } else {
+        update(() => {
+          this.optionsspetialPrescriptionMotives = stringOptions
+            .map(spetialPrescriptionMotive => spetialPrescriptionMotive)
+            .filter(spetialPrescriptionMotive => {
+              return spetialPrescriptionMotive &&
+              spetialPrescriptionMotive.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFntherapeuticRegimens (val, update, abort) {
+      const stringOptions = this.therapeuticRegimens
+      if (val === '') {
+        update(() => {
+          this.optionstherapeuticRegimens = stringOptions.map(therapeuticRegimen => therapeuticRegimen)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionstherapeuticRegimens = []
+        })
+      } else {
+        update(() => {
+          this.optionstherapeuticRegimens = stringOptions
+            .map(therapeuticRegimen => therapeuticRegimen)
+            .filter(therapeuticRegimen => {
+              return therapeuticRegimen &&
+              therapeuticRegimen.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFntherapeuticLines (val, update, abort) {
+      const stringOptions = this.therapeuticLines
+      if (val === '') {
+        update(() => {
+          this.optionstherapeuticLines = stringOptions.map(therapeuticLine => therapeuticLine)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionstherapeuticLines = []
+        })
+      } else {
+        update(() => {
+          this.optionstherapeuticLines = stringOptions
+            .map(therapeuticLine => therapeuticLine)
+            .filter(therapeuticLine => {
+              return therapeuticLine &&
+              therapeuticLine.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFndurations (val, update, abort) {
+      const stringOptions = this.durations
+      if (val === '') {
+        update(() => {
+          this.optionsdurations = stringOptions.map(duration => duration)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionsdurations = []
+        })
+      } else {
+        update(() => {
+          this.optionsdurations = stringOptions
+            .map(duration => duration)
+            .filter(duration => {
+              return duration &&
+              duration.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFndoctors (val, update, abort) {
+      const stringOptions = this.doctors
+      if (val === '') {
+        update(() => {
+          this.optionsdoctors = stringOptions.map(doctor => doctor)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionsdoctors = []
+        })
+      } else {
+        update(() => {
+          this.optionsdoctors = stringOptions
+            .map(doctor => doctor)
+            .filter(doctor => {
+              return doctor &&
+              doctor.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFnreasonsForUpdate (val, update, abort) {
+      const stringOptions = this.reasonsForUpdate
+      if (val === '') {
+        update(() => {
+          this.optionsreasonsForUpdate = stringOptions.map(reasonForUpdate => reasonForUpdate)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionsreasonsForUpdate = []
+        })
+      } else {
+        update(() => {
+          this.optionsreasonsForUpdate = stringOptions
+            .map(reasonForUpdate => reasonForUpdate)
+            .filter(reasonForUpdate => {
+              return reasonForUpdate &&
+              reasonForUpdate.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFndispenseTypes (val, update, abort) {
+      const stringOptions = this.dispenseTypes
+      if (val === '') {
+        update(() => {
+          this.optionsdispenseTypes = stringOptions.map(dispenseType => dispenseType)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionsdispenseTypes = []
+        })
+      } else {
+        update(() => {
+          this.optionsdispenseTypes = stringOptions
+            .map(dispenseType => dispenseType)
+            .filter(dispenseType => {
+              return dispenseType &&
+              dispenseType.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
+    filterFnpatientStatus (val, update, abort) {
+      const stringOptions = this.patientStatus
+      if (val === '') {
+        update(() => {
+          this.optionspatientStatus = stringOptions.map(patientStat => patientStat)
+        })
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.optionspatientStatus = []
+        })
+      } else {
+        update(() => {
+          this.optionspatientStatus = stringOptions
+            .map(patientStat => patientStat)
+            .filter(patientStat => {
+              return patientStat &&
+              patientStat.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
     }
   },
   computed: {

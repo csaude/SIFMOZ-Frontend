@@ -346,6 +346,7 @@ export default {
       },
       identifierHasValidPrescription (episode) {
         const identifier = PatientServiceIdentifier.query()
+                                                    .with(['clinic.province', 'clinic.district.province'])
                                                     .with(['episodes.patientVisitDetails.*'])
                                                     .where('id', episode.patientServiceIdentifier.id)
                                                     .first()
@@ -423,9 +424,7 @@ export default {
           }
           if (!this.$refs.clinicalService.hasError &&
               !this.$refs.state.hasError) {
-              if (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date()) {
-                this.displayAlert('error', 'A data de admissão indicada é maior que a data corrente.')
-              } else if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < new Date(this.selectedPatient.dateOfBirth)) {
+              if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < moment(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
               } else if (!this.usePreferedId && (this.identifier.value === '' || this.stringContains(this.identifier.value, '#'))) {
                 this.displayAlert('error', 'Por favor indicar um identificador dentro do padrão.')
@@ -436,16 +435,16 @@ export default {
                                         .where('patientServiceIdentifier_id', this.identifier.id)
                                         .orderBy('creationDate', 'desc')
                                         .first()
-                  if (episode !== null && (this.getJSDateFromDDMMYYY(this.identifierstartDate) > new Date(episode.episodeDate))) {
+                  if (episode !== null && (this.getJSDateFromDDMMYYY(this.identifierstartDate) > moment(episode.episodeDate))) {
                     this.displayAlert('error', 'A data de admissão indicada é maior que a data do primeiro episódio registado.')
                   } else if (this.hasVisitsMade && (this.identifier.service.id !== this.identifierToEdit.service.id)) {
                     this.displayAlert('error', 'Não pode alterar o serviço de saúde pois ja existem registos de visitas associados.')
-                  } else if (this.patient.hasPreferedId() && this.identifier.prefered) {
+                  } else if (this.patient.identifiers.length > 1 && this.patient.hasPreferedId() && this.identifier.prefered) {
                     this.displayAlert('confirmation', 'O identificador neste momento em associação passará a ser considerado como preferido, deseja continuar neste modo?')
                   } else {
                     this.doSave()
                   }
-                } else if (this.patient.hasPreferedId() && this.identifier.prefered) {
+                } else if (this.patient.identifiers.length > 1 && this.patient.hasPreferedId() && this.identifier.prefered) {
                     this.displayAlert('confirmation', 'O identificador neste momento em associação passará a ser considerado como preferido, deseja continuar neste modo?')
                 } else {
                   this.doSave()
@@ -491,18 +490,18 @@ export default {
         if (this.isCloseStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
           this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
-          this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.endDate)
-          if (!this.isReferenceEpisode || !this.isDCReferenceEpisode) this.identifier.endDate = this.getJSDateFromDDMMYYY(this.endDate)
+          this.closureEpisode.episodeDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.endDate))
+          if (!this.isReferenceEpisode || !this.isDCReferenceEpisode) this.identifier.endDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.endDate))
         }
         if (this.isReOpenStep) {
           this.closureEpisode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
-          this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.reOpenDate)
-          this.identifier.reopenDate = this.getJSDateFromDDMMYYY(this.reOpenDate)
+          this.closureEpisode.episodeDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.reOpenDate))
+          this.identifier.reopenDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.reOpenDate))
           this.identifier.endDate = ''
         }
         if (this.isCloseStep || this.isReOpenStep) {
-          this.closureEpisode.creationDate = new Date()
+          this.closureEpisode.creationDate = moment()
           this.closureEpisode.clinic = this.currClinic
           this.closureEpisode.clinic_id = this.currClinic.id
           if (this.selectedClinicSector !== null) {
@@ -523,11 +522,11 @@ export default {
         }
         if (this.isCreateStep) {
           this.identifier.clinic = this.currClinic
-          this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
+          this.identifier.startDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.identifierstartDate))
           this.identifier.identifierType = this.identifier.service.identifierType
         }
         if (this.isEditStep) {
-          this.identifier.startDate = this.getJSDateFromDDMMYYY(this.identifierstartDate)
+          this.identifier.startDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.identifierstartDate))
         }
         if (this.mobile) {
           this.identifier.identifier_type_id = this.identifier.identifierType.id
@@ -604,7 +603,7 @@ export default {
           const transReference = new PatientTransReference({
             syncStatus: 'P',
             operationDate: this.closureEpisode.episodeDate,
-            creationDate: new Date(),
+            creationDate: moment(),
             operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
             origin: this.currClinic,
             destination: this.closureEpisode.referralClinic.uuid,
@@ -625,7 +624,7 @@ export default {
           const transReference = new PatientTransReference({
             syncStatus: 'P',
             operationDate: this.closureEpisode.episodeDate,
-            creationDate: new Date(),
+            creationDate: moment(),
             operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
             origin: this.currClinic,
             destination: this.selectedClinicSector.uuid,

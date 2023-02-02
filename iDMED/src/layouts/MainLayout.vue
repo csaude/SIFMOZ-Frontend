@@ -7,8 +7,12 @@
                         <img class="bg-white" src="../assets/LogoiDMED.png">
                     </q-avatar>
 
-                    <q-toolbar-title class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">iDMED</q-toolbar-title>
-
+                    <q-toolbar-title class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">
+                      <q-item-section>
+                        <q-item-label class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">iDMED</q-item-label>
+                        <q-item-label class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 25px;">{{currClinic.clinicName}}</q-item-label>
+                        </q-item-section>
+                    </q-toolbar-title>
                     <q-tabs
                       class="absolute-center"
                       no-caps
@@ -23,7 +27,7 @@
                         <q-route-tab v-if="menusVisible('Stock')" exact :to="'/stock'"  name="stock" icon="shopping_cart" label="Stock" />
                         <q-route-tab v-if="menusVisible('Dashboard')" exact :to="'/dashboard'" name="dashboard" icon="dashboard" label="Dashboard" />
                         <q-route-tab v-if="menusVisible('Relatorios')" exact :to="'/reports'" name="reports" icon="insert_chart_outlined" label="Relatórios" />
-                        <q-route-tab  v-if="menusVisible('Administração')" exact :to="'/settings'" name="settings" icon="settings" label="Administração" />
+                        <q-route-tab v-if="menusVisible('Administração')" exact :to="'/settings'" name="settings" icon="settings" label="Administração" />
                         <q-route-tab v-if="activateMigration" exact :to="'/migration'" name="migration" icon="branding_watermark" label="Migração" />
                     </q-tabs>
               <q-btn-dropdown unelevated v-model="userInfoOpen" no-caps @click="onMainClick">
@@ -113,6 +117,7 @@ import { defineComponent, ref } from 'vue'
  import { Notify } from 'quasar'
 import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
 import isOnline from 'is-online'
 // import schedule from 'node-schedule'
@@ -121,7 +126,7 @@ import mixinEncryption from 'src/mixins/mixin-encryption'
 const schedule = require('node-schedule')
 export default defineComponent({
   name: 'MainLayout',
-  mixins: [mixinplatform, mixinEncryption],
+  mixins: [mixinplatform, mixinEncryption, mixinutils],
   setup () {
     return {
       leftDrawerOpen: false,
