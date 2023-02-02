@@ -95,6 +95,7 @@
             title="Atributos Para a Prescrição"
             :rows="clinicalServiceAttributes"
             :columns="columnAttributes"
+            :filter="filter"
             row-key="code"
             selection="multiple"
             v-model:selected="selectedAttributes"
@@ -122,14 +123,14 @@
               title="Sectores Clinicos"
               :rows="clinicSectors"
               :columns="columnsSectors"
-              :filter="filter"
+              :filter="filter1"
               row-key="code"
               selection="multiple"
               v-model:selected="clinicalService.clinicSectors"
               class="my-sticky-header-table"
             >
            <template v-slot:top-right>
-              <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+              <q-input outlined dense debounce="300" v-model="filter1" placeholder="Procurar">
               <template v-slot:append>
                   <q-icon name="search" />
               </template>
@@ -150,11 +151,20 @@
               title="Regimes Terapêuticos"
               :rows="therapeuticRegimens"
               :columns="columnsRegimen"
+              :filter="filter2"
               row-key="code"
               selection="multiple"
               v-model:selected="selectedTherapeuticRegimens"
               class="my-sticky-header-table"
-          />
+          >
+          <template v-slot:top-right>
+              <q-input outlined dense debounce="300" v-model="filter2" placeholder="Procurar">
+              <template v-slot:append>
+                  <q-icon name="search" />
+              </template>
+                  </q-input>
+          </template>
+           </q-table>
           </div>
           </q-card-section>
            </q-step>
@@ -231,6 +241,8 @@
               }),
         databaseCodes: [],
         filter: ref(''),
+        filter1: ref(''),
+        filter2: ref(''),
         selectedTherapeuticRegimens: []
     }
     },

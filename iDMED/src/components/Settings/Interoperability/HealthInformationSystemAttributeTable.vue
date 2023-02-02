@@ -15,7 +15,7 @@
         <template v-slot:body="props">
             <q-tr :props="props">
             <q-td key="interoperabilityType" :props="props">
-                {{ props.row.interoperabilityType.description }}
+                {{ props.row.interoperabilityType === null ? '': props.row.interoperabilityType.description }}
             </q-td>
             <q-td key="value" :props="props">
               <q-input v-model="props.row.value" dense autofocus counter :disable="viewMode" />
