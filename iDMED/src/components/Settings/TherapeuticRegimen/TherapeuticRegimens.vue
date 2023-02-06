@@ -156,7 +156,7 @@ export default {
       },
          promptToConfirm (therapeuticRegimen) {
            let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: therapeuticRegimen.active ? 'Deseja Inactivar o Regime?' : 'Deseja Activar o Regime?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: therapeuticRegimen.active ? 'Deseja Inactivar o Regime?' : 'Deseja Activar o Regime?', cancel: true, persistent: true }).onOk(() => {
               if (therapeuticRegimen.active) {
                 therapeuticRegimen.active = false
                   msg = 'Regime inactivado com sucesso.'
