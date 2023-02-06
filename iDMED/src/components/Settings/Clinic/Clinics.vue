@@ -9,7 +9,9 @@
             :rows="clinics"
             :columns="columns"
             :filter="filter"
+            rowsPerPage="20"
             row-key="id"
+            :rows-per-page-options="[10, 20]"
           >
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
@@ -103,6 +105,7 @@ import { ref } from 'vue'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
+import Province from 'src/store/models/province/Province'
 const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -119,6 +122,7 @@ export default {
     return {
         columns,
         $q,
+        clinics: [],
         showClinicRegistrationScreen: false,
         editMode: false,
         viewMode: false,
@@ -133,27 +137,6 @@ export default {
     }
   },
  computed: {
-      clinics () {
-          const clinics = Clinic.query()
-                      .with('province')
-                      .with('district.province')
-                      .with('facilityType')
-                      .has('code')
-                      .get()
-                     return clinics.sort((a, b) => a.province.code.localeCompare(b.province.code))
-                      /* const grouped = this.groupBy(lista, (item) => item.clinicName)
-                      return grouped */
-                      // .sort((a, b) => a.clinicName.localeCompare(b.clinicName))
-      },
-      groupBy (arr, keyGetter) {
-        const out = {}
-        for (const item of arr) {
-          const key = keyGetter(item)
-          out[key] ??= []
-          out[key].push(item)
-        }
-          return out
-        },
       configs () {
        return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
       }
@@ -163,7 +146,32 @@ export default {
      //   if (this.clinics.length <= 1) {
                 Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
                     offset = offset + 100
-                    if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
+                    if (resp.response.data.length > 0) {
+                      setTimeout(this.getAllClinics(offset), 2)
+                    } else {
+                            let orderedList = []
+                            let clinicsList = []
+                            const mapaListas = new Map()
+                            const clinics = Clinic.query()
+                            .with('province')
+                            .with('district.province')
+                            .with('facilityType')
+                            .has('code')
+                            .get()
+                          Province.all().forEach(prov => {
+                            orderedList = clinics
+                            .filter(x => x.province.description === prov.description)
+                            .sort((a, b) => a.clinicName.localeCompare(b.clinicName))
+                            if (orderedList.length > 0 && prov !== 'undefined' && prov !== undefined) {
+                            mapaListas.set(prov.description, orderedList)
+                          }
+                          })
+                          const lista = [new Map([...mapaListas.entries()].sort())].values()
+                          lista.forEach(item => {
+                            clinicsList = clinicsList.concat(item)
+                          })
+                          this.clinics = clinicsList
+                    }
                 }).catch(error => {
                     console.log(error)
                 })
