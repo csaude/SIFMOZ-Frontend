@@ -230,6 +230,8 @@ import { SessionStorage } from 'quasar'
 import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
 import mixinEncryption from 'src/mixins/mixin-encryption'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
+import mixinutils from 'src/mixins/mixin-utils'
+
 const columns = [
   { name: 'descricao', required: true, label: 'Descrição', align: 'left', field: row => row.authority, format: val => `${val}`, sortable: true }
 ]
@@ -243,8 +245,8 @@ const columnsClinicSectors = [
 ]
 
 export default {
-      props: ['selectedUser', 'onlyView', 'editMode'],
-      mixins: [mixinSystemPlatform, mixinEncryption],
+      props: ['selectedUser', 'onlyView', 'editMode', 'stepp'],
+      mixins: [mixinSystemPlatform, mixinEncryption, mixinutils],
     data () {
         return {
             databaseCodes: [],
@@ -423,8 +425,8 @@ export default {
                       return 'o nome do utilizador é obrigatorio'
                     } else if (val.length < 3) {
                       return 'O  nome do utilizador indicado deve ter no mínimo 3 caracteres'
-                    } else if ((this.databaseCodes.includes(val) && this.selectedUser.id === this.user.id && !this.isEditStep) ||
-                    ((this.databaseCodes.includes(val) && this.users.filter(x => x.username === val)[0].id !== this.user.id && this.isEditStep))) {
+                    } else if ((this.databaseCodes.includes(val) && this.selectedUser.id === this.user.id && this.isEditStep) ||
+                    ((this.databaseCodes.includes(val) && this.users.filter(x => x.username === val)[0].id !== this.user.id && !this.isEditStep))) {
                     return !this.databaseCodes.includes(val) || 'O  nome do utilizador indicado já existe'
                       }
         },

@@ -143,14 +143,13 @@ export default {
   },
   methods: {
       getAllClinics (offset) {
-     //   if (this.clinics.length <= 1) {
                 Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
                     offset = offset + 100
                     if (resp.response.data.length > 0) {
                       setTimeout(this.getAllClinics(offset), 2)
                     } else {
+                            let listaFinal = []
                             let orderedList = []
-                            let clinicsList = []
                             const mapaListas = new Map()
                             const clinics = Clinic.query()
                             .with('province')
@@ -159,18 +158,19 @@ export default {
                             .has('code')
                             .get()
                           Province.all().forEach(prov => {
-                            orderedList = clinics
+                            listaFinal = clinics
                             .filter(x => x.province.description === prov.description)
                             .sort((a, b) => a.clinicName.localeCompare(b.clinicName))
-                            if (orderedList.length > 0 && prov !== 'undefined' && prov !== undefined) {
-                            mapaListas.set(prov.description, orderedList)
+                            if (listaFinal.length > 0 && prov !== 'undefined' && prov !== undefined) {
+                            mapaListas.set(prov.description, listaFinal)
                           }
                           })
-                          const lista = [new Map([...mapaListas.entries()].sort())].values()
+                          const ascMap = new Map([...mapaListas.entries()].sort())
+                          const lista = [...ascMap.values()]
                           lista.forEach(item => {
-                            clinicsList = clinicsList.concat(item)
+                            orderedList = orderedList.concat(item)
                           })
-                          this.clinics = clinicsList
+                          this.clinics = orderedList
                     }
                 }).catch(error => {
                     console.log(error)

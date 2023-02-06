@@ -184,7 +184,7 @@ export default {
       },
         promptToConfirm (user) {
          let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: !user.accountLocked ? 'Deseja Inactivar o Utilizador?' : 'Deseja Activar o Utilizador?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: !user.accountLocked ? 'Deseja Inactivar o Utilizador?' : 'Deseja Activar o Utilizador?', cancel: true, persistent: true }).onOk(() => {
                if (!user.accountLocked) {
                 user.accountLocked = true
                 msg = 'Utilizador inactivado com sucesso.'
