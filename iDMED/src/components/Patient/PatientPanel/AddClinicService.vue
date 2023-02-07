@@ -564,7 +564,7 @@ export default {
           this.initPatientTransReference()
           this.displayAlert('info', 'Operação efectuada com sucesso.')
         } else {
-          await PatientServiceIdentifier.apiSave(this.identifier).then(resp => {
+          await PatientServiceIdentifier.apiSave(this.identifier, this.isCreateStep).then(resp => {
             this.identifier.id = resp.response.data.id
             if (this.isReOpenStep || this.isCloseStep) {
               this.fetchUpdatedIdentifier(resp.response.data.id)

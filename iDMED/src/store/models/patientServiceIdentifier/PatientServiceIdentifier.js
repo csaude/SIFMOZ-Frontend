@@ -118,8 +118,12 @@ export default class PatientServiceIdentifier extends Model {
     return canEdit
   }
 
-  static async apiSave (identifier) {
+  static async apiSave (identifier, isNew) {
+    if (isNew) {
     return await this.api().post('/patientServiceIdentifier', identifier)
+    } else {
+      return await this.api().patch('/patientServiceIdentifier/' + identifier.id, identifier)
+    }
   }
 
   static async apiUpdate (identifier) {
