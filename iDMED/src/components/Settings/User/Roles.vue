@@ -85,12 +85,14 @@ import { useQuasar } from 'quasar'
 import Role from '../../../store/models/userLogin/Role'
 import { ref } from 'vue'
 import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
+
 const columns = [
   { name: 'description', required: true, label: 'Descricao', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinSystemPlatform],
+  mixins: [mixinSystemPlatform, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -198,9 +200,13 @@ export default {
   },
   mounted () {
     if (this.website) {
-      Role.apiGetAll()
+      Role.apiGetAll().then(item => {
+        this.hideLoading()
+      })
     } else {
-      this.getRolesToVuex()
+      this.getRolesToVuex().then(item => {
+        this.hideLoading()
+      })
     }
   },
   components: {

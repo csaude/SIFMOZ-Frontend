@@ -208,12 +208,15 @@ export default {
             this.$emit('close')
           }
         },
-        getDoctors () {
-          Doctor.apiGetAll()
+       async getDoctors () {
+          await Doctor.apiGetAll()
         }
   },
   mounted () {
-    this.getDoctors()
+    this.showloading()
+    this.getDoctors().then(item => {
+      this.hideLoading()
+    })
   },
   components: {
      addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default,

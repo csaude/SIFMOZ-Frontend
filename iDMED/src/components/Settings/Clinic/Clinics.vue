@@ -9,9 +9,9 @@
             :rows="clinics"
             :columns="columns"
             :filter="filter"
-            rowsPerPage="20"
+            rowsPerPage="5"
             row-key="id"
-            :rows-per-page-options="[10, 20]"
+            :rows-per-page-options="[5, 10]"
           >
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
@@ -171,6 +171,7 @@ export default {
                             orderedList = orderedList.concat(item)
                           })
                           this.clinics = orderedList
+                          this.hideLoading()
                     }
                 }).catch(error => {
                     console.log(error)
@@ -256,6 +257,7 @@ export default {
         }
   },
   mounted () {
+    this.showloading()
     const offset = 0
     this.getAllClinics(offset)
     if (this.configs.value === 'PROVINCIAL') {

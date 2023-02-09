@@ -120,7 +120,9 @@ export default {
   },
  computed: {
       drugs () {
-             return Drug.query().with('form').with('clinicalService.identifierType').orderBy('name').get()
+             const drugs = Drug.query().with('form').with('clinicalService.identifierType').orderBy('name').get()
+             this.hideLoading()
+             return drugs
       },
        forms () {
             return Form.all()
@@ -204,6 +206,7 @@ export default {
         }
   },
   mounted () {
+    this.showloading()
    // this.getDrugs()
   },
   components: {
