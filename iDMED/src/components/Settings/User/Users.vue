@@ -96,6 +96,7 @@ import { ref } from 'vue'
 import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
 import ClinicSectorType from '../../../store/models/clinicSectorType/ClinicSectorType'
 import mixinEncryption from 'src/mixins/mixin-encryption'
+import mixinutils from 'src/mixins/mixin-utils'
 const columns = [
   { name: 'fullName', required: true, label: 'Nome Completo', align: 'left', field: row => row.fullName, format: val => `${val}`, sortable: true },
   { name: 'username', required: true, label: 'Nome do Utilizador', align: 'left', field: row => row.username, format: val => `${val}`, sortable: true },
@@ -103,7 +104,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinSystemPlatform, mixinEncryption],
+  mixins: [mixinSystemPlatform, mixinEncryption, mixinutils],
   data () {
     const $q = useQuasar()
 
@@ -139,6 +140,7 @@ export default {
   methods: {
      async getAllClinicsByProvinceCode (provinceCode) {
            await Clinic.api().get('/clinic/province/' + provinceCode).then(resp => {
+            this.hideLoading()
             }).catch(error => {
                 console.log(error)
             })
@@ -244,9 +246,12 @@ export default {
     }
   },
   mounted () {
+    this.showloading()
     if (this.website) {
     UserLogin.apiGetAll(0, 100)
-    Role.apiGetAll()
+    Role.apiGetAll().then(item => {
+      this.hideLoading()
+    })
     if (this.configs.value === 'PROVINCIAL') {
      this.getAllClinicsByProvinceCode(this.configs.description)
     }
@@ -256,6 +261,7 @@ export default {
     this.getSystemConfigsToVue()
     this.getClinicSectorTypeToVue()
   }
+ // this.hideLoading()
   },
   components: {
      addUser: require('components/Settings/User/AddUser.vue').default,

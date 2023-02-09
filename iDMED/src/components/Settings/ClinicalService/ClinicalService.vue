@@ -210,7 +210,10 @@ async  getClinicServices () {
       }
 },
 mounted () {
-  this.getClinicServices()
+  this.showloading()
+  this.getClinicServices().then(item => {
+    this.hideLoading()
+  })
 },
 components: {
    addClinicalService: require('components/Settings/ClinicalService/AddClinicalService.vue').default,

@@ -121,7 +121,9 @@ export default {
   },
  computed: {
       clinicSectors () {
-          return ClinicSector.query().withAll().has('code').get()
+          const clinics = ClinicSector.query().withAll().has('code').get()
+          this.hideLoading()
+          return clinics
       }
   },
   methods: {
@@ -203,6 +205,7 @@ export default {
         }
   },
   mounted () {
+    this.showloading()
   },
   components: {
      addClinicSector: require('components/Settings/ClinicSector/AddClinicSector.vue').default,
