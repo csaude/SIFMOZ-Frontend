@@ -51,7 +51,7 @@ export default class Drug extends Model {
   hasStock () {
     if (this.stocks === null || this.stocks === undefined) return false
     const hasStock = this.stocks.some((stock) => {
-      const meses = moment().diff(moment(stock.expireDate, 'DD-MM-YYYY'), 'months')
+      const meses = moment().diff(moment(stock.expireDate, 'YYYY-MM-DD'), 'months')
       if (meses === null || meses === undefined) {
         this.meses = 0
       }
