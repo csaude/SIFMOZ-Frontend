@@ -16,8 +16,8 @@ export default class MigrationStage extends Model {
     return await this.api().get('/migration?offset=' + offset + '&max=' + max)
   }
 
-  static initMigration () {
-    this.api().post('/migration/initMigration')
+  static async initMigration () {
+    return await this.api().post('/migration/initMigration')
   }
 
   static async apiFetchById (id) {
