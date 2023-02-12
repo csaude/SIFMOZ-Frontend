@@ -62,7 +62,7 @@
     <EmptyList v-else >Nenhuma Prescrição Adicionada para o serviço {{(identifier.service === null || identifier.service === undefined) ? 'Sem Info' : identifier.service.code}}</EmptyList>
     </div>
     <q-dialog persistent v-model="alert.visible">
-        <Dialog :type="alert.type" @closeDialog="closeDialog">
+        <Dialog :type="alert.type" @commitOperation="commitOperation" @closeDialog="closeDialog">
           <template v-slot:title> Informação</template>
           <template v-slot:msg> {{alert.msg}} </template>
         </Dialog>
@@ -132,6 +132,9 @@ export default {
       this.$emit('editPack', this.patientVisitDetais)
     },
     removePack () {
+      this.displayAlert('confirmation', 'Deseja mesmo remover esta dispensa?')
+    },
+    callRemovePackAlert () {
       if (this.mobile) {
         //
          PatientVisit.localDbGetById(this.patientVisitDetais.patient_visit_id).then(item => {
@@ -187,6 +190,9 @@ export default {
         // remotion code
       }
     },
+    commitOperation () {
+        this.callRemovePackAlert()
+      },
     lastStartEpisodeWithPrescription () {
       let episode = null
       const episodes = Episode.query()
@@ -356,7 +362,7 @@ export default {
     },
     headerColor () {
       if (!this.showEndDetails) {
-        return 'bg-grey-4'
+        return 'bg-grey-6'
       } else {
         return 'bg-red-7'
       }

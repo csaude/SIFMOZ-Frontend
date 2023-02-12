@@ -9,7 +9,9 @@
             :rows="clinics"
             :columns="columns"
             :filter="filter"
+            rowsPerPage="5"
             row-key="id"
+            :rows-per-page-options="[5, 10]"
           >
         <template v-slot:top-right>
             <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
@@ -103,6 +105,7 @@ import { ref } from 'vue'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import SystemConfigs from 'src/store/models/systemConfigs/SystemConfigs'
+import Province from 'src/store/models/province/Province'
 const columns = [
   { name: 'clinicName', required: true, label: 'Nome', align: 'left', field: row => row.clinicName, format: val => `${val}`, sortable: true },
   { name: 'code', required: true, label: 'Código', align: 'left', field: row => row.code, format: val => `${val}`, sortable: true },
@@ -119,6 +122,7 @@ export default {
     return {
         columns,
         $q,
+        clinics: [],
         showClinicRegistrationScreen: false,
         editMode: false,
         viewMode: false,
@@ -133,25 +137,42 @@ export default {
     }
   },
  computed: {
-      clinics () {
-          return Clinic.query()
-                      .with('province')
-                      .with('district.province')
-                      .with('facilityType')
-                      .has('code')
-                      .orderBy('province.code')
-                      .get()
-      },
       configs () {
        return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first()
       }
   },
   methods: {
       getAllClinics (offset) {
-     //   if (this.clinics.length <= 1) {
                 Clinic.api().get('/clinic?offset=' + offset + '&max=100').then(resp => {
                     offset = offset + 100
-                    if (resp.response.data.length > 0) { setTimeout(this.getAllClinics(offset), 2) }
+                    if (resp.response.data.length > 0) {
+                      setTimeout(this.getAllClinics(offset), 2)
+                    } else {
+                            let listaFinal = []
+                            let orderedList = []
+                            const mapaListas = new Map()
+                            const clinics = Clinic.query()
+                            .with('province')
+                            .with('district.province')
+                            .with('facilityType')
+                            .has('code')
+                            .get()
+                          Province.all().forEach(prov => {
+                            listaFinal = clinics
+                            .filter(x => x.province.description === prov.description)
+                            .sort((a, b) => a.clinicName.localeCompare(b.clinicName))
+                            if (listaFinal.length > 0 && prov !== 'undefined' && prov !== undefined) {
+                            mapaListas.set(prov.description, listaFinal)
+                          }
+                          })
+                          const ascMap = new Map([...mapaListas.entries()].sort())
+                          const lista = [...ascMap.values()]
+                          lista.forEach(item => {
+                            orderedList = orderedList.concat(item)
+                          })
+                          this.clinics = orderedList
+                          this.hideLoading()
+                    }
                 }).catch(error => {
                     console.log(error)
                 })
@@ -200,7 +221,7 @@ export default {
       },
         promptToConfirm (clinic) {
          let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: clinic.active ? 'Deseja Inactivar a Farmácia?' : 'Deseja Activar a Farmácia?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: clinic.active ? 'Deseja Inactivar a Farmácia?' : 'Deseja Activar a Farmácia?', cancel: true, persistent: true }).onOk(() => {
                if (clinic.active) {
                 clinic.active = false
                 msg = 'Farmácia inactivada com sucesso.'
@@ -236,6 +257,7 @@ export default {
         }
   },
   mounted () {
+    this.showloading()
     const offset = 0
     this.getAllClinics(offset)
     if (this.configs.value === 'PROVINCIAL') {

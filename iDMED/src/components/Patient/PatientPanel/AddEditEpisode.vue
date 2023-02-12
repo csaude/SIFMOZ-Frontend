@@ -41,6 +41,7 @@
                       class="col q-ml-md"
                       v-model="identifierstartDate"
                       ref="birthDate"
+                      :rules="[ val => val && val.length > 0 || 'Por favor indicar a data de admissão']"
                       label="Data de Admissão">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
@@ -85,7 +86,8 @@
                       class="col q-ml-md"
                       v-model="startDate"
                       ref="startDate"
-                      label="Data de Inicio *">
+                      :rules="[ val => val && val.length > 0 || 'Por favor indicar a data de início']"
+                      label="Data de Início *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -296,11 +298,12 @@ export default {
         if (this.isCreateStep || this.isEditStep) {
           this.$refs.startReason.validate()
           this.$refs.clinicSerctor.validate()
-          if (!this.$refs.startReason.hasError &&
+          this.$refs.startDate.validate()
+          if (!this.$refs.startReason.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.clinicSerctor.hasError) {
-                if (this.getJSDateFromDDMMYYY(this.startDate) > moment().format('DD-MM-YYYY')) {
+                if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) > moment().format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (this.getJSDateFromDDMMYYY(this.startDate) < this.getJSDateFromDDMMYYY(this.curIdentifier.startDate)) {
+                } else if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) < this.extractHyphenDateFromDMYConvertYMD(this.curIdentifier.startDate)) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {
@@ -310,7 +313,7 @@ export default {
                                       .with('patientVisitDetails.*')
                                       .where('id', this.episodeToEdit.id)
                                       .first()
-                    if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.startDate) < this.getJSDateFromDDMMYYY(episode.lastVisit().lastPack().pickupDate))) {
+                    if (episode.hasVisits() && (this.extractHyphenDateFromDMYConvertYMD(this.startDate) < this.extractHyphenDateFromDMYConvertYMD(episode.lastVisit().lastPack().pickupDate))) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
                     } else {
                       this.doSave()
@@ -327,8 +330,8 @@ export default {
           this.episode.episodeType = EpisodeType.query().where('code', 'INICIO').first()
           this.episode.notes = 'Inicio ao tratamento'
           this.episode.clinic = this.currClinic
-          this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
-          this.episode.creationDate = moment().format('DD-MM-YYYY')
+          this.episode.episodeDate = this.extractHyphenDateFromDMYConvertYMD(this.startDate)
+          this.episode.creationDate = moment().format('YYYY-MM-DD')
         } else {
           if (this.stopDate !== '' && this.closureEpisode.notes !== '' && this.closureEpisode.StartStopReason !== null) {
             this.step = 'close'
@@ -339,13 +342,13 @@ export default {
                   !this.$refs.endNotes.$refs.ref.hasError) {
                     this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
                     this.closureEpisode.clinic = this.currClinic
-                    this.closureEpisode.episodeDate = this.getJSDateFromDDMMYYY(this.stopDate)
+                    this.closureEpisode.episodeDate = this.extractHyphenDateFromDMYConvertYMD(this.stopDate)
                     this.closureEpisode.creationDate = moment().format('DD-MM-YYYY')
                     this.closureEpisode.patientServiceIdentifier = this.identifier
 
-                    if (this.getJSDateFromDDMMYYY(this.stopDate) > moment().format('DD-MM-YYYY')) {
+                    if (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) > moment().format('YYYY-MM-DD')) {
                       this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
-                    } else if (this.getJSDateFromDDMMYYY(this.stopDate) < this.getJSDateFromDDMMYYY(this.episode.episodeDate)) {
+                    } else if (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) < this.extractHyphenDateFromDMYConvertYMD(this.episode.episodeDate)) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data de inicio ao tratamento.')
                     } else {
                       console.log(this.episodeToEdit)
@@ -361,7 +364,7 @@ export default {
                                                                                                     .where('prescription_id', episode.lastVisit().prescription.id)
                                                                                                     .get()
                       }
-                      if (episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.stopDate) < this.getJSDateFromDDMMYYY(episode.lastVisit().lastPack().pickupDate))) {
+                      if (episode.hasVisits() && (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) < this.extractHyphenDateFromDMYConvertYMD(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode || this.isDCReferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
                         this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
@@ -412,7 +415,7 @@ export default {
         }
 
         if (!this.isCloseStep) {
-          this.episode.episodeDate = this.getJSDateFromDDMMYYY(this.startDate)
+          this.episode.episodeDate = this.extractHyphenDateFromDMYConvertYMD(this.startDate)
           this.episode.clinicSector.clinicSectorType = ClinicSectorType.find(this.episode.clinicSector.clinic_sector_type_id)
           this.episode.patientServiceIdentifier.clinic.district = District.query().with('province').where('id', this.episode.patientServiceIdentifier.clinic.district_id).first()
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
@@ -457,7 +460,7 @@ export default {
           const transReference = new PatientTransReference({
             syncStatus: 'P',
             operationDate: this.closureEpisode.episodeDate,
-            creationDate: moment().format('DD-MM-YYYY'),
+            creationDate: moment().format('YYYY-MM-DD'),
             operationType: PatientTransReferenceType.query().where('code', this.isTransferenceEpisode ? 'TRANSFERENCIA' : 'REFERENCIA_FP').first(),
             origin: this.currClinic,
             destination: this.closureEpisode.referralClinic.uuid,
@@ -476,7 +479,7 @@ export default {
           const transReference = new PatientTransReference({
             syncStatus: 'P',
             operationDate: this.closureEpisode.episodeDate,
-            creationDate: moment().format('DD-MM-YYYY'),
+            creationDate: moment().format('YYYY-MM-DD'),
             operationType: PatientTransReferenceType.query().where('code', 'REFERENCIA_DC').first(),
             origin: this.currClinic,
             destination: this.selectedClinicSector.uuid,

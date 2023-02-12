@@ -121,7 +121,9 @@ export default {
   },
  computed: {
       clinicSectors () {
-          return ClinicSector.query().withAll().has('code').get()
+          const clinics = ClinicSector.query().withAll().has('code').get()
+          this.hideLoading()
+          return clinics
       }
   },
   methods: {
@@ -167,7 +169,7 @@ export default {
              this.editMode = false
       },
         promptToConfirm (clinicSector) {
-            this.$q.dialog({ title: 'Confirm', message: clinicSector.active ? 'Deseja Inactivar o Sector Clinico?' : 'Deseja Activar o Sector Clinico?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: clinicSector.active ? 'Deseja Inactivar o Sector Clinico?' : 'Deseja Activar o Sector Clinico?', cancel: true, persistent: true }).onOk(() => {
                if (clinicSector.active) {
                 clinicSector.active = false
               } else if (!clinicSector.active) {
@@ -203,6 +205,7 @@ export default {
         }
   },
   mounted () {
+    this.showloading()
   },
   components: {
      addClinicSector: require('components/Settings/ClinicSector/AddClinicSector.vue').default,

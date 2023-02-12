@@ -18,6 +18,7 @@
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "buffer": "^6.0.3",
+    "caniuse-lite": "^1.0.30001451",
     "core-js": "^3.6.5",
     "crypto": "^1.0.1",
     "crypto-js": "^4.1.1",

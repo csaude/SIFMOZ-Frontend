@@ -487,7 +487,7 @@ export default {
       if (this.doneVisible) {
         return 'bg-orange-5'
       } else {
-        return 'bg-grey-4'
+        return 'bg-grey-6'
       }
     }
   },

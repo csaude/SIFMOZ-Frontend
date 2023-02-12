@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" bgColor="bg-grey-4" > Data do Registo: {{ formatDate(patientVisit.visitDate) }}</ListHeader>
+    <ListHeader :addVisible="false" bgColor="bg-grey-6" > Data do Registo: {{ formatDate(patientVisit.visitDate) }}</ListHeader>
     <q-card class="noRadius">
       <q-card-section class="row q-pa-none">
         <div class="col-12">

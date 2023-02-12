@@ -169,7 +169,7 @@ export default {
            this.createMode = true
       },
       promptToConfirm (his) {
-            this.$q.dialog({ title: 'Confirm', message: his.active ? 'Deseja Inactivar o Sistema da Interoperabilidade?' : 'Deseja Activar o Sistema da Interoperabilidade?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: his.active ? 'Deseja Inactivar o Sistema da Interoperabilidade?' : 'Deseja Activar o Sistema da Interoperabilidade?', cancel: true, persistent: true }).onOk(() => {
                if (his.active) {
                 his.active = false
               } else if (!his.active) {

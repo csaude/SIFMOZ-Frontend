@@ -6,7 +6,7 @@
       :isClosed="isClosed"
       @removePack="removePack"
       @editPack="editPack"
-      bgColor="bg-grey-4" >Data de Levantamento: {{formatDate(currPack.pickupDate)}}
+      bgColor="bg-grey-6" >Data de Levantamento: {{formatDate(currPack.pickupDate)}}
     </ListHeader>
     <q-card flat
       v-if="currPack !== null && packagedDrugs !== null && packagedDrugs.length > 0"

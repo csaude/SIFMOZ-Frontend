@@ -445,7 +445,7 @@ export default {
     },
     date: ref(moment(date).format('YYYY/MM/DD')),
         blockDataFutura (date) {
-            return date >= moment(new Date()).add(30, 'd').format('YYYY/MM/DD')
+            return date >= moment(new Date()).add(28, 'd').format('YYYY/MM/DD')
         },
     filterFn (val, update, abort) {
       if (val === '') {

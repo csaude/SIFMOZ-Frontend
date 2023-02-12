@@ -81,8 +81,11 @@
 import { ref } from 'vue'
 import { date } from 'quasar'
 import Duration from '../../../store/models/Duration/Duration'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 import moment from 'moment'
 export default {
+    mixins: [mixinplatform, mixinutils],
     props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate', 'duration', 'step'],
     data () {
       return {
@@ -129,14 +132,14 @@ export default {
             this.displayAlert('error', 'A data do próximo levantamento é inválida')
           } else if (this.drugsDuration === '') {
             this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
-          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) < this.curVisitDetails.prescription.prescriptionDate) {
+          } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) < this.curVisitDetails.prescription.prescriptionDate) {
             this.displayAlert('error', 'A data de levantamento indicada é menor que a data da prescrição')
-          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) > new Date()) {
+          } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) > moment().format('YYYY-MM-DD')) {
             this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')
-          } else if (this.getJSDateFromDDMMYYY(this.pickupDate) > this.getJSDateFromDDMMYYY(this.nextPDate)) {
+          } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) > this.extractHyphenDateFromDMYConvertYMD(this.nextPDate)) {
             this.displayAlert('error', 'A data do levantamento é maior que a data do próximo levantamento')
-          } else if (this.newPickUpDate !== '' && (this.getJSDateFromDDMMYYY(this.pickupDate) < this.newPickUpDate)) {
-            this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.formatDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
+          } else if (this.newPickUpDate !== '' && (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) < this.newPickUpDate)) {
+            this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
           } else {
             this.$emit('showAdd', this.getJSDateFromDDMMYYY(this.pickupDate), this.getJSDateFromDDMMYYY(this.nextPDate), this.drugsDuration)
           }

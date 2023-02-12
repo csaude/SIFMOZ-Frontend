@@ -174,7 +174,7 @@ export default {
       },
       promptToConfirm (doctor) {
         let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: doctor.active ? 'Deseja Inactivar o Clínico?' : 'Deseja Activar o Clínico?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: doctor.active ? 'Deseja Inactivar o Clínico?' : 'Deseja Activar o Clínico?', cancel: true, persistent: true }).onOk(() => {
               if (doctor.active) {
                 doctor.active = false
                   msg = 'Clínico inactivado com sucesso.'
@@ -208,12 +208,15 @@ export default {
             this.$emit('close')
           }
         },
-        getDoctors () {
-          Doctor.apiGetAll()
+       async getDoctors () {
+          await Doctor.apiGetAll()
         }
   },
   mounted () {
-    this.getDoctors()
+    this.showloading()
+    this.getDoctors().then(item => {
+      this.hideLoading()
+    })
   },
   components: {
      addDoctor: require('components/Settings/Doctor/AddDoctor.vue').default,

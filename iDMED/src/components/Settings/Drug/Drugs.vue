@@ -120,7 +120,9 @@ export default {
   },
  computed: {
       drugs () {
-             return Drug.query().with('form').orderBy('name').get()
+             const drugs = Drug.query().with('form').with('clinicalService.identifierType').orderBy('name').get()
+             this.hideLoading()
+             return drugs
       },
        forms () {
             return Form.all()
@@ -165,7 +167,7 @@ export default {
       },
          promptToConfirm (drug) {
            let msg = ''
-            this.$q.dialog({ title: 'Confirm', message: drug.active ? 'Deseja Inactivar o medicamento?' : 'Deseja Activar o medicamento?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: drug.active ? 'Deseja Inactivar o medicamento?' : 'Deseja Activar o medicamento?', cancel: true, persistent: true }).onOk(() => {
               if (drug.active) {
                 drug.active = false
                   msg = 'Medicamento inactivado com sucesso.'
@@ -204,6 +206,7 @@ export default {
         }
   },
   mounted () {
+    this.showloading()
    // this.getDrugs()
   },
   components: {

@@ -1,5 +1,4 @@
 import { Model } from '@vuex-orm/core'
-import { date } from 'quasar'
 import Appointment from '../appointment/Appointment'
 import GroupMember from '../groupMember/GroupMember'
 import PatientAttribute from '../patientAttribute/PatientAttribute'
@@ -13,6 +12,7 @@ import PatientVisit from '../patientVisit/PatientVisit'
 import HealthInformationSystem from '../healthInformationSystem/HealthInformationSystem'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import moment from 'moment'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -137,7 +137,7 @@ export default class Patient extends Model {
   }
 
   age () {
-    return date.getDateDiff(new Date(), new Date(this.dateOfBirth), 'years')
+    return moment().diff(moment(this.dateOfBirth, 'YYYY-MM-DD'), 'years')
   }
 
   static async apiFetchById (id) {
