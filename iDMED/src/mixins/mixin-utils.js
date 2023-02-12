@@ -92,6 +92,9 @@ export default {
   getDateFromHyphenYYYYMMDD (jsDate) {
     return date.extractDate(jsDate, 'YYYY-MM-DD')
   },
+  getDateFormatYYYYMMDDFromDDMMYYYY (date) {
+    return moment(date, 'DD-MM-YYYY').format('YYYY-MM-DD')
+   },
   extractHyphenDateFromDMYConvertYMD (jsDate) {
     return this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(jsDate))
   },
