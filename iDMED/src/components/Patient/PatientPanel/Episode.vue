@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ListHeader :addVisible="false" bgColor="bg-grey-7" >Data de {{currEpisode.isStartEpisode() ? 'Início:' : 'Fim:'}} {{formatDate(currEpisode.episodeDate)}} </ListHeader>
+    <ListHeader :addVisible="false" bgColor="bg-grey-6" >Data de {{currEpisode.isStartEpisode() ? 'Início:' : 'Fim:'}} {{formatDate(currEpisode.episodeDate)}} </ListHeader>
     <q-card flat bordered class="noRadius">
       <q-card-section class="row q-pa-sm">
         <div class="col-9">

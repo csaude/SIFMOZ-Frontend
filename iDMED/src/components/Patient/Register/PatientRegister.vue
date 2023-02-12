@@ -67,10 +67,13 @@
                 <div class="row q-mt-md">
                     <q-select
                       class="col" dense outlined
+                      @input-value="val => { onChangeProvincia(val) }"
                       v-model="patient.province"
                       use-input
                       ref="province"
                       :rules="[ val => !!val || 'Por favor indicar a Província']"
+                      hide-selected
+                      fill-input
                       input-debounce="0"
                       :options="provinces"
                       option-value="id"
@@ -79,6 +82,7 @@
                     <q-select
                       class="col q-ml-md"
                       dense outlined
+                      @input-value="val => { onChangeDistrito(val) }"
                       v-model="patient.district"
                       option-value="id"
                       option-label="description"
@@ -102,8 +106,9 @@
                     <q-select
                       class="col q-ml-md"
                       dense outlined
+                      @input-value="val => { onChangePostoAdministrativo(val) }"
                       :options="filterRedPostos"
-                       v-model="patient.postoAdministrativo"
+                      v-model="patient.postoAdministrativo"
                       option-value="id"
                       option-label="description"
                       label="Posto Administivo"
@@ -126,6 +131,7 @@
                       class="col"
                       dense
                       outlined
+                      clearable
                       :options="filterRedBairros"
                       v-model="patient.bairro"
                       option-value="id"
@@ -144,9 +150,9 @@
                           </q-item-section>
                         </q-item>
                       </template>
-                      <template v-slot:append>
-                        <q-btn round dense flat icon="add" @click.stop.prevent />
-                      </template>
+                      <!-- <template v-slot:append>
+                        <q-btn round dense flat icon="add" @click.stop.prevent="createBairro" />
+                      </template> -->
                     </q-select>
                     <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
                     <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
@@ -216,6 +222,18 @@ export default {
         }
     },
     methods: {
+      onChangeProvincia (provincia) {
+        this.patient.district = null
+        this.patient.bairro = null
+        this.patient.postoAdministrativo = null
+      },
+      onChangeDistrito (distrito) {
+        this.patient.bairro = null
+        this.patient.postoAdministrativo = null
+      },
+      onChangePostoAdministrativo (postoAdministrativo) {
+        this.patient.bairro = null
+      },
       createBairro (val, done) {
         if (val.length > 0) {
           const bairro = new Localidade({ code: val.toUpperCase(), description: val, postoAdministrativo: this.patient.postoAdministrativo })

@@ -47,6 +47,7 @@
                       v-model="identifierstartDate"
                       :disable="isCloseStep || isReOpenStep"
                       ref="startDate"
+                      :rules="[ val => val && val.length > 0 || 'Por favor indicar a data de admissão']"
                       label="Data de Admissão *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
@@ -414,6 +415,7 @@ export default {
               }
           }
         } else if (this.isCreateStep || this.isEditStep) {
+          this.$refs.startDate.validate()
           this.$refs.clinicalService.validate()
           this.$refs.state.validate()
           if (!this.usePreferedId) {
@@ -422,7 +424,7 @@ export default {
             this.identifier.prefered = false
             this.identifier.value = ''
           }
-          if (!this.$refs.clinicalService.hasError &&
+          if (!this.$refs.clinicalService.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.state.hasError) {
               if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < moment(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')

@@ -99,7 +99,7 @@
                   input-debounce="0"
                   :disable="isNewPackStep || isEditPackStep"
                   dense outlined
-                  ref="therapeuticRegimen"
+                  ref="therapeuticRegimenRef"
                   :rules="[ val => !!val || 'Por favor indicar o regime terapêutico']"
                   v-model="curPrescriptionDetails.therapeuticRegimen"
                   :options="optionstherapeuticRegimens"
@@ -353,6 +353,7 @@ export default {
   props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
   data () {
     return {
+      therapeuticRegimenRef: '',
       mds: ref('US_'),
       identifiers: [],
       patientVisit: new PatientVisit(),
@@ -707,15 +708,22 @@ export default {
       }
     },
     validateForm () {
+      console.log('Referecncia', Array.isArray(this.$refs.therapeuticRegimenRef))
       // this.$refs.clinicalService.validate()
-      if (this.hasTherapeuticalRegimen) this.$refs.therapeuticRegimen.validate()
-      if (this.hasTherapeuticalLine) this.$refs.therapeuticLine.validate()
-      if (this.spetialPrescription) this.$refs.spetialMotive.validate()
-      this.$refs.duration.validate()
-      this.$refs.doctor.validate()
-      this.$refs.patientStatus.validate()
+      if (this.hasTherapeuticalRegimen) {
+        Array.isArray(this.$refs.therapeuticRegimenRef) ? this.$refs.therapeuticRegimenRef[0].validate() : this.$refs.therapeuticRegimenRef.validate()
+      }
+      if (this.hasTherapeuticalLine) {
+        Array.isArray(this.$refs.therapeuticLine) ? this.$refs.therapeuticLine[0].validate() : this.$refs.therapeuticLine.validate()
+      }
+      if (this.spetialPrescription) {
+        Array.isArray(this.$refs.spetialMotive) ? this.$refs.spetialMotive[0].validate() : this.$refs.spetialMotive.validate()
+      }
+      Array.isArray(this.$refs.duration) ? this.$refs.duration[0].validate() : this.$refs.duration.validate()
+      Array.isArray(this.$refs.doctor) ? this.$refs.doctor[0].validate() : this.$refs.doctor.validate()
+      Array.isArray(this.$refs.patientStatus) ? this.$refs.patientStatus[0].validate() : this.$refs.patientStatus.validate()
       // if (this.hasPatientType) this.$refs.patientType.validate()
-      this.$refs.dispenseType.validate()
+      Array.isArray(this.$refs.dispenseType) ? this.$refs.dispenseType[0].validate() : this.$refs.dispenseType.validate()
       if (!this.$refs.patientStatus.hasError &&
           // !this.$refs.clinicalService.hasError &&
           // (this.hasTherapeuticalRegimen && !this.$refs.therapeuticRegimen.hasError) &&
