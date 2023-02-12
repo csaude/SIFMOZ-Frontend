@@ -91,6 +91,9 @@ export default {
   getDateFromHyphenYYYYMMDD (jsDate) {
     return date.extractDate(jsDate, 'YYYY-MM-DD')
   },
+  getDateFormatYYYYMMDDFromDDMMYYYY (date) {
+    return moment(date, 'DD-MM-YYYY').format('YYYY-MM-DD')
+  },
   displayAlert (type, msg) {
     this.alert.type = type
     this.alert.msg = msg
