@@ -41,6 +41,7 @@
                       class="col q-ml-md"
                       v-model="identifierstartDate"
                       ref="birthDate"
+                      :rules="[ val => val && val.length > 0 || 'Por favor indicar a data de admissão']"
                       label="Data de Admissão">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
@@ -85,7 +86,8 @@
                       class="col q-ml-md"
                       v-model="startDate"
                       ref="startDate"
-                      label="Data de Inicio *">
+                      :rules="[ val => val && val.length > 0 || 'Por favor indicar a data de início']"
+                      label="Data de Início *">
                       <template v-slot:append>
                           <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -296,7 +298,8 @@ export default {
         if (this.isCreateStep || this.isEditStep) {
           this.$refs.startReason.validate()
           this.$refs.clinicSerctor.validate()
-          if (!this.$refs.startReason.hasError &&
+          this.$refs.startDate.validate()
+          if (!this.$refs.startReason.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.clinicSerctor.hasError) {
                 if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) > moment().format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')

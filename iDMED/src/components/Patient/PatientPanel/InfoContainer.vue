@@ -215,7 +215,7 @@ export default {
       },
     clinicalServiceHeaderColor () {
       if (!this.showEndDetails) {
-        return 'bg-grey-7'
+        return 'bg-grey-6'
       } else {
         return 'bg-red-7'
       }
