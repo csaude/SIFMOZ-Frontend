@@ -317,6 +317,7 @@ export default {
                                 .with('province')
                                 .with('facilityType')
                                 .with('district.province')
+                                .with('sectors')
                                 .where('mainClinic', true)
                                 .first()
           if (clinic !== null) {

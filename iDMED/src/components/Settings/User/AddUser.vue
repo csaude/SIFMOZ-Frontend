@@ -385,10 +385,15 @@ export default {
             this.user.clinicSectors = this.selectedClinicSectors
             this.user.accountLocked = false
             this.user.authorities = this.selectedRoles
+            this.selectedClinicSectors.forEach(item => {
+              item.clinic = this.selectedClinics[0]
+            })
             if (this.website) {
             UserLogin.apiSave(this.user).then(resp => {
             const userResp = resp.response.data
             userResp.authorities = this.selectedRoles
+            userResp.clinics = this.selectedClinics
+            userResp.clinicSectors = this.selectedClinicSectors
             UserLogin.insert({
               data: userResp
             })

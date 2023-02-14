@@ -97,7 +97,6 @@ export default {
               msg: ''
             }),
             doctor: new Doctor(),
-           dateOfBirth: '',
             createValue (val, done) {
               if (val.length > 2) {
                 if (!stringOptions.includes(val)) {
@@ -120,7 +119,6 @@ export default {
         },
         submitDoctor () {
           this.submitting = true
-          this.doctor.dateofbirth = new Date()
           this.doctor.active = true
           console.log(this.doctor)
           if (this.mobile) {
