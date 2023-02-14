@@ -24,7 +24,7 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart' // or "smart", default is 16
     })
-    doc.setFontSize(10)
+    doc.setFontSize(9)
     const image = new Image()
     image.src = require('src/assets/MoHLogo.png')
     /*
@@ -116,7 +116,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7,
+          fontSize: 5,
           textColor: 0
         },
         columnStyles: {
@@ -135,7 +135,7 @@ export default {
         },
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 6
         },
         columnStyles: {
           0: { cellWidth: 13 },
@@ -164,7 +164,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { cellWidth: 13 },
@@ -174,7 +174,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7,
+          fontSize: 5,
           fillColor: [75, 76, 77]
         },
         styles: {
@@ -190,7 +190,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           2: { cellWidth: 15 },
@@ -199,7 +199,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
           maxCellHeight: 4
@@ -213,7 +213,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { fillColor: [240, 241, 242] },
@@ -232,7 +232,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
           maxCellHeight: 4
@@ -246,7 +246,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           2: { cellWidth: 15 },
@@ -255,7 +255,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
           maxCellHeight: 4
@@ -270,7 +270,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { halign: 'left', fillColor: [240, 241, 242] },
@@ -288,10 +288,10 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
-          maxCellHeight: 4
+          maxCellHeight: 3
         },
         body: miaTipoDoenteData,
         startY: newY + 1,
@@ -302,7 +302,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { halign: 'left', fillColor: [240, 241, 242] },
@@ -320,10 +320,10 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
-          maxCellHeight: 4
+          maxCellHeight: 3
         },
         body: miaFaixaEtariaData,
         startY: doc.lastAutoTable.finalY,
@@ -333,7 +333,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { halign: 'left', fillColor: [240, 241, 242] },
@@ -351,7 +351,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
           maxCellHeight: 2
@@ -365,7 +365,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         head: [
           [
@@ -378,7 +378,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7
+          fontSize: 5
         },
         styles: {
           maxCellHeight: 4
@@ -393,7 +393,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 4
         },
         head: [
           [
@@ -408,7 +408,7 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7,
+          fontSize: 4,
           fillColor: [75, 76, 77]
         },
         columnStyles: {
@@ -416,7 +416,7 @@ export default {
           1: { cellWidth: 15 }
         },
         styles: {
-          maxCellHeight: 2
+          maxCellHeight: 1
         },
         body: mmiadsTypeData,
         startY: dsStartY,
@@ -427,7 +427,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 4
         },
         head: [
           [
@@ -439,17 +439,17 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7,
+          fontSize: 4,
           fillColor: [75, 76, 77]
         },
         columnStyles: {
           0: { cellWidth: 15 }
         },
         styles: {
-          maxCellHeight: 2
+          maxCellHeight: 1
         },
         body: mmiadtTypeData,
-        startY: dsStartY + 19.1,
+        startY: dsStartY + 14.2,
         margin: { left: 157 }
       })
 
@@ -457,7 +457,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 4
         },
         head: [
           [
@@ -472,17 +472,17 @@ export default {
         headStyles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 7,
+          fontSize: 4,
           fillColor: [75, 76, 77]
         },
         columnStyles: {
           0: { cellWidth: 13 }
         },
         styles: {
-          maxCellHeight: 2
+          maxCellHeight: 1
         },
         body: mmiadmTypeData,
-        startY: dsStartY + 31.8,
+        startY: dsStartY + 24,
         margin: { left: 172 }
       })
 
@@ -492,7 +492,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { cellWidth: 13, halign: 'right', fillColor: [240, 241, 242] }
@@ -509,7 +509,7 @@ export default {
         theme: 'striped',
         bodyStyles: {
           halign: 'center',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           0: { halign: 'left' }
@@ -526,7 +526,7 @@ export default {
         theme: 'grid',
         bodyStyles: {
           halign: 'left',
-          fontSize: 7
+          fontSize: 5
         },
         columnStyles: {
           1: { cellWidth: 60 },
@@ -545,7 +545,7 @@ export default {
       // Footer
       const str = 'Página ' + doc.internal.getNumberOfPages()
 
-      doc.setFontSize(8)
+      doc.setFontSize(7)
 
       const pageSize = doc.internal.pageSize
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()

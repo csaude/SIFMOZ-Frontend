@@ -22,7 +22,8 @@
                       ref="district"
                       option-value="id"
                       option-label="description"
-                      label="Distrito" />
+                      label="Distrito"
+                      :disable="initProcessing" />
 
                     <q-select
                       class="col q-mr-md"
@@ -33,7 +34,8 @@
                       ref="clinic"
                       option-value="id"
                       option-label="clinicName"
-                      label="Farmácia" />
+                      label="Farmácia"
+                       />
 
                     <q-select
                       class="col q-mr-md"
@@ -46,7 +48,8 @@
                       @update:model-value="val => onPeriodoChange(val)"
                       :rules="[ val => ( val != null) || ' Por favor indique o período']"
                       lazy-rules
-                      label="Período *" />
+                      label="Período *"
+                      :disable="initProcessing" />
 
                      <div  class="row q-mb-md" v-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===1">
                         <q-input
@@ -94,6 +97,7 @@
 
                     <MonthlyPeriod
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===2"
+                      :initProcessing="initProcessing"
                       @setSelectedMonth="setSelectedPeriod"
                       @setSelectedYearMonth="setSelectedYear"/>
 
