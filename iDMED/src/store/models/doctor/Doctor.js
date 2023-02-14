@@ -17,7 +17,6 @@ export default class Doctor extends Model {
         firstnames: this.attr(''),
         lastname: this.attr(''),
         gender: this.attr(''),
-        dateofbirth: this.attr(''),
         telephone: this.attr(''),
         email: this.attr(''),
         category: this.attr(''),
