@@ -13,6 +13,7 @@
             lazy-rules
             @blur="setSelectedMonth()"
             label="Mês"
+            :disable="initProcessing"
             />
 
              <q-input
@@ -29,6 +30,7 @@
 <script>
     import { ref } from 'vue'
     export default {
+      props: ['initProcessing'],
         data () {
             return {
               yearMonthlyPeriod: new Date().getFullYear(),
