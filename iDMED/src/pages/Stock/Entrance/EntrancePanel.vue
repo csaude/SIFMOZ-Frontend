@@ -381,7 +381,7 @@
                   style="padding-top: 2px; padding-bottom: 2px;"
                   class="col text-white q-pa-none bg-orange-4 q-pr-sm">
                     <template v-slot:action class="items-center">
-                        <q-btn dense unelevated color="primary" class="col" label="Imprimir" />
+                        <q-btn dense unelevated color="primary" class="col hidden" label="Imprimir" />
                     </template>
                 </q-banner>
               </div>
