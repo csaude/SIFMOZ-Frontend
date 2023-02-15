@@ -143,6 +143,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import moment from 'moment'
+import { v4 as uuidv4 } from 'uuid'
 export default {
     mixins: [mixinplatform, mixinutils],
     props: ['editPatientVisit', 'editMode'],
@@ -190,14 +191,6 @@ export default {
         this.changeToEditStep()
       } else {
         this.visitDate = this.getDDMMYYYFromJSDate(moment())
-        this.TBScreening = Object.assign({}, new TBScreening())
-        this.pregnancyScreening = Object.assign({}, new PregnancyScreening())
-        this.adherenceScreening = Object.assign({}, new AdherenceScreening())
-        this.rAMScreening = Object.assign({}, new RAMScreening())
-        this.patientVisit.tbScreening = this.TBScreening
-        this.patientVisit.pregnancyScreening = this.pregnancyScreening
-        this.patientVisit.adherenceScreening = this.adherenceScreening
-        this.patientVisit.ramScreening = this.rAMScreening
         this.changeToCreateStep()
       }
     },
@@ -345,13 +338,36 @@ export default {
                   })
                 }
               } else {
+                if (this.TBScreening.id === null || this.TBScreening.id === undefined) {
+                  this.TBScreening.id = uuidv4()
+                }
+                console.log(' Antes VS', this.patientVisit)
+                console.log(' Antes VS', this.vitalSigns)
+                console.log(' Antes TB', this.TBScreening)
+                console.log(' Antes PS', this.pregnancyScreening)
+                console.log(' Antes AS', this.adherenceScreening)
+                console.log(' Antes RAM', this.rAMScreening)
+
+                if (this.vitalSigns.distort !== null && this.vitalSigns.distort !== undefined && this.vitalSigns.distort !== '') this.patientVisit.vitalSigns.length === 0 ? this.patientVisit.vitalSigns.push(this.vitalSigns) : this.patientVisit.vitalSigns[0] = this.vitalSigns
+
+                if (this.TBScreening.cough !== null && this.TBScreening.cough !== undefined && this.TBScreening.cough !== '') this.patientVisit.tbScreening.length === 0 ? this.patientVisit.tbScreening.push(this.TBScreening) : this.patientVisit.tbScreening[0] = this.TBScreening
+
+                if (this.pregnancyScreening.pregnant !== null && this.pregnancyScreening.pregnant !== undefined && this.pregnancyScreening.pregnant !== '') this.patientVisit.pregnancyScreening.length === 0 ? this.patientVisit.pregnancyScreening.push(this.pregnancyScreening) : this.patientVisit.pregnancyScreening[0] = this.pregnancyScreening
+
+                if (this.adherenceScreening.hasPatientCameCorrectDate !== null && this.adherenceScreening.hasPatientCameCorrectDate !== undefined && this.adherenceScreening.hasPatientCameCorrectDate !== '') this.patientVisit.adherenceScreening.length === 0 ? this.patientVisit.adherenceScreening.push(this.adherenceScreening) : this.patientVisit.adherenceScreening[0] = this.adherenceScreening
+
+                if (this.rAMScreening.adverseReactionMedicine !== null && this.rAMScreening.adverseReactionMedicine !== undefined && this.rAMScreening.adverseReactionMedicine !== '') this.patientVisit.ramScreening.length === 0 ? this.patientVisit.ramScreening.push(this.rAMScreening) : this.patientVisit.ramScreening[0] = this.rAMScreening
+
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
-                this.patientVisit.vitalSigns.length === 0 ? this.patientVisit.vitalSigns.push(this.vitalSigns) : this.patientVisit.vitalSigns[0] = this.vitalSigns
-                this.patientVisit.pregnancyScreening.length === 0 ? this.patientVisit.pregnancyScreening.push(this.pregnancyScreening) : this.patientVisit.pregnancyScreening[0] = this.pregnancyScreening
-                this.patientVisit.adherenceScreening.length === 0 ? this.patientVisit.adherenceScreening.push(this.adherenceScreening) : this.patientVisit.adherenceScreening[0] = this.adherenceScreening
-                this.patientVisit.ramScreening.length === 0 ? this.patientVisit.ramScreening.push(this.rAMScreening) : this.patientVisit.ramScreening[0] = this.rAMScreening
+
+                if (this.patientVisit.vitalSigns.length > 1) this.patientVisit.vitalSigns.pop()
+                if (this.patientVisit.tbScreening.length > 1) this.patientVisit.tbScreening.pop()
+                if (this.patientVisit.pregnancyScreening.length > 1) this.patientVisit.pregnancyScreening.pop()
+                if (this.patientVisit.adherenceScreening.length > 1) this.patientVisit.adherenceScreening.pop()
+                if (this.patientVisit.ramScreening.length > 1) this.patientVisit.ramScreening.pop()
+
                 console.log('Responde Antes', this.patientVisit)
 
                 PatientVisit.apiSave(this.patientVisit, this.isCreateStep).then(resp => {

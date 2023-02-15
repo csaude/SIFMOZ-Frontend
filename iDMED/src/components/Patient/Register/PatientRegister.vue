@@ -64,7 +64,6 @@
                     </div>
                     <q-separator color="grey-13" size="1px"/>
                 </div>
-                {{ selectedPatient.province.description }}
                 <div class="row q-mt-md">
                     <q-select
                       class="col" dense outlined
@@ -80,7 +79,6 @@
                       option-value="id"
                       option-label="description"
                       label="Provincia *"/>
-                      {{ selectedPatient.district.description }}
                     <q-select
                       class="col q-ml-md"
                       dense outlined
@@ -455,8 +453,6 @@ export default {
                                         .where('id', this.selectedPatient.id).first()
               this.patientReg.district = District.query().with('province').where('id', this.patientReg.district_id).first()
               this.dateOfBirth = moment(this.selectedPatient.dateOfBirth).format('DD-MM-YYYY')
-              console.log('Paciente Seleccionado ', this.selectedPatient)
-              console.log('Paciente para Editar ', this.patientReg)
           }
         } else {
               if (this.selectedPatient === null) {

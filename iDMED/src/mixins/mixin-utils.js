@@ -279,18 +279,21 @@ export default {
     const offset = 0
     const max = 100
 
+    // if (TherapeuticRegimen.query().count() === 0) this.doGetRegimens(offset, max)
     this.doGetRegimens(offset, max)
   },
   async loadWebDrugsToVueX () {
     const offset = 0
     const max = 100
 
-    this.doGetDrugs(offset, max)
+    // if (Drug.query().count() === 0) this.doGetDrugs(offset, max)
+   this.doGetDrugs(offset, max)
   },
   async loadWebStockToVueX () {
     const offset = 0
     const max = 100
 
+    // if (Stock.query().count() === 0) this.doGetStocks(offset, max)
     this.doGetStocks(offset, max)
   },
   async loadWebParamsToVueX () {
@@ -355,7 +358,7 @@ export default {
                                 .with('province')
                                 .with('facilityType')
                                 .with('district.province')
-                                .with('sectors')
+                                .with('sectors.*')
                                 .where('mainClinic', true)
                                 .first()
           if (clinic !== null) {
