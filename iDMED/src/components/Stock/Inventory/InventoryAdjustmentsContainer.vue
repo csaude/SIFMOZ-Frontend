@@ -258,7 +258,7 @@ export default {
         console.log(this.adjustments[i]) // devolver ajustes ao salvar
 
           if (this.website) {
-                  InventoryStockAdjustment.apiUpdate(this.adjustments[i]).then(resp => {
+                  InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
                     this.adjustments[i].id = resp.response.data.id
                     i = i + 1
                     setTimeout(this.doSave(i), 2)
