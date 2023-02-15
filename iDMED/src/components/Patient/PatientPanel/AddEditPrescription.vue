@@ -31,7 +31,13 @@
           @closeSection="cancelEdition"
           class="q-mt-xs"
           :bgColor="(selectedClinicalService !== null && clinicalService.id === selectedClinicalService.id) ? 'bg-amber-9' : 'bg-primary'">
-          Prescrição {{clinicalService.code}} - {{ this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).identifierType.code }}: {{ this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).value }}
+          Prescrição {{clinicalService.code}} -
+          {{ this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).identifierType.code }}:
+          {{ this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).value !== null &&
+          this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).value !== undefined ?
+          this.patient.identifiers.find(identifier => identifier.service.code === clinicalService.code).value :
+          this.patient.identifiers.find(identifier => identifier.prefered === true).value
+          }}
         </ListHeader>
         <div class="box-border q-pa-sm" v-if="selectedClinicalService !== null && (clinicalService.id === selectedClinicalService.id)">
         <ListHeader

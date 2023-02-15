@@ -169,7 +169,7 @@ export default {
       }
     },
     promptToConfirm (patientVisit) {
-            this.$q.dialog({ title: 'Confirm', message: 'Deseja Apagar a atenção farmaceutica?', cancel: true, persistent: true }).onOk(() => {
+            this.$q.dialog({ title: 'Confirmação', message: 'Deseja Apagar a atenção farmaceutica?', cancel: true, persistent: true }).onOk(() => {
               if (this.website) {
                 if (patientVisit.patientVisitDetails.length === 0) {
         PatientVisit.apiRemove(patientVisit.id).then(resp => {
@@ -197,7 +197,7 @@ export default {
               patientVisit.adherenceScreening.splice(0, patientVisit.adherenceScreening.length)
               patientVisit.ramScreening.splice(0, patientVisit.ramScreening.length)
               console.log(patientVisit)
-     PatientVisit.apiSave(patientVisit).then(resp => {
+              PatientVisit.apiSave(patientVisit).then(resp => {
              this.displayAlert('info', 'Atenção Farmaceutica removida com sucesso.')
              }).catch(error => {
              this.displayAlert('error', error)

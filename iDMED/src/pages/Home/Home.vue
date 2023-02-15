@@ -122,11 +122,16 @@ export default {
   components: {},
   methods: {
     init () {
-      this.showloading()
+      // this.showloading()
       if (this.website) {
+        this.loadWebRegimensToVueX()
+        this.loadWebDrugsToVueX()
+        this.loadWebStockToVueX()
+        this.showloading()
         this.loadWebParamsToVueX()
       } else {
         if (this.isAppSyncDone) {
+          this.showloading()
           this.loadParamsToVueX()
         }
       }

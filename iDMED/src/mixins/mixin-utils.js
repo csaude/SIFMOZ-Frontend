@@ -244,12 +244,54 @@ export default {
       }
        })
   },
+  doGetRegimens (offset, max) {
+    TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
+      if (resp.response.data.length > 0) {
+        offset = offset + max
+        setTimeout(this.doGetRegimens(offset, max), 2)
+      }
+        })
+    },
+  doGetDrugs (offset, max) {
+  Drug.apiGetAll(offset, max).then(resp => {
+    if (resp.response.data.length > 0) {
+      offset = offset + max
+      setTimeout(this.doGetDrugs(offset, max), 2)
+    }
+      })
+  },
+  doGetStocks (offset, max) {
+  Stock.apiGetAll(offset, max).then(resp => {
+    if (resp.response.data.length > 0) {
+      offset = offset + max
+      setTimeout(this.doGetStocks(offset, max), 2)
+    }
+      })
+  },
   loadProvinceDistricts () {
     const offset = 0
     const max = 100
 
     this.doProvinceGet(offset, max)
     this.doDistrictGet(offset, max)
+  },
+  async loadWebRegimensToVueX () {
+    const offset = 0
+    const max = 100
+
+    this.doGetRegimens(offset, max)
+  },
+  async loadWebDrugsToVueX () {
+    const offset = 0
+    const max = 100
+
+    this.doGetDrugs(offset, max)
+  },
+  async loadWebStockToVueX () {
+    const offset = 0
+    const max = 100
+
+    this.doGetStocks(offset, max)
   },
   async loadWebParamsToVueX () {
     const offset = 0
@@ -258,19 +300,15 @@ export default {
 
     await Duration.apiGetAll(offset, max)
     await ClinicalServiceAttributeType.apiGetAll(offset, max)
-    await ClinicalService.apiGetAll(offset, max).then(resp => {
-      console.log(resp.response.data)
-  })
-    await ClinicSector.apiGetAll(offset, max).then(resp => {
-      console.log(resp.response.data)
-  })
+    await ClinicalService.apiGetAll(offset, max)
+    await ClinicSector.apiGetAll(offset, max)
     await IdentifierType.apiGetAll(offset, max)
     await EpisodeType.apiGetAll(offset, max)
     await FacilityType.apiGetAll(offset, max)
     await StartStopReason.apiGetAll(offset, max)
     await ClinicalServiceAttribute.apiGetAll(offset, max)
-    await Drug.apiGetAll(offset, max)
-    await TherapeuticRegimen.apiGetAll(offset, max)
+    // await Drug.apiGetAll(offset, max)
+    // await TherapeuticRegimen.apiGetAll(offset, max)
     await TherapeuticLine.apiGetAll(offset, max)
     await Form.apiGetAll(offset, max)
     await DispenseType.apiGetAll(offset, max)
@@ -278,7 +316,7 @@ export default {
     await InteroperabilityAttribute.apiGetAll(offset, max)
     await HealthInformationSystem.apiGetAll(offset, max)
     await StockCenter.apiGetAll(offset, max)
-    await Stock.apiGetAll(offset, max)
+    // await Stock.apiGetAll(offset, max)
     await InventoryStockAdjustment.apiGetAll(offset, max)
     await StockOperationType.apiGetAll(offset, max)
     await ReferedStockMoviment.apiGetAll(offset, max)

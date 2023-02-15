@@ -39,7 +39,7 @@
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="props.row.date"  @update:model-value="handleInput(props.row)">
+                                <q-date v-model="props.row.date" :options="optionsNonFutureDate"  @update:model-value="handleInput(props.row)">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -61,6 +61,7 @@
 </template>
 <script>
 import PregnancyScreening from '../../../store/models/screening/PregnancyScreening'
+import moment from 'moment'
 
 const columns = [
   {
@@ -101,7 +102,10 @@ export default {
             columns,
            pregnancyQuestions,
             visible: '',
-           pregnancyScreening: new PregnancyScreening()
+           pregnancyScreening: new PregnancyScreening(),
+           optionsNonFutureDate (date) {
+              return date <= moment().format('YYYY/MM/DD')
+        }
         }
     },
     methods: {

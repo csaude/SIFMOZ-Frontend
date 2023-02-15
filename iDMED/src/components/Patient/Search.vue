@@ -402,6 +402,7 @@ export default {
           Patient.api().get('/patient/openmrsSearch/' + his.id + '/' + nid + '/' + localStorage.getItem('encodeBase64'))
                         .then((response) => {
                           this.patients = []
+                          console.log('Lista Oenmrs', response)
                           if (response.response.data.results.length > 0) {
                             response.response.data.results.forEach(pacienteOpenMRS => {
                             const localpatient = new Patient({
