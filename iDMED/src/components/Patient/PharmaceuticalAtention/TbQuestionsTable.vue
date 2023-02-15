@@ -33,7 +33,7 @@
                         <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                <q-date v-model="props.row.date"  @update:model-value="handleInput(props.row)">
+                                <q-date v-model="props.row.date" :options="optionsNonFutureDate"  @update:model-value="handleInput(props.row)">
                                 <div class="row items-center justify-end">
                                     <q-btn v-close-popup label="Close" color="primary" flat />
                                 </div>
@@ -81,14 +81,14 @@
     </q-table>
     <q-card>
      <q-card-actions align="right" class="q-mb-md q-mr-sm" v-if="onlyView">
-                <q-btn label="Sair" color="red" @click="$emit('close')" align="right" />
+        <q-btn label="Sair" color="red" @click="$emit('close')" align="right" />
      </q-card-actions>
     </q-card>
   </div>
 </template>
 <script>
 import TBScreening from '../../../store/models/screening/TBScreening'
-
+import moment from 'moment'
 const columns = [
   {
     name: 'question',
@@ -174,55 +174,58 @@ export default {
            tbQuestion2,
            columns2,
            visible: false,
-           tbScreening: new TBScreening()
+           tbScreening: new TBScreening(),
+           optionsNonFutureDate (date) {
+              return date <= moment().format('YYYY/MM/DD')
+        }
         }
     },
     methods: {
-         handleInput (row) {
-   switch (row.code) {
-    case '01':
-      this.tbScreening.treatmentTPI = row.answer
-      break
-     case '02':
-      this.tbScreening.treatmentTB = row.answer
-      if (row.answer === 'true') {
-      this.visible = true
-      } else {
-         this.visible = false
-      }
-      break
-       case '03':
-      if (this.tbScreening.treatmentTB === 'true') {
-        this.tbScreening.startTreatmentDate = new Date(row.date)
-      } else {
-        this.tbScreening.startTreatmentDate = ''
-      }
-      break
-     case '04':
-      this.tbScreening.cough = row.answer
-      break
-      case '05':
-      this.tbScreening.fever = row.answer
-      break
-      case '06':
-      this.tbScreening.losingWeight = row.answer
-      break
-        case '07':
-      this.tbScreening.sweating = row.answer
-      break
-       case '08':
-      this.tbScreening.fatigueOrTirednessLastTwoWeeks = row.answer
-      break
-       case '09':
-      this.tbScreening.parentTBTreatment = row.answer
-      break
-  default:
+    handleInput (row) {
+      switch (row.code) {
+        case '01':
+          this.tbScreening.treatmentTPI = row.answer
+          break
+        case '02':
+          this.tbScreening.treatmentTB = row.answer
+          if (row.answer === 'true') {
+          this.visible = true
+          } else {
+            this.visible = false
+          }
+          break
+          case '03':
+          if (this.tbScreening.treatmentTB === 'true') {
+            this.tbScreening.startTreatmentDate = moment(row.date).format('YYYY-MM-DD')
+          } else {
+            this.tbScreening.startTreatmentDate = ''
+          }
+          break
+        case '04':
+          this.tbScreening.cough = row.answer
+          break
+          case '05':
+          this.tbScreening.fever = row.answer
+          break
+          case '06':
+          this.tbScreening.losingWeight = row.answer
+          break
+            case '07':
+          this.tbScreening.sweating = row.answer
+          break
+          case '08':
+          this.tbScreening.fatigueOrTirednessLastTwoWeeks = row.answer
+          break
+          case '09':
+          this.tbScreening.parentTBTreatment = row.answer
+          break
+      default:
     console.log('Sorry, we are out of .')
    }
     this.$emit('tbScreening', this.tbScreening)
     },
     addingValueToArray () {
-       if (this.selectedTbTracing) {
+       if (this.selectedTbTracing !== null && this.selectedTbTracing !== undefined) {
       tbQuestions.forEach(tbQuestion => {
            if (tbQuestion.code === '01') tbQuestion.answer = String(this.selectedTbTracing.treatmentTPI)
             if (tbQuestion.code === '02') tbQuestion.answer = String(this.selectedTbTracing.treatmentTB)
@@ -244,6 +247,23 @@ export default {
           })
            this.tbScreening = Object.assign({}, this.selectedTbTracing)
            this.$emit('tbScreening', this.tbScreening)
+    } else {
+      tbQuestions.forEach(tbQuestion => {
+            if (tbQuestion.code === '01') tbQuestion.answer = false
+            if (tbQuestion.code === '02') tbQuestion.answer = false
+            if (tbQuestion.code === '03') tbQuestion.date = ''
+          })
+
+           tbQuestion2.forEach(tbQuestion => {
+            if (tbQuestion.code === '04') tbQuestion.answer = false
+            if (tbQuestion.code === '05') tbQuestion.answer = false
+            if (tbQuestion.code === '06') tbQuestion.answer = false
+            if (tbQuestion.code === '07') tbQuestion.answer = false
+            if (tbQuestion.code === '08') tbQuestion.answer = false
+            if (tbQuestion.code === '09') tbQuestion.answer = false
+          })
+           this.tbScreening = Object.assign({}, this.selectedTbTracing)
+           this.$emit('tbScreening', this.tbScreening)
     }
     }
     },
@@ -253,6 +273,7 @@ export default {
     components: {
     },
     mounted () {
+      this.addingValueToArray()
     },
     computed: {
     }

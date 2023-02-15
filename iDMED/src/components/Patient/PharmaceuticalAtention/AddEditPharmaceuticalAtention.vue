@@ -34,7 +34,7 @@
                   <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                          <q-date v-model="visitDate" mask="DD-MM-YYYY"  @update:model-value="verifyHasSameDay()">
+                          <q-date v-model="visitDate" :options="optionsNonFutureDate" mask="DD-MM-YYYY" @update:model-value="verifyHasSameDay()">
                           <div class="row items-center justify-end">
                               <q-btn v-close-popup label="Close" color="primary" flat />
                           </div>
@@ -116,7 +116,7 @@
                 <q-stepper-navigation >
                 <q-btn label="Cancelar" color="red" @click="$emit('close')" />
                  <q-btn v-if="screeningStep > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep" color="primary" :label="screeningStep === 5 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
+          <q-btn @click="goToNextStep" color="primary" :loading="submitLoading" :label="screeningStep === 5 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
              <q-dialog v-model="alert.visible">
@@ -142,6 +142,7 @@ import RAMScreening from '../../../store/models/screening/RAMScreening'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import moment from 'moment'
 export default {
     mixins: [mixinplatform, mixinutils],
     props: ['editPatientVisit', 'editMode'],
@@ -156,6 +157,7 @@ export default {
           screeningStep: ref(1),
           visitDate: '',
           // imcDescription: '',
+          submitLoading: false,
           hasVisitSameDay: false,
           contentStyle: {
             backgroundColor: '#ffffff',
@@ -173,10 +175,13 @@ export default {
             backgroundColor: '#0ba58b',
             width: '5px',
             opacity: 0.75
-          }
+          },
+          optionsNonFutureDate (date) {
+              return date <= moment().format('YYYY/MM/DD')
+        }
       }
     },
-    created () {
+    mounted () {
       if (this.editPatientVisit) {
         this.patientVisit = Object.assign({}, this.editPatientVisit)
         this.visitDate = this.getDDMMYYYFromJSDate(this.editPatientVisit.visitDate)
@@ -184,6 +189,15 @@ export default {
         this.TBScreening = Object.assign({}, this.editPatientVisit.tbScreening[0])
         this.changeToEditStep()
       } else {
+        this.visitDate = this.getDDMMYYYFromJSDate(moment())
+        this.TBScreening = Object.assign({}, new TBScreening())
+        this.pregnancyScreening = Object.assign({}, new PregnancyScreening())
+        this.adherenceScreening = Object.assign({}, new AdherenceScreening())
+        this.rAMScreening = Object.assign({}, new RAMScreening())
+        this.patientVisit.tbScreening = this.TBScreening
+        this.patientVisit.pregnancyScreening = this.pregnancyScreening
+        this.patientVisit.adherenceScreening = this.adherenceScreening
+        this.patientVisit.ramScreening = this.rAMScreening
         this.changeToCreateStep()
       }
     },
@@ -200,6 +214,8 @@ export default {
               imcDesc = 'Peso normal'
             } else if (imc >= 25 && imc <= 29.9) {
               imcDesc = 'Acima do peso'
+            } else {
+              imcDesc = 'Sem Classificação'
             }
           return imcDesc
         }
@@ -219,6 +235,7 @@ export default {
     },
     methods: {
        async goToNextStep () {
+        this.submitLoading = true
           if (this.screeningStep === 1) {
             this.$refs.height.$refs.ref.validate()
             this.$refs.weight.$refs.ref.validate()
@@ -331,22 +348,23 @@ export default {
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
-                this.patientVisit.vitalSigns.push(this.vitalSigns)
-                this.patientVisit.tbScreening.push(this.TBScreening)
-                this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
-                this.patientVisit.adherenceScreening.push(this.adherenceScreening)
-                this.patientVisit.ramScreening.push(this.rAMScreening)
+                this.patientVisit.vitalSigns.length === 0 ? this.patientVisit.vitalSigns.push(this.vitalSigns) : this.patientVisit.vitalSigns[0] = this.vitalSigns
+                this.patientVisit.pregnancyScreening.length === 0 ? this.patientVisit.pregnancyScreening.push(this.pregnancyScreening) : this.patientVisit.pregnancyScreening[0] = this.pregnancyScreening
+                this.patientVisit.adherenceScreening.length === 0 ? this.patientVisit.adherenceScreening.push(this.adherenceScreening) : this.patientVisit.adherenceScreening[0] = this.adherenceScreening
+                this.patientVisit.ramScreening.length === 0 ? this.patientVisit.ramScreening.push(this.rAMScreening) : this.patientVisit.ramScreening[0] = this.rAMScreening
                 console.log('Responde Antes', this.patientVisit)
 
-                PatientVisit.apiSave(this.patientVisit).then(resp => {
+                PatientVisit.apiSave(this.patientVisit, this.isCreateStep).then(resp => {
                   PatientVisit.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                 }).catch(error => {
+                  this.submitLoading = false
                   this.displayAlert('error', error)
                 })
               }
              }
           }
+          this.submitLoading = false
           },
        getImcValue () {
         if (this.vitalSigns.height !== 0.0 && this.vitalSigns.weight !== 0) {

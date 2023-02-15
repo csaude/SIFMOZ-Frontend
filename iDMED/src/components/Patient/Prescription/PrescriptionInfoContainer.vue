@@ -76,13 +76,13 @@ import Episode from '../../../store/models/episode/Episode'
 import Prescription from '../../../store/models/prescription/Prescription'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Pack from '../../../store/models/packaging/Pack'
-import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+// import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
 import Doctor from '../../../store/models/doctor/Doctor'
 import Duration from '../../../store/models/Duration/Duration'
 import DispenseType from '../../../store/models/dispenseType/DispenseType'
 import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
-import Drug from '../../../store/models/drug/Drug'
+// import Drug from '../../../store/models/drug/Drug'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
@@ -217,12 +217,14 @@ export default {
     reloadParams () {
       if (this.website) {
         // this.loadParamsToVueX()
-        TherapeuticRegimen.apiGetAll()
+        this.loadWebRegimensToVueX()
+        this.loadWebDrugsToVueX()
+        // TherapeuticRegimen.apiGetAll()
         TherapeuticLine.apiGetAll()
         Doctor.apiGetAll()
         Duration.apiGetAll()
         DispenseType.apiGetAll()
-        Drug.apiGetAll(0, 200)
+        // Drug.apiGetAll(0, 200)
       }
     },
     async reloadPrescriptionDetails (id) {

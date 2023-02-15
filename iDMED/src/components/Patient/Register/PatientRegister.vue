@@ -17,9 +17,9 @@
                 </div>
                 <div class="q-mt-md">
                     <div class="row">
-                        <nameInput ref="firstNames" v-model="patient.firstNames"/>
-                        <middleNameInput ref="middleNames" v-model="patient.middleNames" class="q-ml-md"/>
-                        <lastNameInput ref="lastNames" v-model="patient.lastNames" class="q-ml-md"/>
+                        <nameInput ref="firstNames" v-model="patientReg.firstNames"/>
+                        <middleNameInput ref="middleNames" v-model="patientReg.middleNames" class="q-ml-md"/>
+                        <lastNameInput ref="lastNames" v-model="patientReg.lastNames" class="q-ml-md"/>
                     </div>
                     <div class="row">
                           <q-input
@@ -52,7 +52,7 @@
                           dense outlined
                           ref="gender"
                           :rules="[ val => !!val || 'Por favor indicar o sexo']"
-                          v-model="patient.gender"
+                          v-model="patientReg.gender"
                           :options="genders"
                           label="Sexo *" />
                     </div>
@@ -64,11 +64,12 @@
                     </div>
                     <q-separator color="grey-13" size="1px"/>
                 </div>
+                {{ selectedPatient.province.description }}
                 <div class="row q-mt-md">
                     <q-select
                       class="col" dense outlined
                       @input-value="val => { onChangeProvincia(val) }"
-                      v-model="patient.province"
+                      v-model="patientReg.province"
                       use-input
                       ref="province"
                       :rules="[ val => !!val || 'Por favor indicar a Província']"
@@ -79,11 +80,12 @@
                       option-value="id"
                       option-label="description"
                       label="Provincia *"/>
+                      {{ selectedPatient.district.description }}
                     <q-select
                       class="col q-ml-md"
                       dense outlined
                       @input-value="val => { onChangeDistrito(val) }"
-                      v-model="patient.district"
+                      v-model="patientReg.district"
                       option-value="id"
                       option-label="description"
                       ref="district"
@@ -105,10 +107,10 @@
                     </q-select>
                     <q-select
                       class="col q-ml-md"
+                      :readonly="patientReg.district === null || patientReg.district === undefined"
                       dense outlined
-                      @input-value="val => { onChangePostoAdministrativo(val) }"
                       :options="filterRedPostos"
-                      v-model="patient.postoAdministrativo"
+                      v-model="patientReg.postoAdministrativo"
                       option-value="id"
                       option-label="description"
                       label="Posto Administivo"
@@ -132,8 +134,9 @@
                       dense
                       outlined
                       clearable
+                      :readonly="patientReg.district === null || patientReg.district === undefined"
                       :options="filterRedBairros"
-                      v-model="patient.bairro"
+                      v-model="patientReg.bairro"
                       option-value="id"
                       option-label="description"
                       label="Localidade/Bairro"
@@ -154,8 +157,8 @@
                         <q-btn round dense flat icon="add" @click.stop.prevent="createBairro" />
                       </template> -->
                     </q-select>
-                    <TextInput v-model="patient.address" label="Morada" dense class="col q-ml-md" />
-                    <TextInput v-model="patient.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
+                    <TextInput v-model="patientReg.address" label="Morada" dense class="col q-ml-md" />
+                    <TextInput v-model="patientReg.addressReference" label="Ponto de Referência" dense class="col col q-ml-md" />
                 </div>
                 <div class="q-mt-lg">
                     <div class="row items-center q-mb-md">
@@ -165,8 +168,8 @@
                     <q-separator color="grey-13" size="1px"/>
                 </div>
                 <div class="row q-mt-md">
-                  <PhoneField v-model="patient.cellphone" dense label="Principal"/>
-                  <PhoneField v-model="patient.alternativeCellphone" dense label="Alternativo" class="q-ml-md"/>
+                  <PhoneField v-model="patientReg.cellphone" dense label="Principal"/>
+                  <PhoneField v-model="patientReg.alternativeCellphone" dense label="Alternativo" class="q-ml-md"/>
                 </div>
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
@@ -212,7 +215,7 @@ export default {
             genders: ['Masculino', 'Feminino'],
            // age: '',
             submitLoading: false,
-            patient: new Patient(),
+            patientReg: new Patient(),
             filterRedDistricts: ref([]),
             filterRedPostos: ref([]),
             filterRedBairros: ref([]),
@@ -223,20 +226,21 @@ export default {
     },
     methods: {
       onChangeProvincia (provincia) {
-        this.patient.district = null
-        this.patient.bairro = null
-        this.patient.postoAdministrativo = null
+        if (this.selectedPatient.province.description !== provincia) {
+          this.patientReg.district = null
+          this.patientReg.bairro = null
+          this.patientReg.postoAdministrativo = null
+        }
       },
       onChangeDistrito (distrito) {
-        this.patient.bairro = null
-        this.patient.postoAdministrativo = null
-      },
-      onChangePostoAdministrativo (postoAdministrativo) {
-        this.patient.bairro = null
+        if (this.selectedPatient.district.description !== distrito) {
+          this.patientReg.bairro = null
+          this.patientReg.postoAdministrativo = null
+        }
       },
       createBairro (val, done) {
         if (val.length > 0) {
-          const bairro = new Localidade({ code: val.toUpperCase(), description: val, postoAdministrativo: this.patient.postoAdministrativo })
+          const bairro = new Localidade({ code: val.toUpperCase(), description: val, postoAdministrativo: this.patientReg.postoAdministrativo })
           if (!this.objectExistsOnArray(val, this.bairros)) {
             this.filterRedBairros.push(bairro)
           }
@@ -303,8 +307,8 @@ export default {
             !this.$refs.gender.hasError &&
             !this.$refs.district.hasError) {
               const dateObject = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.dateOfBirth)) // this.getDDMMYYYFromJSDate(this.dateOfBirth)
-              if (this.isEditStep && (this.patient.hasIdentifiers() && (this.getYYYYMMDDFromJSDate(this.patient.getOldestIdentifier().startDate) < dateObject))) {
-                this.displayAlert('error', 'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
+              if (this.isEditStep && (this.patientReg.hasIdentifiers() && (this.getYYYYMMDDFromJSDate(this.patientReg.getOldestIdentifier().startDate) < dateObject))) {
+                this.displayAlert('error', 'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patientReg.getOldestIdentifier().service.code + ' ]')
                 this.submitLoading = false
               } else {
                 this.savePatient()
@@ -315,14 +319,14 @@ export default {
       },
       async savePatient () {
         if (!this.newPatient) {
-          this.patient.identifiers = []
+          this.patientReg.identifiers = []
         }
-        if (this.patient.identifiers.length > 0 && this.patient.identifiers[0].clinic === null) {
-          this.patient.identifiers = []
+        if (this.patientReg.identifiers.length > 0 && this.patientReg.identifiers[0].clinic === null) {
+          this.patientReg.identifiers = []
         }
-          this.patient.dateOfBirth = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.dateOfBirth))
-          if (this.patient.bairro !== null && this.patient.bairro.district === null) {
-            this.patient.bairro.district = this.patient.district
+          this.patientReg.dateOfBirth = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.dateOfBirth))
+          if (this.patientReg.bairro !== null && this.patientReg.bairro.district === null) {
+            this.patientReg.bairro.district = this.patientReg.district
           }
           this.doSave()
       },
@@ -331,17 +335,17 @@ export default {
                                 .with('province')
                                 .with('district.province')
                                 .with('facilityType')
-                                .where('id', this.patient.clinic.id)
+                                .where('id', this.patientReg.clinic.id)
                                 .first()
-        this.patient.clinic = clinicAux
+        this.patientReg.clinic = clinicAux
         if (this.mobile) {
-          this.patient.syncStatus = this.isEditStep ? 'U' : 'R'
-          this.patient.province_id = this.patient.province.id
-          this.patient.district_id = this.patient.district.id
-          this.patient.postoAdministrativo_id = this.patient.postoAdministrativo !== null ? this.patient.postoAdministrativo.id : ''
-          this.patient.bairro_id = this.patient.bairro !== null ? this.patient.bairro.id : null
-          this.patient.clinic_id = this.patient.clinic.id
-          const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patient)))
+          this.patientReg.syncStatus = this.isEditStep ? 'U' : 'R'
+          this.patientReg.province_id = this.patientReg.province.id
+          this.patientReg.district_id = this.patientReg.district.id
+          this.patientReg.postoAdministrativo_id = this.patientReg.postoAdministrativo !== null ? this.patientReg.postoAdministrativo.id : ''
+          this.patientReg.bairro_id = this.patientReg.bairro !== null ? this.patientReg.bairro.id : null
+          this.patientReg.clinic_id = this.patientReg.clinic.id
+          const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patientReg)))
           console.log(targetCopy)
           if (!this.isEditStep) {
             await Patient.localDbAdd(targetCopy).then(patient => {
@@ -359,17 +363,17 @@ export default {
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false
         } else {
-         // Localidade.insertOrUpdate({ data: this.patient.bairro })
+         // Localidade.insertOrUpdate({ data: this.patientReg.bairro })
 
-          await Patient.apiSave(this.patient, this.newPatient).then(resp => {
-            this.patient.id = resp.response.data.id
-            this.patient.$id = resp.response.data.id
-            SessionStorage.set('selectedPatient', new Patient(this.patient))
+          await Patient.apiSave(this.patientReg, this.newPatient).then(resp => {
+            this.patientReg.id = resp.response.data.id
+            this.patientReg.$id = resp.response.data.id
+            SessionStorage.set('selectedPatient', new Patient(this.patientReg))
             if (!this.newPatient) {
-              SessionStorage.set('selectedPatient', new Patient(this.patient))
+              SessionStorage.set('selectedPatient', new Patient(this.patientReg))
               Patient.update({
-                where: this.patient.id,
-                data: this.patient
+                where: this.patientReg.id,
+                data: this.patientReg
               })
             }
             if (this.transferencePatientData !== undefined && this.transferencePatientData.length > 0) {
@@ -397,7 +401,7 @@ export default {
       },
       doPatientTranference (resp) {
         const psi = TransferenceService.buildPatientIdentifierFromIdmed((this.transferencePatientData[0]))
-        psi.patient = this.patient
+        psi.patient = this.patientReg
         psi.patient.id = resp.response.data.id
         psi.patient.$id = resp.response.data.id
         PatientServiceIdentifier.apiSave(psi).then(respPatientSI => {
@@ -416,7 +420,7 @@ export default {
                 patientVisit.patientVisitDetails[0].episode = respEpi.response.data
                 patientVisit.patientVisitDetails[0].episode.id = respEpi.response.data.id
                 patientVisit.patientVisitDetails[0].episode.$id = respEpi.response.data.id
-                patientVisit.patient = this.patient
+                patientVisit.patient = this.patientReg
                 patientVisit.patient.id = resp.response.data.id
                 patientVisit.patient.$id = resp.response.data.id
 
@@ -443,24 +447,26 @@ export default {
       initPatient () {
        if (!this.newPatient) {
           if (this.isEditStep) {
-              this.patient = Patient.query().with('province')
-                                        .with('district.province')
+              this.patientReg = Patient.query().with(['province', 'district.province'])
                                         .with('identifiers.*')
                                         .with('postoAdministrativo')
                                         .with('bairro')
                                         .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                         .where('id', this.selectedPatient.id).first()
+              this.patientReg.district = District.query().with('province').where('id', this.patientReg.district_id).first()
               this.dateOfBirth = moment(this.selectedPatient.dateOfBirth).format('DD-MM-YYYY')
+              console.log('Paciente Seleccionado ', this.selectedPatient)
+              console.log('Paciente para Editar ', this.patientReg)
           }
         } else {
               if (this.selectedPatient === null) {
-                this.patient.clinic = this.currClinic
-                this.patient.province = this.currClinic.province
+                this.patientReg.clinic = this.currClinic
+                this.patientReg.province = this.currClinic.province
               } else {
-                this.patient = this.selectedPatient
-                if (this.patient.dateOfBirth !== '') this.dateOfBirth = moment(this.patient.dateOfBirth).format('DD-MM-YYYY')
-                this.patient.clinic = this.currClinic
-                this.patient.province = this.currClinic.province
+                this.patientReg = this.selectedPatient
+                if (this.patientReg.dateOfBirth !== '') this.dateOfBirth = moment(this.patientReg.dateOfBirth).format('DD-MM-YYYY')
+                this.patientReg.clinic = this.currClinic
+                this.patientReg.province = this.currClinic.province
               }
           }
       },
@@ -509,8 +515,8 @@ export default {
       },
       districts: {
         get () {
-          if (this.patient.province !== null && this.patient.province !== undefined) {
-            return District.query().with('province').where('province_id', this.patient.province.id).get()
+          if (this.patientReg.province !== null && this.patientReg.province !== undefined) {
+            return District.query().with('province').where('province_id', this.patientReg.province.id).get()
           } else {
             return null
           }
@@ -518,8 +524,8 @@ export default {
       },
       postos: {
         get () {
-          if (this.patient.district !== null && this.patient.district !== undefined) {
-            return PostoAdministrativo.query().with('district.province').where('district_id', this.patient.district.id).has('code').get()
+          if (this.patientReg.district !== null && this.patientReg.district !== undefined) {
+            return PostoAdministrativo.query().with('district.province').where('district_id', this.patientReg.district.id).has('code').get()
           } else {
             return null
           }
@@ -527,8 +533,8 @@ export default {
       },
       bairros: {
         get () {
-          if (this.patient.postoAdministrativo !== null && this.patient.postoAdministrativo !== undefined) {
-            return Localidade.query().with('postoAdministrativo.district').where('postoAdministrativo_id', this.patient.postoAdministrativo.id).has('code').get()
+          if (this.patientReg.postoAdministrativo !== null && this.patientReg.postoAdministrativo !== undefined) {
+            return Localidade.query().with('postoAdministrativo.district').where('postoAdministrativo_id', this.patientReg.postoAdministrativo.id).has('code').get()
           } else {
             return null
           }
