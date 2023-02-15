@@ -126,9 +126,9 @@ export default {
         if (this.visitDetails.createPackLater) {
           this.$emit('showAdd', null, null, this.drugsDuration)
         } else {
-          if (!date.isValid(this.getJSDateFromDDMMYYY(this.pickupDate))) {
+          if (!date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate))) {
             this.displayAlert('error', 'A data de levantamento é inválida')
-          } else if (!date.isValid(this.getJSDateFromDDMMYYY(this.nextPDate))) {
+          } else if (!date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.nextPDate))) {
             this.displayAlert('error', 'A data do próximo levantamento é inválida')
           } else if (this.drugsDuration === '') {
             this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
@@ -146,12 +146,14 @@ export default {
         }
       },
       determineNextPickUpDate () {
-        if (date.isValid(this.getJSDateFromDDMMYYY(this.pickupDate)) && this.drugsDuration !== '') {
-          const newDate = this.getJSDateFromDDMMYYY(this.pickupDate)
+        console.log('Data de lev', this.pickupDate)
+        if (date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate)) && this.drugsDuration !== '') {
+          const newDate = this.getDateFromHyphenDDMMYYYY(this.pickupDate)
           let lostDays = parseInt((this.drugsDuration.weeks / 4) * 2)
           if (this.drugsDuration.weeks <= 1) lostDays = 0
           const daysToAdd = parseInt((this.drugsDuration.weeks * 7) + lostDays)
-          this.nextPDate = this.getDDMMYYYFromJSDate(date.addToDate(newDate, { days: daysToAdd }))
+          console.log('Data com dias a adicionar', newDate)
+          this.nextPDate = this.getJSDateFromDDMMYYY(date.addToDate(newDate, { days: daysToAdd }))
           this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
         }
       },

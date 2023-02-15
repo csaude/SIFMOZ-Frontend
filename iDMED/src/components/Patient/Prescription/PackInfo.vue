@@ -46,6 +46,8 @@
 import { date } from 'quasar'
 import Pack from '../../../store/models/packaging/Pack'
 import Drug from '../../../store/models/drug/Drug'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinutils from 'src/mixins/mixin-utils'
 const columns = [
   { name: 'drug', required: true, field: 'name', label: 'Medicamento', align: 'left', sortable: true },
   { name: 'qty', align: 'left', field: 'quantitySupplied', label: 'Quantidade', sortable: true },
@@ -53,6 +55,7 @@ const columns = [
 ]
 export default {
   props: ['pack', 'isClosed'],
+  mixins: [mixinplatform, mixinutils],
   setup () {
     return {
       canEdit: true,

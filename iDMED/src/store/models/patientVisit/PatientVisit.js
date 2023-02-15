@@ -38,11 +38,7 @@ export default class PatientVisit extends Model {
   }
 
   static async apiSave (patientVisit, newData) {
-    if (newData) {
       return await this.api().post('/patientVisit', patientVisit)
-    } else {
-      return await this.api().patch(`/patientVisit/${patientVisit.id}`, patientVisit)
-    }
   }
 
   static async apiMySave (patientVisit) {
