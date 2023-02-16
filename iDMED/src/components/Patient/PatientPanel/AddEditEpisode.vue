@@ -299,11 +299,12 @@ export default {
           this.$refs.startReason.validate()
           this.$refs.clinicSerctor.validate()
           this.$refs.startDate.validate()
+
           if (!this.$refs.startReason.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.clinicSerctor.hasError) {
                 if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) > moment().format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) < this.extractHyphenDateFromDMYConvertYMD(this.curIdentifier.startDate)) {
+                } else if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) < this.getYYYYMMDDFromJSDate(this.curIdentifier.startDate)) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {

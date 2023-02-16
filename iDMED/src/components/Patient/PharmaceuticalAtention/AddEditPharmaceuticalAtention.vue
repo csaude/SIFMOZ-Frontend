@@ -61,16 +61,16 @@
                   :done="screeningStep > 1"
                 >
                   <div class="row q-mt-md">
-                        <numberField v-model="vitalSigns.height" label="Altura *"  :disable="onlyView" suffix="[Metros]" ref="height" @update:model-value="getImcValue()"/>
-                      <numberField v-model="vitalSigns.weight" class="q-ml-md" label="Peso *"  suffix="[Kg]" :disable="onlyView" ref="weight" @update:model-value="getImcValue()"/>
+                      <q-input outlined  class="col" dense v-model="vitalSigns.height" label="Altura *" mask="#.##" :disable="onlyView" suffix="[Metros]" ref="height" @update:model-value="getImcValue()"/>
+                      <q-input outlined  class="col q-ml-md" dense v-model="vitalSigns.weight" type="number" label="Peso *" :rules="[ val => !!val || 'Por favor indicar o peso', val => (Number(val) > 0 && Number(val) < Number(500)) || 'O peso indicado não é vádlido', ]" suffix="[Kg]" :disable="onlyView" ref="weight" @update:model-value="getImcValue()"/>
                     </div>
                     <div class="row q-mt-md">
                       <numberField v-model="vitalSigns.imc" label="IMC *" filled disable ref="imc"/>
                       <TextInput dense v-model="imcDescription" class="col q-ml-md" filled label="IMC-Descricao"  disable />
                     </div>
                     <div class="row">
-                        <numberField v-model="vitalSigns.systole" label="Sistole *"  :disable="onlyView"  suffix="[mmHg]" ref="systole"/>
-                      <numberField v-model="vitalSigns.distort" class="q-ml-md" label="Diastole *" suffix="[mmHg]" :disable="onlyView" ref="distort"/>
+                      <q-input outlined  class="col" dense v-model="vitalSigns.systole" mask="###" label="Sistole *"  :disable="onlyView"  suffix="[mmHg]" ref="systole"/>
+                      <q-input outlined  class="col q-ml-md" dense v-model="vitalSigns.distort" mask="###" label="Diastole *" suffix="[mmHg]" :disable="onlyView" ref="distort"/>
                     </div>
                 </q-step>
 
@@ -199,13 +199,13 @@ export default {
         get () {
           let imcDesc = ''
           const imc = this.vitalSigns.imc
-            if (imc >= 16 && imc <= 16.9) {
+            if (imc >= Number(16) && imc <= Number(16.9)) {
               imcDesc = 'Muito abaixo do peso'
-            } else if (imc >= 17 && imc <= 18.4) {
+            } else if (imc >= Number(17) && imc <= Number(18.4)) {
               imcDesc = 'Abaixo do peso'
-            } else if (imc >= 18.5 && imc <= 24.9) {
+            } else if (imc >= Number(18.5) && imc <= Number(24.9)) {
               imcDesc = 'Peso normal'
-            } else if (imc >= 25 && imc <= 29.9) {
+            } else if (imc >= Number(25) && imc <= Number(29.9)) {
               imcDesc = 'Acima do peso'
             } else {
               imcDesc = 'Sem Classificação'
@@ -230,10 +230,10 @@ export default {
        async goToNextStep () {
         this.submitLoading = true
           if (this.screeningStep === 1) {
-            this.$refs.height.$refs.ref.validate()
-            this.$refs.weight.$refs.ref.validate()
-            this.$refs.systole.$refs.ref.validate()
-            this.$refs.distort.$refs.ref.validate()
+           this.$refs.height.validate()
+           this.$refs.weight.validate()
+           this.$refs.systole.validate()
+           this.$refs.distort.validate()
            //  this.$refs.data.$refs.ref.validate()
            if (this.visitDate === '') {
               this.displayAlert('error', 'Por Favor Preencha data de consulta')
@@ -249,8 +249,8 @@ export default {
               this.displayAlert('error', 'Por favor indique um peso maior que zero ')
             } else if (this.vitalSigns.systole <= 0 || this.vitalSigns.distort <= 0) {
               this.displayAlert('error', 'Por favor indique um sistole ou diastole maior que zero ')
-            } else if (!this.$refs.height.$refs.ref.hasError && !this.$refs.weight.$refs.ref.hasError &&
-             !this.$refs.systole.$refs.ref.hasError && !this.$refs.distort.$refs.ref.hasError) {
+            } else if (!this.$refs.height.hasError && !this.$refs.weight.hasError &&
+             !this.$refs.systole.hasError && !this.$refs.distort.hasError) {
               this.$refs.stepper.next()
             }
           } else if (this.screeningStep === 2) {
@@ -341,13 +341,6 @@ export default {
                 if (this.TBScreening.id === null || this.TBScreening.id === undefined) {
                   this.TBScreening.id = uuidv4()
                 }
-                console.log(' Antes VS', this.patientVisit)
-                console.log(' Antes VS', this.vitalSigns)
-                console.log(' Antes TB', this.TBScreening)
-                console.log(' Antes PS', this.pregnancyScreening)
-                console.log(' Antes AS', this.adherenceScreening)
-                console.log(' Antes RAM', this.rAMScreening)
-
                 if (this.vitalSigns.distort !== null && this.vitalSigns.distort !== undefined && this.vitalSigns.distort !== '') this.patientVisit.vitalSigns.length === 0 ? this.patientVisit.vitalSigns.push(this.vitalSigns) : this.patientVisit.vitalSigns[0] = this.vitalSigns
 
                 if (this.TBScreening.cough !== null && this.TBScreening.cough !== undefined && this.TBScreening.cough !== '') this.patientVisit.tbScreening.length === 0 ? this.patientVisit.tbScreening.push(this.TBScreening) : this.patientVisit.tbScreening[0] = this.TBScreening
