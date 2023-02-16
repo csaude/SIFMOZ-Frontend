@@ -62,10 +62,10 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md">
               <q-btn label="Cancelar" color="red" @click.once="$emit('close')"/>
-                <q-btn type="submit" :loading="submitting" :disable="submitting" label="Submeter" color="primary" v-if="!onlyView"/>
+                <q-btn type="submit" :loading="submitting" @click.once="submitting = true"  label="Submeter"  color="primary" v-if="!onlyView"/>
             </q-card-actions>
-             <q-dialog v-model="alert.visible">
-             <Dialog :type="alert.type" @closeDialog="closeDialog">
+             <q-dialog v-model="alert.visible" persistent>
+             <Dialog :type="alert.type"  @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
@@ -147,10 +147,9 @@ export default {
                 this.submitClinicSector()
             }
         },
-        async submitClinicSector () {
+         submitClinicSector () {
           this.clinicSector.active = true
           if (this.clinicSector.uuid === null) this.clinicSector.uuid = uuidv4()
-          this.submitting = true
           console.log(this.clinicSector)
           if (this.mobile) {
             console.log('Mobile')
@@ -160,8 +159,9 @@ export default {
               console.log('Create Step')
               this.clinicSector.syncStatus = 'R'
               console.log(this.clinicSector)
-              await ClinicSector.localDbAdd(JSON.parse(JSON.stringify(this.clinicSector)))
-              await ClinicSector.insert({ data: this.clinicSector })
+              ClinicSector.localDbAdd(JSON.parse(JSON.stringify(this.clinicSector))).then(item => {
+                ClinicSector.insert({ data: this.clinicSector })
+              })
             } else {
               console.log('Edit Step')
                 if (this.clinicSector.syncStatus !== 'R') this.clinicSector.syncStatus = 'U'
@@ -175,21 +175,18 @@ export default {
             if (this.isCreateStep) {
               console.log('Create Step_Online_Mode')
               ClinicSector.apiSave(this.clinicSector).then(resp => {
-              this.submitting = false
-                console.log(resp.response.data)
+                 this.submitting = false
                 this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
               }).catch(error => {
-                this.submitting = false
                   this.displayAlert('error', error)
+                  this.submitting = false
               })
             } else {
               console.log('Edit Step_Online_Mode')
               ClinicSector.apiUpdate(this.clinicSector).then(resp => {
-              this.submitting = false
                 console.log(resp.response.data)
                 this.displayAlert('info', !this.isEditStep ? 'Sector Clínico adicionado com sucesso.' : 'Sector Clínico actualizado com sucesso.')
               }).catch(error => {
-                this.submitting = false
                   this.displayAlert('error', error)
               })
             }

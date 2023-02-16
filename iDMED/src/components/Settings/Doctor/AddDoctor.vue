@@ -63,10 +63,10 @@
             </q-card-section>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" v-if="!onlyView"/>
+                <q-btn type="submit" :loading="submitting"  @click.once="submitting = true" label="Submeter" color="primary" v-if="!onlyView"/>
             </q-card-actions>
-             <q-dialog v-model="alert.visible">
-          <Dialog :type="alert.type" @closeDialog="closeDialog">
+             <q-dialog v-model="alert.visible" persistent>
+          <Dialog :type="alert.type" @closeDialog="closeDialog" >
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
