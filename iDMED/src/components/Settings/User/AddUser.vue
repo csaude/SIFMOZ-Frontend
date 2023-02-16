@@ -385,9 +385,10 @@ export default {
             this.user.clinicSectors = this.selectedClinicSectors
             this.user.accountLocked = false
             this.user.authorities = this.selectedRoles
-            this.selectedClinicSectors.forEach(item => {
+            this.user.clinics[0] = this.user.clinicSectors[0].clinic
+           /* this.selectedClinicSectors.forEach(item => {
               item.clinic = this.selectedClinics[0]
-            })
+            }) */
             if (this.website) {
             UserLogin.apiSave(this.user).then(resp => {
             const userResp = resp.response.data
