@@ -98,6 +98,23 @@ export default {
   extractHyphenDateFromDMYConvertYMD (jsDate) {
     return this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(jsDate))
   },
+  getDateFormatDDMMYYYY (date) {
+    return moment(date, 'DD-MM-YYYY').format('DD-MM-YYYY')
+  },
+  getDateFormatMMDDYYYY (date) {
+    return moment(date, 'MM-DD-YYYY').format('MM-DD-YYYY')
+  },
+
+  getDateFormatYYYYMMDD (date) {
+    return moment(date, 'MM-DD-YYYY').format('MM-DD-YYYY')
+  },
+  getDateFormatDDMMYYYYFromYYYYMMDD (date) {
+    return moment(date, 'YYYY-MM-DD').format('DD-MM-YYYY')
+  },
+
+  getDateFormatDDMMYYYYDash (date) {
+    return moment(date, 'DD-MM-YYYY').format('DD/MM/YYYY')
+  },
   displayAlert (type, msg) {
     this.alert.type = type
     this.alert.msg = msg

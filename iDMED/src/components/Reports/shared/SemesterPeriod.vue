@@ -15,9 +15,11 @@
             lazy-rules
             label="Semestre"
              @blur="setSelectedSemester()"
+             :disable="initProcessing"
             />
 
              <q-input
+             :disable="initProcessing"
               class="col q-mr-md"
                 dense
                 outlined
@@ -31,6 +33,7 @@
 <script>
     import { ref } from 'vue'
     export default {
+        props: ['initProcessing'],
         data () {
                 return {
                     semester: '',

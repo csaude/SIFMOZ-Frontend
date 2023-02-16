@@ -50,7 +50,7 @@
     import moment from 'moment'
 
     export default {
-      props: ['value', 'label'],
+      props: ['value', 'label','initProcessing'],
       data () {
         return {
           startDate: '',
