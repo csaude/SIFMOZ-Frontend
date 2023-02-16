@@ -19,7 +19,7 @@
       <div class="row q-pa-md">
         <q-space />
         <q-btn unelevated color="blue" label="Voltar" @click="goBack"/>
-        <q-btn unelevated color="green-4" class="q-ml-md" label="Imprimir" />
+        <q-btn unelevated color="green-4" class="q-ml-md" :disable="true" label="Imprimir" />
       </div>
         <q-table
           class="col"
