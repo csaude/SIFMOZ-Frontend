@@ -55,7 +55,7 @@
                         <q-input
                           dense
                           outlined
-                          :disable="false"
+                          :disable="initProcessing"
                           class="col q-mr-sm"
                           v-model="reportParams.startDateParam"
                           label="Data Início">
@@ -75,7 +75,7 @@
                          style="width: 100px"
                           dense
                           outlined
-                          :disable="false"
+                          :disable="initProcessing"
                           class="col q-mr-sm"
                           v-model="reportParams.endDateParam"
                           label="Data Fim">
@@ -103,15 +103,18 @@
 
                     <QuarterlyPeriod
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===3"
+                      :initProcessing="initProcessing"
                       @setSelectedQuarter="setSelectedPeriod"
                       @setSelectedYearQuarter="setSelectedYear" />
 
                     <SemesterPeriod
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===4"
+                      :initProcessing="initProcessing"
                       @setSelectedSemester="setSelectedPeriod"
                       @setSelectedSemesterYear="setSelectedYear"  />
 
                     <AnnualPeriod
+                    :initProcessing="initProcessing"
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===5"
                       @setSelectedYearAnnual="setSelectedYear" />
 

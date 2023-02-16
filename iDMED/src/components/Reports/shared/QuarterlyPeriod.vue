@@ -15,9 +15,11 @@
             lazy-rules
             label="Trimestre"
             @blur="setSelectedQuarter()"
+            :disable="initProcessing"
             />
 
              <q-input
+             :disable="initProcessing"
               class="col q-mr-md"
                 dense
                 outlined
@@ -32,6 +34,7 @@
 <script>
     import { ref } from 'vue'
     export default {
+        props: ['initProcessing'],
         data () {
                 return {
                     quarter: '',

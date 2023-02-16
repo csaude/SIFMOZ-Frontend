@@ -17,6 +17,7 @@
             />
 
              <q-input
+             :disable="initProcessing"
               class="col q-mr-md"
                 dense
                 outlined

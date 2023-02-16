@@ -36,7 +36,7 @@
 <script>
 import moment from 'moment'
 import Report from 'src/store/models/report/Report'
-import { LocalStorage } from 'quasar'
+import { LocalStorage, SessionStorage } from 'quasar'
 import { ref } from 'vue'
 import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.ts'
 // import { v4 as uuidv4 } from 'uuid'
@@ -81,6 +81,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
          Report.api().delete(`/absentPatientsReport/delete/${this.id}`)
         this.$refs.filterDrugStoreSection.remove()
         LocalStorage.remove(this.id)
+        SessionStorage.remove(this.id)
       },
       initReportProcessing (params) {
         if (params.localOrOnline === 'online') {
