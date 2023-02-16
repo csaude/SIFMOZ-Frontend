@@ -95,9 +95,9 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-    //  baseURL: 'http://172.104.236.126:5110/api'
+    // baseURL: 'http://172.104.236.126:5110/api'
     baseURL: 'http://localhost:8884/api'
-
+      //  baseURL: 'http://idartzambezia.fgh.org.mz:3000/api'
 })
 let numTries = 0
 // Request interceptor for API calls
@@ -133,7 +133,7 @@ axios.interceptors.request.use(
   if (rToken != null && rToken.length > 10) {
     if ((error.response.status === 403 || error.response.status === 401) && !originalRequest._retry) {
           originalRequest._retry = true
-      console.log('http://localhost:8884/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+      console.log('http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
       numTries++
       if (numTries > 5) {
         localStorage.removeItem('authUser')
@@ -143,7 +143,7 @@ axios.interceptors.request.use(
         localStorage.removeItem('password')
         window.location.reload()
       }
-      return axios.post('http://localhost:8884/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+      return axios.post('http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
         .then(({ data }) => {
           console.log('==got the following token back: ' + data.access_token + '___________________________________________')
           localStorage.setItem('id_token', data.access_token)
