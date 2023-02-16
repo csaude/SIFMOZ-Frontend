@@ -207,7 +207,7 @@
           <q-btn @click="goToNextStep"  v-if="!onlyView" color="primary" :label="step !== 3 ? 'Proximo' : 'Submeter'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
-             <q-dialog v-model="alert.visible">
+             <q-dialog v-model="alert.visible" persistent>
              <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>

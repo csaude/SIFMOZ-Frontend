@@ -372,9 +372,9 @@ export default {
     },
     currClinic () {
      const clinic = Clinic.query()
-                                .with('province')
-                                .with('facilityType')
-                                .with('district.province')
+                                .with('province.*')
+                                .with('facilityType.*')
+                                .with('district.*')
                                 .with('sectors.*')
                                 .where('mainClinic', true)
                                 .first()
