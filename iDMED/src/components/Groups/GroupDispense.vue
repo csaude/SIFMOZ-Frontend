@@ -307,6 +307,8 @@ export default {
         this.displayAlert('error', prescriptionError)
       } else if (this.pickupDate === '' || this.pickupDate === undefined) {
         this.displayAlert('error', 'Por favor, indique a data do levantamento.')
+      } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) > moment().format('YYYY-MM-DD')) {
+        this.displayAlert('error', 'A data da dispensa indicada é maior que a data da corrente.')
       } else if (moment(momentPickUpdate).isBefore(getNextPickUpDate, 'day')) {
         this.displayAlert('error', 'A data da dispensa não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.getNextPickUpDate()))
       } else if (this.drugsDuration === '') {
@@ -566,7 +568,7 @@ export default {
               PatientVisitDetails.insert({ data: pvd })
             })
             this.displayAlert('info', 'Operação efectuada com sucesso.')
-            this.$emit('getGroupMembers')
+            this.$emit('getGroupMembers', false)
           })
         }
       }

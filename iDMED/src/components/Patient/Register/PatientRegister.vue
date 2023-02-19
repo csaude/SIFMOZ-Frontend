@@ -231,7 +231,7 @@ export default {
         }
       },
       onChangeDistrito (distrito) {
-        if (this.selectedPatient.district.description !== distrito) {
+        if (this.selectedPatient.district !== null && this.selectedPatient.district.description !== distrito) {
           this.patientReg.bairro = null
           this.patientReg.postoAdministrativo = null
         }

@@ -182,7 +182,7 @@ export default {
       return !this.patientHasEpisodes && !this.flagGo
     },
     showAddButton () {
-      return this.patientHasEpisodes
+      return this.patientHasEpisodes && !this.patientHasClosedIdentifier
     },
     hasPrescription () {
       return this.checkPrescription()
@@ -192,6 +192,9 @@ export default {
     },
     patientHasEpisodes () {
       return this.patient.hasEpisodes()
+    },
+    patientHasClosedIdentifier () {
+      return this.patient.hasOneAndClosedIdentifier()
     },
     patient: {
       get () {
