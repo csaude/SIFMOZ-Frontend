@@ -224,17 +224,20 @@ export default {
     },
     methods: {
       onChangeProvincia (provincia) {
-        if (this.selectedPatient.province.description !== provincia) {
-          this.patientReg.district = null
-          this.patientReg.bairro = null
-          this.patientReg.postoAdministrativo = null
+        if (this.selectedPatient.province !== null) {
+          if (this.selectedPatient.province.description !== provincia) {
+            this.patientReg.district = null
+            this.patientReg.bairro = null
+            this.patientReg.postoAdministrativo = null
+          }
         }
       },
       onChangeDistrito (distrito) {
-        if (this.selectedPatient.district !== null && this.selectedPatient.district.description !== distrito) {
-          this.patientReg.bairro = null
-          this.patientReg.postoAdministrativo = null
-        }
+        if (this.selectedPatient.district !== null) {
+          if (this.selectedPatient.district.description !== distrito) {
+            this.patientReg.bairro = null
+            this.patientReg.postoAdministrativo = null
+          }
       },
       createBairro (val, done) {
         if (val.length > 0) {
@@ -265,17 +268,26 @@ export default {
         })
       },
       filterDistricts (val, update, abort) {
-        if (val === '') {
-            update(() => {
-              this.filterRedDistricts = this.districts
-            })
-            return
-          }
-
+      const stringOptions = this.districts
+      if (val === '') {
         update(() => {
-          this.filterRedDistricts = this.districts.filter((f) => { return this.stringContains(f.description, val) })
+          this.filterRedDistricts = stringOptions.map(district => district)
         })
-      },
+      } else if (stringOptions.length === 0) {
+        update(() => {
+          this.filterRedDistricts = []
+        })
+      } else {
+        update(() => {
+          this.filterRedDistricts = stringOptions
+            .map(district => district)
+            .filter(district => {
+              return district &&
+              district.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+            })
+        })
+      }
+    },
       filterBairros (val, update, abort) {
         if (this.bairros === null || this.bairros.length <= 0) return
         if (val === '') {

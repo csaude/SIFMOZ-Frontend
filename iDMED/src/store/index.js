@@ -96,8 +96,8 @@ VuexORM.use(VuexORMAxios, {
     'X-Requested-With': 'XMLHttpRequest'
   },
     // baseURL: 'http://172.104.236.126:5110/api'
-    baseURL: 'http://localhost:8884/api'
-      //  baseURL: 'http://idartzambezia.fgh.org.mz:3000/api'
+   baseURL: 'http://localhost:8884/api'
+      // baseURL: 'http://idartzambezia.fgh.org.mz:3000/api'
 })
 let numTries = 0
 // Request interceptor for API calls

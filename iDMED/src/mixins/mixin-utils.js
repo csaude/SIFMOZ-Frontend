@@ -61,6 +61,9 @@ export default {
         messageColor: 'white'
       })
   },
+  isValidDate (dateString) {
+    return date.isValid(dateString)
+  },
   hideLoading () {
     this.$q.loading.hide()
   },
