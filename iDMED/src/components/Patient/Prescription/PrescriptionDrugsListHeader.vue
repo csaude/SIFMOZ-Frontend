@@ -141,18 +141,16 @@ export default {
           } else if (this.newPickUpDate !== '' && (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) < this.newPickUpDate)) {
             this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
           } else {
-            this.$emit('showAdd', this.getJSDateFromDDMMYYY(this.pickupDate), this.getJSDateFromDDMMYYY(this.nextPDate), this.drugsDuration)
+            this.$emit('showAdd', this.getDateFromHyphenDDMMYYYY(this.pickupDate), this.getDateFromHyphenDDMMYYYY(this.nextPDate), this.drugsDuration)
           }
         }
       },
       determineNextPickUpDate () {
-        console.log('Data de lev', this.pickupDate)
         if (date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate)) && this.drugsDuration !== '') {
           const newDate = this.getDateFromHyphenDDMMYYYY(this.pickupDate)
           let lostDays = parseInt((this.drugsDuration.weeks / 4) * 2)
           if (this.drugsDuration.weeks <= 1) lostDays = 0
           const daysToAdd = parseInt((this.drugsDuration.weeks * 7) + lostDays)
-          console.log('Data com dias a adicionar', newDate)
           this.nextPDate = this.getJSDateFromDDMMYYY(date.addToDate(newDate, { days: daysToAdd }))
           this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
         }
