@@ -296,13 +296,16 @@
               <q-btn
                 v-if="!inFormEdition"
                 :label="dispenseLabel"
+                loader
+                :loading="submitting"
                 @click="doValidationToDispense()"
                 color="primary"
-                class="q-ml-md all-pointer-events" />
+                class="q-ml-md all-pointer-events" >
+                </q-btn>
             </span>
          </div>
       </q-card-section>
-      <q-dialog persistent v-model="alert.visible">
+      <q-dialog persistent v-model="alert.visible" @hide="desableSubmitting">
         <Dialog
           :type="alert.type"
           :object="msgObject"
@@ -359,6 +362,7 @@ export default {
   props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
   data () {
     return {
+      submitting: false,
       therapeuticRegimenRef: '',
       mds: ref('US_'),
       identifiers: [],
@@ -412,6 +416,9 @@ export default {
     }
   },
   methods: {
+    desableSubmitting () {
+        this.submitting = false
+    },
     async init () {
       console.log('Init Step', this.stepp)
       this.setStep(this.stepp)
@@ -738,7 +745,9 @@ export default {
           !this.$refs.doctor.hasError &&
           // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
-            if (this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.prescriptionDate)) < this.getYYYYMMDDFromJSDate(this.curPatientVisitDetail.episode.episodeDate)) {
+            if (!this.isValidDate(String(this.prescriptionDate))) {
+                this.displayAlert('error', 'A data da prescrição é inválida.')
+              } else if (this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.prescriptionDate)) < this.getYYYYMMDDFromJSDate(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
             } else if (this.spetialPrescription && this.$refs.hasError) {
               this.displayAlert('error', 'Prescrição especial')
@@ -751,6 +760,7 @@ export default {
       }
     },
     doValidationToDispense () {
+      this.submitting = true
       this.curPatientVisitDetails = []
       this.clinicalServices.forEach((service) => {
         if (SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0) {
@@ -1020,7 +1030,11 @@ export default {
               }
             }
           }) */
-          if (!packDateError) this.doWebSave()
+          if (!packDateError) {
+          this.doWebSave()
+          } else {
+            this.submitting = false
+          }
         }
       }
     },
@@ -1146,6 +1160,7 @@ export default {
       }
     },
     doWebSave () {
+      this.submitting = true
       if (!this.isEditPackStep) {
         console.log('Regista Dipsnsa', this.patientVisit)
         PatientVisit.apiSave(JSON.parse(JSON.stringify(this.patientVisit))).then(resp => {
@@ -1262,9 +1277,6 @@ export default {
         return dateString
       }
     },
-    // getDDMMYYYFromJSDate (jsDate) {
-    //   return moment(jsDate).format('DD-MM-YYYY')
-    // },
     checkPrescribedDrugs () {
       const somePrescribed = this.clinicalServices.some((service) => {
         return SessionStorage.getItem(service.code).prescription.prescribedDrugs.length > 0

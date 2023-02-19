@@ -119,8 +119,8 @@
           <q-btn @click="goToNextStep" color="primary" :loading="submitLoading" :label="screeningStep === 5 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
         </q-stepper-navigation>
             </q-card-actions>
-             <q-dialog v-model="alert.visible">
-          <Dialog :type="alert.type" @closeDialog="closeDialog">
+             <q-dialog v-model="alert.visible" @hide="desableSubmitting">
+              <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
           </Dialog>
@@ -227,6 +227,9 @@ export default {
       }
     },
     methods: {
+      desableSubmitting () {
+        this.submitLoading = false
+    },
        async goToNextStep () {
         this.submitLoading = true
           if (this.screeningStep === 1) {
@@ -240,10 +243,10 @@ export default {
            } else if (this.getJSDateFromDDMMYYY(this.visitDate).setHours(0, 0, 0, 0) < new Date(this.patient.dateOfBirth).setHours(0, 0, 0, 0)) {
               this.displayAlert('error', 'A data de consulta indicada é maior que a data de nascimento do paciente/utente')
            } else if (this.patient.hasIdentifiers() && (new Date(this.patient.getOldestIdentifier().startDate).setHours(0, 0, 0, 0) > this.getJSDateFromDDMMYYY(this.visitDate).setHours(0, 0, 0, 0))) {
-              this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
+            this.displayAlert('error', 'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' + this.patient.getOldestIdentifier().service.code + ' ]')
            } else if (this.hasVisitSameDay && !this.editMode) {
-             this.displayAlert('error', 'Ja Existe uma Atenção farmceutica nessa data .Por Favor use a funcionalidade editar')
-           } else if (this.vitalSigns.height <= 0) {
+             this.displayAlert('error', 'Já Existe uma Atenção farmcêutica nessa data .Por Favor use a funcionalidade editar')
+            } else if (this.vitalSigns.height <= 0) {
               this.displayAlert('error', 'Por favor indique uma altura maior que zero ')
            } else if (this.vitalSigns.weight <= 0) {
               this.displayAlert('error', 'Por favor indique um peso maior que zero ')
@@ -252,6 +255,7 @@ export default {
             } else if (!this.$refs.height.hasError && !this.$refs.weight.hasError &&
              !this.$refs.systole.hasError && !this.$refs.distort.hasError) {
               this.$refs.stepper.next()
+              this.desableSubmitting()
             }
           } else if (this.screeningStep === 2) {
             if (this.TBScreening.treatmentTB === 'true' && this.TBScreening.startTreatmentDate === '') {
@@ -260,8 +264,10 @@ export default {
                 this.displayAlert('error', 'A Data de inicio de Tratamento indicada é maior que a data da corrente.')
             } else if (this.patient.gender === 'Masculino') {
               this.$refs.stepper.goTo(4)
+              this.desableSubmitting()
             } else {
               this.$refs.stepper.next()
+              this.desableSubmitting()
             }
           } else if (this.screeningStep === 3) {
              if (this.pregnancyScreening.pregnant === 'false' && this.pregnancyScreening.lastMenstruation === '') {
@@ -270,6 +276,7 @@ export default {
                 this.displayAlert('error', 'A Data da Ultima Menstruação indicada é maior que a data da corrente.')
             } else {
               this.$refs.stepper.next()
+              this.desableSubmitting()
             }
           } else if (this.screeningStep === 4) {
             if ((this.adherenceScreening.hasPatientCameCorrectDate === 'false' && this.adherenceScreening.daysWithoutMedicine === '') ||
@@ -280,6 +287,7 @@ export default {
                this.displayAlert('error', 'Por Favor Indique quantos dias passou da hora sem tomar os Medicamentos')
           } else {
              this.$refs.stepper.next()
+             this.desableSubmitting()
           }
           } else if (this.screeningStep === 5) {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
@@ -367,13 +375,12 @@ export default {
                   PatientVisit.apiFetchById(resp.response.data.id)
                 this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                 }).catch(error => {
-                  this.submitLoading = false
                   this.displayAlert('error', error)
                 })
               }
              }
           }
-          this.submitLoading = false
+        //  this.submitLoading = false
           },
        getImcValue () {
         if (this.vitalSigns.height !== 0.0 && this.vitalSigns.weight !== 0) {

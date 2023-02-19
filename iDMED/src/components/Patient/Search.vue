@@ -389,6 +389,7 @@ export default {
         }
       },
       openMRSSerach (his) {
+        this.showloading()
         const nid = this.currPatient.identifiers[0].value.replaceAll('/', '-')
 
         if (nid.length <= 0) {
@@ -398,11 +399,13 @@ export default {
             message: 'Não contém nenhum parâmetro de pesquisa. Por favor, introduza um Nº de Identificador',
             icon: 'report_problem'
           })
+        this.hideLoading()
         } else {
           Patient.api().get('/patient/openmrsSearch/' + his.id + '/' + nid + '/' + localStorage.getItem('encodeBase64'))
                         .then((response) => {
                           this.patients = []
                           console.log('Lista Oenmrs', response)
+                           this.hideLoading()
                           if (response.response.data.results.length > 0) {
                             response.response.data.results.forEach(pacienteOpenMRS => {
                             const localpatient = new Patient({
@@ -412,6 +415,7 @@ export default {
                             }
                             )
                           } else {
+                                 this.hideLoading()
                                  this.$q.notify({
                                 color: 'negative',
                                 position: 'center',

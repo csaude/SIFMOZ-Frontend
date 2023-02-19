@@ -216,10 +216,10 @@
             </div>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
                 <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-                <q-btn type="submit" label="Submeter" color="primary" />
+                <q-btn type="submit" :loading="submitting" label="Submeter" color="primary" />
             </q-card-actions>
         </form>
-        <q-dialog v-model="alert.visible">
+        <q-dialog v-model="alert.visible" @hide="desableSubmitting" :persistent="true">
           <Dialog :type="alert.type" @closeDialog="closeDialog">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
@@ -250,8 +250,10 @@ import moment from 'moment'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
     mixins: [mixinplatform, mixinutils],
+    emits: ['update:submitting'],
     data () {
         return {
+          submitting: false,
             identifier: new PatientServiceIdentifier(),
             episode: new Episode(),
             closureEpisode: new Episode(),
@@ -268,6 +270,9 @@ export default {
         }
     },
     methods: {
+      desableSubmitting () {
+        this.submitting = false
+      },
       async init () {
         this.setStep(this.stepp)
         this.identifier = new PatientServiceIdentifier(this.curIdentifier)
@@ -294,7 +299,8 @@ export default {
           })
         }
       },
-      submitForm () {
+     submitForm () {
+        this.submitting = true
         if (this.isCreateStep || this.isEditStep) {
           this.$refs.startReason.validate()
           this.$refs.clinicSerctor.validate()
@@ -302,9 +308,11 @@ export default {
 
           if (!this.$refs.startReason.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.clinicSerctor.hasError) {
-                if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) > moment().format('YYYY-MM-DD')) {
+                if (!this.isValidDate(String(this.startDate))) {
+                this.displayAlert('error', 'A data de inicio é inválida.')
+              } else if (this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(this.startDate)) > moment().format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
-                } else if (this.extractHyphenDateFromDMYConvertYMD(this.startDate) < this.getYYYYMMDDFromJSDate(this.curIdentifier.startDate)) {
+                } else if (this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(this.startDate)) < this.getYYYYMMDDFromJSDate(this.curIdentifier.startDate)) {
                   this.displayAlert('error', 'A data de inicio indicada é menor que a data de admissão ao serviço clínico.')
                 } else {
                   if (this.isEditStep) {
@@ -314,8 +322,8 @@ export default {
                                       .with('patientVisitDetails.*')
                                       .where('id', this.episodeToEdit.id)
                                       .first()
-                    if (episode.hasVisits() && (this.extractHyphenDateFromDMYConvertYMD(this.startDate) < this.extractHyphenDateFromDMYConvertYMD(episode.lastVisit().lastPack().pickupDate))) {
-                      this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
+                    if (episode.hasVisits() && (this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(this.startDate)) < this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(episode.lastVisit().lastPack().pickupDate)))) {
+                       this.displayAlert('error', 'A data de inicio indicada é menor que a data da ultima visita efectuada pelo paciente.')
                     } else {
                       this.doSave()
                     }
@@ -347,9 +355,11 @@ export default {
                     this.closureEpisode.creationDate = moment().format('DD-MM-YYYY')
                     this.closureEpisode.patientServiceIdentifier = this.identifier
 
-                    if (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) > moment().format('YYYY-MM-DD')) {
+                    if (!this.isValidDate(String(this.stopDate))) {
+                      this.displayAlert('error', 'A data de fim é inválida.')
+                    } else if (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) > moment().format('YYYY-MM-DD')) {
                       this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
-                    } else if (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) < this.extractHyphenDateFromDMYConvertYMD(this.episode.episodeDate)) {
+                    } else if (this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(this.stopDate)) < this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(this.episode.episodeDate))) {
                       this.displayAlert('error', 'A data de inicio indicada é menor que a data de inicio ao tratamento.')
                     } else {
                       console.log(this.episodeToEdit)
@@ -367,8 +377,8 @@ export default {
                       }
                       if (episode.hasVisits() && (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) < this.extractHyphenDateFromDMYConvertYMD(episode.lastVisit().lastPack().pickupDate))) {
                         this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
-                      } else if ((this.isReferenceEpisode || this.isTransferenceEpisode || this.isDCReferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
-                        this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
+                      } else if ((this.isReferenceEpisode || this.isDCReferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
+                        this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido.')
                       } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                         this.displayAlert('error', 'Por favor indicar o destino do paciente.')
                       } else {
@@ -604,7 +614,7 @@ export default {
                                     .orderBy('code', 'asc')
                                     .get()
         const sectorList = sectors.filter((sector) => {
-          return sector.clinicSectorType.code === 'PARAGEM_UNICA'
+          return sector.clinicSectorType.code === 'PARAGEM_UNICA' || sector.clinicSectorType.code === 'NORMAL'
         })
 
         return sectorList

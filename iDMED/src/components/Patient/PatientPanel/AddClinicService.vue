@@ -257,6 +257,7 @@
                 <q-btn
                   type="submit"
                   :loading="submitting"
+                  @click="submitting = true"
                   label="Submeter"
                   color="primary" >
                   <template v-slot:loading>
@@ -265,7 +266,7 @@
                 </q-btn>
             </q-card-actions>
         </form>
-        <q-dialog v-model="alert.visible">
+        <q-dialog v-model="alert.visible" @hide="desableSubmitting" :persistent="true">
           <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="commitOperation">
             <template v-slot:title> Informação</template>
             <template v-slot:msg> {{alert.msg}} </template>
@@ -276,7 +277,6 @@
 
 <script>
 import { SessionStorage } from 'quasar'
-import { ref } from 'vue'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
@@ -299,9 +299,8 @@ export default {
     props: ['identifierToEdit', 'selectedPatient', 'stepp'],
    mixins: [mixinplatform, mixinutils],
     data () {
-      const submitting = ref(false)
         return {
-          submitting,
+            submitting: false,
             identifierstartDate: '',
             identifier: new PatientServiceIdentifier(),
             closureEpisode: new Episode(),
@@ -321,6 +320,9 @@ export default {
         }
     },
     methods: {
+      desableSubmitting () {
+        this.submitting = false
+      },
       init () {
         this.identifier.patient = Patient.find(this.patient.id)
         this.reloadIdentifierTypeMask()
@@ -379,14 +381,16 @@ export default {
                                       .where('patientServiceIdentifier_id', this.identifier.id)
                                       .orderBy('creationDate', 'desc')
                                       .first()
-              if (this.getJSDateFromDDMMYYY(this.endDate) > new Date()) {
+              if (!this.isValidDate(String(this.endDate))) {
+                this.displayAlert('error', 'A data de fim é inválida.')
+              } else if (this.getDateFromHyphenDDMMYYYY(this.endDate) > this.getDateFromHyphenYYYYMMDD(moment().format('YYYY-MM-DD'))) {
                 this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
-              } else if (episode !== null && this.getJSDateFromDDMMYYY(this.endDate) < new Date(episode.episodeDate)) {
+              } else if (episode !== null && this.getDateFromHyphenDDMMYYYY(this.endDate) < this.getDateFromHyphenYYYYMMDD(episode.episodeDate)) {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data de inicio ao tratamento.')
-              } else if (episode !== null && episode.hasVisits() && (this.getJSDateFromDDMMYYY(this.endDate) < new Date(episode.lastVisit().lastPack().pickupDate))) {
+              } else if (episode !== null && episode.hasVisits() && (this.getDateFromHyphenDDMMYYYY(this.endDate) < this.getDateFromHyphenYYYYMMDD(episode.lastVisit().lastPack().pickupDate))) {
                 this.displayAlert('error', 'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.')
-              } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && !this.identifierHasValidPrescription(episode)) {
-                this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido ou transferido.')
+              } else if (this.isReferenceEpisode && !this.identifierHasValidPrescription(episode)) {
+                this.displayAlert('error', 'O paciente deve ter registo de pelo menos uma prescrição e dispensa para poder ser referido.')
               } else if ((this.isReferenceEpisode || this.isTransferenceEpisode) && this.closureEpisode.referralClinic === null) {
                 this.displayAlert('error', 'Por favor indicar o destino do paciente.')
               } else {
@@ -406,9 +410,11 @@ export default {
                                       .where('patientServiceIdentifier_id', this.identifier.id)
                                       .orderBy('creationDate', 'desc')
                                       .first()
-              if (this.getJSDateFromDDMMYYY(this.reOpenDate) > new Date()) {
+              if (!this.isValidDate(String(this.reOpenDate))) {
+                this.displayAlert('error', 'A data de abertura é inválida.')
+              } else if (this.getDateFromHyphenDDMMYYYY(this.reOpenDate) > this.getDateFromHyphenYYYYMMDD(moment().format('YYYY-MM-DD'))) {
                 this.displayAlert('error', 'A data de abertura indicada é maior que a data da corrente.')
-              } else if (this.getJSDateFromDDMMYYY(this.reOpenDate) < new Date(episode.episodeDate)) {
+              } else if (this.getDateFromHyphenDDMMYYYY(this.reOpenDate) < this.getDateFromHyphenYYYYMMDD(episode.episodeDate)) {
                 this.displayAlert('error', 'A data de abertura indicada é menor que a data do ultimo fecho efectuado.')
               } else {
                 this.doSave()
@@ -426,7 +432,9 @@ export default {
           }
           if (!this.$refs.clinicalService.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.state.hasError) {
-              if (this.getJSDateFromDDMMYYY(this.identifierstartDate) < moment(this.selectedPatient.dateOfBirth)) {
+                if (!this.isValidDate(String(this.identifierstartDate))) {
+                this.displayAlert('error', 'A data de admissão é inválida.')
+              } else if (this.getDateFromHyphenDDMMYYYY(this.identifierstartDate) < this.getDateFromHyphenYYYYMMDD(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')
               } else if (!this.usePreferedId && (this.identifier.value === '' || this.stringContains(this.identifier.value, '#'))) {
                 this.displayAlert('error', 'Por favor indicar um identificador dentro do padrão.')
@@ -437,7 +445,7 @@ export default {
                                         .where('patientServiceIdentifier_id', this.identifier.id)
                                         .orderBy('creationDate', 'desc')
                                         .first()
-                  if (episode !== null && (this.getJSDateFromDDMMYYY(this.identifierstartDate) > moment(episode.episodeDate))) {
+                  if (episode !== null && (this.getDateFromHyphenDDMMYYYY(this.identifierstartDate) > this.getDateFromHyphenYYYYMMDD(episode.episodeDate))) {
                     this.displayAlert('error', 'A data de admissão indicada é maior que a data do primeiro episódio registado.')
                   } else if (this.hasVisitsMade && (this.identifier.service.id !== this.identifierToEdit.service.id)) {
                     this.displayAlert('error', 'Não pode alterar o serviço de saúde pois ja existem registos de visitas associados.')
@@ -454,7 +462,6 @@ export default {
               }
             }
         }
-        this.submitting = false
       },
       lastStartEpisodeWithPrescription () {
         let episode = null
@@ -659,6 +666,7 @@ export default {
         })
       },
       commitOperation () {
+        this.submitting = true
         this.doSave()
       }
     },
@@ -813,7 +821,7 @@ export default {
         let resonList = []
         if (this.lastEpisode !== null && this.lastEpisode.isReferenceOrTransferenceEpisode()) {
           resonList = allReasons.filter((reason) => {
-            return reason.code === 'VOLTOU_REFERENCIA'
+            return reason.code === 'VOLTOU_REFERENCIA' || reason.code === 'REINICIO_TRATAMETO' || reason.code === 'TRANSFERIDO_DE'
           })
           return resonList
         } else {
