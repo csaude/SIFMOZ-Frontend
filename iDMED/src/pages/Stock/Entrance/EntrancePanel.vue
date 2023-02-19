@@ -474,6 +474,11 @@ export default {
         this.loadStockList()
       }
     },
+    async getClinicAux () {
+        await Clinic.apiFetchMainClinic().then((resp) => {
+          this.clinicAux = resp.response.data
+          })
+    },
     cancelOperation () {
       this.guiaStep = 'display'
       this.submitting = false
@@ -684,6 +689,11 @@ export default {
       } else if (!this.isPositiveInteger(stock.unitsReceived)) {
         this.submitting = false
         this.displayAlert('error', 'Por favor indicar uma quantidade válida!')
+      } else if (!(stock.expireDate instanceof Date)) {
+        this.displayAlert('error', 'A data de validade é inválida!')
+      } else if (stock.expireDate <= moment(new Date()).add(28, 'd')) {
+        this.submitting = false
+        this.displayAlert('error', 'O medicamento não deve expirar em menos de 28 dias, Por favor indique uma data de validade válida!')
       } else {
         this.stock = stock
         if (stock.expireDate <= moment(new Date()).add(91, 'd')) {
@@ -891,6 +901,7 @@ export default {
   mounted () {
     this.init()
     this.loadStockList()
+    this.getClinicAux()
   },
   computed: {
     currStockEntrance () {
@@ -929,12 +940,13 @@ export default {
                         .first()
     },
     currClinic () {
-        return Clinic.query()
+      return this.clinicAux
+        /* return Clinic.query()
                     .with('province')
                     .with('facilityType')
                     .with('district.province')
                     .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
+                    .first() */
       }
   },
   components: {

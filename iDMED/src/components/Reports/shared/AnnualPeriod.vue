@@ -1,5 +1,5 @@
 <template>
-
+<form @submit.prevent="submitForm" >
      <div class="row q-mb-md">
              <q-input
               class="col q-mr-md"
@@ -9,13 +9,17 @@
                 type="number"
                 label="Ano"
                 @blur="setSelectedYearAnnual()"
+                :rules="[val => !!val || ' Por favor indique o ano']"
+                ref="annualPeriod"
             />
        </div>
+    </form>
   </template>
 
 <script>
 
     export default {
+        props: ['errorCount'],
         data () {
                 return {
                     yearAnnualPeriod: new Date().getFullYear(),
@@ -28,7 +32,13 @@
         methods: {
             setSelectedYearAnnual () {
             this.$emit('setSelectedYearAnnual', this.yearAnnualPeriod)
+            },
+            submitForm () {
+                let errorCountAux = 0
+                this.$refs.yearAnnualPeriod.validate()
+                if (this.$refs.yearAnnualPeriod.hasError) errorCountAux++
+              this.$emit('errorCount', errorCountAux)
+              }
             }
-        }
            }
 </script>

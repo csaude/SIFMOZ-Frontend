@@ -1,21 +1,20 @@
 <template>
-
+<form @submit.prevent="submitForm" >
      <div class="row q-mb-md">
         <q-select
             class="col q-mr-md"
             dense outlined
             :options="months"
             v-model="month"
-            ref="periodMonth"
+            ref="monthlyPeriod"
             option-value="id"
             option-label="description"
-            :rules="[ val => ( val != null) || ' Por favor indique o Mês']"
+            :rules="[val => !!val || 'Por favor indique o Mês']"
             lazy-rules
             @blur="setSelectedMonth()"
             label="Mês"
             :disable="initProcessing"
             />
-
              <q-input
              :disable="initProcessing"
               class="col q-mr-md"
@@ -24,14 +23,17 @@
                 v-model="yearMonthlyPeriod"
                 @blur="setSelectedYearMonth()"
                 type="number"
+                ref="yearMonthlyPeriod"
+                :rules="[val => !!val || 'Por favor indique o ano']"
             />
        </div>
+</form>
   </template>
 
 <script>
     import { ref } from 'vue'
     export default {
-      props: ['initProcessing'],
+      props: ['initProcessing', 'errorCount'],
         data () {
             return {
               yearMonthlyPeriod: new Date().getFullYear(),
@@ -59,7 +61,15 @@
               },
               setSelectedYearMonth () {
                 this.$emit('setSelectedYearMonth', this.yearMonthlyPeriod)
+              },
+              submitForm () {
+              let errorCountAux = 0
+              this.$refs.monthlyPeriod.validate()
+              if (this.$refs.monthlyPeriod.hasError) errorCountAux++
+              this.$refs.yearMonthlyPeriod.validate()
+              if (this.$refs.yearMonthlyPeriod.hasError) errorCountAux++
+              this.$emit('errorCount', errorCountAux)
               }
-            }
+          }
             }
 </script>

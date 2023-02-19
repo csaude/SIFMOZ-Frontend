@@ -1,5 +1,6 @@
 <template>
-             <div class="row">
+            <form @submit.prevent="validateFilersReport" >
+            <div class="row">
               <div class="col row q-pt-md">
                     <q-select
                       dense outlined
@@ -46,7 +47,7 @@
                       option-value="code"
                       option-label="description"
                       @update:model-value="val => onPeriodoChange(val)"
-                      :rules="[ val => ( val != null) || ' Por favor indique o período']"
+                        :rules="[ val => ( val != null) || ' Por favor indique o período']"
                       lazy-rules
                       label="Período *"
                       :disable="initProcessing" />
@@ -58,6 +59,8 @@
                           :disable="initProcessing"
                           class="col q-mr-sm"
                           v-model="reportParams.startDateParam"
+                          :rules="[val => !!val || 'Por favor indique a data de início']"
+                          ref="startDate"
                           label="Data Início">
                           <template v-slot:append>
                               <q-icon name="event" class="cursor-pointer">
@@ -76,8 +79,10 @@
                           dense
                           outlined
                           :disable="initProcessing"
+                          ref="endDate"
                           class="col q-mr-sm"
                           v-model="reportParams.endDateParam"
+                          :rules="[val => !!val || 'Por favor indique a data de fim']"
                           label="Data Fim">
                           <template v-slot:append>
                               <q-icon name="event" class="cursor-pointer">
@@ -99,24 +104,32 @@
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===2"
                       :initProcessing="initProcessing"
                       @setSelectedMonth="setSelectedPeriod"
-                      @setSelectedYearMonth="setSelectedYear"/>
+                      @setSelectedYearMonth="setSelectedYear"
+                      @errorCount="errorCount"
+                      ref="periodoRef"/>
 
                     <QuarterlyPeriod
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===3"
                       :initProcessing="initProcessing"
                       @setSelectedQuarter="setSelectedPeriod"
-                      @setSelectedYearQuarter="setSelectedYear" />
+                      @setSelectedYearQuarter="setSelectedYear"
+                      @errorCount="errorCount"
+                      ref="quarterlyPeriod"/>
 
                     <SemesterPeriod
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===4"
                       :initProcessing="initProcessing"
                       @setSelectedSemester="setSelectedPeriod"
-                      @setSelectedSemesterYear="setSelectedYear"  />
+                      @setSelectedSemesterYear="setSelectedYear"
+                      @errorCount="errorCount"
+                      ref="semesterPeriod" />
 
                     <AnnualPeriod
                     :initProcessing="initProcessing"
                       v-else-if="reportParams.periodTypeView !== null && reportParams.periodTypeView.id ===5"
-                      @setSelectedYearAnnual="setSelectedYear" />
+                      @setSelectedYearAnnual="setSelectedYear"
+                      @errorCount="errorCount"
+                      ref="annualPeriod"/>
 
                       <div v-if="mobile" class="row q-ml-md">
                         <div class="col">
@@ -126,13 +139,14 @@
                       </div>
 
                     <div class="">
-                      <q-btn class="gt-xs"
+                      <q-btn
+                      type="submit"
+                      class="gt-xs"
                         :color="!processingTerminated ? 'green-6' : 'grey-6'"
                         :disable="initProcessing"
                         dense
                         rounded
                         icon="chevron_right"
-                        @click.stop="processReport()"
                       >
                         <q-tooltip class="bg-primary">Processar o Relatório</q-tooltip>
                       </q-btn>
@@ -159,6 +173,7 @@
                 </div>
               </div>
             </div>
+           </form>
 </template>
 
 <script>
@@ -205,7 +220,8 @@ export default {
           { id: 5, description: 'Anual', code: 'ANNUAL' }
         ]),
         progress1,
-        initProcessing: false
+        initProcessing: false,
+        errorCountAux: 0
       }
     },
     created () {
@@ -276,6 +292,36 @@ export default {
           // this.periodTypeList = ref(this.applicablePeriods)
         }
       },
+      errorCount (value) {
+        this.errorCountAux = value
+      console.log(value)
+   },
+      validateFilersReport () {
+        let countErr = 0
+            this.$refs.period.validate()
+            if (this.$refs.period.hasError) {
+              countErr++
+            }
+           if (this.$refs.endDate !== undefined && this.$refs.endDate !== null) {
+            this.$refs.endDate.validate()
+            countErr = this.$refs.period.hasError ? countErr + 1 : countErr
+           }
+           if (this.$refs.startDate !== undefined && this.$refs.startDate !== null) {
+            this.$refs.startDate.validate()
+            countErr = this.$refs.startDate.hasError ? countErr + 1 : countErr
+           }
+           const ref = this.$refs.periodoRef !== null && this.$refs.periodoRef !== undefined ? this.$refs.periodoRef : this.$refs.quarterlyPeriod !== null && this.$refs.quarterlyPeriod !== undefined ? this.$refs.quarterlyPeriod : this.$refs.semesterPeriod !== null && this.$refs.semesterPeriod !== undefined ? this.$refs.semesterPeriod : this.$refs.annualPeriod !== null && this.$refs.annualPeriod !== undefined ? this.$refs.annualPeriod : null
+           if (ref !== null) {
+            ref.submitForm()
+            /* this.$refs.periodoRef.$refs.monthlyPeriod.validate()
+            errorCount = this.$refs.periodoRef.$refs.monthlyPeriod.hasError ? errorCount + 1 : errorCount
+            this.$refs.periodoRef.$refs.monthlyPeriod.validate()
+            errorCount = this.$refs.periodoRef.$refs.yearMonthlyPeriod.hasError ? errorCount + 1 : errorCount */
+           }
+            if (countErr === 0 && this.errorCountAux === 0) {
+                this.processReport()
+            }
+        },
       onPeriodoChange (val) {
         this.reportParams.provinceId = null
         this.reportParams.districtId = null
