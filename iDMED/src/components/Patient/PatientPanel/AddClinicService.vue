@@ -259,11 +259,7 @@
                   :loading="submitting"
                   @click="submitting = true"
                   label="Submeter"
-                  color="primary" >
-                  <template v-slot:loading>
-                    <q-spinner-facebook />
-                  </template>
-                </q-btn>
+                  color="primary" />
             </q-card-actions>
         </form>
         <q-dialog v-model="alert.visible" @hide="desableSubmitting" :persistent="true">
@@ -381,7 +377,7 @@ export default {
                                       .where('patientServiceIdentifier_id', this.identifier.id)
                                       .orderBy('creationDate', 'desc')
                                       .first()
-              if (!this.isValidDate(String(this.endDate))) {
+              if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.endDate)))) {
                 this.displayAlert('error', 'A data de fim é inválida.')
               } else if (this.getDateFromHyphenDDMMYYYY(this.endDate) > this.getDateFromHyphenYYYYMMDD(moment().format('YYYY-MM-DD'))) {
                 this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')
@@ -410,7 +406,7 @@ export default {
                                       .where('patientServiceIdentifier_id', this.identifier.id)
                                       .orderBy('creationDate', 'desc')
                                       .first()
-              if (!this.isValidDate(String(this.reOpenDate))) {
+              if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.reOpenDate)))) {
                 this.displayAlert('error', 'A data de abertura é inválida.')
               } else if (this.getDateFromHyphenDDMMYYYY(this.reOpenDate) > this.getDateFromHyphenYYYYMMDD(moment().format('YYYY-MM-DD'))) {
                 this.displayAlert('error', 'A data de abertura indicada é maior que a data da corrente.')
@@ -432,7 +428,7 @@ export default {
           }
           if (!this.$refs.clinicalService.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.state.hasError) {
-                if (!this.isValidDate(String(this.identifierstartDate))) {
+                if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.identifierstartDate)))) {
                 this.displayAlert('error', 'A data de admissão é inválida.')
               } else if (this.getDateFromHyphenDDMMYYYY(this.identifierstartDate) < this.getDateFromHyphenYYYYMMDD(this.selectedPatient.dateOfBirth)) {
                 this.displayAlert('error', 'A data de admissão indicada é menor que a data de nascimento do paciente/utente.')

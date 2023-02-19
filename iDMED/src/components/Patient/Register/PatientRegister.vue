@@ -238,7 +238,8 @@ export default {
             this.patientReg.bairro = null
             this.patientReg.postoAdministrativo = null
           }
-      },
+      }
+    },
       createBairro (val, done) {
         if (val.length > 0) {
           const bairro = new Localidade({ code: val.toUpperCase(), description: val, postoAdministrativo: this.patientReg.postoAdministrativo })

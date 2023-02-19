@@ -308,7 +308,7 @@ export default {
 
           if (!this.$refs.startReason.hasError && !this.$refs.startDate.hasError &&
               !this.$refs.clinicSerctor.hasError) {
-                if (!this.isValidDate(String(this.startDate))) {
+                if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.startDate)))) {
                 this.displayAlert('error', 'A data de inicio é inválida.')
               } else if (this.getYYYYMMDDFromJSDate(this.extractHyphenDateFromDMYConvertYMD(this.startDate)) > moment().format('YYYY-MM-DD')) {
                   this.displayAlert('error', 'A data de inicio indicada é maior que a data da corrente.')
@@ -355,7 +355,7 @@ export default {
                     this.closureEpisode.creationDate = moment().format('DD-MM-YYYY')
                     this.closureEpisode.patientServiceIdentifier = this.identifier
 
-                    if (!this.isValidDate(String(this.stopDate))) {
+                    if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.stopDate)))) {
                       this.displayAlert('error', 'A data de fim é inválida.')
                     } else if (this.extractHyphenDateFromDMYConvertYMD(this.stopDate) > moment().format('YYYY-MM-DD')) {
                       this.displayAlert('error', 'A data de fim indicada é maior que a data da corrente.')

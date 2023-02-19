@@ -528,7 +528,8 @@ export default {
     },
     initPatientVisit () {
       if (this.isNewPackStep || !this.isEditPackStep) {
-        this.patientVisit.visitDate = this.getYYYYMMDDFromJSDate(moment())
+        console.log('visit date 5 ', moment().format('YYYY-MM-DD'))
+        this.patientVisit.visitDate = moment().format('YYYY-MM-DD')
       } else {
         this.patientVisit = PatientVisit.query()
                                         .with('clinic.*')
@@ -745,7 +746,7 @@ export default {
           !this.$refs.doctor.hasError &&
           // (this.hasPatientType && !this.$refs.patientType.hasError) &&
           !this.$refs.dispenseType.hasError) {
-            if (!this.isValidDate(String(this.prescriptionDate))) {
+            if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.prescriptionDate)))) {
                 this.displayAlert('error', 'A data da prescrição é inválida.')
               } else if (this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.prescriptionDate)) < this.getYYYYMMDDFromJSDate(this.curPatientVisitDetail.episode.episodeDate)) {
               this.displayAlert('error', 'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente')
@@ -807,6 +808,7 @@ export default {
             error = 'Por favor indicar o modo da dispensa.'
           } else if (visitDetails.prescription.prescribedDrugs.length > 0) {
             if (!this.isNewPackStep || !this.isEditPackStep || !this.isFirstPack) {
+              console.log('visit date 1 ', visitDetails.prescription.prescriptionDate)
               visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription.prescriptionDate)
               visitDetails.patientVisit = null
             }
@@ -817,6 +819,7 @@ export default {
           } else {
             if (visitDetails.prescription.prescribedDrugs.length > 0) {
               if (!this.isNewPackStep || !this.isEditPackStep) {
+                console.log('visit date 2 ', visitDetails.prescription.prescriptionDate)
                 visitDetails.patientVisit.visitDate = new Date(visitDetails.prescription.prescriptionDate)
                 visitDetails.patientVisit = null
               }
@@ -1007,7 +1010,12 @@ export default {
             if (this.isFirstPack && visitDetails.prescription.id !== null) {
               visitDetails.clinic = this.currClinic
             }
-            this.patientVisit.visitDate = visitDetails.pack.pickupDate
+            if (visitDetails.pack.pickupDate !== null) {
+              this.patientVisit.visitDate = visitDetails.pack.pickupDate
+            } else {
+              this.patientVisit.visitDate = moment().format('YYYY-MM-DD')
+            }
+            console.log('visit date 3 ', this.patientVisit.visitDate)
             this.patientVisit.patientVisitDetails.push(visitDetails)
           }
         }.bind(this))
