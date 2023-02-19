@@ -365,8 +365,8 @@ export default {
       if (lasHeader !== null && lasHeader !== undefined) this.defaultPickUpDate = lasHeader.nextPickUpDate
       this.showNewPackingForm = true
     },
-    getGroupMembers () {
-      this.$refs.groupMembers.getGroupMembers()
+    getGroupMembers (isPrescription) {
+      this.$refs.groupMembers.getGroupMembers(isPrescription)
     }
   },
   mounted () {

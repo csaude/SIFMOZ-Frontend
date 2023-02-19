@@ -145,7 +145,7 @@ export default {
     },
     therapeuticRegimen () {
       return TherapeuticRegimen.query()
-                               .with(['drugs.form', 'drugs.stocks', 'drugs.clinicalService.identifierType'])
+                               .with(['drugs', 'drugs.form', 'drugs.stocks', 'drugs.clinicalService.identifierType'])
                                .where('id', this.visitDetails.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                .first()
     }

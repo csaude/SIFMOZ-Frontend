@@ -238,7 +238,6 @@ export default {
             this.patientReg.bairro = null
             this.patientReg.postoAdministrativo = null
           }
-        }
       },
       createBairro (val, done) {
         if (val.length > 0) {

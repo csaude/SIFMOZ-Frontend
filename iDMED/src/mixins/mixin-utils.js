@@ -357,7 +357,7 @@ export default {
     this.hideLoading()
     this.getClinicAux()
   },
-  getClinicAux () {
+ getClinicAux () {
     Clinic.apiFetchMainClinic().then((resp) => {
       this.clinicAux = resp.response.data
     })

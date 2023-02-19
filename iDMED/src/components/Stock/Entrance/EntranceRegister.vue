@@ -57,6 +57,7 @@ import { SessionStorage } from 'quasar'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import Clinic from 'src/store/models/clinic/Clinic'
 
 export default {
   mixins: [mixinplatform, mixinutils],
@@ -65,7 +66,8 @@ export default {
       stockEntrance: new StockEntrance({
         dateReceived: new Date()
       }),
-      dateReceived: this.getDDMMYYYFromJSDate(new Date())
+      dateReceived: this.getDDMMYYYFromJSDate(new Date()),
+      clinicAux: {}
     }
   },
   components: {
@@ -82,9 +84,11 @@ export default {
         this.$refs.orderNumber.$refs.ref.validate()
         if (!this.$refs.orderNumber.$refs.ref.hasError) {
           this.showloading()
-          this.stockEntrance.clinic = this.currClinic
-          this.stockEntrance.id = null
           if (this.website) {
+            await this.getClinicAux().then(item => {
+          this.stockEntrance.clinic = this.clinicAux
+          this.stockEntrance.id = null
+          })
                     await StockEntrance.apiSave(this.stockEntrance).then(resp => {
                     SessionStorage.set('currStockEntrance', resp.response.data)
                     this.hideLoading()
@@ -105,6 +109,7 @@ export default {
                       this.displayAlert('error', listErrors)
                     })
           } else {
+            this.stockEntrance.clinic = this.currClinic
                   this.stockEntrance.syncStatus = 'R'
                    const targetCopy = new StockEntrance(JSON.parse(JSON.stringify(this.stockEntrance)))
                    console.log('STOCK ENTRANCE WEB: ', targetCopy)
@@ -120,7 +125,12 @@ export default {
              }
         }
       }
-    }
+    },
+    async getClinicAux () {
+        await Clinic.apiFetchMainClinic().then((resp) => {
+          this.clinicAux = resp.response.data
+          })
+  }
   }
 }
 </script>

@@ -136,6 +136,11 @@ export default class Patient extends Model {
     return preferedId.value
   }
 
+  hasOneAndClosedIdentifier () {
+    if (this.identifiers.length > 1 && this.hasEpisodes) return false
+    return this.identifiers.length === 1 && this.identifiers[0].endDate !== null
+  }
+
   age () {
     return moment().diff(moment(this.dateOfBirth, 'YYYY-MM-DD'), 'years')
   }

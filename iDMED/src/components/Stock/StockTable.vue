@@ -87,6 +87,7 @@ import mixincrypt from 'src/mixins/mixin-encryption'
 import db from 'src/store/localbase'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import StockAlert from '../../store/models/stockAlert/StockAlert'
+import mixinutils from 'src/mixins/mixin-utils'
 
 // import CryptoJS from 'crypto-js'
 const columns = [
@@ -99,7 +100,7 @@ const columns = [
 ]
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
-   mixins: [mixincrypt, mixinplatform],
+   mixins: [mixincrypt, mixinplatform, mixinutils],
   data () {
     const filter = ref('')
     return {
@@ -135,8 +136,10 @@ export default {
     },
     getStockAlert () {
       if (this.website) {
+        this.showloading()
       Report.apiGetStockAlert(SessionStorage.getItem('currClinic').id, 'TARV').then(resp => {
         this.rowData = resp.response.data
+        this.hideLoading()
       })
       } else {
           db.newDb().collection('stockAlert').get().then(stockAlert => {
