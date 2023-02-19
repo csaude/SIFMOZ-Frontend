@@ -254,7 +254,7 @@
           </div>
         </div>
       </span>
-      <div class="row q-mt-xs">
+      <div class="row q-mt-xs" v-if="this.member === null || this.member === undefined">
         <q-banner
           dense
           inline-actions
@@ -906,7 +906,8 @@ export default {
       this.patientVisit.patientVisitDetails = []
       if (this.member !== null && this.member !== undefined) {
         this.curPatientVisitDetails[0].prescription.prescriptionDate = this.getJSDateFromDDMMYYY(this.prescriptionDate)
-        this.curPatientVisitDetails[0].prescription.leftDuration = Number((this.curPatientVisitDetails[0].prescription.duration.weeks / 4))
+        const duration = Number((this.curPatientVisitDetails[0].prescription.duration.weeks / 4))
+        this.curPatientVisitDetails[0].prescription.leftDuration = duration
           const memberPrescription = new GroupMemberPrescription({
             prescription: this.curPatientVisitDetails[0].prescription,
             member: GroupMember.query()
@@ -965,14 +966,20 @@ export default {
               memberPrescription.prescription.$id = resp.response.data.id
               memberPrescription.prescription.prescribedDrugs = []
               memberPrescription.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
+              console.log(memberPrescription.prescription.leftDuration)
+              memberPrescription.prescription.leftDuration = duration
+              console.log(memberPrescription.prescription.leftDuration)
               GroupMemberPrescription.apiSave(memberPrescription).then(resp1 => {
                 GroupMemberPrescription.apiFetchByMemberId(this.member.id).then(respd => {
                   if (respd.response.status === 200) {
-                    Prescription.apiFetchById(respd.response.data.prescription.id)
+                    Prescription.apiFetchById(respd.response.data.prescription.id).then(resp2 => {
+                      resp.response.data.leftDuration = duration
+                      console.log(resp.response.data.leftDuration)
+                    })
                   }
                 })
                 this.displayAlert('info', 'Prescrição gravada com sucesso.')
-                this.$emit('getGroupMembers')
+                this.$emit('getGroupMembers', true)
               })
             })
         }
@@ -1027,6 +1034,7 @@ export default {
     setRelationIdentifiers () {
       let packDateError = false
       this.patientVisit.clinic_id = this.patientVisit.clinic.id
+    //  this.patientVisit.visitDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
           this.patientVisit.patient_id = this.patientVisit.patient.id
           if (this.mobile) {
             if (this.patientVisit.syncStatus === 'S' && this.isEditPackStep) {
@@ -1045,6 +1053,8 @@ export default {
             pvd.patient_visit_id = this.patientVisit.id
             pvd.prescription_id = pvd.prescription.id
             pvd.pack_id = pvd.pack.id
+     //       pvd.pack.pickupDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
+      //      pvd.pack.nextPickUpDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
             if (pvd.prescription.syncStatus === '' || (pvd.prescription.syncStatus === 'R' && this.isEditPackStep)) {
               pvd.prescription.syncStatus = 'R'
             } else if (pvd.prescription.syncStatus === 'S' && this.isEditPackStep) {
@@ -1610,6 +1620,7 @@ export default {
       get () {
         if (this.selectedClinicalService === null) return []
         return TherapeuticRegimen.query()
+                                .with(['drugs', 'drugs.form', 'drugs.stocks', 'drugs.clinicalService.identifierType'])
                                 .with('clinicalService.identifierType')
                                 .has('code')
                                 .where('active', true)
