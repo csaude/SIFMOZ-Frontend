@@ -1,5 +1,5 @@
 <template>
-
+<form @submit.prevent="submitForm" >
      <div class="row q-mb-md">
         <q-select
             class="col q-mr-md"
@@ -11,7 +11,7 @@
             ref="quarterlyPeriod"
             option-value="id"
             option-label="description"
-            :rules="[ val => ( val != null) || ' Por favor indique o Trimestre']"
+            :rules="[val => !!val || 'Por favor indique o Trimestre']"
             lazy-rules
             label="Trimestre"
             @blur="setSelectedQuarter()"
@@ -24,17 +24,19 @@
                 dense
                 outlined
                 type="number"
-                :rules="[ val => ( val != null) || ' Por favor indique o ano']"
+                ref="yearQuarterlyPeriod"
+                :rules="[val => !!val || 'Por favor indique o ano']"
                 v-model="yearQuarterlyPeriod"
                 @blur="setSelectedYearQuarter()"
             />
        </div>
+    </form>
   </template>
 
 <script>
     import { ref } from 'vue'
     export default {
-        props: ['initProcessing'],
+        props: ['initProcessing', 'errorCount'],
         data () {
                 return {
                     quarter: '',
@@ -54,7 +56,15 @@
                  },
                 setSelectedYearQuarter () {
                     this.$emit('setSelectedYearQuarter', this.yearQuarterlyPeriod)
-                 }
+                 },
+                 submitForm () {
+                    let errorCountAux = 0
+              this.$refs.quarterlyPeriod.validate()
+              if (this.$refs.quarterlyPeriod.hasError) errorCountAux++
+              this.$refs.quarterlyPeriod.validate()
+              if (this.$refs.yearQuarterlyPeriod.hasError) errorCountAux++
+              this.$emit('errorCount', errorCountAux)
+              }
             }
             }
 </script>
