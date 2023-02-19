@@ -256,7 +256,7 @@ export default {
     getDDMMYYYFromJSDate (jsDate) {
       return moment(jsDate).format('DD-MM-YYYY')
     },
-    getGroupMembers () {
+    getGroupMembers (isPrescription) {
         const group = Group.query()
                           .with('service')
                           .with('members')
@@ -278,10 +278,11 @@ export default {
             member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
               return identifier.service.id === this.selectedGroup.service.id
             })
+            if (member.groupMemberPrescription !== null && member.groupMemberPrescription !== undefined && isPrescription) member.groupMemberPrescription.prescription.leftDuration = this.calculateRemainingTime(member.groupMemberPrescription)
             member.patient.identifiers[0].episodes = []
             member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
             if (member.patient.identifiers[0].episodes.length > 0) {
-         this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit())
+         this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit(), member)
             }
         })
         this.allMembers = group.members
@@ -291,16 +292,22 @@ export default {
           this.members = group.members
         }
     },
-    fecthMemberPrescriptionData (visitDetails) {
+    fecthMemberPrescriptionData (visitDetails, member) {
       if (this.mobile) {
         if (visitDetails.pack !== null) {
           this.fecthedMemberData = this.fecthedMemberData + 1
         }
       } else {
         if (visitDetails.pack !== null) Pack.apiFetchById(visitDetails.pack.id)
-        Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
+        if (member.groupMemberPrescription !== null) {
+       //   Prescription.apiFetchById(member.groupMemberPrescription.id).then(resp => {
+       //   this.fecthedMemberData = this.fecthedMemberData + 1
+       // })
+        } else {
+          Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
           this.fecthedMemberData = this.fecthedMemberData + 1
         })
+        }
       }
     },
     getAllVisitsOfPrescription (prescription) {
@@ -362,6 +369,14 @@ export default {
         }
       })
       return episode
+    },
+    calculateRemainingTime (memberPrescription) {
+      if (memberPrescription !== null && memberPrescription !== undefined) {
+        console.log(memberPrescription.prescription.remainigDuration())
+        return memberPrescription.prescription.remainigDuration()
+      } else {
+        return 0
+      }
     },
     displayAlert (type, msg) {
       this.alert.type = type
