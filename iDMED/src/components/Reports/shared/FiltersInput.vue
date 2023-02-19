@@ -304,7 +304,7 @@ export default {
             }
            if (this.$refs.endDate !== undefined && this.$refs.endDate !== null) {
             this.$refs.endDate.validate()
-            countErr = this.$refs.period.hasError ? countErr + 1 : countErr
+            countErr = this.$refs.endDate.hasError ? countErr + 1 : countErr
            }
            if (this.$refs.startDate !== undefined && this.$refs.startDate !== null) {
             this.$refs.startDate.validate()
