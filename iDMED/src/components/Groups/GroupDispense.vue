@@ -158,7 +158,9 @@
             </div>
            <q-card-actions align="right" class="q-mb-md q-mr-sm">
               <q-btn label="Cancelar" color="red" @click="$emit('close')"/>
-              <q-btn type="submit" label="Dispensar" color="primary" />
+              <q-btn type="submit"
+              :loading="submitting"
+              label="Dispensar" color="primary" />
             </q-card-actions>
         </form>
         <q-dialog persistent v-model="showAddEditDrug">
@@ -216,6 +218,7 @@ export default {
   props: ['group', 'defaultPickUpDate'],
   data () {
     return {
+      submitting: false,
       columns,
       nextPDate: '',
       pickupDate: '',
@@ -299,6 +302,7 @@ export default {
       }
     },
     doFormValidation () {
+    this.submitting = true
     const momentPickUpdate = this.getDateFormatYYYYMMDDFromDDMMYYYY(this.pickupDate)
     const getNextPickUpDate = this.getDateFormatYYYYMMDDFromDDMMYYYY(this.getNextPickUpDate())
     const momentNextPickUpdate = this.getDateFormatYYYYMMDDFromDDMMYYYY(this.nextPDate)
@@ -435,6 +439,7 @@ export default {
         errorMsg += error + ']'
         console.log(errorMsg)
         this.displayAlert('error', errorMsg)
+        this.submitting = false
       } else {
         const i = 0
         this.savePatientVisitDetails(this.curGroupPackHeader.groupPacks, i)
@@ -495,7 +500,7 @@ export default {
           console.log(this.curGroupPackHeader)
           GroupPackHeader.localDbAdd(JSON.parse(JSON.stringify(this.curGroupPackHeader)))
           GroupPackHeader.insert({ data: this.curGroupPackHeader })
-
+          this.submitting = false
           this.displayAlert('info', 'Operação efectuada com sucesso.')
         }
       } else {
