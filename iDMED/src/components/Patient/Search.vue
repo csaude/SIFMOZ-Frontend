@@ -133,6 +133,12 @@
             :transferencePatientData="transferencePatientData"
             @close="showPatientRegister = false" />
       </q-dialog>
+      <q-dialog v-model="alert.visible">
+        <Dialog :type="alert.type" @closeDialog="closeDialog">
+          <template v-slot:title> Informação</template>
+          <template v-slot:msg> {{alert.msg}} </template>
+        </Dialog>
+      </q-dialog>
     </div>
   </div>
 </template>
@@ -401,6 +407,13 @@ export default {
           })
         this.hideLoading()
         } else {
+          this.currPatient.clinic = this.clinic
+          Patient.apiSearch(this.currPatient).then(resp => {
+            // this.patientList = resp.response.data
+          if (resp.response.data.length >= 1) {
+            this.displayAlert('error', 'Ja Existe um Paciente com o NID:[ ' + nid + ' ] no IDMED. Use A pesquisa do Idmed')
+            this.hideLoading()
+          } else {
           Patient.api().get('/patient/openmrsSearch/' + his.id + '/' + nid + '/' + localStorage.getItem('encodeBase64'))
                         .then((response) => {
                           this.patients = []
@@ -425,7 +438,9 @@ export default {
                           }
                         })
         }
-      },
+      })
+      }
+    },
       checkOpenMRS (his) {
         Patient.api().get('/patient/openmrsSession/' + his.id + '/' + localStorage.getItem('encodeBase64'))
                        .then((response) => {
@@ -541,7 +556,8 @@ export default {
         nameInput: require('components/Patient/Inputs/PatientNameInput.vue').default,
         identifierInput: require('components/Patient/Inputs/PatientIdentifierInput.vue').default,
         TextField: require('components/Shared/Input/TextField.vue').default,
-        lastNameInput: require('components/Patient/Inputs/PatientLastNameInput.vue').default
+        lastNameInput: require('components/Patient/Inputs/PatientLastNameInput.vue').default,
+        Dialog: require('components/Shared/Dialog/Dialog.vue').default
     }
 }
 </script>

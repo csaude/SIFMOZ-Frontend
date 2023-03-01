@@ -34,6 +34,10 @@ export class InventoryStockAdjustment extends StockAdjustment {
       return await this.api().get('/inventoryStockAdjustment?offset=' + offset + '&max=' + max)
     }
 
+    static async apiFetchById (id) {
+      return await this.api().get(`/inventoryStockAdjustment/${id}`)
+    }
+
     static localDbAdd (inventoryStockAdjustment) {
       return db.newDb().collection('inventoryStockAdjustments').add(inventoryStockAdjustment)
     }

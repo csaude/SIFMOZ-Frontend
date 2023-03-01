@@ -251,14 +251,14 @@ export default {
         }
       }.bind(this))
       this.doSave(0)
-      this.step = 'display'
     },
     doSave (i) {
       if (this.adjustments[i] !== undefined) {
         console.log(this.adjustments[i]) // devolver ajustes ao salvar
-
           if (this.website) {
-                  InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
+            InventoryStockAdjustment.apiFetchById(this.adjustments[i].id).then(resp1 => {
+              if (resp1.response.data.length === 0) {
+                InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {
                     this.adjustments[i].id = resp.response.data.id
                     i = i + 1
                     setTimeout(this.doSave(i), 2)
@@ -277,6 +277,28 @@ export default {
                       }
                       this.displayAlert('error', listErrors)
                     })
+              } else {
+                InventoryStockAdjustment.apiUpdate(this.adjustments[i]).then(resp => {
+                    this.adjustments[i].id = resp.response.data.id
+                    i = i + 1
+                    setTimeout(this.doSave(i), 2)
+                    this.displayAlert('info', 'Operação efectuada com sucesso.')
+                  }).catch(error => {
+                      const listErrors = []
+                      if (error.request.response != null) {
+                        const arrayErrors = JSON.parse(error.request.response)
+                        if (arrayErrors.total == null) {
+                          listErrors.push(arrayErrors.message)
+                        } else {
+                          arrayErrors._embedded.errors.forEach(element => {
+                            listErrors.push(element.message)
+                          })
+                        }
+                      }
+                      this.displayAlert('error', listErrors)
+                    })
+              }
+        })
             } else {
                     const targetCopy = new InventoryStockAdjustment(JSON.parse(JSON.stringify(this.adjustments[i])))
                     const id = targetCopy.id
@@ -321,6 +343,8 @@ export default {
                         }
                         })
                     }
+      } else {
+        this.step = 'display'
       }
     },
     changeStepToEdition () {
@@ -344,6 +368,7 @@ export default {
   },
   mounted () {
     this.init()
+    console.log(this.newInventory)
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,
@@ -368,6 +393,10 @@ export default {
       } else {
         return 'bg-primary'
       }
+    },
+    newInventory () {
+      console.log(this.$route.params.isNew)
+      return this.$route.params.isNew
     }
   }
 }

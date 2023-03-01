@@ -70,7 +70,7 @@
         <q-stepper-navigation >
           <q-btn label="Cancelar" color="red" @click="$emit('close')" />
           <q-btn v-if="stepScreens > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep" color="primary" :label="stepScreens === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm"/>
+          <q-btn @click="goToNextStep" color="primary" :label="stepScreens === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm" :loading="stepScreens === 2 ? submitting : false"/>
         </q-stepper-navigation>
       </q-card-actions>
       <q-dialog v-model="alert.visible" persistent>
@@ -105,6 +105,7 @@ export default {
     mixins: [mixinplatform, mixinutils],
     data () {
         return {
+          submitting: false,
             databaseCodes: [],
            his: new HealthInformationSystem(),
            codes: [],
@@ -159,6 +160,7 @@ export default {
             }
         },
         submitHis () {
+          this.submitting = true
             console.log(this.his)
            // this.his.interoperabilityAttributes = this.healthInformationAttributeTypes
           this.his.interoperabilityAttributes = []
@@ -189,18 +191,22 @@ export default {
                 HealthInformationSystem.apiSave(this.his).then(resp => {
                     // console.log(resp.response.data)
                   this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-                HealthInformationSystem.apiFetchById(resp.response.data.id)
+                  this.submitting = false
+                  HealthInformationSystem.apiFetchById(resp.response.data.id)
                 }).catch(error => {
                     this.displayAlert('error', error)
+                    this.submitting = false
                 })
               } else {
                 console.log('Edit Step_Online_Mode')
                 HealthInformationSystem.apiUpdate(this.his).then(resp => {
                     // console.log(resp.response.data)
                   this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-                HealthInformationSystem.apiFetchById(resp.response.data.id)
+                  this.submitting = false
+                  HealthInformationSystem.apiFetchById(resp.response.data.id)
                 }).catch(error => {
                     this.displayAlert('error', error)
+                    this.submitting = false
                 })
               }
           }
