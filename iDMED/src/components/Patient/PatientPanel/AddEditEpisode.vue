@@ -608,7 +608,7 @@ export default {
       },
       clinicSerctors () {
         const sectors = ClinicSector.query()
-                                    .with('clinic')
+                                    .with('clinic.*')
                                     .with('clinicSectorType')
                                     .where((sector) => { return sector.clinic_id === this.currClinic.id && sector.active === true })
                                     .orderBy('code', 'asc')

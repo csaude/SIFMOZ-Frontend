@@ -137,7 +137,7 @@ export default {
     getStockAlert () {
       if (this.website) {
         this.showloading()
-      Report.apiGetStockAlert(SessionStorage.getItem('currClinic').id, 'TARV').then(resp => {
+      Report.apiGetStockAlertAll(SessionStorage.getItem('currClinic').id).then(resp => {
         this.rowData = resp.response.data
         this.hideLoading()
       })

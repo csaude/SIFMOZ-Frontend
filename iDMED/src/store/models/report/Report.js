@@ -99,6 +99,10 @@ export default class Report extends Model {
       return this.api().get(`/dashBoard/getStockAlert/${clinicId}/${serviceCode}`)
     }
 
+    static apiGetStockAlertAll (clinicId) {
+      return this.api().get(`/dashBoard/getStockAlertAll/${clinicId}`)
+    }
+
     static apiGetDashboardServiceButton (year, clinicId) {
       return this.api().get(`/dashBoard/getDashboardServiceButton/${year}/${clinicId}`)
     }

@@ -309,24 +309,33 @@ export default {
       const prescriptionError = this.checkMembersPrescriptions()
       if (prescriptionError !== null) {
         this.displayAlert('error', prescriptionError)
+        this.submitting = false
       } else if (this.pickupDate === '' || this.pickupDate === undefined) {
         this.displayAlert('error', 'Por favor, indique a data do levantamento.')
+        this.submitting = false
       } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) > moment().format('YYYY-MM-DD')) {
         this.displayAlert('error', 'A data da dispensa indicada é maior que a data da corrente.')
+        this.submitting = false
       } else if (moment(momentPickUpdate).isBefore(getNextPickUpDate, 'day')) {
         this.displayAlert('error', 'A data da dispensa não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.getNextPickUpDate()))
+        this.submitting = false
       } else if (this.drugsDuration === '') {
         this.displayAlert('error', 'Por favor, o período para o qual está a efectuar a dispensa.')
+        this.submitting = false
       } else if (this.nextPDate === '' || this.nextPDate === undefined) {
         this.displayAlert('error', 'Por favor, indique a data do próximo levantamento.')
+        this.submitting = false
       } else if (moment(momentNextPickUpdate).isBefore((momentPickUpdate))) {
         this.displayAlert('error', 'A data do próximo levantamento não pode ser anterior a data do levantamento.')
+        this.submitting = false
       } else if (this.dispenseMode === '') {
         this.displayAlert('error', 'Por favor indicar o modo de dispensa.')
+        this.submitting = false
       } else {
         const prescriptionDateError = this.checkMembersPrescriptionsDate(this.pickupDate)
         if (prescriptionDateError !== null) {
         this.displayAlert('error', prescriptionDateError)
+        this.submitting = false
       } else {
         this.generatepacks()
       }
