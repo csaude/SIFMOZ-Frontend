@@ -386,12 +386,19 @@ export default {
       }
     },
     clinic () {
-      return Clinic.query()
-                    .with('province')
-                    .with('district.province')
-                    .with('facilityType')
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
+      if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
+          const clinic = Clinic.query()
+                                .with('province.*')
+                                .with('facilityType.*')
+                                .with('district.*')
+                                .with('sectors.*')
+                                .where('mainClinic', true)
+                                .first()
+           SessionStorage.set('currClinic', clinic)
+           return clinic
+        } else {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
     },
     dataFetchDone () {
       return this.membersInfoLoaded

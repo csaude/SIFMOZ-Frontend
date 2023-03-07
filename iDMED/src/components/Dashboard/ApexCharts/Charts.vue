@@ -120,10 +120,20 @@ export default {
         return this.serviceCode
       },
       clinic () {
-        return Clinic.query()
-                    .where('id', SessionStorage.getItem('currClinic').id)
-                    .first()
-      },
+      if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
+          const clinic = Clinic.query()
+                                .with('province.*')
+                                .with('facilityType.*')
+                                .with('district.*')
+                                .with('sectors.*')
+                                .where('mainClinic', true)
+                                .first()
+           SessionStorage.set('currClinic', clinic)
+           return clinic
+        } else {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
+    },
       loaded () {
         return !this.loading
       }
