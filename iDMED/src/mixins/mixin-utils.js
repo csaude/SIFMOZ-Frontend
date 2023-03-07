@@ -382,6 +382,7 @@ export default {
                                 .where('mainClinic', true)
                                 .first()
           if (clinic !== null) {
+            SessionStorage.set('currClinic', clinic)
             return clinic
           } else if (this.clinicAux) {
             SessionStorage.set('currClinic', this.clinicAux)

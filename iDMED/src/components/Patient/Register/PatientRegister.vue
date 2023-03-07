@@ -202,8 +202,9 @@ import Prescription from 'src/store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+// import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
 export default {
-    props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData', 'stepp'],
+    props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData', 'stepp', 'openMrsPatient'],
     emits: ['update:newPatient'],
     mixins: [mixinplatform, mixinutils],
     data () {
@@ -219,7 +220,9 @@ export default {
             filterRedBairros: ref([]),
             optionsNonFutureDate (dateOfBirth) {
                   return dateOfBirth <= moment().format('YYYY/MM/DD')
-            }
+            },
+            showDateIdentifier: false,
+            dateOfAdmission: ''
         }
     },
     methods: {
@@ -339,8 +342,41 @@ export default {
           if (this.patientReg.bairro !== null && this.patientReg.bairro.district === null) {
             this.patientReg.bairro.district = this.patientReg.district
           }
-          this.doSave()
+          if (this.openMrsPatient) {
+            const uuid = this.patientReg.hisUuid
+       //     this.showDateIdentifier = true
+          Patient.api().get('/patient/openmrsProgramSearch/' + this.patientReg.his.id + '/' + uuid + '/' + localStorage.getItem('encodeBase64'))
+                        .then((response) => {
+                          this.patients = []
+                           this.hideLoading()
+                          if (response.response.data.results.length > 0) {
+                            response.response.data.results.forEach(identifierOpenMrs => {
+                              if (identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') {
+                                this.editPatientIdentifierFromOpenMRS(this.patientReg, identifierOpenMrs)
+                              }
+                               }
+                            )
+                            this.doSave()
+                          } else {
+                                 this.hideLoading()
+                                 this.$q.notify({
+                                color: 'negative',
+                                position: 'center',
+                                message: 'Não foi Encontrada a Data de Admissão para o serviço clinico , Será usada a data actual para efectuar a importação.',
+                                icon: 'report_problem'
+                              })
+                              this.doSave()
+                          }
+                        })
+          } else {
+            this.doSave()
+          }
       },
+async saveDate () {
+  this.patientReg.identifiers[0].startDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.dateOfAdmission))
+  console.log(this.patientReg.identifiers[0].startDate)
+  this.doSave()
+},
       async doSave () {
         const clinicAux = Clinic.query()
                                 .with('province')
@@ -483,6 +519,14 @@ export default {
         if (!dateString || !moment(dateString).isValid()) return ''
         const dateMoment = moment(dateString).format('DD-MM-YYYY')
         return dateMoment
+      },
+      editPatientIdentifierFromOpenMRS (patientReg, identifierOpenMrs) {
+            patientReg.identifiers.forEach(identifier => {
+             if (identifier.service.code === 'TARV' && identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') {
+              console.log(identifierOpenMrs)
+              identifier.startDate = identifierOpenMrs.dateEnrolled
+             }
+            })
       },
       initParams () {
         this.setStep(this.stepp)
