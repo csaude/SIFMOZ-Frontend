@@ -48,7 +48,8 @@ export default {
       step: '',
       initialized: false,
       $q: useQuasar(),
-      clinicAux: {}
+      clinicAux: new Clinic(),
+      loading: true
     }
   },
  methods: {
@@ -357,9 +358,10 @@ export default {
     this.hideLoading()
     this.getClinicAux()
   },
- getClinicAux () {
-    Clinic.apiFetchMainClinic().then((resp) => {
+  getClinicAux () {
+   Clinic.apiFetchMainClinic().then((resp) => {
       this.clinicAux = resp.response.data
+      this.loading = false
     })
 }
  },
@@ -374,22 +376,29 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     currClinic () {
-     const clinic = Clinic.query()
-                                .with('province.*')
-                                .with('facilityType.*')
-                                .with('district.*')
-                                .with('sectors.*')
-                                .where('mainClinic', true)
-                                .first()
-          if (clinic !== null) {
-            SessionStorage.set('currClinic', clinic)
-            return clinic
-          } else if (this.clinicAux) {
-            SessionStorage.set('currClinic', this.clinicAux)
-            return this.clinicAux
-          } else {
+      if (this.loading === false) {
+        const clinic = Clinic.query()
+          .with('province.*')
+          .with('facilityType.*')
+          .with('district.*')
+          .with('sectors.*')
+          .where('mainClinic', true)
+          .first()
+        if (clinic !== null) {
+          this.hideLoading()
+          SessionStorage.set('currClinic', clinic)
+          return clinic
+        } else if (this.clinicAux.code === null) {
+          this.hideLoading()
+          SessionStorage.set('currClinic', this.clinicAux)
+          return this.clinicAux
+        } else if (SessionStorage.getItem('currClinic') !== null) {
+          this.hideLoading()
           return new Clinic(SessionStorage.getItem('currClinic'))
-          }
+        }
+      } else {
+        this.showloading()
+      }
     },
     getUUID () {
       return uuidv4()
@@ -414,6 +423,14 @@ export default {
     },
     inEdition () {
       return this.isEditStep || this.isCreateStep
+    }
+  },
+  beforeMount () {
+    console.log()
+    if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
+      this.getClinicAux()
+    } else {
+      this.loading = false
     }
   },
   components: {

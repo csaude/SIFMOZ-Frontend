@@ -10,7 +10,7 @@
                     <q-toolbar-title class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">
                       <q-item-section>
                         <q-item-label class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 35px;">iDMED</q-item-label>
-                        <q-item-label class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 25px;">{{currClinic.clinicName}}</q-item-label>
+                        <q-item-label class="text-bold text-italic" style="font-family: 'Gill Sans';font-size: 25px;">{{currClinic !== undefined ? currClinic.clinicName : ''}}</q-item-label>
                         </q-item-section>
                     </q-toolbar-title>
                     <q-tabs

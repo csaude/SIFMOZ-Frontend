@@ -392,7 +392,9 @@ export default {
               } else {
                 this.doSave()
               }
-          }
+          } else {
+              this.submitting = false
+            }
         } else if (this.isReOpenStep) {
           this.$refs.reOpenReason.validate()
           this.$refs.reOpenNotes.$refs.ref.validate()
@@ -415,7 +417,9 @@ export default {
               } else {
                 this.doSave()
               }
-          }
+          } else {
+              this.submitting = false
+            }
         } else if (this.isCreateStep || this.isEditStep) {
           this.$refs.startDate.validate()
           this.$refs.clinicalService.validate()
@@ -456,6 +460,8 @@ export default {
                   this.doSave()
                 }
               }
+            } else {
+              this.submitting = false
             }
         }
       },

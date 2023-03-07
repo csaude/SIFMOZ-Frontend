@@ -332,7 +332,9 @@ export default {
                   }
                 }
           }
-        }
+        } else {
+              this.submitting = false
+            }
       },
       async doSave () {
         if (this.inEdition) {
@@ -420,7 +422,9 @@ export default {
                         }
                       }
                     }
-              }
+              } else {
+              this.submitting = false
+            }
             }
           }
         }
