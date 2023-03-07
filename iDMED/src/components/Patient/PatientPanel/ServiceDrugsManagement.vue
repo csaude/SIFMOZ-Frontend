@@ -146,7 +146,7 @@ export default {
             this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
           }
         } else {
-          this.displayAlert('error', 'O medicamento seleccionado não possui stock suficinete para dispensar.')
+          this.displayAlert('error', 'O medicamento seleccionado não possui stock suficiente para dispensar.')
         }
       } else {
         this.displayAlert('error', 'Não pode adicionar o medicamento seleccionado, pois ja existe na lista dos medicamentos prescritos.')

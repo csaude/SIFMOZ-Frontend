@@ -54,6 +54,7 @@
                 class="col q-mb-md"
                 v-model="prescriptionDate"
                 :disable="isNewPackStep || isEditPackStep"
+                @update:model-value="validateDate()"
                 ref="prescriptionDate"
                 label="Data da Prescrição">
                 <template v-slot:append>
@@ -229,7 +230,7 @@
                 unelevated
                 color="primary"
                 :disable="isNewPackStep || isEditPackStep || showServiceDrugsManagement"
-                label="Adicionar Medicamentos"
+                label="Validar Prescricão"
                 class="all-pointer-events"
                 @click="validateForm()"/>
             </div>
@@ -324,7 +325,7 @@
 
 <script>
 import { ref } from 'vue'
-import { SessionStorage } from 'quasar'
+import { SessionStorage, date } from 'quasar'
 import Patient from '../../../store/models/patient/Patient'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
@@ -416,6 +417,38 @@ export default {
     }
   },
   methods: {
+    getLastPrescriptionData () {
+      const identifier = this.getIdentifierWithAll()
+        if (identifier.lastVisitPrescription() !== null) {
+          const lastVisitPrescription = identifier.lastVisitPrescription().prescription
+          this.curPrescriptionDetails.therapeuticRegimen = lastVisitPrescription.prescriptionDetails[0].therapeuticRegimen
+          this.curPrescriptionDetails.therapeuticLine = lastVisitPrescription.prescriptionDetails[0].therapeuticLine
+          this.curPrescriptionDetails.duration = lastVisitPrescription.prescriptionDetails[0].duration
+          this.curPrescription.duration = lastVisitPrescription.duration
+          this.curPrescription.doctor = Doctor.query().whereId(lastVisitPrescription.doctor_id).first()
+          this.curPrescription.patientStatus = lastVisitPrescription.patientStatus === 'Inicio' ? 'Manutenção' : 'Inicio'
+          this.curPrescriptionDetails.dispenseType = lastVisitPrescription.prescriptionDetails[0].dispenseType
+          this.curPrescription.patientType = lastVisitPrescription.patientType
+        //  this.curPrescription.prescribedDrugs = PrescribedDrug.query().with('drug').where('prescription_id', lastVisitPrescription.id).get()
+        }
+    },
+    validateDate () {
+      const identifier = this.getIdentifierWithAll()
+        if (identifier.lastVisitPrescription() !== null) {
+          const lastPack = identifier.lastVisitPrescription().pack
+          const momentNextPickUpDate = moment.utc(lastPack.nextPickUpDate).local().format('DD-MM-YYYY')
+          if (momentNextPickUpDate >= this.getDateFormatDDMMYYYYFromYYYYMMDD(date.addToDate(this.curPatientVisitDetail.prescription.prescriptionDate, { days: 4 }))) {
+            this.displayAlert('confirmation', 'O paciente ainda possui uma medicamento em casa para o serviço de ' + identifier.service.description + ', deseja  continuar com a criação da nova prescrição?')
+          }
+    }
+  },
+  getIdentifierWithAll () {
+    return PatientServiceIdentifier.query()
+                                 .with(['episodes.patientVisitDetails.pack', 'episodes.patientVisitDetails.prescription.duration', 'episodes.patientVisitDetails.prescription.prescriptionDetails.*'])
+                                 .with('service')
+                                 .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.id)
+                                 .first()
+  },
     desableSubmitting () {
         this.submitting = false
     },
@@ -646,11 +679,7 @@ export default {
       }
       if (!this.visitClone.prescription.special) {
       if (!(this.isNewPackStep || this.isEditPackStep)) {
-        const identifier = PatientServiceIdentifier.query()
-                                                   .with(['episodes.patientVisitDetails.pack', 'episodes.patientVisitDetails.prescription.duration', 'episodes.patientVisitDetails.prescription.prescriptionDetails.*'])
-                                                   .with('service')
-                                                   .where('id', this.curPatientVisitDetail.episode.patientServiceIdentifier.id)
-                                                   .first()
+        const identifier = this.getIdentifierWithAll()
         if (identifier.lastVisitPrescription() !== null) {
           const prescription = identifier.lastVisitPrescription().prescription
           if (prescription !== null) {
@@ -663,8 +692,10 @@ export default {
             this.lastVisitPrescription = prescription
             this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
           }
+          this.validateDate()
         }
       }
+      this.getLastPrescriptionData()
       }
     },
     doOnContinue (object) {
@@ -701,6 +732,7 @@ export default {
     },
     doOnCancel () {
       this.selectedClinicalService = new ClinicalService()
+      this.inFormEdition = false
     },
     cancelYesNo () {
       this.alert.visible = false

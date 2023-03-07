@@ -137,7 +137,7 @@ export default {
     getStockAlert () {
       if (this.website) {
         this.showloading()
-      Report.apiGetStockAlertAll(SessionStorage.getItem('currClinic').id).then(resp => {
+      Report.apiGetStockAlertAll(this.clinic.id).then(resp => {
         this.rowData = resp.response.data
         this.hideLoading()
       })
@@ -165,9 +165,19 @@ export default {
   },
   computed: {
     clinic () {
-      return Clinic.query()
-                  .where('id', SessionStorage.getItem('currClinic').id)
-                  .first()
+      if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
+          const clinic = Clinic.query()
+                                .with('province.*')
+                                .with('facilityType.*')
+                                .with('district.*')
+                                .with('sectors.*')
+                                .where('mainClinic', true)
+                                .first()
+           SessionStorage.set('currClinic', clinic)
+           return clinic
+        } else {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
     },
     rows () {
       return this.rowData

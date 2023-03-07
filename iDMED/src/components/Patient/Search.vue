@@ -131,6 +131,7 @@
             :clinic="currClinic"
             :stepp="step"
             :transferencePatientData="transferencePatientData"
+            :openMrsPatient="openMrsPatient"
             @close="showPatientRegister = false" />
       </q-dialog>
       <q-dialog v-model="alert.visible">
@@ -186,7 +187,8 @@ export default {
         newPatient: false,
         username: localStorage.getItem('user'),
         transferencePatientData: [],
-        patientList: []
+        patientList: [],
+        openMrsPatient: false
       }
     },
     watch: {
@@ -260,6 +262,7 @@ export default {
         this.changeToCreateStep()
         this.showPatientRegister = true
         this.newPatient = true
+        this.openMrsPatient = true
       },
       goToPatientPanel (selectedPatient) {
         /* this.$q.loading.show({
@@ -532,7 +535,19 @@ export default {
         }
       },
       clinic () {
-        return new Clinic(SessionStorage.getItem('currClinic'))
+        if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
+          const clinic = Clinic.query()
+                                .with('province.*')
+                                .with('facilityType.*')
+                                .with('district.*')
+                                .with('sectors.*')
+                                .where('mainClinic', true)
+                                .first()
+           SessionStorage.set('currClinic', clinic)
+           return clinic
+        } else {
+          return new Clinic(SessionStorage.getItem('currClinic'))
+        }
       },
       dataSources () {
         return HealthInformationSystem.query()
