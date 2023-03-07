@@ -254,7 +254,10 @@ export default {
     },
     doSave (i) {
       if (this.adjustments[i] !== undefined) {
-        console.log(this.adjustments[i]) // devolver ajustes ao salvar
+        if (this.adjustments[i].balance.length <= 0 || isNaN(this.adjustments[i].balance)) {
+          this.displayAlert('error', 'Por favor indicar um Numero Valido para o campo Quantidade Contada.')
+        } else {
+          console.log(this.adjustments[i]) // devolver ajustes ao salvar
           if (this.website) {
             InventoryStockAdjustment.apiFetchById(this.adjustments[i].id).then(resp1 => {
               if (resp1.response.data.length === 0) {
@@ -343,6 +346,7 @@ export default {
                         }
                         })
                     }
+        }
       } else {
         this.step = 'display'
       }
