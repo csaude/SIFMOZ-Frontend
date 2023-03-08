@@ -60,7 +60,7 @@
                 <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="prescriptionDate" :options="optionsNonFutureDate" mask="DD-MM-YYYY">
+                        <q-date v-model="prescriptionDate" :options="optionsNonFutureDate"  @update:model-value="validateDate()" mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -396,6 +396,7 @@ export default {
       visitClone: {},
       inFormEdition: false,
       isAlreadyEdited: false,
+      prescriptionWithDuration: false,
       contentStyle: {
         backgroundColor: '#ffffff',
         color: '#555'
@@ -438,7 +439,7 @@ export default {
           const lastPack = identifier.lastVisitPrescription().pack
           const momentNextPickUpDate = moment.utc(lastPack.nextPickUpDate).local().format('DD-MM-YYYY')
           if (momentNextPickUpDate >= this.getDateFormatDDMMYYYYFromYYYYMMDD(date.addToDate(this.curPatientVisitDetail.prescription.prescriptionDate, { days: 4 }))) {
-            this.displayAlert('confirmation', 'O paciente ainda possui uma medicamento em casa para o serviço de ' + identifier.service.description + ', deseja  continuar com a criação da nova prescrição?')
+            this.displayAlert('confirmation', 'O paciente ainda possui medicamentos em casa para o serviço de ' + identifier.service.description + ', deseja  continuar com a criação da nova prescrição?')
           }
     }
   },
@@ -690,6 +691,7 @@ export default {
           }
           if (prescription.leftDuration > 0) {
             this.lastVisitPrescription = prescription
+            this.prescriptionWithDuration = true
             this.displayAlert('confirmation', 'O paciente possui uma prescrição válida para o serviço de ' + identifier.service.description + ', deseja anular a mesma e continuar com a criação da nova prescrição especial?')
           }
           this.validateDate()
@@ -699,9 +701,11 @@ export default {
       }
     },
     doOnContinue (object) {
+      if (this.prescriptionWithDuration) {
       this.spetialPrescription = true
       this.mustBeSpetial = true
       this.curPatientVisitDetail.prescription.special = true
+      }
     },
     doOnYes (object) {
       const patientVDetails = object.patientVDetails
