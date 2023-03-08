@@ -376,7 +376,7 @@ export default {
       return new Patient(SessionStorage.getItem('selectedPatient'))
     },
     currClinic () {
-      if (this.loading === false) {
+      if (this.loading === false || SessionStorage.getItem('currClinic') !== null) {
         const clinic = Clinic.query()
           .with('province.*')
           .with('facilityType.*')
@@ -385,15 +385,15 @@ export default {
           .where('mainClinic', true)
           .first()
         if (clinic !== null) {
-          this.hideLoading()
+         // this.hideLoadingClinic()
           SessionStorage.set('currClinic', clinic)
           return clinic
         } else if (this.clinicAux.code === null) {
-          this.hideLoading()
+          // this.hideLoadingClinic()
           SessionStorage.set('currClinic', this.clinicAux)
           return this.clinicAux
         } else if (SessionStorage.getItem('currClinic') !== null) {
-          this.hideLoading()
+          // this.hideLoadingClinic()
           return new Clinic(SessionStorage.getItem('currClinic'))
         }
       } else {
@@ -430,6 +430,11 @@ export default {
     if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
       this.getClinicAux()
     } else {
+      this.loading = false
+    }
+  },
+  mounted () {
+    if (SessionStorage.getItem('currClinic') !== null) {
       this.loading = false
     }
   },

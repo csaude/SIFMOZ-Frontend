@@ -12,7 +12,7 @@
         <div class="col-5 bg-white q-pa-md">
           <div class="row ">
             <div class="col text-grey-9 text-weight-medium">Data da Prescrição:</div>
-            <div v-if="prescription.prescriptionDate !== null" class="col text-grey-8">{{ (prescription.prescriptionDate === null || prescription.prescriptionDate === undefined) ? 'Sem Info' : getYYYYMMDDFromJSDate(getDateFromHyphenYYYYMMDD(prescription.prescriptionDate)) }}</div>
+            <div v-if="prescription.prescriptionDate !== null" class="col text-grey-8">{{ (prescription.prescriptionDate === null || prescription.prescriptionDate === undefined) ? 'Sem Info' : formatDate(prescription.prescriptionDate) }}</div>
             <div class="col text-grey-9 text-weight-medium">Regime Terapêutico:</div>
             <div class="col text-grey-8">{{ (prescriptionDetails.therapeuticRegimen === null || prescriptionDetails.therapeuticRegimen === undefined) ? 'Sem Info' : prescriptionDetails.therapeuticRegimen.description }}</div>
           </div>
@@ -71,6 +71,7 @@
 </template>
 
 <script>
+import { date } from 'quasar'
 import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Episode from '../../../store/models/episode/Episode'
 import Prescription from '../../../store/models/prescription/Prescription'
@@ -252,6 +253,9 @@ export default {
                                                                    .get()
       }
       return this.prescription.lastPackOnPrescription()
+    },
+    formatDate (dateString) {
+      return date.formatDate(dateString, 'DD-MM-YYYY')
     }
   },
   computed: {
