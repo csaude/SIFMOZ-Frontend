@@ -437,8 +437,11 @@ export default {
       const identifier = this.getIdentifierWithAll()
         if (identifier.lastVisitPrescription() !== null) {
           const lastPack = identifier.lastVisitPrescription().pack
-          const momentNextPickUpDate = moment.utc(lastPack.nextPickUpDate).local().format('DD-MM-YYYY')
-          if (momentNextPickUpDate >= this.getDateFormatDDMMYYYYFromYYYYMMDD(date.addToDate(this.curPatientVisitDetail.prescription.prescriptionDate, { days: 4 }))) {
+          const nextPickUpDate = moment.utc(lastPack.nextPickUpDate).local().format('DD-MM-YYYY')
+          const prescriptionDate = moment.utc((date.addToDate(this.curPatientVisitDetail.prescription.prescriptionDate, { days: 4 }))).local().format('DD-MM-YYYY')
+          var momentNextPickUpDate = moment(nextPickUpDate, 'DD-MM-YYYY')
+          var momentPrescriptionDate = moment(prescriptionDate, 'DD-MM-YYYY')
+          if (momentNextPickUpDate.isAfter(momentPrescriptionDate)) {
             this.displayAlert('confirmation', 'O paciente ainda possui medicamentos em casa para o serviço de ' + identifier.service.description + ', deseja  continuar com a criação da nova prescrição?')
           }
     }
