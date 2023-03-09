@@ -1118,6 +1118,9 @@ export default {
             } else if (pvd.prescription.syncStatus === 'S' && this.isEditPackStep) {
               pvd.prescription.syncStatus = 'U'
             }
+            if (pvd.prescription.doctor.clinic === null) {
+              pvd.prescription.doctor.clinic = pvd.clinic
+            }
             pvd.prescription.doctor_id = pvd.prescription.doctor.id
             pvd.prescription.clinic_id = pvd.prescription.clinic.id
             pvd.prescription.duration_id = pvd.prescription.duration.id
