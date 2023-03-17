@@ -3,6 +3,7 @@ import Clinic from '../clinic/Clinic'
 import Stock from '../stock/Stock'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class StockEntrance extends Model {
     static entity = 'stockEntrances'
@@ -84,4 +85,38 @@ export default class StockEntrance extends Model {
     static getClassName () {
       return 'stockEntrance'
     }
+
+    static createStockEntranceNSql (targetCopy) {
+      return nSQL().onConnected(() => {
+        nSQL('stockEntrances').query('upsert',
+        targetCopy
+      ).exec()
+      StockEntrance.insert({ data: targetCopy })
+    })
+    }
+
+    static getStockEntranceNSql () {
+     nSQL().onConnected(() => {
+       nSQL('stockEntrances').query('select').exec().then(result => {
+        console.log(result)
+        StockEntrance.insert({ data: result })
+        })
+      })
+    }
+
+    static getByStockEntrance (stockEntrance) {
+      nSQL().onConnected(() => {
+      nSQL('stockEntrances').query('select').where(['stockEntrances[id]', '=', stockEntrance.id]).exec().then(result => {
+        console.log(result)
+        StockEntrance.insert({ data: result })
+      })
+    })
+  }
+
+  static deleteStockEntrance (stockEntrance) {
+    return nSQL().onConnected(() => {
+      nSQL('stockEntrances').query('delete').where(['stockEntrances[id]', '=', stockEntrance.id]).exec()
+    StockEntrance.delete(stockEntrance.id)
+  })
+}
 }
