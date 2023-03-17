@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class AuditSyncronization extends Model {
   static entity = 'auditSyncronization'
@@ -46,5 +47,14 @@ export default class AuditSyncronization extends Model {
           console.log('Resposta: ', resp)
         })
       })
+  }
+
+  static createAuditSyncronizationNSql (targetCopy) {
+    return nSQL().onConnected(() => {
+      nSQL('auditSyncronization').query('upsert',
+      targetCopy
+    ).exec()
+    AuditSyncronization.insert(targetCopy)
+  })
   }
 }

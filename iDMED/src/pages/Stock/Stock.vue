@@ -44,19 +44,7 @@ export default {
                             })
                           })
                             })
-
-        StockEntrance.localDbGetAll().then(stockEntrances => {
-          stockEntrances.forEach((item) => {
-            StockEntrance.delete(item.id)
-            StockEntrance.insert({
-                              data: item
-                            })
-          })
-          }).then(item => {
-              Clinic.insert({
-              data: SessionStorage.getItem('currClinic')
-            })
-          })
+                            StockEntrance.getStockEntranceNSql()
 
           StockCenter.localDbGetAll().then(stockCenters => {
             stockCenters.forEach((item) => {

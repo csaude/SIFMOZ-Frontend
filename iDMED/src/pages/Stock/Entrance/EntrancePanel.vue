@@ -529,11 +529,10 @@ export default {
             }
           } else {
             this.currStockEntrance.syncStatus = 'U'
-            StockEntrance.localDbUpdate(this.currStockEntrance).then(stockEnt => {
-              StockEntrance.update(this.currStockEntrance)
+            const stockEntrance = JSON.parse(JSON.stringify(this.currStockEntrance))
+            StockEntrance.createStockEntranceNSql(stockEntrance)
               this.guiaStep = 'display'
               this.displayAlert('info', 'Operação efectuada com sucesso.')
-               })
           }
     },
     initGuiaEdition () {
@@ -560,20 +559,17 @@ export default {
       })
       } else {
         const targetEntrance = JSON.parse(JSON.stringify(this.currStockEntrance))
-         StockEntrance.localDbGetById(targetEntrance.id).then(item => {
-          if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
+        const stockEntranceAux = StockEntrance.getByStockEntrance(targetEntrance)
+          if (stockEntranceAux.syncStatus !== 'R' && stockEntranceAux.syncStatus !== 'U') {
                         const auditSync = new AuditSyncronization()
                           auditSync.operationType = 'remove'
                           auditSync.className = StockEntrance.getClassName()
                           auditSync.syncStatus = 'D'
-                          auditSync.entity = item
-                          AuditSyncronization.localDbAdd(auditSync)
+                          auditSync.entity = stockEntranceAux
+                          AuditSyncronization.createAuditSyncronizationNSql(auditSync)
                     }
-                    StockEntrance.localDbDelete(item).then(stock => {
-                      StockEntrance.delete(item.id)
-                      })
+                    StockEntrance.deleteStockEntrance(targetEntrance)
                      this.$router.go(-1)
-                  })
       }
     },
     formatDate (dateString) {
@@ -627,20 +623,17 @@ export default {
       } else {
          const targetStock = JSON.parse(JSON.stringify(this.selectedStock))
           this.removeFromList(targetStock)
-         Stock.localDbGetById(targetStock.id).then(item => {
-          if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
+          const stockAux = Stock.getByStock(targetStock)
+          if (stockAux.syncStatus !== 'R' && stockAux.syncStatus !== 'U') {
                         const auditSync = new AuditSyncronization()
                           auditSync.operationType = 'remove'
                           auditSync.className = Stock.getClassName()
                           auditSync.syncStatus = 'D'
-                          auditSync.entity = item
-                          AuditSyncronization.localDbAdd(auditSync)
+                          auditSync.entity = stockAux
+                          AuditSyncronization.createAuditSyncronizationNSql(auditSync)
                     }
-                    Stock.localDbDelete(item).then(stock => {
-                      Stock.delete(item.id)
-                      })
+                    Stock.deleteStock(stockAux)
                      this.step = 'display'
-                  })
           }
     },
     initNewStock () {
@@ -768,18 +761,11 @@ export default {
                    stock.center.clinic = SessionStorage.getItem('currClinic')
                   // const uuid = uuidv4
                    const targetCopy = JSON.parse(JSON.stringify(stock))
-                   Stock.localDbAddOrUpdate(targetCopy, this.step).then(stock1 => {
-                     Stock.insert(
-                  {
-                    data: stock1.data.data
-                  })
+                   this.step === 'create' ? targetCopy.syncStatus = 'R' : targetCopy.syncStatus = 'U'
+                   Stock.createStockNSql(targetCopy)
                       if (this.step === 'edit') {
-                        Stock.localDbGetAll().then((stocks) => {
-                        const toUpdates = stocks.filter((stock) => stock.entrance.id === this.currStockEntrance.id)
-                        StockEntrance.localDbGetByStockEntranceId(this.currStockEntrance.id).then(entrance => {
-                          entrance.stocks = []
+                        const entrance = StockEntrance.getByStockEntrance(stock.entrance)
                          entrance.syncStatus = (entrance.syncStatus === '' || entrance.syncStatus === 'S') && stock.syncStatus === 'U' ? 'U' : 'R'
-                         entrance.stocks = toUpdates
                            StockEntrance.localDbUpdate(entrance).then(stockEntr => {
                             StockEntrance.insert(
                               {
@@ -787,19 +773,14 @@ export default {
                                }
                               )
                            })
-                        })
-                      })
                       } else {
                         this.currStockEntrance.syncStatus = (this.currStockEntrance.syncStatus !== 'R' && this.currStockEntrance.syncStatus !== 'U') ? 'U' : 'R'
                         this.currStockEntrance.stocks.push(targetCopy)
-                         StockEntrance.localDbUpdate(this.currStockEntrance)
+                        StockEntrance.createStockEntranceNSql(this.currStockEntrance)
                       }
                     this.submitting = false
                     this.step = 'display'
                     this.displayAlert('info', 'Operação efectuada com sucesso.')
-                  }).catch(error => {
-                this.displayAlert('error', error)
-              })
       }
     },
     async fetchStockEntrance () {
