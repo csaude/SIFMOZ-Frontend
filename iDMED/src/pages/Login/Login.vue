@@ -411,7 +411,7 @@ export default {
       await SystemConfigs.apiSave(this.systemConfigs)
         .then((resp) => {
           SystemConfigs.localDbAdd(resp.response.data)
-          this.$saveCurrClinic(this.clinic)
+          this.saveCurrClinic(this.clinic)
         })
         .catch((error) => {
           this.listErrors = []

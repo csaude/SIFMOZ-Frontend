@@ -109,7 +109,27 @@ export default {
                       this.displayAlert('error', listErrors)
                     })
           } else {
-            this.stockEntrance.clinic = this.currClinic
+            this.stockEntrance.syncStatus = 'R'
+            const stockEntrance = JSON.parse(JSON.stringify(this.stockEntrance))
+          const resp = StockEntrance.createStockEntranceNSql(stockEntrance)
+          console.log(resp)
+              SessionStorage.set('currStockEntrance', this.stockEntrance)
+                      this.hideLoading()
+                      this.$router.push('/stock/entrance')
+                      this.$emit('close')
+                 /* this.stockEntrance.syncStatus = 'R'
+                   const targetCopy = new StockEntrance(JSON.parse(JSON.stringify(this.stockEntrance)))
+                   console.log('STOCK ENTRANCE WEB: ', targetCopy)
+                  await StockEntrance.localDbAdd(targetCopy).then(stockEntrance2 => {
+                     console.log('stockEntrance: ', this.stockEntrance)
+                      SessionStorage.set('currStockEntrance', targetCopy)
+                      this.hideLoading()
+                      this.$router.push('/stock/entrance')
+                      this.$emit('close')
+                  }).catch(error => {
+                this.displayAlert('error', error)
+              }) */
+           /* this.stockEntrance.clinic = this.currClinic
                   this.stockEntrance.syncStatus = 'R'
                    const targetCopy = new StockEntrance(JSON.parse(JSON.stringify(this.stockEntrance)))
                    console.log('STOCK ENTRANCE WEB: ', targetCopy)
@@ -121,7 +141,7 @@ export default {
                       this.$emit('close')
                   }).catch(error => {
                 this.displayAlert('error', error)
-              })
+              }) */
              }
         }
       }
