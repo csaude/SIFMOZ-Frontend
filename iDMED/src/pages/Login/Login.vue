@@ -355,9 +355,10 @@ export default {
           Clinic.insert({ data: clinics })
           this.saveCurrClinic(
             Clinic.query()
-              .with('province')
-              .with('facilityType')
-              .with('district.province')
+            .with('province.*')
+          .with('facilityType.*')
+          .with('district.*')
+          .with('sectors.*')
               .where('mainClinic', true)
               .first()
           )
@@ -398,9 +399,10 @@ export default {
         })
       }
       return Clinic.query()
-        .with('province')
-        .with('district')
-        .with('district.province')
+      .with('province.*')
+          .with('facilityType.*')
+          .with('district.*')
+          .with('sectors.*')
         .where('district_id', this.district.id)
         .get()
     },

@@ -87,8 +87,12 @@ import DrugStockFileEvent from './models/drugStockFileEvent/DrugStockFileEvent'
 import DrugFile from './models/drugFile/DrugFile'
 import StockAlert from './models/stockAlert/StockAlert'
 import AuditSyncronization from './models/auditSyncronization/AuditSyncronization'
-
+// import VuexORMCordova from 'vuex-orm-cordova'
+// import NanoSQLAdapter from './adatpterNSQL'
+// import VuexORMLocalForage from 'localforage'
 // Vue.use(Vuex)
+// import { NanoSQL } from '@nano-sql/core';
+// import { VuexORMAdapter } from '@nano-sql/adapter-vuex';
 
 VuexORM.use(VuexORMAxios, {
   axios,
@@ -96,8 +100,13 @@ VuexORM.use(VuexORMAxios, {
     'X-Requested-With': 'XMLHttpRequest'
   },
     // baseURL: 'http://172.104.236.126:5110/api'
-   baseURL: 'http://localhost:8884/api'
+  // baseURL: 'http://10.10.2.215:8884/api'
       // baseURL: 'http://idartzambezia.fgh.org.mz:3000/api'
+    //  baseURL: 'http://192.168.100.1:3000/api'
+   // baseURL: 'http://192.168.100.51:3000/api'
+   //  baseURL: 'http://10.0.1.56:3000/api'
+ //  baseURL: 'http://10.0.0.21:3000/api'
+    baseURL: 'http://localhost:8884/api'
 })
 let numTries = 0
 // Request interceptor for API calls
@@ -133,7 +142,7 @@ axios.interceptors.request.use(
   if (rToken != null && rToken.length > 10) {
     if ((error.response.status === 403 || error.response.status === 401) && !originalRequest._retry) {
           originalRequest._retry = true
-      console.log('http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+      console.log('http://localhost:8884/api/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
       numTries++
       if (numTries > 5) {
         localStorage.removeItem('authUser')
@@ -143,7 +152,7 @@ axios.interceptors.request.use(
         localStorage.removeItem('password')
         window.location.reload()
       }
-      return axios.post('http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
+      return axios.post('http://localhost:8884/api/oauth/access_token?grant_type=refresh_token&refresh_token=' + rToken)
         .then(({ data }) => {
           console.log('==got the following token back: ' + data.access_token + '___________________________________________')
           localStorage.setItem('id_token', data.access_token)
@@ -247,7 +256,38 @@ database.register(DrugStockFileEvent)
 database.register(DrugFile)
 database.register(StockAlert)
 database.register(AuditSyncronization)
-
 export default new Vuex.Store({
   plugins: [VuexORM.install(database)]
 })
+
+/*
+VuexORM.use(VuexORMCordova, {
+  database,
+
+  /**
+  localforage: {
+    name: 'vuex' // Name is required
+  },
+  actions: {
+    $get: '$get',
+    $fetch: '$fetch',
+    $create: '$create',
+    $update: '$update',
+    $replace: '$replace',
+    $delete: '$delete',
+    $deleteAll: '$deleteAll',
+    $getName: '$getName'
+  }
+})
+*/
+ // VuexORM.use(NanoSQLAdapter)
+ // sdatabase.register(NanoSQLAdapter.entity, NanoSQLAdapter.database())
+/*
+ const databaseName = 'my_database';
+ const nSQL = new NanoSQL(databaseName);
+ const adapter = new VuexORMAdapter(nSQL);
+ VuexORM.use(adapter);
+
+VuexORM.use(adapter)
+
+*/
