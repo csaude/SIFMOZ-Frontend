@@ -127,34 +127,33 @@ export default class Stock extends Model {
 
     static createStockNSql (targetCopy) {
       return nSQL().onConnected(() => {
-        nSQL('stocks').query('upsert',
+        nSQL(this.entity).query('upsert',
         targetCopy
       ).exec()
-      Stock.insert({ data: targetCopy })
+      Stock.insertOrUpdate({ data: targetCopy })
     })
     }
 
     static getAllStockNSql () {
      nSQL().onConnected(() => {
-       nSQL('stocks').query('select').exec().then(result => {
+       nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
-        Stock.insert({ data: result })
+        Stock.insertOrUpdate({ data: result })
         })
       })
     }
 
     static getByStock (stock) {
-      nSQL().onConnected(() => {
-      nSQL('stocks').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
+     return nSQL(this.entity).query('select').where(['id', '=', stock.id]).exec().then(result => {
         console.log(result)
         // Stock.insert({ data: result })
+        return result[0]
       })
-    })
   }
 
   static getByStockEntrance (stockEntrance) {
     nSQL().onConnected(() => {
-    nSQL('stocks').query('select').where(['stocks[entrance_id]', '=', stockEntrance.id]).exec().then(result => {
+    nSQL(this.entity).query('select').where(['stocks[entrance_id]', '=', stockEntrance.id]).exec().then(result => {
       console.log(result)
     })
   })
@@ -162,7 +161,7 @@ export default class Stock extends Model {
 
   static deleteStock (stock) {
     return nSQL().onConnected(() => {
-      nSQL('stock').query('delete').where(['stock[id]', '=', stock.id]).exec()
+      nSQL(this.entity).query('delete').where(['id', '=', stock.id]).exec()
     Stock.delete(stock.id)
   })
 }

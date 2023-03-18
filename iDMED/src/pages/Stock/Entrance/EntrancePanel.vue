@@ -599,7 +599,7 @@ export default {
         this.doRemoveGuia()
       }
     },
-    doRemoveStock () {
+   async doRemoveStock () {
       this.step = 'delete'
       if (this.website) {
           Stock.apiRemove(this.selectedStock.id).then(resp => {
@@ -623,7 +623,7 @@ export default {
       } else {
          const targetStock = JSON.parse(JSON.stringify(this.selectedStock))
           this.removeFromList(targetStock)
-          const stockAux = Stock.getByStock(targetStock)
+          const stockAux = await Stock.getByStock(targetStock)
           if (stockAux.syncStatus !== 'R' && stockAux.syncStatus !== 'U') {
                         const auditSync = new AuditSyncronization()
                           auditSync.operationType = 'remove'
@@ -764,15 +764,9 @@ export default {
                    this.step === 'create' ? targetCopy.syncStatus = 'R' : targetCopy.syncStatus = 'U'
                    Stock.createStockNSql(targetCopy)
                       if (this.step === 'edit') {
-                        const entrance = StockEntrance.getByStockEntrance(stock.entrance)
+                        const entrance = await StockEntrance.getByStockEntrance(stock.entrance)
                          entrance.syncStatus = (entrance.syncStatus === '' || entrance.syncStatus === 'S') && stock.syncStatus === 'U' ? 'U' : 'R'
-                           StockEntrance.localDbUpdate(entrance).then(stockEntr => {
-                            StockEntrance.insert(
-                              {
-                              data: stockEntr.data
-                               }
-                              )
-                           })
+                         StockEntrance.createStockEntranceNSql(entrance)
                       } else {
                         this.currStockEntrance.syncStatus = (this.currStockEntrance.syncStatus !== 'R' && this.currStockEntrance.syncStatus !== 'U') ? 'U' : 'R'
                         this.currStockEntrance.stocks.push(targetCopy)

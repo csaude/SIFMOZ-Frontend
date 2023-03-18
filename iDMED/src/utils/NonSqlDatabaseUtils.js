@@ -14,12 +14,13 @@ export default {
             case 'Attr': dataType = 'string'; break
             default: dataType = 'string'; break
           }
-        console.log(valor)
-          const obj = {
-            key: key,
-            type: key === 'id' ? 'uuid' : dataType
-          }
-          listaFields.push(obj)
+          let obj = {}
+          if (key === 'id') {
+             obj = { key: key, type: 'uuid', props: ['pk'] }
+         } else {
+             obj = { key: key, type: dataType }
+        }
+        listaFields.push(obj)
     }
     return listaFields
   },
