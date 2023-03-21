@@ -129,7 +129,7 @@ export default {
         this.loadWebDrugsToVueX()
         this.loadWebStockToVueX()
         this.showloading()
-     //   this.loadWebParamsToVueX()
+        this.loadWebParamsToVueX()
       } else {
         if (this.isAppSyncDone) {
           this.showloading()
@@ -158,7 +158,7 @@ export default {
     this.init()
   // initDatabase()
     setTimeout(() => {
-      if (this.website) {
+      if (this.mobile) {
         console.log(this.isAppSyncDone)
         if (!this.isAppSyncDone) {
           SynchronizationService.start(this.$q, this.currClinic.id)

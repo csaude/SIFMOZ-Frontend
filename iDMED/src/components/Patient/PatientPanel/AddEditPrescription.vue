@@ -460,7 +460,7 @@ export default {
       console.log('Init Step', this.stepp)
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
-      if (this.website) {
+      if (this.mobile) {
         ClinicalServiceAttribute.deleteAll()
         await ClinicalServiceAttribute.localDbGetAll()
       }
@@ -722,7 +722,7 @@ export default {
           pvd = patientVDetails
         }
       })
-      if (this.website) { // change later
+      if (this.mobile) { // change later
         this.doMobileSave()
       } else {
         this.doWebSave()
@@ -1060,7 +1060,7 @@ export default {
         this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
         const packDateError = this.setRelationIdentifiers()
-        if (this.website) {
+        if (this.mobile) {
           if (!packDateError) this.doMobileSave()
         } else {
           /* this.patientVisit.patientVisitDetails.forEach((pvd) => {

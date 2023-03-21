@@ -542,7 +542,7 @@ export default {
         if (this.isEditStep) {
           this.identifier.startDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.identifierstartDate))
         }
-        if (this.website) {
+        if (this.mobile) {
           this.identifier.identifier_type_id = this.identifier.identifierType.id
           this.identifier.service_id = this.identifier.service.id
           this.identifier.patient_id = this.identifier.patient.id
