@@ -10,6 +10,7 @@ import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegim
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 import moment from 'moment'
+import { nSQL } from 'nano-sql'
 
 export default class Drug extends Model {
   static entity = 'drugs'
@@ -119,6 +120,32 @@ export default class Drug extends Model {
     return await this.api().patch('/drug/' + drug.id, drug)
   }
 
+  static localDbAdd (drug) {
+    return nSQL(this.entity).query('upsert',
+    drug
+     ).exec().then(
+      Drug.insertOrUpdate({ data: drug })
+     )
+  }
+
+  static localDbGetById (id) {
+    return db.newDb().collection('drugs').doc({ id: id }).get()
+  }
+
+  static localDbGetAll () {
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Drug.insert({ data: result })
+      //  return result
+      })
+  }
+
+  static localDbUpdate (drug) {
+    return db.newDb().collection('drugs').doc({ id: drug.id }).set(drug)
+  }
+
+  static localDbUpdateAll (drugs) {
+    return db.newDb().collection('drugs').set(drugs)
   static localDbAddOrUpdate (targetCopy) {
     return nSQL().onConnected(() => {
       nSQL(this.entity).query('upsert',

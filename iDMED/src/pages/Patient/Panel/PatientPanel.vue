@@ -110,12 +110,14 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import Episode from '../../../store/models/episode/Episode'
 import mixinutils from 'src/mixins/mixin-utils'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import Prescription from '../../../store/models/prescription/Prescription'
-import Pack from '../../../store/models/packaging/Pack'
-import Province from '../../../store/models/province/Province'
-import PostoAdministrativo from '../../../store/models/PostoAdministrativo/PostoAdministrativo'
-import Localidade from '../../../store/models/Localidade/Localidade'
+// import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+// import Prescription from '../../../store/models/prescription/Prescription'
+// import Pack from '../../../store/models/packaging/Pack'
+// import Province from '../../../store/models/province/Province'
+// import PostoAdministrativo from '../../../store/models/PostoAdministrativo/PostoAdministrativo'
+// import Localidade from '../../../store/models/Localidade/Localidade'
+// import District from 'src/store/models/district/District'
+// import { nSQL } from 'nano-sql'
 export default {
   mixins: [mixinplatform, mixinutils],
   setup () {
@@ -143,9 +145,19 @@ export default {
   },
   methods: {
     async init () {
-      if (this.mobile) {
+      if (this.website) {
         this.showPatientInfo = ref(true)
+     const patientServiceIdentifiers = await PatientServiceIdentifier.getByPatientId(this.patient)
+    console.log(patientServiceIdentifiers)
+      if (patientServiceIdentifiers.length > 0) {
+        patientServiceIdentifiers.forEach(identifier => {
+          Episode.getEpisodesNSqlByIdentifier(identifier)
+        })
+     PatientVisit.getLastPatientVisitLocalByPatient(this.patient)
+      }
+    /*
         await PatientServiceIdentifier.localDbGetAll().then(identifiers => {
+          console.log(PatientServiceIdentifier.all())
           identifiers.forEach(identifier => {
             if (identifier.patient.id === this.patient.id) {
               PatientServiceIdentifier.insert({ data: identifier })
@@ -184,9 +196,14 @@ export default {
             }
           })
         })
-        this.loadParamsToVueX()
+          */
+       this.loadParamsToVueX()
+       /*
         Province.localDbGetAll().then(provinceList => {
           Province.insertOrUpdate({ data: provinceList })
+        })
+        District.localDbGetAll().then(provinceList => {
+          District.insertOrUpdate({ data: provinceList })
         })
         PostoAdministrativo.localDbGetAll().then(items => {
           PostoAdministrativo.insertOrUpdate({ data: items })
@@ -194,6 +211,7 @@ export default {
         Localidade.localDbGetAll().then(items => {
           Localidade.insertOrUpdate({ data: items })
         })
+        */
       } else {
         if (this.patient === null) {
           Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
@@ -228,6 +246,9 @@ export default {
                             .with('bairro')
                             .with(['clinic.province', 'clinic.district.province']).where('id', this.selectedPatient.id).first()
                               },
+                          //   console.log(Patient.query().withAllRecursive(3).where('id', this.selectedPatient.id).first())
+                          //    return Patient.query().withAllRecursive(3).where('id', this.selectedPatient.id).first()
+                           // }
       set (patient) {
         this.$emit('update:patient', '')
         Patient.update(patient)

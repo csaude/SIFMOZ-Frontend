@@ -324,9 +324,7 @@ export default {
         this.reloadIdentifierTypeMask()
       },
       reloadIdentifierTypeMask () {
-        IdentifierType.localDbGetAll().then(idTypes => {
-          IdentifierType.insert({ data: idTypes })
-        })
+        IdentifierType.localDbGetAll()
         if (this.identifier.service !== null) {
           this.identifierTypeMask = this.identifier.service.identifierType.pattern
         }
@@ -522,8 +520,13 @@ export default {
                                                             .where('id', this.selectedClinicSector.id)
                                                             .first()
           } else {
-            this.closureEpisode.clinicSector = this.lastEpisode.clinicSector
-            this.closureEpisode.clinicSector_id = this.lastEpisode.clinicSector.id
+            const normalClinicSector = ClinicSector.query()
+                                    .with('clinic.*')
+                                    .with('clinicSectorType')
+                                    .where((sector) => { return sector.code === 'NORMAL' })
+                                    .first()
+            this.closureEpisode.clinicSector = this.lastEpisode === null ? normalClinicSector : this.lastEpisode.clinicSector
+            this.closureEpisode.clinicSector_id = this.lastEpisode === null ? normalClinicSector.id : this.lastEpisode.clinicSector.id
           }
           this.closureEpisode.clinicSector.clinic = this.currClinic
           this.closureEpisode.clinicSector.clinic_id = this.currClinic.id
@@ -539,7 +542,7 @@ export default {
         if (this.isEditStep) {
           this.identifier.startDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.identifierstartDate))
         }
-        if (this.mobile) {
+        if (this.website) {
           this.identifier.identifier_type_id = this.identifier.identifierType.id
           this.identifier.service_id = this.identifier.service.id
           this.identifier.patient_id = this.identifier.patient.id
@@ -566,11 +569,11 @@ export default {
             identifierCopy.episodes = []
           }
           if (this.isCreateStep) {
-            await PatientServiceIdentifier.localDbAdd(identifierCopy)
-            PatientServiceIdentifier.insert({ data: identifierCopy })
+         this.buildPatientServiceIdentifier(identifierCopy)
+         console.log(identifierCopy)
+         await PatientServiceIdentifier.localDbAddOrUpdate(identifierCopy)
           } else {
-            await PatientServiceIdentifier.localDbUpdate(identifierCopy)
-            PatientServiceIdentifier.update({ data: identifierCopy })
+            await PatientServiceIdentifier.localDbAddOrUpdate(identifierCopy)
           }
           this.initPatientTransReference()
           this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -670,6 +673,18 @@ export default {
       commitOperation () {
         this.submitting = true
         this.doSave()
+      },
+      buildPatientServiceIdentifier (identifier) {
+        identifier.identifierType = {}
+        identifier.service = {}
+        identifier.patient = {}
+        identifier.clinic = {}
+        identifier.episodes = {}
+        identifier.identifierType.id = identifier.identifier_type_id
+        identifier.service.id = identifier.service_id
+        identifier.patient.id = identifier.patient_id
+        identifier.clinic.id = identifier.clinic_id
+       // identifier.episodes = {}
       }
     },
     created () {
@@ -806,7 +821,7 @@ export default {
         const allReasons = StartStopReason.query()
                               .where('isStartReason', false).orderBy('reason', 'asc').get()
         let resonList = []
-        if (this.lastEpisode.isReferenceOrTransferenceEpisode()) {
+        if (this.lastEpisode !== null && this.lastEpisode.isReferenceOrTransferenceEpisode()) {
           resonList = allReasons.filter((reason) => {
             return reason.code !== 'REFERIDO_DC' && reason.code !== 'TRANSFERIDO_PARA' && reason.code !== 'REFERIDO_PARA'
           })

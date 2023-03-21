@@ -3,6 +3,7 @@ import HealthInformationSystem from '../healthInformationSystem/HealthInformatio
 import InteroperabilityType from '../interoperabilityType/InteroperabilityType'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class InteroperabilityAttribute extends Model {
   static entity = 'interoperabilityAttributes'
@@ -25,7 +26,11 @@ export default class InteroperabilityAttribute extends Model {
   }
 
   static localDbAdd (interoperabilityAttribute) {
-    return db.newDb().collection('interoperabilityAttributes').add(interoperabilityAttribute)
+    return nSQL(this.entity).query('upsert',
+    interoperabilityAttribute
+     ).exec().then(
+      InteroperabilityAttribute.insertOrUpdate({ data: interoperabilityAttribute })
+     )
   }
 
   static localDbGetById (id) {
@@ -33,7 +38,10 @@ export default class InteroperabilityAttribute extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('interoperabilityAttributes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      InteroperabilityAttribute.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (interoperabilityAttribute) {

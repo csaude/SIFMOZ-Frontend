@@ -5,6 +5,7 @@ import Clinic from '../clinic/Clinic'
 import District from '../district/District'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Province extends Model {
   static entity = 'provinces'
@@ -34,7 +35,11 @@ export default class Province extends Model {
   }
 
   static localDbAdd (province) {
-    return db.newDb().collection('provinces').add(province)
+    return nSQL(this.entity).query('upsert',
+    province
+       ).exec().then(
+        Province.insertOrUpdate({ data: province })
+       )
   }
 
   static localDbGetById (id) {
@@ -42,7 +47,10 @@ export default class Province extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('provinces').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Province.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (province) {

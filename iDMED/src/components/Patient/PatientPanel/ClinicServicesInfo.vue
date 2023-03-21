@@ -100,11 +100,20 @@ export default {
     },
     identifiers: {
       get () {
+        console.log(this.patient.identifiers)
         return this.patient.identifiers
       }
     },
     patient: {
       get () {
+        console.log(Patient.query().with(['identifiers.episodes.startStopReason', 'identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                            .with('province')
+                            .with('attributes')
+                            .with('appointments')
+                            .with('district')
+                            .with('postoAdministrativo')
+                            .with('bairro')
+                            .with('clinic').where('id', this.selectedPatient.id).first())
       return Patient.query().with(['identifiers.episodes.startStopReason', 'identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                             .with('province')
                             .with('attributes')

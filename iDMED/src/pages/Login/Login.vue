@@ -300,9 +300,9 @@ export default {
       const offset = 0
       const max = 100
       Province.localDbGetAll().then((provinces) => {
-        if (provinces !== null && provinces.length > 0) {
+        if (provinces !== undefined && provinces !== null && provinces.length > 0) {
           this.hasProvinciesOnLocalDB = true
-          Province.insert({ data: provinces })
+        //  Province.insert({ data: provinces })
         } else {
           Province.apiGetAll(offset, max).then((resp) => {
             resp.response.data.forEach((province) => {
@@ -312,8 +312,8 @@ export default {
         }
       })
       District.localDbGetAll().then((districts) => {
-        if (districts !== null && districts.length > 0) {
-          District.insert({ data: districts })
+        if (districts !== undefined && districts !== null && districts.length > 0) {
+         // District.insert({ data: districts })
         } else {
           District.apiGetAll(offset, max).then((resp) => {
             resp.response.data.forEach((district) => {
@@ -325,9 +325,9 @@ export default {
     },
     async loadSystemConfigs () {
       await SystemConfigs.localDbGetAll().then((systemConfigs) => {
-        if (systemConfigs !== null && systemConfigs.length > 0) {
+        if (systemConfigs !== undefined && systemConfigs !== null && systemConfigs.length > 0) {
           this.hasInstalationTypeConfigured = true
-          SystemConfigs.insert({ data: systemConfigs })
+       //   SystemConfigs.insert({ data: systemConfigs })
         } else {
        SystemConfigs.apiGetAll().then((resp) => {
             resp.response.data.forEach((sysConfig) => {
@@ -339,8 +339,8 @@ export default {
     },
     loadMenusFromLocalToVuex () {
       Menu.localDbGetAll().then((menus) => {
-        if (menus.length > 0) {
-          Menu.insert({ data: menus })
+        if (menus !== undefined && menus !== null && menus.length > 0) {
+      //    Menu.insert({ data: menus })
         } else {
           Menu.apiGetAll().then((resp) => {
             Menu.localDbUpdateAll(resp.response.data)
@@ -350,14 +350,15 @@ export default {
     },
     async loadClinics () {
       Clinic.localDbGetAll().then((clinics) => {
-        console.log('CLINICAS:' + clinics.length)
-        if (clinics !== null && clinics.length > 0) {
-          Clinic.insert({ data: clinics })
+        // console.log('CLINICAS:' + clinics.length)
+        if (clinics !== undefined && clinics !== null && clinics.length > 0) {
+       //   Clinic.insert({ data: clinics })
           this.saveCurrClinic(
             Clinic.query()
-              .with('province')
-              .with('facilityType')
-              .with('district.province')
+            .with('province.*')
+          .with('facilityType.*')
+          .with('district.*')
+          .with('sectors.*')
               .where('mainClinic', true)
               .first()
           )
@@ -398,9 +399,10 @@ export default {
         })
       }
       return Clinic.query()
-        .with('province')
-        .with('district')
-        .with('district.province')
+      .with('province.*')
+          .with('facilityType.*')
+          .with('district.*')
+          .with('sectors.*')
         .where('district_id', this.district.id)
         .get()
     },

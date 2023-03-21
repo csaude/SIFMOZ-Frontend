@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
 
 export default class ProvincialServer extends Model {
   static entity = 'provincialServers'
@@ -26,7 +27,11 @@ export default class ProvincialServer extends Model {
   }
 
   static localDbAdd (provincialServer) {
-    return db.newDb().collection('provincialServers').add(provincialServer)
+    return nSQL(this.entity).query('upsert',
+    provincialServer
+       ).exec().then(
+        ProvincialServer.insertOrUpdate({ data: provincialServer })
+       )
   }
 
   static localDbGetById (id) {
@@ -34,7 +39,10 @@ export default class ProvincialServer extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('provincialServers').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      ProvincialServer.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (provincialServer) {

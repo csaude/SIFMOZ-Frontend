@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import PatientTransReference from './PatientTransReference'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class PatientTransReferenceType extends Model {
   static entity = 'patientTransReferenceTypes'
@@ -22,7 +23,11 @@ export default class PatientTransReferenceType extends Model {
   }
 
   static localDbAdd (patientTransReferenceType) {
-    return db.newDb().collection('patientTransReferenceTypes').add(patientTransReferenceType)
+    return nSQL(this.entity).query('upsert',
+    patientTransReferenceType
+       ).exec().then(
+        PatientTransReferenceType.insertOrUpdate({ data: patientTransReferenceType })
+       )
   }
 
   static localDbGetById (id) {
@@ -30,7 +35,10 @@ export default class PatientTransReferenceType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('patientTransReferenceTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      PatientTransReferenceType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (patientTransReferenceType) {

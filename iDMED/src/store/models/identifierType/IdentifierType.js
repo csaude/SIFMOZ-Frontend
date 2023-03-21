@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class IdentifierType extends Model {
   static entity = 'identifierTypes'
@@ -31,16 +32,23 @@ export default class IdentifierType extends Model {
     return await this.api().patch('/identifierType/' + identifierType.id, identifierType)
   }
 
-  static localDbAdd (identifierType) {
-    return db.newDb().collection('identifierTypes').add(identifierType)
+  static async localDbAdd (identifierType) {
+    return nSQL(this.entity).query('upsert',
+    identifierType
+     ).exec().then(
+      IdentifierType.insertOrUpdate({ data: identifierType })
+     )
   }
 
   static localDbGetById (id) {
     return db.newDb().collection('identifierTypes').doc({ id: id }).get()
   }
 
-  static localDbGetAll () {
-    return db.newDb().collection('identifierTypes').get()
+  static async localDbGetAll () {
+   return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      IdentifierType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (identifierType) {

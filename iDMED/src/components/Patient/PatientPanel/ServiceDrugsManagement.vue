@@ -214,6 +214,11 @@ export default {
         if (this.isEditPackStep) {
           return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
         } else {
+          console.log(Duration.all())
+          console.log(this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
+          console.log(Duration.query()
+                        .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
+                        .first())
           return Duration.query()
                         .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
                         .first()

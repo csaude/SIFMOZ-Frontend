@@ -3,6 +3,7 @@ import Clinic from '../clinic/Clinic'
 import ClinicSectorType from '../clinicSectorType/ClinicSectorType'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class ClinicSector extends Model {
   static entity = 'clinicSectors'
@@ -45,7 +46,11 @@ export default class ClinicSector extends Model {
   }
 
   static localDbAdd (clinicSector) {
-    return db.newDb().collection('clinicSectors').add(clinicSector)
+    return nSQL(this.entity).query('upsert',
+    clinicSector
+     ).exec().then(
+      ClinicSector.insertOrUpdate({ data: clinicSector })
+     )
   }
 
   static localDbGetById (id) {
@@ -53,7 +58,10 @@ export default class ClinicSector extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('clinicSectors').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      ClinicSector.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (clinicSector) {

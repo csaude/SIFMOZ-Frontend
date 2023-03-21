@@ -3,6 +3,7 @@ import { Model } from '@vuex-orm/core'
 import InteroperabilityAttribute from '../interoperabilityAttribute/InteroperabilityAttribute'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class HealthInformationSystem extends Model {
   static entity = 'healthInformationSystems'
@@ -37,7 +38,11 @@ export default class HealthInformationSystem extends Model {
   }
 
   static localDbAdd (healthInformationSystem) {
-    return db.newDb().collection('healthInformationSystems').add(healthInformationSystem)
+    return nSQL(this.entity).query('upsert',
+    healthInformationSystem
+     ).exec().then(
+      HealthInformationSystem.insertOrUpdate({ data: healthInformationSystem })
+     )
   }
 
   static localDbGetById (id) {
@@ -45,7 +50,10 @@ export default class HealthInformationSystem extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('healthInformationSystems').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      HealthInformationSystem.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (healthInformationSystem) {

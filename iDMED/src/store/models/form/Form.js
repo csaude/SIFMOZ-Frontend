@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Drug from '../drug/Drug'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Form extends Model {
   static entity = 'forms'
@@ -26,7 +27,11 @@ export default class Form extends Model {
   }
 
   static localDbAdd (form) {
-    return db.newDb().collection('forms').add(form)
+    return nSQL(this.entity).query('upsert',
+    form
+     ).exec().then(
+      Form.insertOrUpdate({ data: form })
+     )
   }
 
   static localDbGetById (id) {
@@ -34,7 +39,10 @@ export default class Form extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('forms').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Form.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (form) {

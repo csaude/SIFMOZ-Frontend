@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class SpetialPrescriptionMotive extends Model {
   static entity = 'spetialPrescriptionMotives'
@@ -24,7 +25,11 @@ export default class SpetialPrescriptionMotive extends Model {
   }
 
   static localDbAdd (spetialPrescriptionMotive) {
-    return db.newDb().collection('spetialPrescriptionMotives').add(spetialPrescriptionMotive)
+    return nSQL(this.entity).query('upsert',
+    spetialPrescriptionMotive
+       ).exec().then(
+        SpetialPrescriptionMotive.insertOrUpdate({ data: spetialPrescriptionMotive })
+       )
   }
 
   static localDbGetById (id) {
@@ -32,7 +37,10 @@ export default class SpetialPrescriptionMotive extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('spetialPrescriptionMotives').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      SpetialPrescriptionMotive.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (spetialPrescriptionMotive) {

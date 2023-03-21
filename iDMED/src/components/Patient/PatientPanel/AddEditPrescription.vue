@@ -460,11 +460,9 @@ export default {
       console.log('Init Step', this.stepp)
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
-      if (this.mobile) {
+      if (this.website) {
         ClinicalServiceAttribute.deleteAll()
-        await ClinicalServiceAttribute.localDbGetAll().then(regimens => {
-          ClinicalServiceAttribute.insert({ data: regimens })
-        })
+        await ClinicalServiceAttribute.localDbGetAll()
       }
       if (this.isNewPackStep || this.isEditPackStep) {
         this.initPatientVisitDetailsForDispense()
@@ -724,7 +722,7 @@ export default {
           pvd = patientVDetails
         }
       })
-      if (this.mobile) {
+      if (this.website) { // change later
         this.doMobileSave()
       } else {
         this.doWebSave()
@@ -748,6 +746,7 @@ export default {
       if (this.selectedClinicalService === '' || this.selectedClinicalService === null || this.selectedClinicalService === undefined) return false
       const has = this.selectedClinicalService.attributes.some((attribute) => {
         return attribute.clinicalServiceAttributeType.code === attr
+     //  return true
       })
       return has
     },
@@ -1061,7 +1060,7 @@ export default {
         this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
         const packDateError = this.setRelationIdentifiers()
-        if (this.mobile) {
+        if (this.website) {
           if (!packDateError) this.doMobileSave()
         } else {
           /* this.patientVisit.patientVisitDetails.forEach((pvd) => {
@@ -1177,8 +1176,8 @@ export default {
       if (this.isEditPackStep) {
         PatientVisit.localDbGetById(this.patientVisit.id).then(patientVisit => {
           this.addOrRemoveStockPackagedDrugs(patientVisit, false)
-          PatientVisit.localDbUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
-            this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
+          PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
+           // this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
             this.addOrRemoveStockPackagedDrugs(this.patientVisit, true)
             this.displayAlert('info', 'Dispensa actualizada com sucesso.')
           })
@@ -1199,7 +1198,7 @@ export default {
         })
       } else {
         PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
-          this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
+       //   this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
           this.addOrRemoveStockPackagedDrugs(this.patientVisit, true)
             this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
           })

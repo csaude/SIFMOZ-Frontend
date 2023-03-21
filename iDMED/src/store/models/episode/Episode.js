@@ -7,6 +7,7 @@ import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import StartStopReason from '../startStopReason/StartStopReason'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Episode extends Model {
   static entity = 'episodes'
@@ -118,15 +119,24 @@ export default class Episode extends Model {
   }
 
   static localDbAdd (episode) {
-    return db.newDb().collection('episodes').add(episode)
+    return nSQL(this.entity).query('upsert',
+    episode
+  ).exec().then(result => {
+    Episode.insertOrUpdate({ data: episode })
+    })
   }
 
   static localDbGetById (id) {
-    return db.newDb().collection('episodes').doc({ id: id }).get()
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       // Episode.insertOrUpdate({ data: result[0] })
+         return result[0]
+       })
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('episodes').get()
+     return nSQL(this.entity).query('select').exec().then(result => {
+      Episode.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (episode) {
@@ -138,7 +148,8 @@ export default class Episode extends Model {
   }
 
   static localDbDelete (episode) {
-    return db.newDb().collection('episodes').doc({ id: episode.id }).delete()
+     nSQL(this.entity).query('delete').where(['id', '=', episode.id]).exec()
+      Episode.delete(episode.id)
   }
 
   static localDbDeleteById (episodeId) {
@@ -157,4 +168,29 @@ export default class Episode extends Model {
   static getClassName () {
     return 'episode'
   }
+
+  /*
+  static getEpisodeNSql () {
+   nSQL().onConnected(() => {
+     nSQL('episode').query('select', ['episode.episodeDate', 'episode.serviceIdentifier.startDate']).join({
+      type: 'inner', // Supported join types are left, inner, right, cross and outer.
+      table: 'serviceIdentifier',
+      where: ['episode.patientServiceIdentifier_id', '=', 'serviceIdentifier.id'] // any valid WHERE statement works here
+  }).exec().then(result => {
+      console.log(result)
+     // Episode.insert({ data: result })
+      //  return result
+      })
+    })
+  }
+  */
+
+  static async getEpisodesNSqlByIdentifier (patientServiceIdentifier) {
+    return nSQL(this.entity).query('select').where(['patientServiceIdentifier[id]', '=', patientServiceIdentifier.id]).exec().then(result => {
+      if (result !== undefined) {
+        Episode.insertOrUpdate({ data: result })
+      }
+         return result
+       })
+   }
 }

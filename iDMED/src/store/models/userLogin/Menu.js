@@ -1,5 +1,7 @@
 import { Model } from '@vuex-orm/core'
-import db from 'src/store/localbase'
+// import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
+
 export default class Menu extends Model {
   static entity = 'menus'
 
@@ -22,10 +24,17 @@ export default class Menu extends Model {
   }
 
   static localDbUpdateAll (menus) {
-    return db.newDb().collection('menus').set(menus)
+    return nSQL(this.entity).query('upsert',
+    menus
+       ).exec().then(
+        Menu.insertOrUpdate({ data: menus })
+       )
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('menus').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Menu.insertOrUpdate({ data: result })
+      })
   }
 }

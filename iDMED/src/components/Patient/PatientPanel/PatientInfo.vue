@@ -32,11 +32,11 @@
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Província</div>
-          <div class="col text-grey-10">{{selectedPatient.province.description}}</div>
+          <div class="col text-grey-10">{{selectedPatient.province !== null ? selectedPatient.province.description : '' }}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Distrito</div>
-          <div class="col text-grey-10">{{selectedPatient.district.description}}</div>
+          <div class="col text-grey-10">{{selectedPatient.district !== null ? selectedPatient.district.description : '' }}</div>
         </div>
         <div class="row q-mb-sm">
           <div class="col-5 text-grey-9">Posto Administrativo</div>
@@ -115,6 +115,8 @@ export default {
           Province.insertOrUpdate({ data: idTypes })
         })
       }
+      console.log(this.selectedPatient)
+      console.log(this.patient)
     },
     editPatient () {
       console.log(this.selectedPatient)
@@ -124,9 +126,11 @@ export default {
     }
   },
   created () {
+    console.log(this.selectedPatient)
     this.init()
   },
   mounted () {
+    console.log(this.selectedPatient)
     this.init()
   },
   computed: {

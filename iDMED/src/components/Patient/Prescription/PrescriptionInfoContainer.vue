@@ -109,7 +109,7 @@ export default {
   },
   methods: {
      init () {
-       if (this.website) {
+       if (this.mobile) {
           if (this.identifier !== null) {
             PatientServiceIdentifier.apiFetchById(this.identifier.id)
             if (this.identifier.service !== null) {
