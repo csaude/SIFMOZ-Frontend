@@ -54,7 +54,6 @@ import { ref } from 'vue'
 import StockEntrance from '../../store/models/stockentrance/StockEntrance'
 import Inventory from '../../store/models/stockinventory/Inventory'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import db from 'src/store/localbase'
 
 export default {
      mixins: [mixinplatform],
@@ -97,7 +96,7 @@ export default {
       this.doStockEntranceGet(this.clinic.id, offset, max)
     },
     doStockEntranceGet (clinicId, offset, max) {
-       if (this.mobile) {
+       if (this.website) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         console.log(resp.response.data)
             if (resp.response.data.length > 0) {
@@ -108,13 +107,7 @@ export default {
             console.log(error)
         })
        } else {
-         db.newDb().collection('stockEntrance').get().then(stockEntrance => {
-                StockEntrance.insert(
-                  {
-                    data: stockEntrance
-                  })
-              })
-              this.rowData = StockEntrance.all()
+              this.rowData = StockEntrance.localDbGetAll()
                   }
     }
   },

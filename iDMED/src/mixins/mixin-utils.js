@@ -144,9 +144,8 @@ export default {
         TherapeuticRegimen.insert({ data: regimen })
       })
     })
-    Stock.localDbGetAll().then(stocks => {
-      Stock.insert({ data: stocks })
-    })
+    Stock.localDbGetAll()
+
     TherapeuticLine.localDbGetAll().then(regimens => {
       TherapeuticLine.insert({ data: regimens })
     })
@@ -192,11 +191,7 @@ export default {
     await ClinicSectorType.localDbGetAll().then(setorTypes => {
       ClinicSectorType.insert({ data: setorTypes })
     })
-    Drug.localDbGetAll().then(drugs => {
-      drugs.forEach((drug) => {
-        Drug.insert({ data: drug })
-      })
-    })
+    Drug.localDbGetAll()
     await IdentifierType.localDbGetAll().then(idTypes => {
       IdentifierType.insert({ data: idTypes })
     })

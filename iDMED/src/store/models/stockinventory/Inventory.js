@@ -2,8 +2,8 @@ import { Model } from '@vuex-orm/core'
 import { date } from 'quasar'
 import Clinic from '../clinic/Clinic'
 import { InventoryStockAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Inventory extends Model {
     static entity = 'inventorys'
@@ -89,38 +89,6 @@ export default class Inventory extends Model {
       return await this.api().get(`/inventory/${id}`)
     }
 
-    static localDbAdd (inventory) {
-      return db.newDb().collection('inventorys').add(inventory)
-    }
-
-    static localDbGetById (id) {
-      return db.newDb().collection('inventorys').doc({ id: id }).get()
-    }
-
-    static localDbGetAll () {
-      return db.newDb().collection('inventorys').get()
-    }
-
-    static localDbUpdate (inventory) {
-      return db.newDb().collection('inventorys').doc({ id: inventory.id }).set(inventory)
-    }
-
-    static localDbUpdateAll (inventorys) {
-      return db.newDb().collection('inventorys').set(inventorys)
-    }
-
-    static localDbDelete (inventory) {
-      return db.newDb().collection('inventorys').doc({ id: inventory.id }).delete()
-    }
-
-    static localDbDeleteAll () {
-      return db.newDb().collection('inventorys').delete()
-    }
-
-    static localDbDeleteById (id) {
-      return db.newDb().collection('inventorys').doc({ id: id }).delete()
-    }
-
     static async syncInventory (inventory) {
       if (inventory.syncStatus === 'R') await this.apiSave(inventory)
       if (inventory.syncStatus === 'U') await this.apiUpdate(inventory)
@@ -129,4 +97,30 @@ export default class Inventory extends Model {
     static getClassName () {
       return 'Inventory'
     }
+
+    static localDbAddOrUpdate (targetCopy) {
+        nSQL(this.entity).query('upsert',
+        targetCopy
+      ).exec()
+      Inventory.insertOrUpdate({ data: targetCopy })
+    }
+
+    static localDbGetAll () {
+       nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        Inventory.insertOrUpdate({ data: result })
+        })
+    }
+
+    static localDbGetById (inventory) {
+     return nSQL(this.entity).query('select').where(['id', '=', inventory.id]).exec().then(result => {
+        console.log(result)
+        return result[0]
+      })
+  }
+
+  static localDbDeleteById (inventory) {
+      nSQL(this.entity).query('delete').where(['id', '=', inventory.id]).exec()
+      Inventory.delete(inventory.id)
+}
 }

@@ -98,16 +98,8 @@ export default {
     openFile (inventory) {
       if (this.mobile) {
         // Inserir no VueX inventory e InvstockAdj
-        Inventory.deleteAll()
-        Inventory.localDbGetAll().then(item => {
-        Inventory.insert({
-          data: item
-        })
-        })
-        InventoryStockAdjustment.deleteAll()
-        InventoryStockAdjustment.insert({
-          data: inventory.adjustments
-        })
+        Inventory.localDbGetAll()
+        InventoryStockAdjustment.localDbGetAll()
       }
       SessionStorage.set('currInventory', inventory)
       this.$router.push('/stock/inventory')
