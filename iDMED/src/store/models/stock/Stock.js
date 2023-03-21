@@ -78,40 +78,6 @@ export default class Stock extends Model {
       return await this.api().get(`/drugStockFile/batchsumary/${clinicId}/${stockId}`)
     }
 
-    static localDbGetById (id) {
-      return db.newDb().collection('stocks').doc({ id: id }).get()
-    }
-
-    static localDbUpdate (stock) {
-      return db.newDb().collection('stocks').doc({ id: stock.id }).set(stock)
-    }
-
-    static localDbUpdateAll (stocks) {
-      return db.newDb().collection('stocks').set(stocks)
-    }
-
-    static localDbDelete (stock) {
-      return db.newDb().collection('stocks').doc({ id: stock.id }).delete()
-    }
-
-    static localDbDeleteById (id) {
-      return db.newDb().collection('stocks').doc({ id: id }).delete()
-    }
-
-    static localDbDeleteAll () {
-      return db.newDb().collection('stocks').delete()
-    }
-
-    static localDbAddOrUpdate (stock, operation) {
-      if (operation === 'create') {
-        stock.syncStatus = 'R'
-       return this.localDbAdd(stock)
-      } else {
-        stock.syncStatus = 'U'
-        return this.localDbUpdate(stock)
-      }
-    }
-
     static getClassName () {
       return 'stock'
     }
