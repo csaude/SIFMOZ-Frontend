@@ -466,11 +466,7 @@ export default {
     async init () {
       this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
       if (this.mobile) {
-        await Drug.localDbGetAll().then(drugs => {
-          drugs.forEach((drug) => {
-            Drug.update({ where: drug.id, data: drug })
-          })
-        })
+        await Drug.localDbGetAll()
         this.loadStockList()
       }
     },
