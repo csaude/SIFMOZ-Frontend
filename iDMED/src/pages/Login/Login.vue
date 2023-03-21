@@ -445,7 +445,7 @@ export default {
           this.loginOnline(encodedStringBtoA)
         } else {
           User.localDbGetAll().then((users) => {
-            if (users.length > 0) {
+            if (users !== undefined && users.length > 0) {
               console.log('users:' + users)
               const user = users.filter(
                 (user) =>

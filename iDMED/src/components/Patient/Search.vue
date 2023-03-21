@@ -221,16 +221,7 @@ export default {
       this.$q.loading.hide()
     },
     async init () {
-        if (this.website) {
-          /*
-          Patient.localDbGetAll().then(patients => {
-            Patient.insert({ data: patients })
-          })
-          */
-         // Patient.$get('76f88cf3-a58d-4fe5-bf31-b53f63a78a00'
-         // )
-     //   await Patient.createDatabase()
-     // await PatientServiceIdentifier.createDatabasePSI()
+        if (this.mobile) {
         await Patient.localDbGetAll()
         }
       },
@@ -361,7 +352,7 @@ export default {
       },
       localSearch () {
         this.showloading()
-        if (this.mobile) {
+        if (this.website) {
           console.log('Performing website search')
           Patient.deleteAll()
           this.currPatient.clinic = this.clinic

@@ -389,7 +389,7 @@ async saveDate () {
                                 .where('id', this.patientReg.clinic.id)
                                 .first()
         this.patientReg.clinic = clinicAux
-        if (this.website) {
+        if (this.mobile) {
           this.patientReg.syncStatus = this.isEditStep ? 'U' : 'R'
           this.patientReg.province_id = this.patientReg.province.id
           this.patientReg.district_id = this.patientReg.district.id

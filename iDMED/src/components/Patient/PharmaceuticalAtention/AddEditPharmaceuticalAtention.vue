@@ -293,7 +293,7 @@ export default {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
                 this.displayAlert('error', 'Por Favor Indique as reações adversas')
              } else {
-              if (this.website) {
+              if (this.mobile) {
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)

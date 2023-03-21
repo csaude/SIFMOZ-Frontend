@@ -103,8 +103,8 @@ export default {
   methods: {
     init () {
       if (this.website) {
-      //  PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
-      //  Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+        PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
+        Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
       }
     },
     expandLess (value) {

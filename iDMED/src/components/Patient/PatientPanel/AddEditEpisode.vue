@@ -397,7 +397,7 @@ export default {
                                                                           .where('id', this.selectedClinicSector.id)
                                                                           .first()
                         }
-                        if (this.website) {
+                        if (this.mobile) {
                           this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
                           this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
                           this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
@@ -438,7 +438,7 @@ export default {
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
           this.episode.patientServiceIdentifier.episodes = []
           const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
-          if (this.website) {
+          if (this.mobile) {
             lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
             lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id

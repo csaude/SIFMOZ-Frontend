@@ -5,8 +5,9 @@ import { Model } from '@vuex-orm/core'
  import UserClinicSectors from './UserClinicSector'
 // import Role from './Role'
 // import UserRole from './UserRole'
-import db from 'src/store/localbase'
-import { v4 as uuidv4 } from 'uuid'
+// import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
+
 export default class User extends Model {
   static entity = 'users'
 
@@ -46,34 +47,21 @@ export default class User extends Model {
     return await this.api().post('/secUser', userLogin)
   }
 
-  static localDbAdd (secUser) {
-    return db.newDb().collection('secUsers').add(secUser)
-  }
-
-  static localDbGetById (id) {
-    return db.newDb().collection('secUsers').doc({ id: id }).get()
+  static localDbAddOrUpdate (secUser) {
+    return nSQL(this.entity).query('upsert',
+    secUser
+     ).exec().then(
+      User.insertOrUpdate({ data: secUser })
+     )
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('secUsers').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      User.insert({ data: result })
+      })
   }
-
-  static localDbUpdate (secUser) {
-    return db.newDb().collection('secUsers').doc({ id: secUser.id }).set(secUser)
-  }
-
-  static localDbUpdateAll (secUsers) {
-    return db.newDb().collection('secUsers').set(secUsers)
-  }
-
-  static localDbDelete (secUserId) {
-    return db.newDb().collection('secUsers').doc({ id: secUserId }).delete()
-  }
-
-  static localDbDeleteAll () {
-    return db.newDb().collection('secUsers').delete()
-  }
-
+  /*
   static localDbAddOrUpdate (user) {
     if (user.id === null) {
       user.id = uuidv4()
@@ -83,4 +71,5 @@ export default class User extends Model {
       return this.localDbUpdate(user)
     }
   }
+  */
 }

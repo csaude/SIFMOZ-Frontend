@@ -184,7 +184,7 @@ export default {
           Role.localDbAdd(resp.response.data)
      })
     await User.apiGetAll(offset, max).then(resp => {
-    User.localDbUpdateAll(resp.response.data)
+    User.localDbAddOrUpdate(resp.response.data)
   })
     },
     doStockEntranceGet (clinicId, offset, max) {

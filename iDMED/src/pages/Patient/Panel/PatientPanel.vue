@@ -145,7 +145,7 @@ export default {
   },
   methods: {
     async init () {
-      if (this.website) {
+      if (this.mobile) {
         this.showPatientInfo = ref(true)
      const patientServiceIdentifiers = await PatientServiceIdentifier.getByPatientId(this.patient)
     console.log(patientServiceIdentifiers)
