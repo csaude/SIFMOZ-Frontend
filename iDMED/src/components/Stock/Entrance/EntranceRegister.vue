@@ -111,7 +111,7 @@ export default {
           } else {
             this.stockEntrance.syncStatus = 'R'
             const stockEntrance = JSON.parse(JSON.stringify(this.stockEntrance))
-          const resp = StockEntrance.createStockEntranceNSql(stockEntrance)
+          const resp = StockEntrance.localDbAddOrUpdate(stockEntrance)
           console.log(resp)
               SessionStorage.set('currStockEntrance', this.stockEntrance)
                       this.hideLoading()

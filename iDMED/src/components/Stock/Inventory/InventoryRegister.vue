@@ -203,14 +203,9 @@ export default {
         }.bind(this))
 
           const targetCopy = JSON.parse(JSON.stringify(this.currInventory))
-          Inventory.localDbAdd(targetCopy).then(inv => {
-            Inventory.insert(
-              {
-                data: targetCopy
-              })
+          Inventory.localDbAddOrUpdate(targetCopy)
             SessionStorage.set('currInventory', this.currInventory)
             this.$router.push('/stock/inventory')
-        })
         }
     },
     doBeforeSave () {

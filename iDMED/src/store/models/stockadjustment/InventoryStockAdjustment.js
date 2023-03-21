@@ -1,6 +1,5 @@
 import { StockAdjustment } from './StockAdjustmentHierarchy'
 import Inventory from '../stockinventory/Inventory'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 
@@ -39,42 +38,39 @@ export class InventoryStockAdjustment extends StockAdjustment {
       return await this.api().get(`/inventoryStockAdjustment/${id}`)
     }
 
-    static localDbAdd (inventoryStockAdjustment) {
-      return nSQL(this.entity).query('upsert',
-      inventoryStockAdjustment
-       ).exec().then(
-        InventoryStockAdjustment.insertOrUpdate({ data: inventoryStockAdjustment })
-       )
-    }
-
-    static localDbGetById (id) {
-      return db.newDb().collection('inventoryStockAdjustments').doc({ id: id }).get()
+    static localDbAddOrUpdate (targetCopy) {
+      return nSQL().onConnected(() => {
+        nSQL(this.entity).query('upsert',
+        targetCopy
+      ).exec()
+      InventoryStockAdjustment.insertOrUpdate({ data: targetCopy })
+    })
     }
 
     static localDbGetAll () {
-      return nSQL(this.entity).query('select').exec().then(result => {
+       nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
         InventoryStockAdjustment.insertOrUpdate({ data: result })
         })
     }
 
-    static localDbUpdate (inventoryStockAdjustment) {
-      return db.newDb().collection('inventoryStockAdjustments').doc({ id: inventoryStockAdjustment.id }).set(inventoryStockAdjustment)
-    }
+    static localDbGetById (invStockAdj) {
+     return nSQL(this.entity).query('select').where(['id', '=', invStockAdj.id]).exec().then(result => {
+        console.log(result)
+        return result[0]
+      })
+  }
 
-    static localDbUpdateAll (inventoryStockAdjustments) {
-      return db.newDb().collection('inventoryStockAdjustments').set(inventoryStockAdjustments)
-    }
+  static localDbGetByInventory (inventory) {
+    return nSQL(this.entity).query('select').where(['inventoryStockAdjustments[id]', '=', inventory.id]).exec().then(result => {
+       return result
+     })
+ }
 
-    static localDbDelete (inventoryStockAdjustment) {
-      return db.newDb().collection('inventoryStockAdjustments').doc({ id: inventoryStockAdjustment.id }).delete()
-    }
-
-    static localDbDeleteAll () {
-      return db.newDb().collection('inventoryStockAdjustments').delete()
-    }
-
-    static localDbDeleteById (id) {
-      return db.newDb().collection('inventoryStockAdjustments').doc({ id: id }).delete()
-    }
+  static localDbDeleteById (invStockAdj) {
+    return nSQL().onConnected(() => {
+      nSQL(this.entity).query('delete').where(['id', '=', invStockAdj.id]).exec()
+      InventoryStockAdjustment.delete(invStockAdj.id)
+  })
+}
 }

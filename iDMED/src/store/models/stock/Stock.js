@@ -7,7 +7,6 @@ import Drug from '../drug/Drug'
 import Clinic from '../clinic/Clinic'
 import { date } from 'quasar'
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 
@@ -79,23 +78,8 @@ export default class Stock extends Model {
       return await this.api().get(`/drugStockFile/batchsumary/${clinicId}/${stockId}`)
     }
 
-    static localDbAdd (stock) {
-      return nSQL(this.entity).query('upsert',
-      stock
-       ).exec().then(
-        Stock.insertOrUpdate({ data: stock })
-       )
-    }
-
     static localDbGetById (id) {
       return db.newDb().collection('stocks').doc({ id: id }).get()
-    }
-
-    static async localDbGetAll () {
-      return nSQL(this.entity).query('select').exec().then(result => {
-        console.log(result)
-        Stock.insertOrUpdate({ data: result })
-        })
     }
 
     static localDbUpdate (stock) {
@@ -132,7 +116,7 @@ export default class Stock extends Model {
       return 'stock'
     }
 
-    static createStockNSql (targetCopy) {
+    static localDbAddOrUpdate (targetCopy) {
       return nSQL().onConnected(() => {
         nSQL(this.entity).query('upsert',
         targetCopy
@@ -141,16 +125,14 @@ export default class Stock extends Model {
     })
     }
 
-    static getAllStockNSql () {
-     nSQL().onConnected(() => {
+    static localDbGetAll () {
        nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
         Stock.insertOrUpdate({ data: result })
         })
-      })
     }
 
-    static getByStock (stock) {
+    static localDbGetById (stock) {
      return nSQL(this.entity).query('select').where(['id', '=', stock.id]).exec().then(result => {
         console.log(result)
         // Stock.insert({ data: result })
@@ -158,7 +140,7 @@ export default class Stock extends Model {
       })
   }
 
-  static getByStockEntrance (stockEntrance) {
+  static localDbGetByStockEntranceId (stockEntrance) {
     nSQL().onConnected(() => {
     nSQL(this.entity).query('select').where(['stocks[entrance_id]', '=', stockEntrance.id]).exec().then(result => {
       console.log(result)
@@ -166,7 +148,7 @@ export default class Stock extends Model {
   })
 }
 
-  static deleteStock (stock) {
+  static localDbDeleteById (stock) {
     return nSQL().onConnected(() => {
       nSQL(this.entity).query('delete').where(['id', '=', stock.id]).exec()
     Stock.delete(stock.id)

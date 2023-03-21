@@ -28,39 +28,12 @@ export default {
     init () {
    // copoia o stock do localbase para o VueX
      if (this.mobile) {
-        Stock.localDbGetAll().then(stocks => {
-            stocks.forEach(item => {
-              Stock.delete(item.id)
-                            Stock.insert({
-                              data: item
-                            })
-                      })
-                  })
-        Inventory.localDbGetAll().then(inventories => {
-                          inventories.forEach(item => {
-                            Inventory.delete(item.id)
-                            Inventory.insert({
-                              data: item
-                            })
-                          })
-                            })
-                            StockEntrance.getStockEntranceNSql()
-
-          StockCenter.localDbGetAll().then(stockCenters => {
-            stockCenters.forEach((item) => {
-              StockCenter.update({ where: item.id, data: item })
-            })
-          })
-          StockOperationType.localDbGetAll().then(stockOperationTypes => {
-             stockOperationTypes.forEach((item) => {
-              StockOperationType.update({ where: item.id, data: item })
-            })
-                  })
-         Drug.localDbGetAll().then(drugs => {
-          drugs.forEach((drug) => {
-            Drug.update({ where: drug.id, data: drug })
-          })
-        })
+        Stock.localDbGetAll()
+        Inventory.localDbGetAll()
+        StockEntrance.localDbGetAll()
+        StockCenter.localDbGetAll()
+        StockOperationType.localDbGetAll()
+         Drug.localDbGetAll()
       } else {
           const offset = 0
           const max = 300
