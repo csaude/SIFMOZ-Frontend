@@ -10,7 +10,6 @@ import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegim
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 import moment from 'moment'
-import { nSQL } from 'nano-sql'
 
 export default class Drug extends Model {
   static entity = 'drugs'
@@ -128,29 +127,11 @@ export default class Drug extends Model {
      )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('drugs').doc({ id: id }).get()
-  }
-
-  static localDbGetAll () {
-    return nSQL(this.entity).query('select').exec().then(result => {
-      console.log(result)
-      Drug.insert({ data: result })
-      //  return result
-      })
-  }
-
-  static localDbUpdate (drug) {
-    return db.newDb().collection('drugs').doc({ id: drug.id }).set(drug)
-  }
-
   static localDbAddOrUpdate (targetCopy) {
-    return nSQL().onConnected(() => {
       nSQL(this.entity).query('upsert',
       targetCopy
     ).exec()
     Drug.insertOrUpdate({ data: targetCopy })
-  })
   }
 
   static localDbGetAll () {
@@ -163,15 +144,12 @@ export default class Drug extends Model {
   static localDbGetById (drug) {
    return nSQL(this.entity).query('select').where(['id', '=', drug.id]).exec().then(result => {
       console.log(result)
-      // Stock.insert({ data: result })
       return result[0]
     })
 }
 
 static localDbDeleteById (drug) {
-  return nSQL().onConnected(() => {
     nSQL(this.entity).query('delete').where(['id', '=', drug.id]).exec()
   Stock.delete(drug.id)
-})
 }
 }
