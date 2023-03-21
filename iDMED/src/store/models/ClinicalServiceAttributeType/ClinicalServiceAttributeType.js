@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import ClinicalServiceAttribute from '../ClinicalServiceAttribute/ClinicalServiceAttribute'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class ClinicalServiceAttributeType extends Model {
   static entity = 'clinicalServiceAttributeTypes'
@@ -26,7 +27,11 @@ export default class ClinicalServiceAttributeType extends Model {
   }
 
   static localDbAdd (clinicalServiceAttributeType) {
-    return db.newDb().collection('clinicalServiceAttributeTypes').add(clinicalServiceAttributeType)
+    return nSQL(this.entity).query('upsert',
+    clinicalServiceAttributeType
+     ).exec().then(
+      ClinicalServiceAttributeType.insertOrUpdate({ data: clinicalServiceAttributeType })
+     )
   }
 
   static localDbGetById (id) {
@@ -34,7 +39,11 @@ export default class ClinicalServiceAttributeType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('clinicalServiceAttributeTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      ClinicalServiceAttributeType.insertOrUpdate({ data: result })
+      //  return result
+      })
   }
 
   static localDbUpdate (clinicalServiceAttributeType) {

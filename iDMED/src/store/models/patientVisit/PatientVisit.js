@@ -5,10 +5,14 @@ import RAMScreening from '../screening/RAMScreening'
 import TBScreening from '../screening/TBScreening'
 import AdherenceScreening from '../screening/AdherenceScreening'
 import VitalSignsScreening from '../screening/VitalSignsScreening'
+import Prescription from '../../../store/models/prescription/Prescription'
+import Pack from '../../../store/models/packaging/Pack'
 import Patient from '../patient/Patient'
 import Clinic from '../clinic/Clinic'
+import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits'
@@ -74,7 +78,19 @@ export default class PatientVisit extends Model {
   }
 
   static localDbAdd (patientVisit) {
-    return db.newDb().collection('patientVisits').add(patientVisit)
+    return nSQL(this.entity).query('upsert',
+    patientVisit).exec().then(result => {
+     PatientVisit.insertOrUpdate({ data: patientVisit })
+     patientVisit.patientVisitDetails.forEach((pvd) => {
+      PatientVisitDetails.insertOrUpdate({ data: pvd })
+  Prescription.insertOrUpdate({ data: pvd.prescription })
+    Pack.delete(pvd.pack.id)
+    PackagedDrug.deleteAll()
+    Pack.insertOrUpdate({ data: pvd.pack })
+  Pack.insert({ data: pvd.pack })
+  })
+    }
+    )
   }
 
   static localDbGetById (id) {
@@ -104,4 +120,38 @@ export default class PatientVisit extends Model {
   static getClassName () {
     return 'patientVisit'
   }
+
+static getPatientNSql () {
+      nSQL(this.entity).query('select').exec().then(result => {
+       console.log(result)
+       PatientVisit.insertOrUpdate({ data: result })
+       //  return result
+       })
+   }
+
+   static getPatientVIsitNSqlByPatient (patient) {
+      nSQL(this.entity).query('select').where(['patient[id]', '=', patient.id]).exec().then(result => {
+       console.log(result)
+       PatientVisit.insertOrUpdate({ data: result[0] })
+       result[0].patientVisitDetails.forEach((pvd) => {
+        PatientVisitDetails.insertOrUpdate({ data: pvd })
+    Prescription.insertOrUpdate({ data: pvd.prescription })
+      Pack.insertOrUpdate({ data: pvd.pack })
+    })
+       })
+   }
+
+   static getLastPatientVisitLocalByPatient (patient) {
+   return nSQL(this.entity).query('select').orderBy({ visitDate: 'desc' }).where(['patient[id]', '=', patient.id]).exec().then(result => {
+     console.log(result)
+     if (result.length > 0) {
+      PatientVisit.insertOrUpdate({ data: result[0] })
+     result[0].patientVisitDetails.forEach((pvd) => {
+      PatientVisitDetails.insertOrUpdate({ data: pvd })
+  Prescription.insertOrUpdate({ data: pvd.prescription })
+    Pack.insertOrUpdate({ data: pvd.pack })
+  })
+     }
+     })
+ }
 }

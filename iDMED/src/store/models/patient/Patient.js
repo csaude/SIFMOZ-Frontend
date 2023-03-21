@@ -13,6 +13,7 @@ import HealthInformationSystem from '../healthInformationSystem/HealthInformatio
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import moment from 'moment'
+import { nSQL } from 'nano-sql'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -137,8 +138,8 @@ export default class Patient extends Model {
   }
 
   hasOneAndClosedIdentifier () {
-    if (this.identifiers.length > 1 && this.hasEpisodes) return false
-    return this.identifiers.length === 1 && this.identifiers[0].endDate !== null
+    if (this.identifiers.length > 1 && this.hasEpisodes()) return false
+    return this.identifiers.length === 1 && (this.identifiers[0].endDate !== null && this.identifiers[0].endDate.length !== 0)
   }
 
   age () {
@@ -173,8 +174,11 @@ export default class Patient extends Model {
     return await this.api().get('/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
   }
 
-  static localDbAdd (patient) {
-    return db.newDb().collection('patients').add(patient)
+  static localDbAddOrUpdate (patient) {
+    return nSQL(this.entity).query('upsert',
+    patient).exec().then(
+          Patient.insertOrUpdate({ data: patient })
+        )
   }
 
   static localDbGetById (id) {
@@ -182,7 +186,9 @@ export default class Patient extends Model {
   }
 
   static async localDbGetAll () {
-    return await db.newDb().collection('patients').get()
+  return nSQL(this.entity).query('select').exec().then(result => {
+      Patient.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (patient) {

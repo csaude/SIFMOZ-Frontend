@@ -1,5 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
 
 export default class SystemConfigs extends Model {
   static entity = 'systemConfigs'
@@ -27,7 +28,11 @@ export default class SystemConfigs extends Model {
   }
 
   static localDbAdd (systemConfig) {
-    return db.newDb().collection('systemConfigs').add(systemConfig)
+    return nSQL(this.entity).query('upsert',
+    systemConfig
+       ).exec().then(
+        SystemConfigs.insertOrUpdate({ data: systemConfig })
+       )
   }
 
   static localDbGetById (id) {
@@ -35,7 +40,10 @@ export default class SystemConfigs extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('systemConfigs').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      SystemConfigs.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (systemConfig) {

@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Prescription from '../prescription/Prescription'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Duration extends Model {
   static entity = 'durations'
@@ -9,7 +10,7 @@ export default class Duration extends Model {
   static fields () {
     return {
       id: this.uid(() => uuidv4()),
-      weeks: this.attr(''),
+      weeks: this.number(''),
       description: this.attr(''),
       prescriptions: this.hasMany(Prescription, 'duration_id')
     }
@@ -24,7 +25,11 @@ export default class Duration extends Model {
   }
 
   static localDbAdd (duration) {
-    return db.newDb().collection('durations').add(duration)
+    return nSQL(this.entity).query('upsert',
+    duration
+     ).exec().then(
+    Duration.insertOrUpdate({ data: duration })
+     )
   }
 
   static localDbGetById (id) {
@@ -32,7 +37,11 @@ export default class Duration extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('durations').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Duration.insertOrUpdate({ data: result })
+      //  return result
+      })
   }
 
   static localDbUpdate (duration) {

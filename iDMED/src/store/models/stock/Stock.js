@@ -80,7 +80,11 @@ export default class Stock extends Model {
     }
 
     static localDbAdd (stock) {
-      return db.newDb().collection('stocks').add(stock)
+      return nSQL(this.entity).query('upsert',
+      stock
+       ).exec().then(
+        Stock.insertOrUpdate({ data: stock })
+       )
     }
 
     static localDbGetById (id) {
@@ -88,7 +92,10 @@ export default class Stock extends Model {
     }
 
     static async localDbGetAll () {
-      return await db.newDb().collection('stocks').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        Stock.insertOrUpdate({ data: result })
+        })
     }
 
     static localDbUpdate (stock) {

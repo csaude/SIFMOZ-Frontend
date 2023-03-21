@@ -203,6 +203,10 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 // import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
+// import { getMode } from 'cordova-plugin-nano-sqlite/lib/sqlite-adapter'
+// import { nSQL } from 'nano-sql'
+// import { MySQL } from '@nano-sql/adapter-mysql';
+// import { SQLite } from "@nano-sql/adapter-sqlite";
 export default {
     props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData', 'stepp', 'openMrsPatient'],
     emits: ['update:newPatient'],
@@ -385,27 +389,27 @@ async saveDate () {
                                 .where('id', this.patientReg.clinic.id)
                                 .first()
         this.patientReg.clinic = clinicAux
-        if (this.mobile) {
+        if (this.website) {
           this.patientReg.syncStatus = this.isEditStep ? 'U' : 'R'
           this.patientReg.province_id = this.patientReg.province.id
           this.patientReg.district_id = this.patientReg.district.id
           this.patientReg.postoAdministrativo_id = this.patientReg.postoAdministrativo !== null ? this.patientReg.postoAdministrativo.id : ''
           this.patientReg.bairro_id = this.patientReg.bairro !== null ? this.patientReg.bairro.id : null
           this.patientReg.clinic_id = this.patientReg.clinic.id
-          const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patientReg)))
+          this.patientReg.clinic = {}
+          this.patientReg.province = {}
+          this.patientReg.district = {}
+          console.log(this.patientReg)
+          this.patientReg.clinic.id = this.patientReg.clinic_id
+          this.patientReg.province.id = this.patientReg.province_id
+          this.patientReg.district.id = this.patientReg.district_id
+          const targetCopy = JSON.parse(JSON.stringify(this.patientReg))
           console.log(targetCopy)
           if (!this.isEditStep) {
-            await Patient.localDbAdd(targetCopy).then(patient => {
-              console.log(patient)
-            })
-            await Patient.insert({ data: targetCopy })
+           await Patient.localDbAddOrUpdate(targetCopy)
           } else {
-            await Patient.localDbUpdate(targetCopy).then(patient => {
-              console.log(patient)
-            })
-            await Patient.update({ data: targetCopy })
+           await Patient.localDbAddOrUpdate(targetCopy)
           }
-
           SessionStorage.set('selectedPatient', targetCopy)
           this.displayAlert('info', 'Dados do paciente gravados com sucesso.')
           this.submitLoading = false

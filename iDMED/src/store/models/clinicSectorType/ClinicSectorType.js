@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import ClinicSector from '../clinicSector/ClinicSector'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class ClinicSectorType extends Model {
   static entity = 'clinicSectorTypes'
@@ -26,7 +27,11 @@ export default class ClinicSectorType extends Model {
   }
 
   static localDbAdd (clinicSectorType) {
-    return db.newDb().collection('clinicSectorTypes').add(clinicSectorType)
+    return nSQL(this.entity).query('upsert',
+    clinicSectorType
+     ).exec().then(
+      ClinicSectorType.insertOrUpdate({ data: clinicSectorType })
+     )
   }
 
   static localDbGetById (id) {
@@ -34,7 +39,10 @@ export default class ClinicSectorType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('clinicSectorTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      ClinicSectorType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (clinicSectorType) {

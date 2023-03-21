@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Group from '../group/Group'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class GroupType extends Model {
   static entity = 'groupTypes'
@@ -21,7 +22,11 @@ export default class GroupType extends Model {
   }
 
   static localDbAdd (groupType) {
-    return db.newDb().collection('groupTypes').add(groupType)
+    return nSQL(this.entity).query('upsert',
+    groupType
+       ).exec().then(
+        GroupType.insertOrUpdate({ data: groupType })
+       )
   }
 
   static localDbGetById (id) {
@@ -29,7 +34,10 @@ export default class GroupType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('groupTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      GroupType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (groupType) {

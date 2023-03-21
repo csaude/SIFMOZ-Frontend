@@ -124,10 +124,12 @@ export default {
                     .where('active', true)
                     .get()
       }
+      /*
       const validDrugs = drugs.filter((drug) => {
         return drug.clinicalService !== null && (drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock())
       })
-      return validDrugs
+      */
+      return drugs
     },
     loadDefaultParameters () {
       if (this.prescribedDrug.drug !== null) {

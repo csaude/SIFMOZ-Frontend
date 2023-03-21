@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
 
 export default class StockCenter extends Model {
     static entity = 'stockCenters'
@@ -23,7 +24,11 @@ export default class StockCenter extends Model {
     }
 
     static localDbAdd (stockCenter) {
-      return db.newDb().collection('stockCenters').add(stockCenter)
+      return nSQL(this.entity).query('upsert',
+      stockCenter
+       ).exec().then(
+        StockCenter.insertOrUpdate({ data: stockCenter })
+       )
     }
 
     static localDbGetById (id) {
@@ -31,7 +36,10 @@ export default class StockCenter extends Model {
     }
 
     static localDbGetAll () {
-      return db.newDb().collection('stockCenters').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        StockCenter.insertOrUpdate({ data: result })
+        })
     }
 
     static localDbUpdate (stockCenter) {

@@ -397,14 +397,16 @@ export default {
                                                                           .where('id', this.selectedClinicSector.id)
                                                                           .first()
                         }
-                        if (this.mobile) {
+                        if (this.website) {
                           this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
                           this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
                           this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
                           this.closureEpisode.clinicSector_id = this.closureEpisode.clinicSector.id
                           this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
                           this.closureEpisode.syncStatus = 'R'
-                          await Episode.localDbAdd(JSON.parse(JSON.stringify(this.closureEpisode)))
+                         // await Episode.localDbAdd(JSON.parse(JSON.stringify(this.closureEpisode)))
+                         this.buildEpisode(this.closureEpisode)
+                         Episode.createEpsiodeNSql(JSON.parse(JSON.stringify(this.closureEpisode)))
                           Episode.insert({ data: this.closureEpisode })
                           this.displayAlert('info', 'Operação efectuada com sucesso.')
                         } else {
@@ -436,15 +438,17 @@ export default {
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
           this.episode.patientServiceIdentifier.episodes = []
           const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
-          if (this.mobile) {
+          if (this.website) {
             lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
             lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
             lastEpisodeCopy.clinicSector_id = lastEpisodeCopy.clinicSector.id
             lastEpisodeCopy.episodeType_id = lastEpisodeCopy.episodeType.id
             lastEpisodeCopy.syncStatus = this.isCreateStep ? 'R' : 'U'
-            await Episode.localDbAdd(lastEpisodeCopy)
-            Episode.insert({ data: lastEpisodeCopy })
+         this.buildEpisode(lastEpisodeCopy)
+         await Episode.localDbAdd(lastEpisodeCopy)
+      //  Episode.createEpsiodeNSql(JSON.parse(JSON.stringify(lastEpisodeCopy)))
+         //   Episode.insertOrUpdate({ data: lastEpisodeCopy })
             this.displayAlert('info', 'Operação efectuada com sucesso.')
           } else {
             Episode.apiSave(this.episode, !this.isEditStep).then(resp => {
@@ -541,6 +545,20 @@ export default {
       },
       loadProvince () {
         this.selectedProvince = Province.query().with('districts.*').where('id', this.currClinic.province.id).first()
+      },
+      buildEpisode (episode) {
+      episode.referralClinic = {}
+      episode.startStopReason = {}
+      episode.episodeType = {}
+      episode.clinicSector = {}
+      episode.patientServiceIdentifier = {}
+      episode.patientVisitDetails = {}
+      episode.referralClinic.id = episode.referralClinic_id
+      episode.startStopReason.id = episode.startStopReason_id
+      episode.episodeType.id = episode.episodeType_id
+      episode.clinicSector.id = episode.clinicSector_id
+      episode.patientServiceIdentifier.id = episode.patientServiceIdentifier_id
+      // episode.patientVisitDetails = {}
       }
     },
     created () {
@@ -620,7 +638,7 @@ export default {
         const sectorList = sectors.filter((sector) => {
           return sector.clinicSectorType.code === 'PARAGEM_UNICA' || sector.clinicSectorType.code === 'NORMAL'
         })
-
+       console.log(sectorList)
         return sectorList
       },
       referralClinics () {

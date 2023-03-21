@@ -3,6 +3,7 @@ import Clinic from '../clinic/Clinic'
 import { StockDestructionAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class DestroyedStock extends Model {
     static entity = 'destroyedStocks'
@@ -38,7 +39,11 @@ export default class DestroyedStock extends Model {
     }
 
     static localDbAdd (destroyedStock) {
-      return db.newDb().collection('destroyedStocks').add(destroyedStock)
+      return nSQL(this.entity).query('upsert',
+      destroyedStock
+       ).exec().then(
+        DestroyedStock.insertOrUpdate({ data: destroyedStock })
+       )
     }
 
     static localDbGetById (id) {
@@ -46,7 +51,10 @@ export default class DestroyedStock extends Model {
     }
 
     static localDbGetAll () {
-      return db.newDb().collection('destroyedStocks').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        DestroyedStock.insertOrUpdate({ data: result })
+        })
     }
 
     static localDbUpdate (destroyedStock) {

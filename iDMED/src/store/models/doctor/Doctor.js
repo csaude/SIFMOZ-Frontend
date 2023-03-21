@@ -3,6 +3,7 @@ import Clinic from '../clinic/Clinic'
 import Prescription from '../prescription/Prescription'
 import db from 'src/store/localbase'
 // import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Doctor extends Model {
     static entity = 'doctors'
@@ -51,7 +52,11 @@ export default class Doctor extends Model {
     }
 
     static localDbAdd (doctor) {
-      return db.newDb().collection('doctors').add(doctor)
+      return nSQL(this.entity).query('upsert',
+      doctor
+       ).exec().then(
+        Doctor.insertOrUpdate({ data: doctor })
+       )
     }
 
     static localDbGetById (id) {
@@ -59,7 +64,10 @@ export default class Doctor extends Model {
     }
 
     static localDbGetAll () {
-      return db.newDb().collection('doctors').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        Doctor.insertOrUpdate({ data: result })
+        })
     }
 
     static localDbUpdate (doctor) {

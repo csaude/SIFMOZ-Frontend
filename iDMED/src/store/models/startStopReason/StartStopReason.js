@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import Episode from '../episode/Episode'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class StartStopReason extends Model {
   static entity = 'startStopReasons'
@@ -30,7 +31,11 @@ export default class StartStopReason extends Model {
   }
 
   static localDbAdd (startStopReason) {
-    return db.newDb().collection('startStopReasons').add(startStopReason)
+    return nSQL(this.entity).query('upsert',
+    startStopReason
+     ).exec().then(
+      StartStopReason.insertOrUpdate({ data: startStopReason })
+     )
   }
 
   static localDbGetById (id) {
@@ -38,7 +43,10 @@ export default class StartStopReason extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('startStopReasons').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      StartStopReason.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (startStopReason) {

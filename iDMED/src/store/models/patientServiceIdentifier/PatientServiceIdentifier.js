@@ -6,6 +6,8 @@ import ClinicalService from '../ClinicalService/ClinicalService'
 import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+// import { getMode } from 'cordova-plugin-nano-sqlite/lib/sqlite-adapter'
+import { nSQL } from 'nano-sql'
 
 export default class PatientServiceIdentifier extends Model {
   static entity = 'identifiers'
@@ -142,8 +144,12 @@ export default class PatientServiceIdentifier extends Model {
     return await this.api().get('/patientServiceIdentifier/patient/' + patientId + '?offset=' + offset + '&max=' + max)
   }
 
-  static localDbAdd (identifier) {
-    return db.newDb().collection('identifiers').add(identifier)
+  static localDbAddOrUpdate (identifier) {
+    nSQL(this.entity).query('upsert',
+    identifier
+    ).exec().then(result => {
+      PatientServiceIdentifier.insertOrUpdate({ data: identifier })
+      })
   }
 
    static async localDbGetById (id) {
@@ -152,7 +158,11 @@ export default class PatientServiceIdentifier extends Model {
   }
 
   static async localDbGetAll () {
-    return await db.newDb().collection('identifiers').get()
+    nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      return PatientServiceIdentifier.insertOrUpdate({ data: result })
+      //  return result
+      })
   }
 
   static localDbUpdate (identifier) {
@@ -179,4 +189,25 @@ export default class PatientServiceIdentifier extends Model {
   static getClassName () {
     return 'patientServiceIdentifier'
   }
+
+  static async getByPatientId (patient) {
+   return nSQL(this.entity).query('select').where(['patient[id]', '=', patient.id]).exec().then(result => {
+      console.log(result)
+      PatientServiceIdentifier.insertOrUpdate({ data: result })
+        return result
+      })
+}
+
+static getServiceFatById (identifier) {
+ return PatientServiceIdentifier.query()
+  .with(['identifiers', 'identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province', 'identifiers.service.*', 'identifiers.attributes.*'])
+  .with('patient.province')
+  .with('patient.attributes')
+  .with('patient.appointments')
+  .with('patient.district.*')
+  .with('patient.postoAdministrativo')
+  .with('patient.bairro')
+  .with(['patient.clinic.province', 'patient.clinic.district.province'])
+  .where('id', identifier.id).first()
+}
 }

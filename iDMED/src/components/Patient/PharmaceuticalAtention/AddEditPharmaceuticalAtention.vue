@@ -293,7 +293,7 @@ export default {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
                 this.displayAlert('error', 'Por Favor Indique as reações adversas')
              } else {
-              if (this.mobile) {
+              if (this.website) {
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
@@ -340,7 +340,7 @@ export default {
                     this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                   })
                 } else {
-                  await PatientVisit.localDbUpdate(targetCopy).then(res => {
+                  await PatientVisit.localDbAdd(targetCopy).then(res => {
                     PatientVisit.update({ data: targetCopy })
                     this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                   })

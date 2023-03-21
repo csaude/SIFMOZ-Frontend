@@ -139,71 +139,24 @@ export default {
   },
   // For Off-line
   async loadParamsToVueX () {
-    TherapeuticRegimen.localDbGetAll().then(regimens => {
-      regimens.forEach((regimen) => {
-        TherapeuticRegimen.insert({ data: regimen })
-      })
-    })
-    Stock.localDbGetAll().then(stocks => {
-      Stock.insert({ data: stocks })
-    })
-    TherapeuticLine.localDbGetAll().then(regimens => {
-      TherapeuticLine.insert({ data: regimens })
-    })
-    Doctor.localDbGetAll().then(regimens => {
-      Doctor.insert({ data: regimens })
-    })
-    Duration.localDbGetAll().then(regimens => {
-      Duration.insert({ data: regimens })
-    })
-    DispenseType.localDbGetAll().then(regimens => {
-      DispenseType.insert({ data: regimens })
-    })
-    DispenseMode.localDbGetAll().then(regimens => {
-      DispenseMode.insert({ data: regimens })
-    })
-    ClinicalServiceAttributeType.localDbGetAll().then(regimens => {
-      ClinicalServiceAttributeType.insert({ data: regimens })
-    })
-    ClinicalServiceAttribute.localDbGetAll().then(regimens => {
-      ClinicalServiceAttribute.insert({ data: regimens })
-    })
-    ClinicSectorType.localDbGetAll().then(clinicSectorTypes => {
-      ClinicSectorType.insert({ data: clinicSectorTypes })
-  })
-    ClinicalService.localDbGetAll().then(services => {
-      ClinicalService.insert({ data: services })
-    })
-    await EpisodeType.localDbGetAll().then(episodeTypes => {
-      EpisodeType.insert({ data: episodeTypes })
-    })
-    await StartStopReason.localDbGetAll().then(startStopReasons => {
-      StartStopReason.insert({ data: startStopReasons })
-    })
-    /*
-    await ClinicSector.localDbGetAll().then(sectors => {
-      sectors.forEach((sector) => {
-        sector.clinic.district.id = ''
-        sector.clinic.province.id = ''
-        ClinicSector.insert({ data: sector })
-      })
-    })
-    */
-    await ClinicSectorType.localDbGetAll().then(setorTypes => {
-      ClinicSectorType.insert({ data: setorTypes })
-    })
-    Drug.localDbGetAll().then(drugs => {
-      drugs.forEach((drug) => {
-        Drug.insert({ data: drug })
-      })
-    })
-    await IdentifierType.localDbGetAll().then(idTypes => {
-      IdentifierType.insert({ data: idTypes })
-    })
-
-    await Clinic.localDbGetAll().then(clinics => {
-      Clinic.insert({ data: clinics })
-    })
+    TherapeuticRegimen.localDbGetAll()
+    Stock.localDbGetAll()
+    TherapeuticLine.localDbGetAll()
+    Doctor.localDbGetAll()
+    Duration.localDbGetAll()
+    DispenseType.localDbGetAll()
+    DispenseMode.localDbGetAll()
+    ClinicalServiceAttributeType.localDbGetAll()
+    ClinicalServiceAttribute.localDbGetAll()
+    ClinicSectorType.localDbGetAll()
+    ClinicalService.localDbGetAll()
+    EpisodeType.localDbGetAll()
+    StartStopReason.localDbGetAll()
+     ClinicSector.localDbGetAll()
+     ClinicSectorType.localDbGetAll()
+    Drug.localDbGetAll()
+    await IdentifierType.localDbGetAll()
+    await Clinic.localDbGetAll()
     this.hideLoading()
   },
   idadeCalculator (dateOfBirth) {

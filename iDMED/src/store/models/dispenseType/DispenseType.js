@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class DispenseType extends Model {
   static entity = 'dispenseTypes'
@@ -52,7 +53,11 @@ export default class DispenseType extends Model {
   }
 
   static localDbAdd (dispenseType) {
-    return db.newDb().collection('dispenseTypes').add(dispenseType)
+    return nSQL(this.entity).query('upsert',
+    dispenseType
+     ).exec().then(
+      DispenseType.insertOrUpdate({ data: dispenseType })
+     )
   }
 
   static localDbGetById (id) {
@@ -60,7 +65,10 @@ export default class DispenseType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('dispenseTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      DispenseType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (dispenseType) {

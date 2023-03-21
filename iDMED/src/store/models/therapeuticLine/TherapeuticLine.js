@@ -2,6 +2,7 @@ import { Model } from '@vuex-orm/core'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class TherapeuticLine extends Model {
   static entity = 'therapeuticLines'
@@ -24,7 +25,11 @@ export default class TherapeuticLine extends Model {
   }
 
   static localDbAdd (therapeuticLine) {
-    return db.newDb().collection('therapeuticLines').add(therapeuticLine)
+    return nSQL(this.entity).query('upsert',
+    therapeuticLine
+     ).exec().then(
+      TherapeuticLine.insertOrUpdate({ data: therapeuticLine })
+     )
   }
 
   static localDbGetById (id) {
@@ -32,7 +37,10 @@ export default class TherapeuticLine extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('therapeuticLines').get()
+    nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      return TherapeuticLine.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (therapeuticLine) {

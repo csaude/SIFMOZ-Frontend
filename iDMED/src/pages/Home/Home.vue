@@ -116,7 +116,8 @@
 import Clinic from '../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
-import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
+ import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
+// import { initDatabase } from 'src/store/models/createDatabase'
 export default {
   mixins: [mixinplatform, mixinutils],
   components: {},
@@ -128,7 +129,7 @@ export default {
         this.loadWebDrugsToVueX()
         this.loadWebStockToVueX()
         this.showloading()
-        this.loadWebParamsToVueX()
+     //   this.loadWebParamsToVueX()
       } else {
         if (this.isAppSyncDone) {
           this.showloading()
@@ -155,8 +156,9 @@ export default {
      // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
         // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
     this.init()
+  // initDatabase()
     setTimeout(() => {
-      if (this.mobile) {
+      if (this.website) {
         console.log(this.isAppSyncDone)
         if (!this.isAppSyncDone) {
           SynchronizationService.start(this.$q, this.currClinic.id)

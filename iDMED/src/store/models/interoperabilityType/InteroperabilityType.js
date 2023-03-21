@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class InteroperabilityType extends Model {
   static entity = 'interoperabilityTypes'
@@ -23,7 +24,11 @@ static async apiFetchById (id) {
 }
 
 static localDbAdd (interoperabilityType) {
-  return db.newDb().collection('interoperabilityTypes').add(interoperabilityType)
+  return nSQL(this.entity).query('upsert',
+  interoperabilityType
+   ).exec().then(
+    InteroperabilityType.insertOrUpdate({ data: interoperabilityType })
+   )
 }
 
 static localDbGetById (id) {
@@ -31,7 +36,10 @@ static localDbGetById (id) {
 }
 
 static localDbGetAll () {
-  return db.newDb().collection('interoperabilityTypes').get()
+  return nSQL(this.entity).query('select').exec().then(result => {
+    console.log(result)
+    InteroperabilityType.insertOrUpdate({ data: result })
+    })
 }
 
 static localDbUpdate (interoperabilityType) {

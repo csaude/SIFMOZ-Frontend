@@ -103,8 +103,8 @@ export default {
   methods: {
     init () {
       if (this.website) {
-        PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
-        Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
+      //  PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
+      //  Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
       }
     },
     expandLess (value) {
@@ -176,7 +176,7 @@ export default {
                           AuditSyncronization.localDbAdd(auditSync)
                     }
        Episode.localDbDelete(this.selectedEpisode)
-        Episode.delete(this.selectedEpisode.id)
+       // Episode.delete(this.selectedEpisode.id)
         this.displayAlert('info', 'Operação efectuada com sucesso.')
   })
       }

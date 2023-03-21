@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import { StockAdjustment } from '../stockadjustment/StockAdjustmentHierarchy'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
 
 export default class StockOperationType extends Model {
   static entity = 'stockOperationTypes'
@@ -21,7 +22,11 @@ export default class StockOperationType extends Model {
   }
 
   static localDbAdd (stockOperationType) {
-    return db.newDb().collection('stockOperationTypes').add(stockOperationType)
+    return nSQL(this.entity).query('upsert',
+    stockOperationType
+     ).exec().then(
+      StockOperationType.insertOrUpdate({ data: stockOperationType })
+     )
   }
 
   static localDbGetById (id) {
@@ -29,7 +34,10 @@ export default class StockOperationType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('stockOperationTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      StockOperationType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (stockOperationType) {

@@ -5,6 +5,7 @@ import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import ThrapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegimensDrug'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class TherapeuticRegimen extends Model {
   static entity = 'therapeuticRegimens'
@@ -13,7 +14,7 @@ export default class TherapeuticRegimen extends Model {
     return {
       id: this.uid(() => uuidv4()),
       regimenScheme: this.attr(''),
-      active: this.attr(''),
+      active: this.boolean(''),
       code: this.attr(''),
      // pedhiatric: this.attr(''),
       description: this.attr(''),
@@ -45,7 +46,11 @@ export default class TherapeuticRegimen extends Model {
   }
 
   static localDbAdd (therapeuticRegimen) {
-    return db.newDb().collection('therapeuticRegimens').add(therapeuticRegimen)
+    return nSQL(this.entity).query('upsert',
+    therapeuticRegimen
+     ).exec().then(
+      TherapeuticRegimen.insertOrUpdate({ data: therapeuticRegimen })
+     )
   }
 
   static localDbGetById (id) {
@@ -53,7 +58,10 @@ export default class TherapeuticRegimen extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('therapeuticRegimens').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      TherapeuticRegimen.insert({ data: result })
+      })
   }
 
   static localDbUpdate (therapeuticRegimen) {

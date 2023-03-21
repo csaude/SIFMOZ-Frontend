@@ -3,6 +3,8 @@ import Menu from 'src/store/models/userLogin/Menu'
 import RoleMenu from './RoleMenu'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
+
 export default class Role extends Model {
   static entity = 'roles'
 
@@ -38,7 +40,11 @@ export default class Role extends Model {
   }
 
   static localDbAdd (role) {
-    return db.newDb().collection('roles').add(role)
+    return nSQL(this.entity).query('upsert',
+    role
+       ).exec().then(
+        Role.insertOrUpdate({ data: role })
+       )
   }
 
   static localDbGetById (id) {
@@ -46,7 +52,10 @@ export default class Role extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('roles').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Role.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (role) {

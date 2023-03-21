@@ -3,6 +3,7 @@ import ClinicalService from '../ClinicalService/ClinicalService'
 import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class ClinicalServiceAttribute extends Model {
   static entity = 'clinicalServiceAttributes'
@@ -28,7 +29,11 @@ export default class ClinicalServiceAttribute extends Model {
   }
 
   static localDbAdd (clinicalServiceAttribute) {
-    return db.newDb().collection('clinicalServiceAttributes').add(clinicalServiceAttribute)
+    return nSQL(this.entity).query('upsert',
+    clinicalServiceAttribute
+     ).exec().then(
+      ClinicalServiceAttribute.insertOrUpdate({ data: clinicalServiceAttribute })
+     )
   }
 
   static localDbGetById (id) {
@@ -36,7 +41,10 @@ export default class ClinicalServiceAttribute extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('clinicalServiceAttributes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      ClinicalServiceAttribute.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (clinicalServiceAttribute) {

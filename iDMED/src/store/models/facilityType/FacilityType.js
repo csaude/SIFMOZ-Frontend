@@ -1,6 +1,7 @@
 import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class FacilityType extends Model {
   static entity = 'facilityTypes'
@@ -23,7 +24,11 @@ export default class FacilityType extends Model {
   }
 
   static localDbAdd (facilityType) {
-    return db.newDb().collection('facilityTypes').add(facilityType)
+    return nSQL(this.entity).query('upsert',
+    facilityType
+     ).exec().then(
+      FacilityType.insertOrUpdate({ data: facilityType })
+     )
   }
 
   static localDbGetById (id) {
@@ -31,7 +36,10 @@ export default class FacilityType extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('facilityTypes').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      FacilityType.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (facilityType) {

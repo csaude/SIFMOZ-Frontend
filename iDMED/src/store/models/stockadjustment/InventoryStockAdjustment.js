@@ -2,6 +2,7 @@ import { StockAdjustment } from './StockAdjustmentHierarchy'
 import Inventory from '../stockinventory/Inventory'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export class InventoryStockAdjustment extends StockAdjustment {
     static entity = 'inventoryStockAdjustments'
@@ -39,7 +40,11 @@ export class InventoryStockAdjustment extends StockAdjustment {
     }
 
     static localDbAdd (inventoryStockAdjustment) {
-      return db.newDb().collection('inventoryStockAdjustments').add(inventoryStockAdjustment)
+      return nSQL(this.entity).query('upsert',
+      inventoryStockAdjustment
+       ).exec().then(
+        InventoryStockAdjustment.insertOrUpdate({ data: inventoryStockAdjustment })
+       )
     }
 
     static localDbGetById (id) {
@@ -47,7 +52,10 @@ export class InventoryStockAdjustment extends StockAdjustment {
     }
 
     static localDbGetAll () {
-      return db.newDb().collection('inventoryStockAdjustments').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        InventoryStockAdjustment.insertOrUpdate({ data: result })
+        })
     }
 
     static localDbUpdate (inventoryStockAdjustment) {

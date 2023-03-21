@@ -10,6 +10,7 @@ import db from 'src/store/localbase'
 // import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import { v4 as uuidv4 } from 'uuid'
 import moment from 'moment'
+import { nSQL } from 'nano-sql'
 
 export default class Drug extends Model {
   static entity = 'drugs'
@@ -120,7 +121,11 @@ export default class Drug extends Model {
   }
 
   static localDbAdd (drug) {
-    return db.newDb().collection('drugs').add(drug)
+    return nSQL(this.entity).query('upsert',
+    drug
+     ).exec().then(
+      Drug.insertOrUpdate({ data: drug })
+     )
   }
 
   static localDbGetById (id) {
@@ -128,7 +133,11 @@ export default class Drug extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('drugs').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      Drug.insert({ data: result })
+      //  return result
+      })
   }
 
   static localDbUpdate (drug) {

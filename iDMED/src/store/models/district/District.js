@@ -4,6 +4,7 @@ import Localidade from '../Localidade/Localidade'
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class District extends Model {
   static entity = 'districts'
@@ -28,7 +29,11 @@ export default class District extends Model {
   }
 
   static localDbAdd (district) {
-    return db.newDb().collection('districts').add(district)
+    return nSQL(this.entity).query('upsert',
+    district
+       ).exec().then(
+        District.insertOrUpdate({ data: district })
+       )
   }
 
   static localDbGetById (id) {
@@ -36,7 +41,10 @@ export default class District extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('districts').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      District.insertOrUpdate({ data: result })
+      })
   }
 
   static localDbUpdate (district) {
