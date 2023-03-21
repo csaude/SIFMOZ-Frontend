@@ -166,25 +166,8 @@ export default {
     },
     async init () {
         if (this.mobile) {
-        /* Inventory.localDbGetAll().then(item => {
-              console.log('LISTA Inventarios: ', item)
-              if (item.syncStatus !== '') {
-                  Inventory.insert({
-                    data: item
-                  })
-              }
-            }) */
-          await InventoryStockAdjustment.localDbGetAll().then(item => {
-            console.log('LISTA AJustes: ', item)
-            if (item.syncStatus !== '') {
-                InventoryStockAdjustment.insert({
-                  data: item
-                })
-            }
-          })
-          await Drug.localDbGetAll().then(drugs => {
-            Drug.insertOrUpdate({ data: drugs })
-          })
+          await InventoryStockAdjustment.localDbGetAll()
+          await Drug.localDbGetAll()
           this.prepareInit()
         } else {
           this.prepareInit()
@@ -304,45 +287,31 @@ export default {
         })
             } else {
                     const targetCopy = new InventoryStockAdjustment(JSON.parse(JSON.stringify(this.adjustments[i])))
-                    const id = targetCopy.id
-                     InventoryStockAdjustment.localDbGetById(id).then(item => {
+                     InventoryStockAdjustment.localDbGetById(targetCopy).then(item => {
                     if (item !== null && item !== undefined) {
                        targetCopy.syncStatus = 'U'
-                      targetCopy.operation_id = targetCopy.operation.id
-                      targetCopy.clinic = this.currClinic
-                      targetCopy.clinic_id = targetCopy.clinic.id
-                                InventoryStockAdjustment.localDbUpdate(targetCopy).then(resp => {
-                                  InventoryStockAdjustment.insert(
-                                    {
-                                        data: targetCopy
-                                      }
-                                  )
-                              i = i + 1
-                              setTimeout(this.doSave(i), 2)
-                              this.displayAlert('info', 'Operação efectuada com sucesso.')
-                              })
+                        targetCopy.operation_id = targetCopy.operation.id
+                        targetCopy.clinic = this.currClinic
+                        targetCopy.clinic_id = targetCopy.clinic.id
+                        InventoryStockAdjustment.localDbAddOrUpdate(targetCopy)
+                      i = i + 1
+                      setTimeout(this.doSave(i), 2)
+                      this.displayAlert('info', 'Operação efectuada com sucesso.')
                         } else {
                               targetCopy.syncStatus = 'R'
                               targetCopy.inventory_id = targetCopy.inventory.id
                               targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id
                               targetCopy.operation_id = targetCopy.operation.id
-                              InventoryStockAdjustment.localDbAdd(targetCopy).then(resp => {
-                                    InventoryStockAdjustment.insert({
-                                      data: targetCopy
-                                    })
+                              InventoryStockAdjustment.localDbAddOrUpdate(targetCopy)
                                 i = i + 1
                                 setTimeout(this.doSave(i), 2)
                                 this.displayAlert('info', 'Operação efectuada com sucesso.')
-                            })
                         }
                         if (this.inventory.open && (this.inventory.syncStatus !== 'R' && this.inventory.syncStatus !== 'U')) {
-                          Inventory.localDbGetById(this.inventory.id).then(item => {
+                          const item = Inventory.localDbGetById(this.inventory)
                             const target = JSON.parse(JSON.stringify(item))
                              target.syncStatus = 'U'
-                            Inventory.localDbUpdate(target).then(item => {
-                               Inventory.update({ data: target })
-                            })
-                          })
+                            Inventory.localDbAddOrUpdate(target)
                         }
                         })
                     }

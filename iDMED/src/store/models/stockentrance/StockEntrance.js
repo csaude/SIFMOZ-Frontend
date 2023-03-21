@@ -1,7 +1,6 @@
 import { Model } from '@vuex-orm/core'
 import Clinic from '../clinic/Clinic'
 import Stock from '../stock/Stock'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 
@@ -41,41 +40,46 @@ export default class StockEntrance extends Model {
       return await this.api().get(`/stockEntrance/${id}`)
     }
 
-    static localDbAdd (stockEntrance) {
-      return db.newDb().collection('stockEntrances').add(stockEntrance)
-    }
-
-    static localDbGetById (id) {
-      return db.newDb().collection('stockEntrances').doc({ id: id }).get()
+    static localDbAddOrUpdate (targetCopy) {
+      return nSQL().onConnected(() => {
+        nSQL(this.entity).query('upsert',
+        targetCopy
+      ).exec()
+      StockEntrance.insertOrUpdate({ data: targetCopy })
+    })
     }
 
     static localDbGetAll () {
-      return db.newDb().collection('stockEntrances').get()
+     nSQL().onConnected(() => {
+       nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        StockEntrance.insertOrUpdate({ data: result })
+        })
+      })
     }
 
-    static localDbUpdate (stockEntrance) {
-      return db.newDb().collection('stockEntrances').doc({ id: stockEntrance.id }).set(stockEntrance)
-    }
+    static localDbGetByStockEntranceId (stockEntrance) {
+     return nSQL(this.entity).query('select').where(['id', '=', stockEntrance.id]).exec().then(result => {
+        console.log(result)
+        // StockEntrance.insert({ data: result })
+        return result[0]
+      })
+  }
 
-    static localDbUpdateAll (stockEntrances) {
-      return db.newDb().collection('stockEntrances').set(stockEntrances)
-    }
+  static localDbGetToSyncronize () {
+    return nSQL(this.entity).query('select').where([['stockEntrances[syncStatus]', '=', 'R'], 'OR', ['stockEntrances[syncStatus]', '=', 'U']]).exec().then(result => {
+      console.log(result)
+      // StockEntrance.insert({ data: result })
+      return result
+    })
+  }
 
-    static localDbDelete (stockEntrance) {
-      return db.newDb().collection('stockEntrances').doc({ id: stockEntrance.id }).delete()
-    }
-
-    static localDbDeleteById (idStockEntrance) {
-      return db.newDb().collection('stockEntrances').doc({ id: idStockEntrance }).delete()
-    }
-
-    static localDbDeleteAll () {
-      return db.newDb().collection('stockEntrances').delete()
-    }
-
-    static localDbGetByStockEntranceId (id) {
-      return db.newDb().collection('stockEntrances').doc({ id: id }).get()
-    }
+  static localDbDelete (stockEntrance) {
+    return nSQL().onConnected(() => {
+      nSQL(this.entity).query('delete').where(['id', '=', stockEntrance.id]).exec()
+    StockEntrance.delete(stockEntrance.id)
+  })
+}
 
     static async syncStockEntrance (stockEntrance) {
       if (stockEntrance.syncStatus === 'R') await this.apiSave(stockEntrance)
@@ -85,37 +89,4 @@ export default class StockEntrance extends Model {
     static getClassName () {
       return 'stockEntrance'
     }
-
-    static createStockEntranceNSql (targetCopy) {
-      return nSQL().onConnected(() => {
-        nSQL(this.entity).query('upsert',
-        targetCopy
-      ).exec()
-      StockEntrance.insertOrUpdate({ data: targetCopy })
-    })
-    }
-
-    static getStockEntranceNSql () {
-     nSQL().onConnected(() => {
-       nSQL(this.entity).query('select').exec().then(result => {
-        console.log(result)
-        StockEntrance.insertOrUpdate({ data: result })
-        })
-      })
-    }
-
-    static getByStockEntrance (stockEntrance) {
-     return nSQL(this.entity).query('select').where(['id', '=', stockEntrance.id]).exec().then(result => {
-        console.log(result)
-        // StockEntrance.insert({ data: result })
-        return result[0]
-      })
-  }
-
-  static deleteStockEntrance (stockEntrance) {
-    return nSQL().onConnected(() => {
-      nSQL(this.entity).query('delete').where(['id', '=', stockEntrance.id]).exec()
-    StockEntrance.delete(stockEntrance.id)
-  })
-}
 }

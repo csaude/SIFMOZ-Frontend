@@ -49,12 +49,10 @@ export default class AuditSyncronization extends Model {
       })
   }
 
-  static createAuditSyncronizationNSql (targetCopy) {
-    return nSQL().onConnected(() => {
+  static localDbAddOrUpdate (targetCopy) {
       nSQL('auditSyncronization').query('upsert',
       targetCopy
     ).exec()
-    AuditSyncronization.insert(targetCopy)
-  })
+    AuditSyncronization.insert({ data: targetCopy })
   }
 }

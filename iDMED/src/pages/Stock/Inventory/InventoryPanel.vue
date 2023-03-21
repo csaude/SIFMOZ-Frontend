@@ -255,21 +255,19 @@ export default {
         this.displayAlert('info', 'Operação efectuada com sucesso.')
       })
     },
-    doProcessAndCloseMobile () {
+    async doProcessAndCloseMobile () {
       const inventory = Inventory.query()
                                  .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                  .where('id', this.currInventory.id)
                                  .first()
 
-       Inventory.localDbGetById(this.currInventory.id).then(it => {
-         inventory.syncStatus = it.syncStatus
-      })
+      const it = await Inventory.localDbGetById(this.currInventory)
+      // it.syncStatus = it.syncStatus
+      if (it !== 'undefined') {
+      it.endDate = new Date()
+      it.open = false
 
-      inventory.endDate = new Date()
-      inventory.open = false
-
-        InventoryStockAdjustment.localDbGetAll().then((adjustments) => {
-        const adjustmentsList = adjustments.filter((adjustment) => adjustment.inventory_id === inventory.id)
+        const adjustmentsList = await InventoryStockAdjustment.localDbGetByInventory(it)
         inventory.adjustments = []
         adjustmentsList.forEach((adjustment) => {
             adjustment.clinic = this.currClinic
@@ -279,21 +277,15 @@ export default {
             this.processedAdjustments.push(adjustment)
           //  this.doSaveAdjustmentMobile(0)
             const targetCopyAdj = JSON.parse(JSON.stringify(adjustment))
-            InventoryStockAdjustment.localDbUpdate(targetCopyAdj).then(item => {
-                    InventoryStockAdjustment.update(targetCopyAdj)
-              })
+            InventoryStockAdjustment.localDbAddOrUpdate(targetCopyAdj)
       })
-             inventory.clinic = this.currClinic
-             inventory.adjustments = this.processedAdjustments
-      const targetCopy = JSON.parse(JSON.stringify(inventory))
-      Inventory.localDbUpdate(targetCopy).then(item => {
-        Inventory.update(targetCopy)
-      }).then(item => {
-              this.step = 'display'
-        this.currInventory.open = false
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
-        })
-        })
+             it.adjustments = this.processedAdjustments
+            const targetCopy = JSON.parse(JSON.stringify(it))
+            Inventory.localDbAddOrUpdate(targetCopy)
+                    this.step = 'display'
+              this.currInventory.open = false
+              this.displayAlert('info', 'Operação efectuada com sucesso.')
+            }
      // SessionStorage.set('currInventory', inventory)
     },
     doSaveAdjustment (i) {
@@ -306,10 +298,9 @@ export default {
     },
      doSaveAdjustmentMobile (i) {
       if (this.processAdjustment[i] !== undefined && this.processAdjustment[i] !== null) {
-              InventoryStockAdjustment.localDbUpdate(this.processAdjustment[i]).then(invStkAdj => {
+              InventoryStockAdjustment.localDbAddOrUpdate(this.processAdjustment[i])
               i = i + 1
               setTimeout(this.doSaveAdjustmentMobile(i), 2)
-              })
       }
     },
     processAdjustment (adjustment, inventory) {
@@ -473,9 +464,7 @@ export default {
   },
   created () {
     if (this.mobile) {
-      Drug.localDbGetAll().then(drugs => {
-        Drug.insertOrUpdate({ data: drugs })
-      })
+      Drug.localDbGetAll()
     }
   },
   components: {

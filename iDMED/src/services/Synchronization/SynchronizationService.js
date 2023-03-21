@@ -95,7 +95,7 @@ export default {
     await Drug.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((cs) => {
         // cs.clinicalService = null
-        Drug.localDbAdd(cs)
+        Drug.localDbAddOrUpdate(cs)
       })
     })
     await TherapeuticRegimen.apiGetAll(offset, max).then(resp => {
@@ -131,11 +131,11 @@ export default {
     })
     Stock.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
-        Stock.localDbAdd(item)
+        Stock.localDbAddOrUpdate(item)
       })
     })
     await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
-        InventoryStockAdjustment.localDbUpdateAll(resp.response.data)
+        InventoryStockAdjustment.localDbAddOrUpdate(resp.response.data)
     })
     StockOperationType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
@@ -195,7 +195,7 @@ export default {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
-                StockEntrance.localDbAdd(item)
+                StockEntrance.localDbAddOrUpdate(item)
               })
               offset = offset + max
               setTimeout(this.doStockEntranceGet(clinicId, offset, max), 2)
@@ -228,7 +228,7 @@ export default {
       Inventory.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
             if (resp.response.data.length > 0) {
               resp.response.data.forEach((item) => {
-                Inventory.localDbAdd(item)
+                Inventory.localDbAddOrUpdate(item)
               })
               offset = offset + max
               setTimeout(this.doInventoryGet(clinicId, offset, max), 2)
@@ -410,13 +410,8 @@ export default {
 }
     },
     async sendEntrances () {
-     StockEntrance.localDbGetAll().then((entrances) => {
-        const entrancesToSync = entrances.filter((entrance) =>
-        (entrance.syncStatus === 'R' || entrance.syncStatus === 'U'))
-        return entrancesToSync
-      }).then(entrancesToSync => {
-          this.apiSendEntrances(entrancesToSync, 0)
-})
+   const entrancesToSync = await StockEntrance.localDbGetByStockEntranceId()
+    this.apiSendEntrances(entrancesToSync, 0)
 },
 async apiSendEntrances (entrancesToSync, i) {
  const entrance = entrancesToSync[i]
