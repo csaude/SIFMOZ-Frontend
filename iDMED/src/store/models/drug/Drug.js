@@ -144,8 +144,6 @@ export default class Drug extends Model {
     return db.newDb().collection('drugs').doc({ id: drug.id }).set(drug)
   }
 
-  static localDbUpdateAll (drugs) {
-    return db.newDb().collection('drugs').set(drugs)
   static localDbAddOrUpdate (targetCopy) {
     return nSQL().onConnected(() => {
       nSQL(this.entity).query('upsert',
