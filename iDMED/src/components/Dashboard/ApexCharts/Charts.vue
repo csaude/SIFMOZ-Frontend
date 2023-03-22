@@ -53,6 +53,7 @@
 </template>
 
 <script>
+import patientServiceIdentifier from '../../../store/models/patientServiceIdentifier/patientServiceIdentifier'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import Report from 'src/store/models/report/Report'
@@ -89,30 +90,59 @@ export default {
         this.serviceCode = code
       },
       getDashboardServiceButton () {
-        Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
-          console.log(resp.response.data)
-          this.clinicalServiceReports = resp.response.data
-          if (this.clinicalServiceReports.length > 0) {
-            this.clinicalServiceReports.forEach((item) => {
-              if (item.service === 'TARV') {
-                item.colour = 'green'
-                item.icon = 'medication'
-              } else if (item.service === 'TPT') {
-                item.colour = 'red'
-                item.icon = 'vaccines'
-              } else if (item.service === 'PREP') {
-                item.colour = 'teal'
-                item.icon = 'health_and_safety'
-              } else {
-                item.icon = 'health_and_safety'
-                const randomColor = require('randomcolor') // import the script
-                const color = randomColor() // a hex code for an attractive color
-                item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+        if (this.mobile) {
+          console.log('Mobile')
+          patientServiceIdentifier.getDashboardServiceButton(this.year, this.clinic.id)
+          Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
+            this.clinicalServiceReports = resp.response.data
+            if (this.clinicalServiceReports.length > 0) {
+              this.clinicalServiceReports.forEach((item) => {
+                console.log('AAAAAAAAAAA: ', item)
+                if (item.service === 'TARV') {
+                  item.colour = 'green'
+                  item.icon = 'medication'
+                } else if (item.service === 'TPT') {
+                  item.colour = 'red'
+                  item.icon = 'vaccines'
+                } else if (item.service === 'PREP') {
+                  item.colour = 'teal'
+                  item.icon = 'health_and_safety'
+                } else {
+                  item.icon = 'health_and_safety'
+                  const randomColor = require('randomcolor') // import the script
+                  const color = randomColor() // a hex code for an attractive color
+                  item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                }
+              })
               }
-            })
-            }
-          this.loading = false
-        })
+            this.loading = false
+          })
+        } else {
+          console.log('NO_Mobile')
+          Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
+            this.clinicalServiceReports = resp.response.data
+            if (this.clinicalServiceReports.length > 0) {
+              this.clinicalServiceReports.forEach((item) => {
+                if (item.service === 'TARV') {
+                  item.colour = 'green'
+                  item.icon = 'medication'
+                } else if (item.service === 'TPT') {
+                  item.colour = 'red'
+                  item.icon = 'vaccines'
+                } else if (item.service === 'PREP') {
+                  item.colour = 'teal'
+                  item.icon = 'health_and_safety'
+                } else {
+                  item.icon = 'health_and_safety'
+                  const randomColor = require('randomcolor') // import the script
+                  const color = randomColor() // a hex code for an attractive color
+                  item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                }
+              })
+              }
+            this.loading = false
+          })
+        }
       }
     },
     computed: {

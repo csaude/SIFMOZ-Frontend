@@ -210,4 +210,29 @@ static getServiceFatById (identifier) {
   .with(['patient.clinic.province', 'patient.clinic.district.province'])
   .where('id', identifier.id).first()
 }
+
+  static getDashboardServiceButton (endYear, clinicId) {
+    const endDateObj = new Date(endYear, 11, 20) // Cria um objeto Date com o dia 20 de dezembro
+    console.log(endDateObj)
+    console.log(ClinicalService.entity)
+    return nSQL('identifiers').query('select', ['identifiers.id', 'clinicalServices.code'])
+    // .where([['identifiers.clinic_id', '=', clinicId], 'AND', ['clinicalServices.start_date', '<=', endDateObj]])
+    .join({
+      type: ' inner ',
+      // with: { table: ClinicalService.entity },
+      table: 'clinicalServices',
+      where: ['clinicalServices.service_id', ' = ', 'clinicalServices.id ']
+    })
+    // .orderBy(['clinicalServices.code ASC'])
+    .exec()
+    .then(result => {
+      result.forEach((item) => {
+         console.log('WWW: ', item)
+      })
+      return result
+    })
+    .catch(error => {
+      console.error('ERROR: ', error)
+    })
+  }
 }
