@@ -84,7 +84,6 @@ import { ref } from 'vue'
 import Clinic from '../../store/models/clinic/Clinic'
 import Drug from '../../store/models/drug/Drug'
 import mixincrypt from 'src/mixins/mixin-encryption'
-import db from 'src/store/localbase'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import StockAlert from '../../store/models/stockAlert/StockAlert'
 import mixinutils from 'src/mixins/mixin-utils'
@@ -134,7 +133,7 @@ export default {
          return ''
       }
     },
-    getStockAlert () {
+   async getStockAlert () {
       if (this.website) {
         this.showloading()
       Report.apiGetStockAlertAll(this.clinic.id).then(resp => {
@@ -142,13 +141,8 @@ export default {
         this.hideLoading()
       })
       } else {
-          db.newDb().collection('stockAlert').get().then(stockAlert => {
-                StockAlert.insert(
-                  {
-                    data: stockAlert
-                  })
-              })
-              this.rowData = StockAlert.all()
+       const list = await StockAlert.localDbGetStockAlert()
+       this.rowData = list
       }
     },
     getConsuptionRelatedColor (state) {

@@ -92,7 +92,7 @@ export default class Stock extends Model {
     }
 
     static localDbGetAll () {
-       nSQL(this.entity).query('select').exec().then(result => {
+      return nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
         Stock.insertOrUpdate({ data: result })
         })
@@ -107,11 +107,10 @@ export default class Stock extends Model {
   }
 
   static localDbGetByStockEntranceId (stockEntrance) {
-    nSQL().onConnected(() => {
-    nSQL(this.entity).query('select').where(['stocks[entrance_id]', '=', stockEntrance.id]).exec().then(result => {
+   return nSQL(this.entity).query('select').where(['stocks[entrance_id]', '=', stockEntrance.id]).exec().then(result => {
       console.log(result)
+      return result
     })
-  })
 }
 
   static localDbDeleteById (stock) {

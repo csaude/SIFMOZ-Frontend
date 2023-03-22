@@ -129,14 +129,14 @@ export default {
     await StockCenter.apiGetAll(offset, max).then(resp => {
         StockCenter.localDbAdd(resp.response.data)
     })
-    Stock.apiGetAll(offset, max).then(resp => {
+    /* Stock.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Stock.localDbAddOrUpdate(item)
       })
     })
     await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
         InventoryStockAdjustment.localDbAddOrUpdate(resp.response.data)
-    })
+    }) */
     StockOperationType.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         StockOperationType.localDbAdd(item)

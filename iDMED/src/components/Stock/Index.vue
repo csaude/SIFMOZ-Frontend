@@ -107,7 +107,8 @@ export default {
             console.log(error)
         })
        } else {
-              this.rowData = StockEntrance.localDbGetAll()
+              StockEntrance.localDbGetAll()
+              Inventory.localDbGetAll()
                   }
     }
   },
