@@ -10,7 +10,7 @@ export default class PackagedDrug extends Model {
     static fields () {
       return {
         id: this.uid(() => uuidv4()),
-        quantitySupplied: this.attr(''),
+        quantitySupplied: this.number(''),
         nextPickUpDate: this.attr(''),
         toContinue: this.boolean(false),
         creationDate: this.attr(''),

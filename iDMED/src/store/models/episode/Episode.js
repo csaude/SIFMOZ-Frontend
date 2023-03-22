@@ -118,7 +118,7 @@ export default class Episode extends Model {
     return await this.api().get('/episode/identifier/' + identifierId + '?offset=0&max=100')
   }
 
-  static localDbAdd (episode) {
+  static localDbAddOrUpdate (episode) {
     return nSQL(this.entity).query('upsert',
     episode
   ).exec().then(result => {
@@ -161,8 +161,8 @@ export default class Episode extends Model {
   }
 
   static async syncEpisode (episode) {
-    if (episode.syncStatus === 'R') await this.apiSave(episode)
-    if (episode.syncStatus === 'U') await this.apiUpdate(episode)
+    if (episode.syncStatus === 'R') await this.apiSave(episode, true)
+    if (episode.syncStatus === 'U') await this.apiUpdate(episode, false)
   }
 
   static getClassName () {
@@ -193,4 +193,10 @@ export default class Episode extends Model {
          return result
        })
    }
+
+   static async localDbGetBySyncStatusToSychronize () {
+    return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
+      return result
+        })
+    }
 }

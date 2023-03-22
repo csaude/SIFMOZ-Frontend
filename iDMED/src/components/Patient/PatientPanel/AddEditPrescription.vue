@@ -357,7 +357,7 @@ import ClinicalServiceAttribute from '../../../store/models/ClinicalServiceAttri
 import StartStopReason from '../../../store/models/startStopReason/StartStopReason'
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
-import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
+// import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 export default {
   mixins: [mixinplatform, mixinutils],
   props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
@@ -1176,7 +1176,7 @@ export default {
       if (this.isEditPackStep) {
         PatientVisit.localDbGetById(this.patientVisit.id).then(patientVisit => {
           this.addOrRemoveStockPackagedDrugs(patientVisit, false)
-          PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
+          PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
            // this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
             this.addOrRemoveStockPackagedDrugs(this.patientVisit, true)
             this.displayAlert('info', 'Dispensa actualizada com sucesso.')
@@ -1197,7 +1197,7 @@ export default {
         })
         })
       } else {
-        PatientVisit.localDbAdd(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
+        PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(this.patientVisit))).then(response => {
        //   this.loadVitisToVueX(JSON.parse(JSON.stringify(this.patientVisit)))
           this.addOrRemoveStockPackagedDrugs(this.patientVisit, true)
             this.displayAlert('info', !this.hasVisitsToPackNow ? 'Prescrição gravada com sucesso.' : 'Dispensa efectuada com sucesso.')
@@ -1274,6 +1274,7 @@ export default {
         })
       }
     },
+    /*
     async loadVitisToVueX (pv) {
       PatientVisit.localDbGetById(pv.id).then(visit => {
        PatientVisit.insert({ data: visit })
@@ -1299,6 +1300,7 @@ export default {
        })
      })
     },
+    */
     fecthVisit (id) {
       PatientVisit.apiFetchById(id).then(resp => {
         this.fecthVisitDetails(resp.response.data.patientVisitDetails[0].id)
@@ -1346,18 +1348,14 @@ export default {
       patientVisit.patientVisitDetails.forEach(pvd => {
             pvd.pack.packagedDrugs.forEach(pd => {
               pd.packagedDrugStocks.forEach(pds => {
-                  Stock.localDbGetById(pds.stock.id).then(stock => {
+                  Stock.localDbGetById(pds.stock).then(stock => {
                     if (addDispense) {
                       stock.stockMoviment -= pds.quantitySupplied
                     } else {
                       stock.stockMoviment += pds.quantitySupplied
                     }
                     stock.syncStatus = 'U'
-                    Stock.localDbUpdate(stock)
-                    StockEntrance.localDbGetById(stock.entrance.id).then(entrance => {
-                     entrance.syncStatus = 'U'
-                     StockEntrance.localDbUpdate(entrance)
-                    })
+                    Stock.localDbAddOrUpdate(stock)
                   })
               })
             })

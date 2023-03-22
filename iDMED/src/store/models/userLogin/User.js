@@ -58,7 +58,14 @@ export default class User extends Model {
   static localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
-      User.insert({ data: result })
+     return User.insert({ data: result })
+      })
+  }
+
+  static localDbGetByUsername (username) {
+    return nSQL(this.entity).query('select').where(['username', '=', username]).exec().then(result => {
+      console.log(result)
+     return result[0]
       })
   }
   /*

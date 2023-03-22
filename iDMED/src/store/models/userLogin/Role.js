@@ -20,7 +20,7 @@ export default class Role extends Model {
      authority: this.attr(''),
      description: this.attr(''),
      name: this.attr(''),
-     active: this.attr(''),
+     active: this.boolean(''),
      syncStatus: this.attr(''),
     // menus: this.hasMany(Menu, 'role_id'),
      menus: this.belongsToMany(Menu, RoleMenu, 'role_id', 'menu_id')

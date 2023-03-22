@@ -187,6 +187,7 @@ export default class Patient extends Model {
 
   static async localDbGetAll () {
   return nSQL(this.entity).query('select').exec().then(result => {
+    console.log('patientsSearch' + result)
       Patient.insertOrUpdate({ data: result })
       })
   }
@@ -208,11 +209,17 @@ export default class Patient extends Model {
   }
 
   static async syncPatient (patient) {
-    if (patient.syncStatus === 'R') await this.apiSave(patient)
-    if (patient.syncStatus === 'U') await this.apiUpdate(patient)
+    if (patient.syncStatus === 'R') await this.apiSave(patient, false)
+    if (patient.syncStatus === 'U') await this.apiSave(patient, true)
   }
 
   static getClassName () {
     return 'patient'
   }
+
+  static async localDbGetBySyncStatusToSychronize () {
+    return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
+      return result
+        })
+    }
 }

@@ -145,7 +145,7 @@ export default class PatientServiceIdentifier extends Model {
   }
 
   static localDbAddOrUpdate (identifier) {
-    nSQL(this.entity).query('upsert',
+   return nSQL(this.entity).query('upsert',
     identifier
     ).exec().then(result => {
       PatientServiceIdentifier.insertOrUpdate({ data: identifier })
@@ -165,10 +165,6 @@ export default class PatientServiceIdentifier extends Model {
       })
   }
 
-  static localDbUpdate (identifier) {
-    return db.newDb().collection('identifiers').doc({ id: identifier.id }).set(identifier)
-  }
-
   static localDbUpdateAll (identifiers) {
     return db.newDb().collection('identifiers').set(identifiers)
   }
@@ -182,7 +178,7 @@ export default class PatientServiceIdentifier extends Model {
   }
 
   static async syncPatientServiceIdentifier (identifier) {
-    if (identifier.syncStatus === 'R') await this.apiSave(identifier)
+    if (identifier.syncStatus === 'R') await this.apiSave(identifier, true)
     if (identifier.syncStatus === 'U') await this.apiUpdate(identifier)
   }
 
@@ -234,5 +230,11 @@ static getServiceFatById (identifier) {
     .catch(error => {
       console.error('ERROR: ', error)
     })
+  }
+
+static async localDbGetBySyncStatusToSychronize () {
+  return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
+    return result
+      })
   }
 }

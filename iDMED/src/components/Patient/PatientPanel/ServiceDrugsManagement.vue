@@ -195,13 +195,7 @@ export default {
     },
     async loadParams () {
       if (this.mobile) {
-        await Drug.localDbGetAll().then(drugs => {
-          drugs.forEach((drug) => {
-            drug.clinicalServiceId = ''
-            drug.formId = ''
-            Drug.insert({ data: drug })
-          })
-        })
+        await Drug.localDbGetAll()
       }
     }
   },
@@ -214,8 +208,6 @@ export default {
         if (this.isEditPackStep) {
           return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
         } else {
-          console.log(Duration.all())
-          console.log(this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
           console.log(Duration.query()
                         .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
                         .first())

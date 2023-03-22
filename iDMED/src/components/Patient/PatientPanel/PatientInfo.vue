@@ -111,9 +111,7 @@ export default {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
       if (this.mobile) {
-        Province.localDbGetAll().then(idTypes => {
-          Province.insertOrUpdate({ data: idTypes })
-        })
+        Province.localDbGetAll()
       }
       console.log(this.selectedPatient)
       console.log(this.patient)
