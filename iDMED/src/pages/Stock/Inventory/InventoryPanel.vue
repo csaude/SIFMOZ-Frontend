@@ -263,7 +263,7 @@ export default {
 
       const it = await Inventory.localDbGetById(this.currInventory)
       // it.syncStatus = it.syncStatus
-      if (it !== 'undefined') {
+      if (it !== undefined) {
       it.endDate = new Date()
       it.open = false
 

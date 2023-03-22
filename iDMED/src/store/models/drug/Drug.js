@@ -137,7 +137,8 @@ export default class Drug extends Model {
   static localDbGetAll () {
    return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
-     return Drug.insertOrUpdate({ data: result })
+      Drug.insertOrUpdate({ data: result })
+      return result
       })
   }
 
