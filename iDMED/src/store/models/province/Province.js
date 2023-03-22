@@ -46,7 +46,7 @@ export default class Province extends Model {
     return db.newDb().collection('provinces').doc({ id: id }).get()
   }
 
-  static localDbGetAll () {
+  static async localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
       Province.insertOrUpdate({ data: result })

@@ -213,7 +213,7 @@ export default {
                           AuditSyncronization.localDbAdd(auditSync)
                     }
          PatientVisit.localDbDelete(patientVisit)
-         PatientVisit.delete(patientVisit.id)
+        // PatientVisit.delete(patientVisit.id)
         this.displayAlert('info', 'Operação efectuada com sucesso.')
               })
             }

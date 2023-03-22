@@ -20,7 +20,7 @@ export default class ClinicalService extends Model {
       code: this.attr(''),
       description: this.attr(''),
       identifier_type_id: this.attr(''),
-      active: this.attr(''),
+      active: this.boolean(''),
       syncStatus: this.attr(''),
      // therapeuticRegimens: this.attr(''),
 

@@ -98,7 +98,7 @@ export default class Stock extends Model {
         })
     }
 
-    static localDbGetById (stock) {
+    static async localDbGetById (stock) {
      return nSQL(this.entity).query('select').where(['id', '=', stock.id]).exec().then(result => {
         console.log(result)
         // Stock.insert({ data: result })
