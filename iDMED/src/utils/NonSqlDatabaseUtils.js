@@ -13,8 +13,8 @@ export default {
              }
           switch (valor) {
             case 'BelongsTo': dataType = 'object'; break
-            case 'HasMany': dataType = 'list'; break
-            case 'BelongsToMany': dataType = 'list'; break
+            case 'HasMany': dataType = 'array'; break
+            case 'BelongsToMany': dataType = 'array'; break
             case 'Attr': dataType = 'string'; break
             case 'Boolean': dataType = 'boolean'; break
             case 'Number': dataType = 'int'; break

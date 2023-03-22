@@ -390,7 +390,7 @@ async saveDate () {
                                 .first()
         this.patientReg.clinic = clinicAux
         if (this.mobile) {
-          this.patientReg.syncStatus = this.isEditStep ? 'U' : 'R'
+          this.patientReg.syncStatus = (this.isEditStep && this.patientReg.syncStatus === 'S') ? 'U' : 'R'
           this.patientReg.province_id = this.patientReg.province.id
           this.patientReg.district_id = this.patientReg.district.id
           this.patientReg.postoAdministrativo_id = this.patientReg.postoAdministrativo !== null ? this.patientReg.postoAdministrativo.id : ''
@@ -542,6 +542,7 @@ async saveDate () {
           District.apiGetAll(offset, max)
           Clinic.apiFetchById(SessionStorage.getItem('currClinic').id)
         } else {
+          /*
           Province.localDbGetAll().then(provinceList => {
             Province.insertOrUpdate({ data: provinceList })
           })
@@ -551,6 +552,7 @@ async saveDate () {
           Localidade.localDbGetAll().then(items => {
             Localidade.insertOrUpdate({ data: items })
           })
+          */
         }
       },
       moment

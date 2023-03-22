@@ -359,13 +359,13 @@ export default {
     },
 
     async send (decryptedPass) {
-      User.localDbGetAll().then((users) => {
-        const userLogin = users.filter((user) => user.username === 'user.sync')
-        if (userLogin.length > 0) {
-         this.login(userLogin[0].username, decryptedPass)
-        } else {
+      User.localDbGetByUsername('user.sync').then((user) => {
+       // const userLogin = users.filter((user) => user.username === 'user.sync')
+      //  if (userLogin.length > 0) {
+         this.login(user.username, decryptedPass)
+       // } else {
           localStorage.setItem('isSyncronizing', 'false')
-        }
+        // }
      })
   },
 
@@ -540,9 +540,10 @@ if (role !== undefined) {
 },
 
 async getPatientsToSend () {
-  Patient.localDbGetAll().then((patients) => {
-    const patientsToSync = patients.filter((patient) =>
-    (patient.syncStatus === 'R' || patient.syncStatus === 'U'))
+  Patient.localDbGetBySyncStatusToSychronize().then((patientsToSync) => {
+  //  const patientsToSync = patients.filter((patient) =>
+ //   (patient.syncStatus === 'R' || patient.syncStatus === 'U'))
+   console('patients' + patientsToSync.length)
     return patientsToSync
   }).then(patientsToSync => {
       console.log(patientsToSync[0])
@@ -550,9 +551,10 @@ async getPatientsToSend () {
 })
 },
 async getPatientServiceIdentifierToSend () {
-  PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
-    const identifiersToSync = identifiers.filter((identifier) =>
-    (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
+  PatientServiceIdentifier.localDbGetBySyncStatusToSychronize().then((identifiersToSync) => {
+   // const identifiersToSync = identifiers.filter((identifier) =>
+   // (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
+   console('identifiersToSync' + identifiersToSync.length)
     return identifiersToSync
   }).then(identifiersToSync => {
       console.log(identifiersToSync[0])
@@ -560,9 +562,9 @@ async getPatientServiceIdentifierToSend () {
 })
 },
 async getEpisodeToSend () {
-  Episode.localDbGetAll().then((episodes) => {
-    const episodesToSync = episodes.filter((episode) =>
-    (episode.syncStatus === 'R' || episode.syncStatus === 'U'))
+  Episode.localDbGetBySyncStatusToSychronize().then((episodesToSync) => {
+ //   const episodesToSync = episodes.filter((episode) =>
+  //  (episode.syncStatus === 'R' || episode.syncStatus === 'U'))
     return episodesToSync
   }).then(episodesToSync => {
       console.log(episodesToSync[0])
@@ -621,9 +623,9 @@ async apiSendGroups (groupsToSync, i) {
   }
 },
 getPatientVisitToSend () {
-  PatientVisit.localDbGetAll().then((patientVisit) => {
-    const patientVisitToSync = patientVisit.filter((patientVisit) =>
-    (patientVisit.syncStatus === 'R' || patientVisit.syncStatus === 'U'))
+  PatientVisit.localDbGetBySyncStatusToSychronize().then((patientVisitToSync) => {
+   // const patientVisitToSync = patientVisit.filter((patientVisit) =>
+   // (patientVisit.syncStatus === 'R' || patientVisit.syncStatus === 'U'))
    return patientVisitToSync
   }).then(patientVisitToSync => {
     console.log(patientVisitToSync[0])
@@ -637,7 +639,7 @@ await Patient.syncPatient(patient).then(resp => {
     i = i + 1
     patient.syncStatus = 'S'
     // Get Childs TO Update
- Patient.localDbUpdate(patient).then(patient => {
+ Patient.localDbAddOrUpdate(patient).then(patient => {
     setTimeout(this.apiSendPatients(patientsToSync, i), 200)
 })
 }).catch(error => {
@@ -652,12 +654,14 @@ await Patient.syncPatient(patient).then(resp => {
 async apiSendPatientServiceIdentifier (identifiersToSync, i) {
   const identifier = identifiersToSync[i]
 if (identifier !== undefined) {
+//  identifier.episodes = []
+  console.log(identifier)
   await PatientServiceIdentifier.syncPatientServiceIdentifier(identifier).then(resp => {
     i = i + 1
     identifier.syncStatus = 'S'
   //  identifier.id = resp.response.data.id
     // Get Childs TO Update
-    PatientServiceIdentifier.localDbUpdate(identifier).then(identifier => {
+    PatientServiceIdentifier.localDbAddOrUpdate(identifier).then(identifier => {
       setTimeout(this.apiSendPatientServiceIdentifier(identifiersToSync, i), 200)
     })
 }).catch(error => {
@@ -672,17 +676,18 @@ if (identifier !== undefined) {
 async apiSendEpisode (episodesToSync, i) {
   const episode = episodesToSync[i]
 if (episode !== undefined) {
+//  episode.patientVisitDetails = []
    await Episode.syncEpisode(episode).then(resp => {
     i = i + 1
     episode.syncStatus = 'S'
    // episode.id = resp.response.data.id
     // Get Childs TO Update
-    Episode.localDbUpdate(episode).then(episode => {
+    Episode.localDbAddOrUpdate(episode).then(episode => {
        setTimeout(this.apiSendEpisode(episodesToSync, i), 200)
       })
 }).catch(error => {
   i = i + 1
-  setTimeout(this.apiSendPatientServiceIdentifier(episodesToSync, i), 200)
+  setTimeout(this.apiSendEpisode(episodesToSync, i), 200)
  console.log(error)
 })
 } else {
@@ -694,9 +699,11 @@ async apiSendPatientVisit (patientVisitToSync, i) {
 if (patientVisit !== undefined) {
   patientVisit.patientVisitDetails.forEach(patientVisitDetail => {
     patientVisitDetail.prescription.prescriptionDetails.forEach(prescriptionDetail => {
-      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.code = 'NID'
-      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.description = 'NID'
-      prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.pattern = '########01/####/#####'
+      if (prescriptionDetail.therapeuticRegimen !== null) {
+        prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.code = 'NID'
+        prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.description = 'NID'
+        prescriptionDetail.therapeuticRegimen.clinicalService.identifierType.pattern = '########01/####/#####'
+      }
    })
   })
    await PatientVisit.apiSave(patientVisit).then(resp => {
@@ -704,7 +711,7 @@ if (patientVisit !== undefined) {
     patientVisit.syncStatus = 'S'
     patientVisit.id = resp.response.data.id
     // Get Childs TO Update
-    PatientVisit.localDbUpdate(patientVisit).then(patientVisit => {
+    PatientVisit.localDbAddOrUpdate(patientVisit).then(patientVisit => {
        setTimeout(this.apiSendPatientVisit(patientVisitToSync, i), 200)
       })
 }).catch(error => {
@@ -784,8 +791,8 @@ login (username, password) {
       })
       localStorage.setItem('isSyncronizing', 'true')
       this.syncronizeAudit()
-    this.sendEntrances()
-    this.getRolesToSend()
+  //  this.sendEntrances()
+ //   this.getRolesToSend()
   //    this.getUsersToSend()
       this.getPatientsToSend()
     //  this.getGroupsToSend()

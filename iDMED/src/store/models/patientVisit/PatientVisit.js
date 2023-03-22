@@ -9,7 +9,7 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import Pack from '../../../store/models/packaging/Pack'
 import Patient from '../patient/Patient'
 import Clinic from '../clinic/Clinic'
-import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
+// import PackagedDrug from '../../../store/models/packagedDrug/PackagedDrug'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
@@ -77,24 +77,27 @@ export default class PatientVisit extends Model {
     return await this.api().get('/patientVisit/getLastVisitOfPatient/' + patientId)
   }
 
-  static localDbAdd (patientVisit) {
+  static localDbAddOrUpdate (patientVisit) {
     return nSQL(this.entity).query('upsert',
     patientVisit).exec().then(result => {
      PatientVisit.insertOrUpdate({ data: patientVisit })
      patientVisit.patientVisitDetails.forEach((pvd) => {
       PatientVisitDetails.insertOrUpdate({ data: pvd })
   Prescription.insertOrUpdate({ data: pvd.prescription })
-    Pack.delete(pvd.pack.id)
-    PackagedDrug.deleteAll()
+ //   Pack.delete(pvd.pack.id)
+   // PackagedDrug.deleteAll()
     Pack.insertOrUpdate({ data: pvd.pack })
-  Pack.insert({ data: pvd.pack })
+ // Pack.insert({ data: pvd.pack })
   })
     }
     )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('patientVisits').doc({ id: id }).get()
+  static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+      console.log(result)
+      return result[0]
+    })
   }
 
   static localDbGetAll () {
@@ -105,12 +108,9 @@ export default class PatientVisit extends Model {
     return db.newDb().collection('patientVisits').doc({ id: patientVisit.id }).set(patientVisit)
   }
 
-  static localDbUpdateAll (patientVisits) {
-    return db.newDb().collection('patientVisits').set(patientVisits)
-  }
-
   static localDbDelete (patientVisit) {
-    return db.newDb().collection('patientVisits').doc({ id: patientVisit.id }).delete()
+     nSQL(this.entity).query('delete').where(['id', '=', patientVisit.id]).exec()
+     PatientVisit.delete(patientVisit.id)
   }
 
   static localDbDeleteAll () {
@@ -145,13 +145,29 @@ static getPatientNSql () {
    return nSQL(this.entity).query('select').orderBy({ visitDate: 'desc' }).where(['patient[id]', '=', patient.id]).exec().then(result => {
      console.log(result)
      if (result.length > 0) {
+      /*
       PatientVisit.insertOrUpdate({ data: result[0] })
      result[0].patientVisitDetails.forEach((pvd) => {
       PatientVisitDetails.insertOrUpdate({ data: pvd })
   Prescription.insertOrUpdate({ data: pvd.prescription })
     Pack.insertOrUpdate({ data: pvd.pack })
   })
+  */
+ result.forEach(result => {
+  PatientVisit.insertOrUpdate({ data: result })
+  result.patientVisitDetails.forEach((pvd) => {
+   PatientVisitDetails.insertOrUpdate({ data: pvd })
+Prescription.insertOrUpdate({ data: pvd.prescription })
+ Pack.insertOrUpdate({ data: pvd.pack })
+})
+ })
      }
      })
  }
+
+ static async localDbGetBySyncStatusToSychronize () {
+  return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
+    return result
+      })
+  }
 }

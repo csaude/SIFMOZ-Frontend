@@ -294,9 +294,7 @@ export default {
           }
         }
         if (this.mobile) {
-          await ClinicSector.localDbGetAll().then(items => {
-            ClinicSector.insertOrUpdate({ data: items })
-          })
+        //  await ClinicSector.localDbGetAll()
         }
       },
      submitForm () {
@@ -404,10 +402,9 @@ export default {
                           this.closureEpisode.clinicSector_id = this.closureEpisode.clinicSector.id
                           this.closureEpisode.episodeType_id = this.closureEpisode.episodeType.id
                           this.closureEpisode.syncStatus = 'R'
-                         // await Episode.localDbAdd(JSON.parse(JSON.stringify(this.closureEpisode)))
                          this.buildEpisode(this.closureEpisode)
-                         Episode.createEpsiodeNSql(JSON.parse(JSON.stringify(this.closureEpisode)))
-                          Episode.insert({ data: this.closureEpisode })
+                         Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(this.closureEpisode)))
+                        //  Episode.insert({ data: this.closureEpisode })
                           this.displayAlert('info', 'Operação efectuada com sucesso.')
                         } else {
                           Episode.apiSave(this.closureEpisode).then(resp => {
@@ -446,7 +443,7 @@ export default {
             lastEpisodeCopy.episodeType_id = lastEpisodeCopy.episodeType.id
             lastEpisodeCopy.syncStatus = this.isCreateStep ? 'R' : 'U'
          this.buildEpisode(lastEpisodeCopy)
-         await Episode.localDbAdd(lastEpisodeCopy)
+         await Episode.localDbAddOrUpdate(lastEpisodeCopy)
       //  Episode.createEpsiodeNSql(JSON.parse(JSON.stringify(lastEpisodeCopy)))
          //   Episode.insertOrUpdate({ data: lastEpisodeCopy })
             this.displayAlert('info', 'Operação efectuada com sucesso.')

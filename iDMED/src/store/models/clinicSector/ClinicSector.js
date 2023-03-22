@@ -13,7 +13,7 @@ export default class ClinicSector extends Model {
       id: this.uid(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
-      active: this.attr(''),
+      active: this.boolean(''),
       uuid: this.attr(null),
       clinic_id: this.attr(''),
       clinic_sector_type_id: this.attr(''),
@@ -57,7 +57,7 @@ export default class ClinicSector extends Model {
     return db.newDb().collection('clinicSectors').doc({ id: id }).get()
   }
 
-  static localDbGetAll () {
+  static async localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
       ClinicSector.insertOrUpdate({ data: result })

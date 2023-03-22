@@ -68,6 +68,7 @@ export default {
       } else {
         this.identifiers.forEach(identifier => {
           if (this.mobile) {
+            /*
             const episodeList = Episode.query()
                                         .with('startStopReason')
                                         .with('patientServiceIdentifier')
@@ -91,6 +92,7 @@ export default {
                 }
               })
             })
+            */
           } else {
             Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
               if (resp.response.data.length > 0) {

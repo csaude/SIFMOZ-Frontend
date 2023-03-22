@@ -564,7 +564,7 @@ export default {
           }
           const identifierCopy = new PatientServiceIdentifier(JSON.parse(JSON.stringify(this.identifier)))
           if (identifierCopy.episodes.length > 0) {
-            await Episode.localDbAdd(identifierCopy.episodes[0])
+            await Episode.localDbAddOrUpdate(identifierCopy.episodes[0])
             Episode.insert({ data: identifierCopy.episodes[0] })
             identifierCopy.episodes = []
           }

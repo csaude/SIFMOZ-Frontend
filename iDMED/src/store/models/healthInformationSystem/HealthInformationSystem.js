@@ -14,7 +14,7 @@ export default class HealthInformationSystem extends Model {
       abbreviation: this.attr(''),
       syncStatus: this.attr(''),
       description: this.attr(''),
-      active: this.attr(''),
+      active: this.boolean(''),
 
       // Relationships
       interoperabilityAttributes: this.hasMany(InteroperabilityAttribute, 'healthInformationSystem_id')

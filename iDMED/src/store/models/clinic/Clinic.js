@@ -24,7 +24,7 @@ export default class Clinic extends Model {
       province_id: this.attr(''),
       district_id: this.attr(''),
       nationalClinic_id: this.attr(''),
-      active: this.attr(''),
+      active: this.boolean(''),
       facilityTypeId: this.attr(''),
       syncStatus: this.attr(''),
       // Relationships
