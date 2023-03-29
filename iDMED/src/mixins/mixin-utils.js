@@ -36,7 +36,8 @@ import ProvincialServer from 'src/store/models/provincialServer/ProvincialServer
 import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem'
 import District from 'src/store/models/district/District'
 import Province from 'src/store/models/province/Province'
-
+import UsersService from '../services/UsersService'
+// import User from 'src/store/models/userLogin/User'
 export default {
   data () {
     return {
@@ -316,6 +317,41 @@ export default {
       this.clinicAux = resp.response.data
       this.loading = false
     })
+},
+async loginToBackend (decryptedPass) {
+  // const encodedStringBtoA = '111'
+  let loginSuccess = ''
+ // User.localDbGetByUsername('user.sync').then((user) => {
+   // const userLogin = users.filter((user) => user.username === 'user.sync')
+   //  const userPass = localStorage.getItem('sync_pass')
+   //  const decryptedPass = this.decryptPlainText(userPass)
+   // if (userLogin.length > 0) {
+    try {
+      const response = await UsersService.login({
+        username: 'user.sync',
+        password: decryptedPass
+      })
+      console.log('Login >>>>>>>>', response)
+      localStorage.setItem('id_token', response.response.data.access_token)
+      localStorage.setItem('refresh_token', response.response.data.refresh_token)
+      loginSuccess = 'Success'
+    } catch (error) {
+      console.log(error)
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response)
+        if (arrayErrors.total == null) {
+          this.listErrors.push(arrayErrors.message)
+        } else {
+          arrayErrors._embedded.errors.forEach((element) => {
+            this.listErrors.push(element.message)
+          })
+        }
+        console.log(this.listErrors)
+      }
+    }
+   // return false
+  //  })
+  return loginSuccess
 }
  },
   computed: {

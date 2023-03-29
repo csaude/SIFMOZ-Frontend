@@ -49,6 +49,8 @@ import Doctor from 'src/store/models/doctor/Doctor'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 import GroupType from 'src/store/models/groupType/GroupType'
 import Group from 'src/store/models/group/Group'
+import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
+import GroupPackHeader from 'src/store/models/group/GroupPackHeader'
 
 export default {
   // mixins: [mixinEncryption],
@@ -543,10 +545,10 @@ async getPatientsToSend () {
   Patient.localDbGetBySyncStatusToSychronize().then((patientsToSync) => {
   //  const patientsToSync = patients.filter((patient) =>
  //   (patient.syncStatus === 'R' || patient.syncStatus === 'U'))
-   console('patients' + patientsToSync.length)
+   console.log('patients' + patientsToSync.length)
     return patientsToSync
   }).then(patientsToSync => {
-      console.log(patientsToSync[0])
+      console.log('patient1' + patientsToSync[0])
      this.apiSendPatients(patientsToSync, 0)
 })
 },
@@ -554,7 +556,7 @@ async getPatientServiceIdentifierToSend () {
   PatientServiceIdentifier.localDbGetBySyncStatusToSychronize().then((identifiersToSync) => {
    // const identifiersToSync = identifiers.filter((identifier) =>
    // (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
-   console('identifiersToSync' + identifiersToSync.length)
+   console.log('identifiersToSync' + identifiersToSync.length)
     return identifiersToSync
   }).then(identifiersToSync => {
       console.log(identifiersToSync[0])
@@ -572,13 +574,31 @@ async getEpisodeToSend () {
 })
 },
 async getGroupsToSend () {
-  Group.localDbGetAll().then((groups) => {
-    const groupsToSync = groups.filter((group) =>
-    (group.syncStatus === 'R' || group.syncStatus === 'U'))
+  Group.localDbGetBySyncStatusToSychronize().then((groupsToSync) => {
+  //  const groupsToSync = groups.filter((group) =>
+  //  (group.syncStatus === 'R' || group.syncStatus === 'U'))
     return groupsToSync
   }).then(groupsToSync => {
     console.log('Groups_To_Sync: ', groupsToSync)
     this.apiSendGroups(groupsToSync, 0)
+  })
+},
+
+async getGroupsMemberPrescriptionToSend () {
+  GroupMemberPrescription.localDbGetBySyncStatusToSychronize().then((groupMemPrescriptionToSync) => {
+    return groupMemPrescriptionToSync
+  }).then(groupMemPrescriptionToSync => {
+    console.log('Groups_To_Sync: ', groupMemPrescriptionToSync)
+    this.apiSendGroupsMemberPrescriptions(groupMemPrescriptionToSync, 0)
+  })
+},
+
+async getGroupsPackHeaderToSend () {
+  GroupPackHeader.localDbGetBySyncStatusToSychronize().then((groupPackHeaderToSync) => {
+    return groupPackHeaderToSync
+  }).then(groupPackHeaderToSync => {
+    console.log('Groups_To_Sync: ', groupPackHeaderToSync)
+    this.apiSendGroupsPackHeader(groupPackHeaderToSync, 0)
   })
 },
 
@@ -589,7 +609,7 @@ async apiSendGroups (groupsToSync, i) {
     await Group.apiSave(group).then(resp => {
       i = i + 1
       group.syncStatus = 'S'
-      Group.localDbUpdate(group).then((group) => {
+      Group.localDbAddOrUpdate(group).then((group) => {
         console.log('Group_Syncronized: ', group)
         setTimeout(this.apiSendGroups(groupsToSync, i), 200)
       })
@@ -606,6 +626,67 @@ async apiSendGroups (groupsToSync, i) {
         }
       }
       console.log('error', listErrors)
+      localStorage.setItem('isSyncronizing', 'false')
+    })
+  } else {
+    this.getGroupsMemberPrescriptionToSend()
+  }
+},
+
+async apiSendGroupsMemberPrescriptions (groupMemPrescriptionToSync, i) {
+  const groupMembPre = groupMemPrescriptionToSync[i]
+  if (groupMembPre !== undefined) {
+   // groupMembPre.clinic = SessionStorage.getItem('currClinic')
+    await Group.apiSave(groupMembPre).then(resp => {
+      i = i + 1
+      groupMembPre.syncStatus = 'S'
+      GroupMemberPrescription.localDbAdd(groupMembPre).then((group) => {
+        setTimeout(this.apiSendGroupsMemberPrescriptions(groupMemPrescriptionToSync, i), 500)
+      })
+    }).catch(error => {
+      const listErrors = []
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response)
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message)
+        } else {
+          arrayErrors._embedded.errors.forEach(element => {
+            listErrors.push(element.message)
+          })
+        }
+      }
+      console.log('error', listErrors)
+      localStorage.setItem('isSyncronizing', 'false')
+    })
+  } else {
+    this.getGroupsPackHeaderToSend()
+  }
+},
+
+async apiSendGroupsPackHeader (groupPackHeaderToSync, i) {
+  const groupPackHeader = groupPackHeaderToSync[i]
+  if (groupPackHeader !== undefined) {
+   // groupMembPre.clinic = SessionStorage.getItem('currClinic')
+    await GroupPackHeader.apiSave(groupPackHeader).then(resp => {
+      i = i + 1
+      groupPackHeader.syncStatus = 'S'
+      GroupPackHeader.localDbAdd(groupPackHeader).then((group) => {
+        setTimeout(this.apiSendGroupsPackHeader(groupPackHeaderToSync, i), 500)
+      })
+    }).catch(error => {
+      const listErrors = []
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response)
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message)
+        } else {
+          arrayErrors._embedded.errors.forEach(element => {
+            listErrors.push(element.message)
+          })
+        }
+      }
+      console.log('error', listErrors)
+      localStorage.setItem('isSyncronizing', 'false')
     })
   } else {
     localStorage.setItem('isSyncronizing', 'false')
@@ -622,10 +703,9 @@ async apiSendGroups (groupsToSync, i) {
     })
   }
 },
+
 getPatientVisitToSend () {
   PatientVisit.localDbGetBySyncStatusToSychronize().then((patientVisitToSync) => {
-   // const patientVisitToSync = patientVisit.filter((patientVisit) =>
-   // (patientVisit.syncStatus === 'R' || patientVisit.syncStatus === 'U'))
    return patientVisitToSync
   }).then(patientVisitToSync => {
     console.log(patientVisitToSync[0])
@@ -635,6 +715,7 @@ getPatientVisitToSend () {
 async apiSendPatients (patientsToSync, i) {
   const patient = patientsToSync[i]
 if (patient !== undefined) {
+  console.log('patient2' + patient)
 await Patient.syncPatient(patient).then(resp => {
     i = i + 1
     patient.syncStatus = 'S'

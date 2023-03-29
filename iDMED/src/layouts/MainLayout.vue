@@ -122,11 +122,11 @@ import SynchronizationService from 'src/services/Synchronization/Synchronization
 import isOnline from 'is-online'
 // import schedule from 'node-schedule'
 import mixinEncryption from 'src/mixins/mixin-encryption'
-// import mixinIsOnline from 'src/mixins/mixin-is-online'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const schedule = require('node-schedule')
 export default defineComponent({
   name: 'MainLayout',
-  mixins: [mixinplatform, mixinEncryption, mixinutils],
+  mixins: [mixinplatform, mixinEncryption, mixinutils, mixinIsOnline],
   setup () {
     return {
       leftDrawerOpen: false,
@@ -148,6 +148,7 @@ export default defineComponent({
    if (this.mobile) {
     this.schedulerSync()
    }
+   console.log(this.isOnline)
   },
   computed: {
     activateMigration () {
@@ -172,7 +173,7 @@ export default defineComponent({
       },
       schedulerSync () {
        schedule.scheduleJob('0 * * * *', () => {
-        this.sync()
+       // this.sync()
 })
       },
       async sync () {

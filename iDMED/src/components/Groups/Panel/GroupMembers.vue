@@ -104,6 +104,7 @@ import GroupMember from '../../../store/models/groupMember/GroupMember'
 import Clinic from '../../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -114,7 +115,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       alert: ref({
@@ -281,7 +282,7 @@ export default {
             if (member.groupMemberPrescription !== null && member.groupMemberPrescription !== undefined && isPrescription) member.groupMemberPrescription.prescription.leftDuration = this.calculateRemainingTime(member.groupMemberPrescription)
             member.patient.identifiers[0].episodes = []
             member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-            if (member.patient.identifiers[0].episodes.length > 0) {
+            if (member.patient.identifiers[0].episodes.length > 0 && member.patient.identifiers[0].episodes[0] !== null) {
          this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit(), member)
             }
         })
@@ -293,7 +294,7 @@ export default {
         }
     },
     fecthMemberPrescriptionData (visitDetails, member) {
-      if (this.mobile) {
+      if (!this.isOnline) {
         if (visitDetails.pack !== null) {
           this.fecthedMemberData = this.fecthedMemberData + 1
         }
@@ -328,13 +329,14 @@ export default {
           this.members = this.allMembers
         }
         this.members.forEach((member) => {
-          if (member.patient.identifiers[0].episodes[0].lastVisit().pack !== null) {
+          if (member.patient.identifiers[0].episodes[0] !== null && member.patient.identifiers[0].episodes[0].lastVisit().pack !== null) {
             member.patient.identifiers[0].episodes[0].lastVisit().pack = Pack.query()
                                                                               .with('dispenseMode')
                                                                               .with('packagedDrugs')
                                                                               .where('id', member.patient.identifiers[0].episodes[0].lastVisit().pack.id)
                                                                               .first()
           }
+          if (member.patient.identifiers[0].episodes[0] !== null && member.patient.identifiers[0].episodes[0].lastVisit().prescription !== null) {
           const prescription = Prescription.query()
                                           .with('prescriptionDetails')
                                           .with('duration')
@@ -345,6 +347,7 @@ export default {
                                           .first()
           prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
           member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
+          }
         })
         return this.members
     },
@@ -388,7 +391,10 @@ export default {
     }
   },
   mounted () {
+   // console.log(this.loadedMembers)
+   // console.log(props.row.patient.identifiers[0].episodes[0])
     this.getGroupMembers()
+    console.log(this.loadedMembers)
   },
   updated () {
     console.log('updated')

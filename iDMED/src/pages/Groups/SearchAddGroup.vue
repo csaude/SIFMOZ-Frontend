@@ -96,7 +96,7 @@
 import { ref } from 'vue'
 import Group from '../../store/models/group/Group'
 import Clinic from '../../store/models/clinic/Clinic'
-import { SessionStorage } from 'quasar'
+import { SessionStorage, QSpinnerBall } from 'quasar'
 import Patient from '../../store/models/patient/Patient'
 import GroupType from '../../store/models/groupType/GroupType'
 import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
@@ -106,12 +106,14 @@ import Prescription from '../../store/models/prescription/Prescription'
 import Pack from '../../store/models/packaging/Pack'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import GroupMember from 'src/store/models/groupMember/GroupMember'
-import Drug from 'src/store/models/drug/Drug'
-import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
-import Doctor from 'src/store/models/doctor/Doctor'
-import Duration from 'src/store/models/Duration/Duration'
+// import GroupMember from 'src/store/models/groupMember/GroupMember'
+// import Drug from 'src/store/models/drug/Drug'
+// import PackagedDrug from 'src/store/models/packagedDrug/PackagedDrug'
+ import Doctor from 'src/store/models/doctor/Doctor'
+ import Duration from 'src/store/models/Duration/Duration'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -120,7 +122,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       selected: ref([]),
@@ -132,173 +134,29 @@ export default {
     }
   },
   methods: {
-    init () {
-      if (this.mobile) {
-        GroupType.localDbGetAll().then(groupTypes => {
-          groupTypes.forEach((groupType) => {
-            groupType.groups = []
-            GroupType.insertOrUpdate({ data: groupType })
-          })
-        })
-        ClinicalService.localDbGetAll().then(clinicalServices => {
-          clinicalServices.forEach((clinicalService) => {
-            clinicalService.identifier_type_id = clinicalService.identifier_type.id
-            clinicalService.attributes = []
-            clinicalService.clinicSectors = []
-            clinicalService.identifier_type = null
-            ClinicalService.insertOrUpdate({ data: clinicalService })
-          })
-        })
-        Patient.localDbGetAll().then(patients => {
-          patients.forEach((patient) => {
-            patient.clinic_id = patient.clinic.id
-            patient.district_id = patient.district.id
-            patient.bairro = null
-            patient.clinic = null
-            patient.district = null
-            patient.province = null
-            patient.appointments = []
-            patient.attributes = []
-            patient.identifiers = []
-            patient.members = []
-            patient.patientVisits = []
-            Patient.insertOrUpdate({ data: patient })
-          })
-        })
-        PatientServiceIdentifier.localDbGetAll().then(identifiers => {
-          identifiers.forEach((identifier) => {
-            identifier.clinic_id = identifier.clinic.id
-            identifier.identifier_type_id = identifier.identifierType.id
-            identifier.patient_id = identifier.patient.id
-            identifier.service_id = identifier.service.id
-            identifier.clinic = null
-            identifier.identifierType = null
-            identifier.patient = null
-            identifier.service = null
-            identifier.episodes = []
-            PatientServiceIdentifier.insertOrUpdate({ data: identifier })
-          })
-        })
-        Episode.localDbGetAll().then(episodes => {
-          episodes.forEach((episode) => {
-            episode.clinicSector_id = episode.clinicSector.id
-            episode.episodeType_id = episode.episodeType.id
-            episode.startStopReason_id = episode.startStopReason.id
-            episode.patientServiceIdentifier_id = episode.patientServiceIdentifier.id
-            episode.clinicSector = null
-            episode.episodeType = null
-            episode.referralClinic = null
-            episode.startStopReason = null
-            episode.patientServiceIdentifier = null
-            episode.patientVisitDetails = []
-            Episode.insertOrUpdate({ data: episode })
-          })
-        })
-        Group.localDbGetAll().then(groups => {
-          groups.forEach((group) => {
-            if (group.members.length > 0) {
-              group.members.forEach((member) => {
-                member.group_id = group.id
-                member.clinic_id = group.clinic.id
-                member.patient_id = member.patient.id
-                member.clinic = null
-                member.group = null
-                member.patient = null
-                member.groupMemberPrescription = []
-                GroupMember.insertOrUpdate({ data: member })
-              })
-            }
-            group.clinic_id = group.clinic.id
-            group.groupType_id = group.groupType.id
-            group.clinical_service_id = group.service.id
-            group.clinic = null
-            group.groupType = null
-            group.service = null
-            group.members = []
-            group.packHeaders = []
-            Group.insertOrUpdate({ data: group })
-          })
-        })
-        Pack.localDbGetAll().then(packs => {
-          packs.forEach((pack) => {
-            pack.packagedDrugs.forEach((packagedDrug) => {
-              Drug.insert({ data: packagedDrug.drug })
-              packagedDrug.drug_id = packagedDrug.drug.id
-              packagedDrug.pack_id = pack.id
-              packagedDrug.drug = null
-              packagedDrug.pack = null
-              packagedDrug.packagedDrugStocks = []
-              PackagedDrug.insertOrUpdate({ data: packagedDrug })
-            })
-            pack.clinic_id = pack.clinic.id
-            pack.dispenseMode_id = pack.dispenseMode.id
-            pack.clinic = null
-            pack.dispenseMode = null
-            pack.groupPack = null
-            pack.packagedDrugs = []
-            pack.patientVisitDetails = []
-            Pack.insertOrUpdate({ data: pack })
-          })
-        })
-        Prescription.localDbGetAll().then(prescriptions => {
-          prescriptions.forEach((prescription) => {
-            const doctor = prescription.doctor
-            doctor.clinic_id = prescription.clinic_id
-            doctor.clinic = null
-            doctor.prescriptions = []
-            Doctor.insertOrUpdate({ data: doctor })
-            const duraction = prescription.duration
-            duraction.prescriptions = []
-            Duration.insertOrUpdate({ data: duraction })
-            prescription.duration_id = prescription.duration.id
-            prescription.clinic_id = prescription.clinic.id
-            prescription.doctor_id = prescription.doctor.id
-            prescription.clinic = null
-            prescription.doctor = null
-            prescription.duration = null
-            prescription.groupMemberPrescription = []
-            prescription.patientVisitDetails = []
-            prescription.prescribedDrugs = []
-            prescription.prescriptionDetails = []
-            Prescription.insertOrUpdate({ data: prescription })
-          })
-        })
-        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
-          patientVisitDetails.forEach((pvd) => {
-            const pv = pvd.patientVisit
-            pv.clinic_id = pvd.patientVisit.clinic.id
-            pv.patient_id = pv.patient.id
-            pv.patient = null
-            pv.patientVisitDetails = []
-            pv.pregnancyScreening = []
-            pv.ramScreening = []
-            pv.tbScreening = []
-            pv.vitalSigns = []
-            PatientVisit.insertOrUpdate({ data: pv })
-            pvd.prescription_id = pvd.prescription.id
-            pvd.patient_visit_id = pvd.patientVisit.id
-            pvd.clinic_id = pvd.clinic.id
-            pvd.episode_id = pvd.episode.id
-            pvd.pack_id = pvd.pack.id
-            pvd.prescription = null
-            pvd.patientVisit = null
-            pvd.clinic = null
-            pvd.episode = null
-            pvd.pack = null
-            PatientVisitDetails.insertOrUpdate({ data: pvd })
-          })
-        })
-        Clinic.localDbGetAll().then((clinics) => {
-          clinics.forEach((clinic) => {
-            clinic.district_id = clinic.district.id
-            clinic.province_id = clinic.province.id
-            clinic.district = null
-            clinic.nationalClinic = null
-            clinic.patients = []
-            clinic.sectors = []
-            Clinic.insertOrUpdate({ data: clinic })
-          })
-        })
+    async init () {
+      if (!this.isOnline) {
+        this.$q.loading.show({
+        spinner: QSpinnerBall,
+        spinnerColor: 'gray',
+        spinnerSize: 140,
+        message: 'Carregando, aguarde por favor...',
+        messageColor: 'white'
+      })
+        GroupType.localDbGetAll()
+        ClinicalService.localDbGetAll()
+   await Patient.localDbGetAll()
+   await PatientServiceIdentifier.localDbGetAll()
+        Episode.localDbGetAll()
+        Group.localDbGetAll()
+       // Pack.localDbGetAll()
+   //     Prescription.localDbGetAll()
+        GroupMemberPrescription.localDbGetAll()
+        PatientVisit.localDbGetAll()
+       // Clinic.localDbGetAll()
+        Doctor.localDbGetAll()
+        Duration.localDbGetAll()
+        this.$q.loading.hide()
       } else {
         GroupType.apiGetAll()
         ClinicalService.apiGetAll()
@@ -361,6 +219,7 @@ export default {
     }
   },
   created () {
+    console.log(this.isOnline)
     this.init()
   },
   components: {

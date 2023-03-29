@@ -6,6 +6,7 @@ import Clinic from '../clinic/Clinic'
 import GroupPackHeader from './GroupPackHeader'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Group extends Model {
   static entity = 'groups'
@@ -56,8 +57,12 @@ export default class Group extends Model {
     return await this.api().get(`/groupInfo/validadePatient/${patientId}/${code}`)
   }
 
-  static localDbAdd (group) {
-    return db.newDb().collection('groups').add(group)
+  static localDbAddOrUpdate (group) {
+     return nSQL(this.entity).query('upsert',
+   group
+   ).exec().then(result => {
+     Group.insertOrUpdate({ data: group })
+     })
   }
 
   static localDbGetById (id) {
@@ -65,8 +70,14 @@ export default class Group extends Model {
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('groups').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log('groups' + result)
+        Group.insertOrUpdate({ data: result })
+        })
   }
+
+  static async getMemberLocalByMemberAndGroup (patientServiceIdentifier) {
+   }
 
   static localDbUpdate (group) {
     return db.newDb().collection('groups').doc({ id: group.id }).set(group)
@@ -83,4 +94,10 @@ export default class Group extends Model {
   static localDbDeleteAll () {
     return db.newDb().collection('groups').delete()
   }
+
+  static async localDbGetBySyncStatusToSychronize () {
+    return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
+      return result
+        })
+    }
 }

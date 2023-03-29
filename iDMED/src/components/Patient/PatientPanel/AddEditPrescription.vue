@@ -460,7 +460,7 @@ export default {
       console.log('Init Step', this.stepp)
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
-      if (this.mobile) {
+      if (this.mobile && !this.isOnline) {
         ClinicalServiceAttribute.deleteAll()
         await ClinicalServiceAttribute.localDbGetAll()
       }
@@ -956,7 +956,7 @@ export default {
       }
       this.patientVisit.patientVisitDetails = []
       if (this.member !== null && this.member !== undefined) {
-        this.curPatientVisitDetails[0].prescription.prescriptionDate = this.getJSDateFromDDMMYYY(this.prescriptionDate)
+        this.curPatientVisitDetails[0].prescription.prescriptionDate = this.getDDMMYYYFromJSDate(this.curPatientVisitDetail.prescription.prescriptionDate)
         const duration = Number((this.curPatientVisitDetails[0].prescription.duration.weeks / 4))
         this.curPatientVisitDetails[0].prescription.leftDuration = duration
           const memberPrescription = new GroupMemberPrescription({
@@ -1007,6 +1007,9 @@ export default {
               pDrug.prescription_id = memberPrescription.prescription.id
               pDrug.drug_id = pDrug.drug.id
             })
+            memberPrescription.member_id = SessionStorage.getItem('selectedMember').id
+            memberPrescription.prescription_id = this.curPatientVisitDetails[0].prescription.id
+            memberPrescription.syncStatus = 'R'
             Prescription.localDbAdd(memberPrescription.prescription)
             memberPrescription.prescription.prescribedDrugs = []
             GroupMemberPrescription.localDbAdd(memberPrescription)
