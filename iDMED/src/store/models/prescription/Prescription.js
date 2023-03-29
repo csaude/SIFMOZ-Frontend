@@ -8,6 +8,7 @@ import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Prescription extends Model {
     static entity = 'prescriptions'
@@ -110,7 +111,10 @@ export default class Prescription extends Model {
     }
 
     static localDbAdd (prescription) {
-      return db.newDb().collection('prescriptions').add(prescription)
+      return nSQL(this.entity).query('upsert',
+      prescription).exec().then(result => {
+  Prescription.insertOrUpdate({ data: prescription })
+  })
     }
 
     static async localDbGetById (id) {
@@ -118,7 +122,9 @@ export default class Prescription extends Model {
     }
 
     static localDbGetAll () {
-      return db.newDb().collection('prescriptions').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        Prescription.insertOrUpdate({ data: result })
+          })
     }
 
     static localDbUpdate (prescription) {

@@ -6,6 +6,7 @@ import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class Pack extends Model {
     static entity = 'packs'
@@ -70,7 +71,10 @@ export default class Pack extends Model {
     }
 
     static localDbAdd (pack) {
-      return db.newDb().collection('packs').add(pack)
+      return nSQL(this.entity).query('upsert',
+      pack).exec().then(result => {
+  Pack.insertOrUpdate({ data: pack })
+  })
     }
 
     static localDbGetById (id) {
@@ -78,7 +82,9 @@ export default class Pack extends Model {
     }
 
     static async localDbGetAll () {
-      return await db.newDb().collection('packs').get()
+      return nSQL(this.entity).query('select').exec().then(result => {
+        Pack.insertOrUpdate({ data: result })
+          })
     }
 
     static localDbUpdate (pack) {

@@ -5,6 +5,7 @@ import Patient from '../patient/Patient'
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class PatientTransReference extends Model {
   static entity = 'patientTransReferences'
@@ -46,8 +47,12 @@ export default class PatientTransReference extends Model {
     return await this.api().get(`/patientTransReference/${id}`)
   }
 
-  static localDbAdd (patientTransReference) {
-    return db.newDb().collection('patientTransReferences').add(patientTransReference)
+  static localDbAddOrUpdate (patientTransReference) {
+    return nSQL(this.entity).query('upsert',
+    patientTransReference
+     ).exec().then(
+      PatientTransReference.insertOrUpdate({ data: patientTransReference })
+     )
   }
 
   static localDbGetById (id) {

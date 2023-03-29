@@ -3,6 +3,7 @@ import GroupMember from '../groupMember/GroupMember'
 import Prescription from '../prescription/Prescription'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class GroupMemberPrescription extends Model {
   static entity = 'groupMemberPrescriptions'
@@ -37,15 +38,23 @@ export default class GroupMemberPrescription extends Model {
   }
 
   static localDbAdd (groupMemberPrescription) {
-    return db.newDb().collection('groupMemberPrescriptions').add(groupMemberPrescription)
+    return nSQL(this.entity).query('upsert',
+    groupMemberPrescription
+   ).exec().then(result => {
+     GroupMemberPrescription.insertOrUpdate({ data: groupMemberPrescription })
+     })
   }
 
   static localDbGetById (id) {
-    return db.newDb().collection('groupMemberPrescriptions').doc({ id: id }).get()
+    return nSQL(this.entity).query('select').where([['id', '=', id]]).exec().then(result => {
+      return result
+        })
   }
 
   static localDbGetAll () {
-    return db.newDb().collection('groupMemberPrescriptions').get()
+    return nSQL(this.entity).query('select').exec().then(result => {
+      GroupMemberPrescription.insertOrUpdate({ data: result })
+        })
   }
 
   static localDbUpdate (groupMemberPrescription) {
@@ -63,4 +72,10 @@ export default class GroupMemberPrescription extends Model {
   static localDbDeleteAll () {
     return db.newDb().collection('groupMemberPrescriptions').delete()
   }
+
+  static async localDbGetBySyncStatusToSychronize () {
+    return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
+      return result
+        })
+    }
 }
