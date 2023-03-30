@@ -54,13 +54,7 @@ export default {
     async init () {
       console.log('On PrescriptionInfo initialization')
       if (this.mobile) {
-            PatientVisit.localDbGetAll().then(visitList => {
-              visitList.forEach((visit) => {
-                if (visit.patient.id === this.patient.id) {
-                  PatientVisit.insert({ data: visit })
-                }
-              })
-            })
+            PatientVisit.localDbGetAll()
             this.flagGoReady = true
       }
       if (this.identifiers.length <= 0) {

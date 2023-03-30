@@ -43,8 +43,9 @@ import PatientServiceIdentifier from '../../../store/models/patientServiceIdenti
 import Patient from '../../../store/models/patient/Patient'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   props: ['selectedPatient'],
   data () {
     return {

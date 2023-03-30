@@ -88,16 +88,9 @@ export default {
   },
   methods: {
     async init () {
-      if (this.mobile) {
-        IdentifierType.localDbGetAll().then(idTypes => {
-          IdentifierType.update({ data: idTypes })
-        })
-        await Drug.localDbGetAll().then(drugs => {
-          Drug.insertOrUpdate({ data: drugs })
-          /* drugs.forEach((drug) => {
-            Drug.update({ where: drug.id, data: drug })
-          }) */
-        })
+      if (this.mobile && !this.isOnline) {
+        await IdentifierType.localDbGetAll()
+        await Drug.localDbGetAll()
       }
     },
     submitForm () {

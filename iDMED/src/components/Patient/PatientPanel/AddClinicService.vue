@@ -291,9 +291,10 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import moment from 'moment'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
     props: ['identifierToEdit', 'selectedPatient', 'stepp'],
-   mixins: [mixinplatform, mixinutils],
+   mixins: [mixinplatform, mixinutils, mixinIsOnline],
     data () {
         return {
             submitting: false,
@@ -542,7 +543,7 @@ export default {
         if (this.isEditStep) {
           this.identifier.startDate = this.getYYYYMMDDFromJSDate(this.getDateFromHyphenDDMMYYYY(this.identifierstartDate))
         }
-        if (this.mobile) {
+        if (this.mobile && !this.isOnline) {
           this.identifier.identifier_type_id = this.identifier.identifierType.id
           this.identifier.service_id = this.identifier.service.id
           this.identifier.patient_id = this.identifier.patient.id
@@ -626,7 +627,7 @@ export default {
           })
           transReference.identifier.episodes = []
           transReference.patient.identifiers = []
-          if (this.mobile) {
+          if (this.mobile && !this.isOnline) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -647,7 +648,7 @@ export default {
           })
           transReference.identifier.episodes = []
           transReference.patient.identifiers = []
-          if (this.mobile) {
+          if (this.mobile && !this.isOnline) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -658,10 +659,10 @@ export default {
         }
       },
       doTransReference (transReference) {
-        if (this.mobile) {
+        if (this.mobile && !this.isOnline) {
           transReference.syncStatus = 'R'
-          PatientTransReference.localDbAdd(transReference)
-          PatientTransReference.insert({ data: transReference })
+          PatientTransReference.localDbAddOrUpdate(transReference)
+          // PatientTransReference.insert({ data: transReference })
         } else {
           PatientTransReference.apiSave(transReference)
         }
