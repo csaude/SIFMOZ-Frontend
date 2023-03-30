@@ -190,7 +190,7 @@ import { ref } from 'vue'
 import { StockReferenceAdjustment } from '../../../store/models/stockadjustment/StockReferenceAdjustment'
 import ReferedStockMoviment from '../../../store/models/stockrefered/ReferedStockMoviment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import db from 'src/store/localbase'
+import DrugFile from 'src/store/models/drugFile/DrugFile'
 // import DrugFile from '../../../store/models/drugFile/DrugFile'
 
 const columns = [
@@ -231,7 +231,7 @@ export default {
     expandLess (value) {
       this.serviceInfoVisible = !value
     },
-    saveAjustment () {
+    async saveAjustment () {
       let adjustment = null
       let reference = null
       let destruction = null
@@ -293,29 +293,24 @@ export default {
         if (this.mobile) {
            if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
             reference.syncStatus = 'R'
-            ReferedStockMoviment.localDbAdd(reference).then(resp => {
+           const resp = await ReferedStockMoviment.localDbAddOrUpdate(reference)
+           console.log('RESPOSTA: ', resp)
               reference.adjustments[0].adjustedStock.syncStatus = 'U'
-              Stock.localDbUpdate(reference.adjustments[0].adjustedStock)
+              Stock.localDbAddOrUpdate(reference.adjustments[0].adjustedStock)
               this.step = 'display'
               this.adjustmentType = ''
               this.displayAlert('info', 'Operação efectuada com sucesso.')
               this.$emit('updateDrugFileAdjustment', reference.adjustments[0])
-            }).catch(error => {
-              this.displayAlert('error', error)
-            })
            } else {
             destruction.syncStatus = 'R'
-             DestroyedStock.localDbAdd(destruction).then(resp => {
+             DestroyedStock.localDbAdd(destruction)
               destruction.adjustments[0].syncStatus = 'U'
-              Stock.localDbUpdate(destruction.adjustments[0].adjustedStock)
+              Stock.localDbAddOrUpdate(destruction.adjustments[0].adjustedStock)
               this.$emit('updateDrugFileAdjustment', destruction.adjustments[0])
               this.step = 'display'
               this.adjustmentType = ''
               this.displayAlert('info', 'Operação efectuada com sucesso.')
-            }).catch(error => {
-              this.displayAlert('error', error)
-            })
-            db.newDb().collection('destruction').set(destruction)
+            // db.newDb().collection('destruction').set(destruction)
            }
            this.drugEventList.shift()
         } else {
@@ -433,6 +428,7 @@ export default {
       this.alert.visible = false
     },
     generateDrugBatchEventSummary () {
+      if (this.website) {
       Stock.apiGetDrugBatchSummary(this.currClinic.id, this.stock.id).then(resp => {
         console.log(resp.response.data)
         const t = resp.response.data
@@ -443,12 +439,17 @@ export default {
         }) */
         this.drugEventList = t
       })
+    } else {
+      DrugFile.getDrugFileSummaryBatch(this.stock.id).then(resp => {
+        this.drugEventList = resp
+      })
+    }
     }
   },
   computed: {
     stock () {
-      if (this.website) return this.stockInfo
-      return Stock.query().where('id', this.batchS.stockId).first()
+     return this.stockInfo
+     // return Stock.query().where('id', this.batchS.stockId).first()
     },
     getValidade () {
       return this.determineValidade()
@@ -492,11 +493,7 @@ export default {
     }
   },
   mounted () {
-    if (this.website) {
     this.generateDrugBatchEventSummary()
-    } else {
-       this.drugEventList.push(this.batchS)
-    }
   },
   components: {
     Dialog: require('components/Shared/Dialog/Dialog.vue').default,

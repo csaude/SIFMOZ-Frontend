@@ -96,14 +96,14 @@
           :mainContainer="false"
           bgColor="bg-primary">Informação por Lote
         </list-header>
-        <div v-if = "mobile">
+        <!--div v-if = "mobile">
           <span  v-for="batchS in drugEventListBatch" :key="batchS.id" >
             <lote-info-container :batchS="batchS" @updateDrugFileAdjustment ="updateDrugFileAdjustment" />
           </span>
-        </div>
-        <div v-else-if="website">
+        </div -->
+        <div >
           <span v-for="lote in drug.stocks" :key="lote.id" >
-          <lote-info-container :stockInfo="lote"  />
+          <lote-info-container :stockInfo="lote"  @updateDrugFileAdjustment ="updateDrugFileAdjustment"  />
         </span>
         </div>
       </div>
@@ -126,7 +126,6 @@ import Stock from '../../../store/models/stock/Stock'
 import Clinic from '../../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import DrugFile from '../../../store/models/drugFile/DrugFile'
-import db from 'src/store/localbase'
 
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
@@ -194,9 +193,14 @@ export default {
     hideLoading () {
       this.$q.loading.hide()
     },
-    generateDrugEventSummary () {
+   async generateDrugEventSummary () {
       if (this.mobile) {
-       this.drugFile = DrugFile.query().where('drugId', this.drug.id).first()
+// 1 criar drugFile
+this.showloading()
+this.drugEventList = await DrugFile.getDrugFileSummary(this.drug)
+this.hideLoading()
+
+     /* this.drugFile = DrugFile.query().where('drugId', this.drug.id).first()
                // busca do local base e faz insert no VueX ORM
               db.newDb().collection('drugFile').get().then(drugFile => {
                 DrugFile.insert(
@@ -209,7 +213,7 @@ export default {
                  console.log('VueX ORM: ', DrugFile.all())
                  this.drugEventList = this.drugFile.drugFileSummary
                  this.drugEventListBatch = this.drugFile.drugFileSummaryBatch // DrugFile.all()[1].drugFileSummaryBatch
-               })
+               }) */
           } else {
               this.showloading()
               Stock.apiGetDrugSummary(this.clinic.id, this.drug.id).then(resp => {
@@ -226,7 +230,6 @@ export default {
           }
     },
      updateDrugFileAdjustment (adjustment) {
-         console.log(' this.drugFile.drugFileSummary[0]::', this.drugFile.drugFileSummary[0])
         // Actualiza o resumo por Drug
       if (adjustment.constructor.name === 'StockReferenceAdjustment' && adjustment.operation.code === 'AJUSTE_POSETIVO') {
           this.drugFile.drugFileSummary[0].posetiveAdjustment += adjustment.adjustedValue
@@ -256,6 +259,9 @@ export default {
             }
            }
            }
+           DrugFile.getDrugFileSummary(this.drug).then(item => {
+            this.drugEventList = item
+           })
       }
   },
   mounted () {
