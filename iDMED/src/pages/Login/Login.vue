@@ -227,6 +227,7 @@ import User from 'src/store/models/userLogin/User'
 import mixinEncryption from 'src/mixins/mixin-encryption'
 import bcrypt from 'bcryptjs'
 import Menu from 'src/store/models/userLogin/Menu'
+// import PatientVisit from '../../store/models/patientVisit/PatientVisit'
 export default {
   mixins: [mixinplatform, mixinutils, mixinEncryption],
   data () {
@@ -266,6 +267,7 @@ export default {
     this.loadProvinceAndDistrict()
     this.loadSystemConfigs()
     this.loadMenusFromLocalToVuex()
+  //  PatientVisit.getVisits()
     setTimeout(() => {
       this.$q.loading.hide()
     }, 600)
@@ -444,6 +446,7 @@ export default {
         if (this.website) {
           this.loginOnline(encodedStringBtoA)
         } else {
+          localStorage.setItem('isSyncronizing', 'false')
           User.localDbGetAll().then((users) => {
             if (users !== undefined && users.length > 0) {
               console.log('users:' + users)
@@ -507,6 +510,7 @@ export default {
           localStorage.setItem('encodeBase64', encodedStringBtoA)
           localStorage.setItem('role_menus', response.response.data.menus)
           localStorage.setItem('sync_pass', this.encryptPlainText('user.sync'))
+          localStorage.setItem('clinic_sectors', response.response.data.userClinicSectors)
           this.$router.push({ path: '/' })
         })
         .catch((error) => {
