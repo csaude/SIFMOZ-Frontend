@@ -47,7 +47,7 @@
                 <q-td key="order" :props="props" v-if="false">
                 </q-td>
                 <q-td key="drug" :props="props">
-                  {{props.row.drug}}
+                  {{props.row.drugName}}
                 </q-td>
                 <q-td key="avgConsuption" :props="props">
                   {{props.row.avgConsuption}}
@@ -82,7 +82,6 @@ import { SessionStorage } from 'quasar'
 import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
 import Clinic from '../../store/models/clinic/Clinic'
-import Drug from '../../store/models/drug/Drug'
 import mixincrypt from 'src/mixins/mixin-encryption'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import StockAlert from '../../store/models/stockAlert/StockAlert'
@@ -91,7 +90,7 @@ import mixinutils from 'src/mixins/mixin-utils'
 // import CryptoJS from 'crypto-js'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
-  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
+  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drugName, format: val => `${val}` },
   { name: 'avgConsuption', required: true, label: 'Média de Consumo Mensal', align: 'left', field: row => row.avgConsuption, format: val => `${val}` },
   { name: 'balance', required: true, label: 'Saldo actual', align: 'left', field: row => row.balance, format: val => `${val}` },
   { name: 'state', required: true, label: 'Estado', align: 'left', field: row => row.state, format: val => `${val}` },
@@ -112,8 +111,8 @@ export default {
   },
   methods: {
     openDrugFile (drugInfo) {
-      const drug = Drug.find(drugInfo.id)
-      console.log(drug)
+      const drug = drugInfo.drug
+      console.log(drugInfo.drug)
       SessionStorage.set('selectedDrug', drug)
       this.$router.push('/stock/drugFile')
     },
@@ -141,7 +140,9 @@ export default {
         this.hideLoading()
       })
       } else {
+        this.showloading()
        const list = await StockAlert.localDbGetStockAlert()
+       this.hideLoading()
        this.rowData = list
       }
     },

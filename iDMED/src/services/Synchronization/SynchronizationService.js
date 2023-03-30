@@ -418,29 +418,22 @@ async apiSendEntrances (entrancesToSync, i) {
  const entrance = entrancesToSync[i]
  if (entrance !== undefined) {
    entrance.clinic = SessionStorage.getItem('currClinic')
-   let toUpdates = []
-   Stock.localDbGetAll().then((stocks) => {
-   toUpdates = stocks.filter((stock) => stock.entrance_id === entrance.id)
+  const toUpdates = Stock.localDbGetByStockEntranceId(entrance)
    entrance.stocks = toUpdates
    StockEntrance.syncStockEntrance(entrance).then(resp => {
       i = i + 1
       entrance.syncStatus = 'S'
       toUpdates.forEach(toUpdate => {
         toUpdate.syncStatus = 'S'
-        Stock.localDbUpdate(toUpdate)
+        Stock.localDbAddOrUpdate(toUpdate)
       })
-      StockEntrance.localDbUpdate(entrance).then(entr => {
-        StockEntrance.insert(
-          { data: entrance })
-
-        setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
-      })
+      StockEntrance.localDbAddOrUpdate(entrance)
+       setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
       // Get Childs TO Update
   }).catch(error => {
     console.log(error)
     i = i + 1
     setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
-  })
   })
  } else {
   this.sendInventory()
@@ -872,7 +865,7 @@ login (username, password) {
       })
       localStorage.setItem('isSyncronizing', 'true')
       this.syncronizeAudit()
-  //  this.sendEntrances()
+      this.sendEntrances()
  //   this.getRolesToSend()
   //    this.getUsersToSend()
       this.getPatientsToSend()
