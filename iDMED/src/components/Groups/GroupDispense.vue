@@ -241,9 +241,15 @@ export default {
         this.pickupDate = this.getDDMMYYYFromJSDate(this.defaultPickUpDate)
       }
       if (this.mobile) {
-        await Drug.localDbGetAll()
-        await Duration.localDbGetAll()
-        await DispenseMode.localDbGetAll()
+        await Drug.localDbGetAll().then(drugs => {
+          Drug.insertOrUpdate({ data: drugs })
+        })
+        await Duration.localDbGetAll().then(drugs => {
+          Duration.insertOrUpdate({ data: drugs })
+        })
+        await DispenseMode.localDbGetAll().then(drugs => {
+          DispenseMode.insertOrUpdate({ data: drugs })
+        })
       }
     },
       date: ref(moment(date).format('YYYY/MM/DD')),
@@ -282,12 +288,7 @@ export default {
       let error = 'A data de levantamento não pode ser menor que a data das ultimas prescrições dos pacientes : ['
       let invalidPrescription = ''
       this.selectedGroup.members.forEach((member) => {
-        let memberPrescriptionDate = ''
-         if (member.groupMemberPrescription !== null) {
-           memberPrescriptionDate = moment(member.groupMemberPrescription.prescription.prescriptionDate).format('YYYY-MM-DD')
-         } else {
-           memberPrescriptionDate = member.patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDate
-         }
+        const memberPrescriptionDate = moment(member.groupMemberPrescription.prescription.prescriptionDate).format('YYYY-MM-DD')
         const dispenseDate = moment(pickupDate, 'DD-MM-YYYY').format('YYYY-MM-DD')
         if (moment(dispenseDate).isBefore(memberPrescriptionDate, 'day')) {
           invalidPrescription += invalidPrescription === '' ? member.patient.fullName : ', ' + member.patient.fullName
@@ -478,7 +479,7 @@ export default {
           // patientVisit.patientVisitDetails[0].prescription.calculateLeftDuration(JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
 
           Pack.localDbAdd(JSON.parse(JSON.stringify(groupPacks[i].pack)))
-        //  Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) })
+          Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) })
           patientVisit.patientVisitDetails[0].pack = JSON.parse(JSON.stringify(groupPacks[i].pack))
           patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
           patientVisit.clinic_id = patientVisit.clinic.id
@@ -489,8 +490,8 @@ export default {
           patientVisit.patientVisitDetails[0].prescription_id = patientVisit.patientVisitDetails[0].prescription.id
           patientVisit.patientVisitDetails[0].pack_id = patientVisit.patientVisitDetails[0].pack.id
 
-          PatientVisit.localDbAddOrUpdate(patientVisit)
-         // PatientVisit.insert({ data: patientVisit })
+          PatientVisit.localDbAdd(patientVisit)
+          PatientVisit.insert({ data: patientVisit })
 
           i = i + 1
           setTimeout(this.savePatientVisitDetails(groupPacks, i), 4)
@@ -505,13 +506,11 @@ export default {
           this.curGroupPackHeader.duration_id = this.curGroupPackHeader.duration.id
           this.curGroupPackHeader.group_id = this.group.id
           this.curGroupPackHeader.group = null
-          this.curGroupPackHeader.syncStatus = 'R'
           console.log(this.curGroupPackHeader)
           GroupPackHeader.localDbAdd(JSON.parse(JSON.stringify(this.curGroupPackHeader)))
-         // GroupPackHeader.insert({ data: this.curGroupPackHeader })
+          GroupPackHeader.insert({ data: this.curGroupPackHeader })
           this.submitting = false
           this.displayAlert('info', 'Operação efectuada com sucesso.')
-          this.$emit('getGroupMembers', false)
         }
       } else {
         if (groupPacks[i] !== null && groupPacks[i] !== undefined) {

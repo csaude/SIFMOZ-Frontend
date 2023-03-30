@@ -183,7 +183,7 @@ export default {
     },
     fecthMembersData () {
       this.group.members.forEach((member) => {
-        member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.episodes'])
+        member.patient = Patient.query().with(['identifiers.identifierType', 'identifiers.service.identifierType'])
                                 .with('province')
                                 .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                                 .where('id', member.patient.id).first()
@@ -197,23 +197,19 @@ export default {
       if (this.mobile) {
         await this.group.members.forEach((member) => {
            GroupMemberPrescription.localDbGetAll().then(memberPrescriptions => {
-         if (memberPrescriptions !== undefined && memberPrescriptions !== null && memberPrescriptions.length > 0) {
             memberPrescriptions.forEach((mPre) => {
               if (mPre.member.id === member.id && !mPre.used) {
                 GroupMemberPrescription.insert({ data: mPre })
               }
             })
-          }
           })
         })
         await GroupPackHeader.localDbGetAll().then(items => {
-          if (items !== undefined && items !== null && items.length > 0) {
           items.forEach((item) => {
             if (item.group_id === this.group.id) {
               GroupPackHeader.insert({ data: item })
             }
           })
-        }
         })
 
         this.membersInfoLoaded = true

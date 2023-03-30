@@ -74,7 +74,7 @@ export default class PatientVisit extends Model {
   }
 
   static async apiGetLastVisitOfPatient (patientId) {
-    return await this.api().get('/patientVisit/lastofPatient/' + patientId)
+    return await this.api().get('/patientVisit/getLastVisitOfPatient/' + patientId)
   }
 
   static localDbAddOrUpdate (patientVisit) {
@@ -101,18 +101,7 @@ export default class PatientVisit extends Model {
   }
 
   static localDbGetAll () {
-    return nSQL(this.entity).query('select').exec().then(result => {
-      if (result.length > 0) {
-        result.forEach(result => {
-          PatientVisit.insertOrUpdate({ data: result })
-          result.patientVisitDetails.forEach((pvd) => {
-           PatientVisitDetails.insertOrUpdate({ data: pvd })
-        Prescription.insertOrUpdate({ data: pvd.prescription })
-         Pack.insertOrUpdate({ data: pvd.pack })
-        })
-         })
-      }
-        })
+    return db.newDb().collection('patientVisits').get()
   }
 
   static localDbUpdate (patientVisit) {
@@ -181,12 +170,4 @@ Prescription.insertOrUpdate({ data: pvd.prescription })
     return result
       })
   }
-
-  static getVisits () {
-    nSQL().onConnected(() => {
-      nSQL(this.entity).query('select', ['JSON_EXTRACT(patientVisitDetails, "$[*].pack") as pack']).exec().then(result => {
-        console.log(result)
-      })
-     })
-   }
 }

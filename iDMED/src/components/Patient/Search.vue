@@ -157,12 +157,6 @@ import Patient from 'src/store/models/patient/Patient'
 import TransferenceService from 'src/services/Transferences/TransferenceService'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
-import mixinEncryption from 'src/mixins/mixin-encryption'
-// import Episode from '../../store/models/episode/Episode'
-// import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
-import Prescription from '../../store/models/prescription/Prescription'
-import Pack from 'src/store/models/packaging/Pack'
-// import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
 const columns = [
  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   { name: 'identifier', align: 'left', label: 'Identificador', sortable: false },
@@ -172,7 +166,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-    mixins: [mixinplatform, mixinutils, mixinEncryption],
+    mixins: [mixinplatform, mixinutils],
     data () {
       return {
         searchField: '',
@@ -268,43 +262,21 @@ export default {
         this.newPatient = true
         this.openMrsPatient = true
       },
-      goToPatientPanel (selectedPatient, isImported) {
-         this.$q.loading.show({
+      goToPatientPanel (selectedPatient) {
+        /* this.$q.loading.show({
           message: 'Carregando ...',
           spinnerColor: 'grey-4',
           spinner: QSpinnerBall
         })
-      //  if (isImported) {
-          console.log(JSON.parse(JSON.stringify(selectedPatient)))
-      //   Patient.loadPatientWithIdentifiersEpisodeAndVisitFromServer(selectedPatient)
-         setTimeout(() => {
+
+        setTimeout(() => {
           this.$q.loading.hide()
-        }, 5000)
-      // }
+        }, 1000) */
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
-      loadVisitDetailsInfo (visitDetails, i) {
-      if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
-        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
-          visitDetails[i].prescription = resp.response.data
-          if (visitDetails[i].pack !== null) {
-            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-              visitDetails[i].pack = resp.response.data
-             // this.flagGoReady = true
-            })
-          } else {
-          //  this.flagGoReady = true
-          }
-        })
-      } else {
-       // this.flagGoReady = true
-      }
-    },
        proccedToPatientPanel (patient) {
          SessionStorage.set('selectedPatient', patient)
         this.$router.push('/patientpanel')
-      },
-      buildPatientVisitToLocalDB () {
       },
       filterPatient (patient) {
         console.log(patient.firstNames)
@@ -378,7 +350,7 @@ export default {
             }, 400)
         }
       },
-      async localSearch () {
+      localSearch () {
         this.showloading()
         if (this.website) {
           console.log('Performing website search')
@@ -388,32 +360,39 @@ export default {
             // this.patientList = resp.response.data
 
           if (resp.response.data.length >= 0) {
-            this.patients = this.getPatientsVuex()
+            this.patients = Patient.query()
+                                      .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                      .with('province')
+                                      .with('attributes')
+                                      .with('appointments')
+                                      .with('district.*')
+                                      .with('postoAdministrativo')
+                                      .with('bairro')
+                                      .with(['clinic.province', 'clinic.district.province'])
+                                      .where('clinic_id', this.clinic.id)
+                                      .orderBy('firstNames')
+                                      .orderBy('identifiers.value', 'asc')
+                                      .get()
             }
           })
         } else {
           console.log('Performing local search')
-          const patients = this.getPatientsVuex()
+          const patients = Patient.query()
+                                .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                .with('province')
+                                .with('attributes')
+                                .with('appointments')
+                                .with('district.*')
+                                .with('postoAdministrativo')
+                                .with('bairro')
+                                .with(['clinic.province', 'clinic.district.province'])
+                                .where('clinic_id', this.clinic.id)
+                                .orderBy('firstNames')
+                                .orderBy('identifiers.value', 'asc')
+                                .get()
           this.patients = patients.filter((patient) => {
             return this.filterPatient(patient)
           })
-          if (this.patients.length === 0) {
-            const userPass = localStorage.getItem('sync_pass')
-          const decryptedPass = this.decryptPlainText(userPass)
-           this.loginToBackend(decryptedPass).then(result => {
-            if (result === 'Success') {
-              Patient.deleteAll()
-              this.currPatient.clinic = this.clinic
-              Patient.apiSearch(this.currPatient).then(resp => {
-            // this.patientList = resp.response.data
-
-          if (resp.response.data.length >= 0) {
-            this.patients = this.getPatientsVuex()
-            }
-          })
-            }
-           })
-          }
         }
       },
       openMRSSerach (his) {
@@ -535,24 +514,6 @@ export default {
               // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
               // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
               return localpatient
-      },
-      searchPatientsBackend () {
-
-      },
-      getPatientsVuex () {
-        return Patient.query()
-                                .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                                .with('province')
-                                .with('attributes')
-                                .with('appointments')
-                                .with('district.*')
-                                .with('postoAdministrativo')
-                                .with('bairro')
-                                .with(['clinic.province', 'clinic.district.province'])
-                                .where('clinic_id', this.clinic.id)
-                                .orderBy('firstNames')
-                                .orderBy('identifiers.value', 'asc')
-                                .get()
       }
     },
     computed: {

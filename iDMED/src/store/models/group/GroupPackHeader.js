@@ -4,7 +4,6 @@ import Group from './Group'
 import GroupPack from './GroupPack'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
-import { nSQL } from 'nano-sql'
 
 export default class GroupPackHeader extends Model {
   static entity = 'groupPackHeaders'
@@ -43,11 +42,7 @@ export default class GroupPackHeader extends Model {
   }
 
   static localDbAdd (groupPackHeader) {
-    return nSQL(this.entity).query('upsert',
-    groupPackHeader
-   ).exec().then(result => {
-    GroupPackHeader.insertOrUpdate({ data: groupPackHeader })
-     })
+    return db.newDb().collection('groupPackHeaders').add(groupPackHeader)
   }
 
   static localDbGetById (id) {
@@ -55,9 +50,7 @@ export default class GroupPackHeader extends Model {
   }
 
   static localDbGetAll () {
-    return nSQL(this.entity).query('select').exec().then(result => {
-      GroupPackHeader.insertOrUpdate({ data: result })
-        })
+    return db.newDb().collection('groupPackHeaders').get()
   }
 
   static localDbUpdate (groupPackHeader) {
@@ -75,10 +68,4 @@ export default class GroupPackHeader extends Model {
   static localDbDeleteAll () {
     return db.newDb().collection('groupPackHeaders').delete()
   }
-
-  static async localDbGetBySyncStatusToSychronize () {
-    return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
-      return result
-        })
-    }
 }

@@ -81,10 +81,9 @@ import ClinicalService from '../../../store/models/ClinicalService/ClinicalServi
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
-import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
   props: ['identifier', 'selectedPatient'],
-   mixins: [mixinplatform, mixinutils, mixinIsOnline],
+   mixins: [mixinplatform, mixinutils],
   data () {
     return {
       isPatientActive: false,
@@ -103,7 +102,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.isOnline) {
+      if (this.website) {
         PatientServiceIdentifier.apiFetchById(this.curIdentifier.id)
         Episode.apiGetAllByIdentifierId(this.curIdentifier.id)
       }
@@ -149,7 +148,7 @@ export default {
     },
     doOnConfirm () {
       this.closeDialog()
-      if (this.isOnline) {
+      if (this.website) {
         Episode.apiRemove(this.selectedEpisode).then(resp => {
           Episode.delete(this.selectedEpisode.id)
           this.displayAlert('info', 'Operação efectuada com sucesso.')
@@ -281,7 +280,7 @@ export default {
     }
   },
   created () {
-    if (this.isOnline) {
+    if (this.website) {
       PatientServiceIdentifier.apiGetAllByPatientId(this.selectedPatient.id)
     }
   }

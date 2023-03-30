@@ -94,9 +94,8 @@ import Patient from '../../../store/models/patient/Patient'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import Province from '../../../store/models/province/Province'
-import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-    mixins: [mixinplatform, mixinutils, mixinIsOnline],
+    mixins: [mixinplatform, mixinutils],
   data () {
     return {
       showPatientRegister: false,
@@ -108,10 +107,10 @@ export default {
     init () {
       this.patient = this.selectedPatient
       this.changeToDisplayStep()
-      if (this.selectedPatient === null && this.isOnline) {
+      if (this.selectedPatient === null && this.website) {
         Patient.apiFetchById(SessionStorage.getItem('selectedPatient').id)
       }
-      if (!this.isOnline) {
+      if (this.mobile) {
         Province.localDbGetAll()
       }
       console.log(this.selectedPatient)

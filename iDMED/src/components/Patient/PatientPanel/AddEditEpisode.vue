@@ -115,7 +115,7 @@
                         outlined
                         class="col"
                         v-model="stopDate"
-                        :disable="episode.id !== null && !isEditStep"
+                        :disable="episode.id !== null && isEditStep"
                         ref="stopDate"
                         label="Data *">
                         <template v-slot:append>
@@ -132,7 +132,7 @@
                     </q-input>
                   <q-select
                       class="col q-ml-md"
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && isEditStep"
                       dense outlined
                       ref="stopReason"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
@@ -148,7 +148,7 @@
                       class="col" dense outlined
                       v-model="selectedProvince"
                       use-input
-                      :disable="(episode.id !== null && !isEditStep) || isReferenceEpisode"
+                      :disable="(episode.id !== null && isEditStep) || isReferenceEpisode"
                       ref="province"
                       input-debounce="0"
                       :options="provinces"
@@ -159,7 +159,7 @@
                       class="col q-ml-md" dense outlined
                       v-model="selectedDistrict"
                       use-input
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && isEditStep"
                       ref="district"
                       input-debounce="0"
                       :options="districts"
@@ -169,7 +169,7 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && isEditStep"
                       ref="referralClinic"
                       :rules="[ val => !!val || 'Por favor indicar o destino do paciente.']"
                       v-model="closureEpisode.referralClinic"
@@ -183,7 +183,7 @@
                       class="col" dense outlined
                       v-model="selectedClinicSectorType"
                       use-input
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && isEditStep"
                       ref="clinicSectorType"
                       input-debounce="0"
                       :options="clinicSectorTypes"
@@ -193,7 +193,7 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && isEditStep"
                       ref="referealClinicSector"
                       :rules="[ val => !!val || 'Por favor indicar o sector de dispensa.']"
                       v-model="selectedClinicSector"
@@ -206,7 +206,7 @@
                     <TextInput
                       v-model="closureEpisode.notes"
                       label="Outras notas do episódio"
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && isEditStep"
                       ref="endNotes"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
                       dense
@@ -247,10 +247,9 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import moment from 'moment'
-import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
-    mixins: [mixinplatform, mixinutils, mixinIsOnline],
+    mixins: [mixinplatform, mixinutils],
     emits: ['update:submitting'],
     data () {
         return {
@@ -290,8 +289,8 @@ export default {
                                                   .first()
         } else {
           if (this.identifier.lastEpisode() !== null && this.identifier.lastEpisode().isStartEpisode() && (this.episode !== null || this.episode !== undefined)) {
-           // this.episode = new Episode(this.identifier.lastEpisode())
-           // this.changeToCloseStep()
+            this.episode = new Episode(this.identifier.lastEpisode())
+            this.changeToCloseStep()
           }
         }
         if (this.mobile) {
@@ -396,7 +395,7 @@ export default {
                                                                           .where('id', this.selectedClinicSector.id)
                                                                           .first()
                         }
-                        if (this.mobile && !this.isOnline) {
+                        if (this.mobile) {
                           this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
                           this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
                           this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
@@ -436,7 +435,7 @@ export default {
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
           this.episode.patientServiceIdentifier.episodes = []
           const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
-          if (this.mobile && !this.isOnline) {
+          if (this.mobile) {
             lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
             lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
@@ -484,7 +483,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.mobile && !this.isOnline) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -503,7 +502,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.mobile && !this.isOnline) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -533,10 +532,10 @@ export default {
         return false
       },
       doTransReference (transReference) {
-        if (this.mobile && !this.isOnline) {
+        if (this.mobile) {
           transReference.syncStatus = 'R'
-          PatientTransReference.localDbAddOrUpdate(transReference)
-       //  PatientTransReference.insert({ data: transReference })
+          PatientTransReference.localDbAdd(transReference)
+          PatientTransReference.insert({ data: transReference })
         } else {
           PatientTransReference.apiSave(transReference)
         }

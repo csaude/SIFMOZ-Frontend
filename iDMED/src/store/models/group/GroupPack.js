@@ -3,7 +3,6 @@ import Pack from '../packaging/Pack'
 import GroupPackHeader from './GroupPackHeader'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
-import { nSQL } from 'nano-sql'
 
 export default class GroupPack extends Model {
   static entity = 'groupPacks'
@@ -34,11 +33,7 @@ export default class GroupPack extends Model {
   }
 
   static localDbAdd (groupPack) {
-    return nSQL(this.entity).query('upsert',
-    groupPack
-   ).exec().then(result => {
-    GroupPack.insertOrUpdate({ data: groupPack })
-     })
+    return db.newDb().collection('groupPacks').add(groupPack)
   }
 
   static localDbGetById (id) {
@@ -46,9 +41,7 @@ export default class GroupPack extends Model {
   }
 
   static localDbGetAll () {
-    return nSQL(this.entity).query('select').exec().then(result => {
-      GroupPack.insertOrUpdate({ data: result })
-        })
+    return db.newDb().collection('groupPacks').get()
   }
 
   static localDbUpdate (groupPack) {
