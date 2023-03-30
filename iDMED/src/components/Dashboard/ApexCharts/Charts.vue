@@ -1,51 +1,51 @@
 <template>
 <div>
-  <div class="row q-mt-lg">
-    <div class="col">
+  <div class='row q-mt-lg'>
+    <div class='col'>
     </div>
-    <div class="col-10">
-     <div class="row justify-center ">
-      <div class="q-ml-md" v-for="(item) in this.clinicalServiceReports" :key="item.id">
-        <q-btn :color=item.colour @click="setServiceCode(item.service)" :style=item.style>
-          <q-icon left size="6em" :name=item.icon  />
+    <div class='col-10'>
+     <div class='row justify-center '>
+      <div class='q-ml-md' v-for='(item) in this.clinicalServiceReports' :key='item.id'>
+        <q-btn :color=item.colour @click='setServiceCode(item.service)' :style=item.style>
+          <q-icon left size='6em' :name=item.icon  />
           <div >Serviço  {{item.service}} <br> {{item.quantity}} Pacientes Activos ao Levantamento </div>
         </q-btn>
       </div>
     </div>
     </div>
-    <div class="col q-mt-lg">
+    <div class='col q-mt-lg'>
       <q-input
-        class="col q-mr-md"
+        class='col q-mr-md'
           dense
           outlined
-          v-model="year"
-          type="number"
-          label="Ano"
+          v-model='year'
+          type='number'
+          label='Ano'
       />
     </div>
   </div>
-  <div class="q-mt-lg">
-  <p align="center"> <strong>Serviço {{serviceCode}} </strong></p>
+  <div class='q-mt-lg'>
+  <p align='center'> <strong>Serviço {{serviceCode}} </strong></p>
   </div>
-        <div class="q-mt-lg">
-          <BarByDispenseType class="graph-conainer" v-bind:serviceCode=serviceCode :year="year" />
+        <div class='q-mt-lg'>
+          <BarByDispenseType class='graph-conainer' v-bind:serviceCode=serviceCode :year='year' />
         <div
-      class=""
-      key="allCharts"
+      class=''
+      key='allCharts'
     >
-    <div class="row">
-      <LineByAge class="col graph-conainer" :serviceCode=serviceCode :year="year" > </LineByAge>
-      <PieGenderChart class="col graph-conainer" :serviceCode=serviceCode :year="year" > </PieGenderChart>
-      <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year" v-if="this.website"> </LineBySex>
+    <div class='row'>
+      <LineByAge class='col graph-conainer' :serviceCode=serviceCode :year='year' > </LineByAge>
+      <PieGenderChart class='col graph-conainer' :serviceCode=serviceCode :year='year' > </PieGenderChart>
+      <LineBySex class='col graph-conainer' :serviceCode=serviceCode :year='year' v-if='this.website'> </LineBySex>
     </div>
-    <div class="row" v-if="this.mobile">
-      <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year"> </LineBySex>
-      <DispenseTypeByGenderTable class="col-6 " :serviceCode=serviceCode :year="year"/>
+    <div class='row' v-if='this.mobile'>
+      <LineBySex class='col graph-conainer' :serviceCode=serviceCode :year='year'> </LineBySex>
+      <DispenseTypeByGenderTable class='col-6 ' :serviceCode=serviceCode :year='year'/>
     </div>
-      <div class="row q-mb-xl q-ma-md" >
-        <DispenseTypeByAgeTable class="col-4 " :serviceCode=serviceCode :year="year" />
-        <StockAlert class="col q-mx-md" :serviceCode=serviceCode :year="year" />
-        <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year" v-if="this.website"/>
+      <div class='row q-mb-xl q-ma-md' >
+        <DispenseTypeByAgeTable class='col-4 ' :serviceCode=serviceCode :year='year' />
+        <StockAlert class='col q-mx-md' :serviceCode=serviceCode :year='year' />
+        <DispenseTypeByGenderTable class='col-3 ' :serviceCode=serviceCode :year='year' v-if='this.website'/>
       </div>
     </div>
          </div>
@@ -53,12 +53,16 @@
 </template>
 
 <script>
-import patientServiceIdentifier from '../../../store/models/patientServiceIdentifier/patientServiceIdentifier'
+// import patientServiceIdentifier from '../../../store/models/patientServiceIdentifier/patientServiceIdentifier'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+// import { nSQL } from '@nano-sql/core'
+import { nSQL } from 'nano-sql'
+import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
+import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 export default {
     mixins: [mixinplatform],
      props: ['dataLoaded'],
@@ -91,13 +95,74 @@ export default {
       },
       getDashboardServiceButton () {
         if (this.mobile) {
-          console.log('Mobile')
-          patientServiceIdentifier.getDashboardServiceButton(this.year, this.clinic.id)
-          Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
-            this.clinicalServiceReports = resp.response.data
+          // nSQL([
+          //   { a: 1, b: 10 },
+          //   { a: 2, b: 20 },
+          //   { a: 1, b: 40 }
+          // ])
+          // .query('select', ['a', 'SUM(b) AS b'])
+          // .groupBy(['a ASC'])
+          // .exec().then(function (result) {
+          //   console.log(result)
+          // })
+          // nSQL('patientVisits')
+          // // Ver como usar distinct; CASE
+          // .query('select', ['patients[id] AS patient_id', 'patientVisits[visitDate] AS visit_date', 'patients[gender] AS gender', 'identifiers[startDate] AS start_date', 'patientVisitDetails[prescription_id] AS prescription_id'])
+          // .join(
+          //   [{
+          //     type: 'inner',
+          //     table: 'patients',
+          //     where: ['patientVisits.patient_id', '=', 'patients.id']
+          //   },
+          //   {
+          //     type: 'inner',
+          //     table: 'identifiers',
+          //     where: ['identifiers.patient_id', '=', 'patients.id']
+          //   },
+          //   {
+          //     type: 'inner',
+          //     table: 'episodes',
+          //     where: ['episodes.patientServiceIdentifier_id', '=', 'identifiers.id']
+          //   },
+          //   {
+          //     type: 'inner',
+          //     table: 'patientVisitDetails',
+          //     where: ['patientVisitDetails.episode_id', '=', 'episodes.id']
+          //   }]
+          // )
+          // .exec().then(function (result1) {
+          //   console.log('patientVisits_1: ', result1)
+          // })
+
+          nSQL(PatientServiceIdentifier.entity).query('select', ['service_id AS service_ident'])
+          // .where(['identifiers.clinic_id', '=', this.clinic.id])
+          // .where(['identifiers.endDate', '<=', endDateObj])
+          .exec().then(result => {
+            console.log('RESULT_1: ', result)
+          })
+
+          nSQL(ClinicalService.entity).query('select', ['id AS service'])
+          // .where(['identifiers.clinic_id', '=', this.clinic.id])
+          // .where(['identifiers.endDate', '<=', endDateObj])
+          .exec().then(result => {
+            console.log('RESULT_2: ', result)
+          })
+
+          // Butoes de Servico de Saude
+          nSQL('identifiers').query('select', ['clinicalServices.code As service', 'COUNT(*) As quantity'])
+          .join({
+            type: 'inner',
+            table: 'clinicalServices',
+            where: ['identifiers.service_id', '=', 'clinicalServices.id']
+          })
+          .groupBy({ 'clinicalServices.code': 'ASC' })
+          // .where(['identifiers.clinic_id', '=', this.clinic.id])
+          // .where(['identifiers.endDate', '<=', endDateObj])
+          .exec().then(result => {
+            console.log('RESULT: ', result)
+            this.clinicalServiceReports = result
             if (this.clinicalServiceReports.length > 0) {
               this.clinicalServiceReports.forEach((item) => {
-                console.log('AAAAAAAAAAA: ', item)
                 if (item.service === 'TARV') {
                   item.colour = 'green'
                   item.icon = 'medication'
@@ -114,11 +179,11 @@ export default {
                   item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
                 }
               })
-              }
+            }
             this.loading = false
           })
         } else {
-          console.log('NO_Mobile')
+          console.log('WEB')
           Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
             this.clinicalServiceReports = resp.response.data
             if (this.clinicalServiceReports.length > 0) {
@@ -184,7 +249,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang='scss'>
     .graph-conainer {
       border: 1px solid $grey-13;
       border-radius: 10px;

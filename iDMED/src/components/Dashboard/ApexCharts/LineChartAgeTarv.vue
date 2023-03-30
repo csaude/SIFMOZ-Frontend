@@ -1,16 +1,16 @@
 <template>
-<div class="relative-position">
+<div class= 'relative-position '>
   <apexchart
-    style="max-width: 100%; "
-    height="500"
-    type="line"
-    :options="chartOptions"
-    :series="series"
+    style= 'max-width: 100%  '
+    height= '500 '
+    type= 'line '
+    :options= 'chartOptions '
+    :series= 'series '
 ></apexchart>
-<div v-if="!loaded" class="absolute-center">
+<div v-if= '!loaded ' class= 'absolute-center '>
         <q-spinner-ball
-          color="primary"
-          size="xl"
+          color= 'primary '
+          size= 'xl '
         />
       </div>
 </div>
@@ -22,8 +22,11 @@
 import Clinic from '../../../store/models/clinic/Clinic'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import { nSQL } from 'nano-sql'
 const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 export default {
+      mixins: [mixinplatform],
    props: ['serviceCode', 'year'],
      emits: ['update:serviceCode'],
       Nmap: new Map(),
@@ -97,6 +100,79 @@ tooltip: {
       const fm = { name: 'Criancas', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
       const ms = { name: 'Adultos', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
 
+      if (!this.mobile) {
+        nSQL()
+        .query('selec', ['count(*) AS quantity',
+          'pat_disp.month',
+          'pat_disp.faixa'
+        ])
+        .join({
+          type: 'inner',
+          table: 'patientVisits',
+          on: ['patient_id', '=', 'id']
+        })
+        .join({
+          type: 'inner',
+          table: 'patient',
+          on: ['id', '=', 'patient_id']
+        })
+        .join({
+          type: 'inner',
+          table: 'patient_service_identifier',
+          on: ['patient_id', '=', 'id']
+        })
+        .join({
+          type: 'inner',
+          table: 'episode',
+          on: ['patient_service_identifier_id', '=', 'id']
+        })
+        .join({
+          type: 'inner',
+          table: 'patient_visit_details',
+          on: ['episode_id', '=', 'id']
+        })
+        .join({
+          type: 'inner',
+          table: 'prescription',
+          on: ['id', '=', 'prescription_id']
+        })
+        .join({
+          type: 'inner',
+          table: 'prescription_detail',
+          on: ['prescription_id', '=', 'id']
+        })
+        .join({
+          type: 'inner',
+          table: 'dispenseTypes',
+          on: ['id', '=', 'dispense_type_id']
+        })
+        .join({
+          type: 'inner',
+          table: 'clinical_service',
+          on: ['service_id', '=', 'id']
+        })
+        .where(['pv3.patient_id', '=', 'pat_disp.patient_id'])
+        .and()
+        .where(['pv3.visit_date ', '< ', 'pv2.visit_date '])
+        .not()
+        .exec()
+        .then(function (rows) {
+          return nSQL('pat_disp')
+            .query('select ', [
+              'pat_disp.dispense_type',
+              'pat_disp.month',
+              'pat_disp.faixa',
+              {
+                aggregate: 'count',
+                field: '* ',
+                as: 'quantity'
+              }
+            ])
+            .groupby(['pat_disp.dispense_type', 'pat_disp.month', 'pat_disp.faixa'])
+            .orderby({ 'pat_disp.month': 'asc' })
+            .exec()
+        })
+      } else {
       Report.apiGetPatientsFirstDispenseByAge(this.year, this.clinic.id, this.serviceCode).then(resp => {
         console.log(resp.response.data)
         for (let i = 1; i <= 12; i++) {
@@ -113,6 +189,7 @@ tooltip: {
         this.series[1] = ms
         this.loading = false
       })
+     }
     }
   },
    watch: {

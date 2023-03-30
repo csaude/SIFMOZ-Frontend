@@ -85,6 +85,9 @@ export default {
     })
     await StartStopReason.apiGetAll(offset, max).then(resp => {
         StartStopReason.localDbAdd(resp.response.data)
+        resp.response.data.forEach((item) => {
+          StartStopReason.localDbAdd(item)
+        })
     })
     await ClinicalServiceAttribute.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((cs) => {
@@ -164,6 +167,9 @@ export default {
       })
       await Doctor.apiFetchByClinicId(clinicId).then(resp => {
         Doctor.localDbAdd(resp.response.data)
+        resp.response.data.forEach((item) => {
+          Doctor.localDbAdd(item)
+        })
       })
       DispenseMode.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
@@ -183,6 +189,9 @@ export default {
         console.log(resp.response.data)
           Role.localDbAdd(resp.response.data)
      })
+    await User.apiGetAll(offset, max).then(resp => {
+    User.localDbAddOrUpdate(resp.response.data)
+  })
     await User.apiGetAll(offset, max).then(resp => {
     User.localDbAddOrUpdate(resp.response.data)
   })
@@ -237,7 +246,7 @@ export default {
     doPatientGet (clinicId, offset, max) {
       Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
           resp.response.data.forEach((item) => {
-            Patient.localDbAdd(item)
+            Patient.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doPatientGet(clinicId, offset, max), 2)
@@ -271,7 +280,7 @@ export default {
       PatientVisitDetails.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
-            PatientVisitDetails.localDbAdd(item)
+            PatientVisitDetails.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doPatientLastVisitDetailsGet(clinicId, offset, max), 2)
@@ -281,8 +290,9 @@ export default {
     doPatientVisitGet (clinicId, offset, max) {
       PatientVisit.apiGetAllLastWithScreeningOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
+          console.log('PatientVISIT: ', resp.response.data)
           resp.response.data.forEach((item) => {
-            PatientVisit.localDbAdd(item)
+            PatientVisit.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
@@ -318,7 +328,7 @@ export default {
       PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
-            PatientServiceIdentifier.localDbAdd(item)
+            PatientServiceIdentifier.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doIdentifiersGet(clinicId, offset, max), 2)
@@ -338,7 +348,7 @@ export default {
     },
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
-      /*
+
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
       this.doIdentifiersGet(clinicId, 0, 100)
@@ -351,7 +361,7 @@ export default {
       this.doInventoryGet(clinicId, 0, 100)
       this.doGetAllStockAlert(clinicId, 0, 100)
       this.doGetDrugFileMobile(clinicId, 0, 100)
-      */
+
       await this.loadAndSaveAppParameters(clinicId)
       await this.loadAndSaveRolesAndUsers()
         LocalStorage.set('system-sync-status', 'done')
@@ -367,7 +377,7 @@ export default {
           localStorage.setItem('isSyncronizing', 'false')
         // }
      })
-  },
+    },
 
   async getRolesToSend () {
     Role.localDbGetAll().then((roles) => {
@@ -377,8 +387,8 @@ export default {
     }).then(rolesToSync => {
         console.log(rolesToSync[0])
         this.apiSendRoles(rolesToSync, 0)
-})
-},
+    })
+  },
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
@@ -405,9 +415,9 @@ export default {
            setTimeout(this.apiSendUsers(usersToSync, i), 2)
      }).catch(error => {
        console.log(error)
-   })
-}
-    },
+     })
+    }
+  },
     async sendEntrances () {
    const entrancesToSync = await StockEntrance.localDbGetByStockEntranceId()
     this.apiSendEntrances(entrancesToSync, 0)

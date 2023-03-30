@@ -80,15 +80,15 @@ export default class PatientVisit extends Model {
   static localDbAddOrUpdate (patientVisit) {
     return nSQL(this.entity).query('upsert',
     patientVisit).exec().then(result => {
-     PatientVisit.insertOrUpdate({ data: patientVisit })
-     patientVisit.patientVisitDetails.forEach((pvd) => {
-      PatientVisitDetails.insertOrUpdate({ data: pvd })
-  Prescription.insertOrUpdate({ data: pvd.prescription })
- //   Pack.delete(pvd.pack.id)
-   // PackagedDrug.deleteAll()
-    Pack.insertOrUpdate({ data: pvd.pack })
- // Pack.insert({ data: pvd.pack })
-  })
+      PatientVisit.insertOrUpdate({ data: patientVisit })
+      patientVisit.patientVisitDetails.forEach((pvd) => {
+        PatientVisitDetails.insertOrUpdate({ data: pvd })
+        Prescription.insertOrUpdate({ data: pvd.prescription })
+        // Pack.delete(pvd.pack.id)
+        // PackagedDrug.deleteAll()
+        Pack.insertOrUpdate({ data: pvd.pack })
+        // Pack.insert({ data: pvd.pack })
+      })
     }
     )
   }

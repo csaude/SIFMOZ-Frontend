@@ -6,6 +6,7 @@ import PatientVisit from '../patientVisit/PatientVisit'
 import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class PatientVisitDetails extends Model {
   static entity = 'patientVisitDetails'
@@ -67,6 +68,13 @@ export default class PatientVisitDetails extends Model {
 
   static localDbAdd (patientVisitDetail) {
     return db.newDb().collection('patientVisitDetails').add(patientVisitDetail)
+  }
+
+  static localDbAddOrUpdate (patientVisitDetail) {
+    return nSQL(this.entity).query('upsert',
+    patientVisitDetail).exec().then(
+          PatientVisitDetails.insertOrUpdate({ data: patientVisitDetail })
+    )
   }
 
   static localDbGetById (id) {

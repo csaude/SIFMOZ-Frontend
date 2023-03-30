@@ -22,10 +22,13 @@ import { ref } from 'vue'
  import { SessionStorage } from 'quasar'
 import Report from 'src/store/models/report/Report'
 import Clinic from '../../../store/models/clinic/Clinic'
+import mixinplatform from 'src/mixins/mixin-system-platform'
+// import { nSQL } from 'nano-sql'
 const monthsX = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEC']
 const toDateStr = str => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'))
 const monthsEng = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 export default {
+      mixins: [mixinplatform],
       props: ['serviceCode', 'year'],
       mapDispenseMonthly: new Map(),
       mapDispenseQuarterly: new Map(),
@@ -106,6 +109,62 @@ export default {
       console.log(this.year)
       console.log(this.serviceCode)
 
+      if (!this.mobile) {
+
+        // nSQL().query('select', ['count(*) AS quantity', 'pat_disp[dispense_type] AS dispense_type', 'pat_disp[month] AS month'])
+        // .join({
+        //   type: 'inner',
+        //   table: 'patientVisits pv2',
+        //   on: ['pv2.patient_id', '=', 'p.id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'identifiers psi',
+        //   on: ['p.id', '=', 'psi.patient_id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'episodes e',
+        //   on: ['e.patientServiceIdentifier_id', '=', 'psi.id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'patientVisitDetails pvd',
+        //   on: ['pvd.episode_id', '=', 'e.id', 'pvd.patient_visit_id', '=', 'pv2.id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'prescriptions pre',
+        //   on: ['pre.id', '=', 'pvd.prescription_id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'prescriptionDetails pd',
+        //   on: ['pd.prescription_id', '=', 'pre.id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'dispenseTypes dt',
+        //   on: ['dt.id', '=', 'pd.dispense_type_id']
+        // })
+        // .join({
+        //   type: 'inner',
+        //   table: 'clinicalServices cs',
+        //   on: ['psi.service_id', '=', 'cs.id']
+        // })
+        // // .where(['psi.start_date', '>=', startDate])
+        // // .andWhere(['psi.start_date', '<=', endDate])
+        // // .andWhere(['cs.code', '=', this.serviceCode])
+        // // .notExists({
+        // //   table: 'patientVisits pv3',
+        // //   where: ['pv3.patient_id', '=', 'pv2.patient_id'],
+        // //   andWhere: ['pv3.visit_date', '<=', endDate],
+        // //   andWhere: ['pv3.visit_date', '>', 'pv2.visit_date']
+        // // })
+        // .exec().then(result => {
+        //   console.log('WWWWW: ', result)
+        // })
+      } else {
       Report.apiGetRegisteredPatientByDispenseType(this.year, this.clinic.id, this.serviceCode).then(resp => {
         console.log(resp.response.data)
         for (let i = 1; i <= 12; i++) {
@@ -125,6 +184,7 @@ export default {
         this.series[2] = dss
         this.loading = false
       })
+    }
     },
     reload () {
       this.getRegisteredPatientByDispenseType()
