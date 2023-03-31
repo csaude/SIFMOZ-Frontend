@@ -191,6 +191,7 @@ import { StockReferenceAdjustment } from '../../../store/models/stockadjustment/
 import ReferedStockMoviment from '../../../store/models/stockrefered/ReferedStockMoviment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import DrugFile from 'src/store/models/drugFile/DrugFile'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 // import DrugFile from '../../../store/models/drugFile/DrugFile'
 
 const columns = [
@@ -206,7 +207,7 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Notas', sortable: false }
 ]
 export default {
-   mixins: [mixinplatform],
+   mixins: [mixinplatform, mixinIsOnline],
   props: ['stockInfo', 'batchS'],
   data () {
     return {
@@ -290,7 +291,7 @@ export default {
         }
         adjustment.balance = adjustment.adjustedStock.stockMoviment
         this.curEvent.balance = adjustment.balance
-        if (this.mobile) {
+        if (!this.isOnline) {
            if (this.isPosetiveAdjustment || this.isNegativeAdjustment) {
             reference.syncStatus = 'R'
            const resp = await ReferedStockMoviment.localDbAddOrUpdate(reference)
@@ -428,7 +429,7 @@ export default {
       this.alert.visible = false
     },
     generateDrugBatchEventSummary () {
-      if (this.website) {
+      if (this.isOnline) {
       Stock.apiGetDrugBatchSummary(this.currClinic.id, this.stock.id).then(resp => {
         console.log(resp.response.data)
         const t = resp.response.data

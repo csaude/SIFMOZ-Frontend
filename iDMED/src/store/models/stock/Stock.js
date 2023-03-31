@@ -113,6 +113,13 @@ export default class Stock extends Model {
     })
 }
 
+static localDbGetByDrug (drug) {
+  return nSQL(this.entity).query('select').where(['drug_id', '=', drug.id]).exec().then(result => {
+     console.log(result)
+     return result
+   })
+}
+
   static localDbDeleteById (stock) {
     return nSQL().onConnected(() => {
       nSQL(this.entity).query('delete').where(['id', '=', stock.id]).exec()
@@ -242,47 +249,47 @@ return recordFileList
 })
 }
 
-  static async getEntrancesDrugFile (drug) {
-    const recordFileList = []
-    return nSQL('stocks').query('select', ['SUM(stocks.unitsReceived) AS stockEntrances.incomes', 'stockEntrances.dateReceived', 'stockEntrances.orderNumber']).where(['drug_id', '=', drug.id])
-    .join({
-      type: 'inner',
-      table: 'stockEntrances',
-      where: ['stocks.entrance_id', '=', 'stockEntrances.id']
-  })
-  .groupBy({
-    'stockEntrances.id': 'asc',
-    'stockEntrances.dateReceived': 'asc',
-    'stockEntrances.orderNumber': 'asc',
-    'stocks.drug_id': 'asc',
-    'stockEntrances.clinic_id': 'asc'
-  })
-  .exec().then(result => {
-    for (const item of result) {
-      const recordFile = {}
-      recordFile.id = uuidv4()
-      recordFile.eventDate = item['stockEntrances.dateReceived']
-      recordFile.moviment = 'Entrada de Stock'
-      recordFile.orderNumber = item['stockEntrances.orderNumber']
-      recordFile.incomes = item['stockEntrances.incomes']
-      recordFile.outcomes = 0
-      recordFile.posetiveAdjustment = 0
-      recordFile.negativeAdjustment = 0
-      recordFile.loses = 0
-      recordFile.balance = 0
-      recordFile.code = 'ENTRADA'
-      recordFile.stockId = ''
-      recordFile.notes = ''
+static async getEntrancesDrugFile (drug) {
+  const recordFileList = []
+  return nSQL('stocks').query('select', ['SUM(stocks.unitsReceived) AS stockEntrances.incomes', 'stockEntrances.dateReceived', 'stockEntrances.orderNumber']).where(['drug_id', '=', drug.id])
+  .join({
+    type: 'inner',
+    table: 'stockEntrances',
+    where: ['stocks.entrance_id', '=', 'stockEntrances.id']
+})
+.groupBy({
+  'stockEntrances.id': 'asc',
+  'stockEntrances.dateReceived': 'asc',
+  'stockEntrances.orderNumber': 'asc',
+  'stocks.drug_id': 'asc',
+  'stockEntrances.clinic_id': 'asc'
+})
+.exec().then(result => {
+  for (const item of result) {
+    const recordFile = {}
+    recordFile.id = uuidv4()
+    recordFile.eventDate = item['stockEntrances.dateReceived']
+    recordFile.moviment = 'Entrada de Stock'
+    recordFile.orderNumber = item['stockEntrances.orderNumber']
+    recordFile.incomes = item['stockEntrances.incomes']
+    recordFile.outcomes = 0
+    recordFile.posetiveAdjustment = 0
+    recordFile.negativeAdjustment = 0
+    recordFile.loses = 0
+    recordFile.balance = 0
+    recordFile.code = 'ENTRADA'
+    recordFile.stockId = ''
+    recordFile.notes = ''
 
-      recordFileList.push(recordFile)
-      /*
-      */
-    }
-return recordFileList
-  })
+    recordFileList.push(recordFile)
+    /*
+    */
   }
+return recordFileList
+})
+}
 
-  static async getPacksDrugFile (drug) {
+static async getPacksDrugFile (drug) {
     const recordFileList = []
     let drugQuantitySupplied = 0
     return nSQL('patientVisits').query('select', ['patientVisitDetails']).exec().then(result => {

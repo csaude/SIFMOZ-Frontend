@@ -54,9 +54,10 @@ import { ref } from 'vue'
 import StockEntrance from '../../store/models/stockentrance/StockEntrance'
 import Inventory from '../../store/models/stockinventory/Inventory'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 export default {
-     mixins: [mixinplatform],
+     mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       alert: ref({
@@ -96,7 +97,7 @@ export default {
       this.doStockEntranceGet(this.clinic.id, offset, max)
     },
     doStockEntranceGet (clinicId, offset, max) {
-       if (this.website) {
+       if (this.isOnline) {
       StockEntrance.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         console.log(resp.response.data)
             if (resp.response.data.length > 0) {

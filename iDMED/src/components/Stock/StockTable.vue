@@ -47,7 +47,7 @@
                 <q-td key="order" :props="props" v-if="false">
                 </q-td>
                 <q-td key="drug" :props="props">
-                  {{props.row.drugName}}
+                  {{props.row.drug}}
                 </q-td>
                 <q-td key="avgConsuption" :props="props">
                   {{props.row.avgConsuption}}
@@ -86,6 +86,8 @@ import mixincrypt from 'src/mixins/mixin-encryption'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import StockAlert from '../../store/models/stockAlert/StockAlert'
 import mixinutils from 'src/mixins/mixin-utils'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+import Drug from 'src/store/models/drug/Drug'
 
 // import CryptoJS from 'crypto-js'
 const columns = [
@@ -98,7 +100,7 @@ const columns = [
 ]
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
-   mixins: [mixincrypt, mixinplatform, mixinutils],
+   mixins: [mixincrypt, mixinplatform, mixinutils, mixinIsOnline],
   data () {
     const filter = ref('')
     return {
@@ -111,9 +113,11 @@ export default {
   },
   methods: {
     openDrugFile (drugInfo) {
-      const drug = drugInfo.drug
+     // const drug = drugInfo.drug
       console.log(drugInfo.drug)
-      SessionStorage.set('selectedDrug', drug)
+      const drugObj = Drug.query()
+                 .where('id', drugInfo.id).first()
+      SessionStorage.set('selectedDrug', drugObj)
       this.$router.push('/stock/drugFile')
     },
     getStickyHeaderClass () {
@@ -133,7 +137,7 @@ export default {
       }
     },
    async getStockAlert () {
-      if (this.website) {
+      if (this.isOnline) {
         this.showloading()
       Report.apiGetStockAlertAll(this.clinic.id).then(resp => {
         this.rowData = resp.response.data
