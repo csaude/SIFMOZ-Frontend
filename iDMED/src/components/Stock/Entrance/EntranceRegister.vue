@@ -58,9 +58,10 @@ import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import Clinic from 'src/store/models/clinic/Clinic'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   data () {
     return {
       stockEntrance: new StockEntrance({
@@ -84,7 +85,7 @@ export default {
         this.$refs.orderNumber.$refs.ref.validate()
         if (!this.$refs.orderNumber.$refs.ref.hasError) {
           this.showloading()
-          if (this.website) {
+          if (this.isOnline) {
             await this.getClinicAux().then(item => {
           this.stockEntrance.clinic = this.clinicAux
           this.stockEntrance.id = null

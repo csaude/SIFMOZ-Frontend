@@ -157,9 +157,10 @@ import Stock from '../../../store/models/stock/Stock'
 import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       alert: ref({
@@ -209,7 +210,7 @@ export default {
       setTimeout(() => {
         this.$q.loading.hide()
       }, 800)
-      if (this.website) {
+      if (this.isOnline) {
       Inventory.apiFetchById(this.currInventory.id).then(resp => {
         this.doProcessAndClose()
       })
@@ -418,7 +419,7 @@ export default {
     },
     currInventory () {
       const e = new Inventory(SessionStorage.getItem('currInventory'))
-       if (this.mobile) return e
+       if (!this.isOnline) return e
       return Inventory.query()
                       .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                       .with('adjustments.adjustedStock')
@@ -463,7 +464,7 @@ export default {
     }
   },
   created () {
-    if (this.mobile) {
+    if (!this.isOnline) {
       Drug.localDbGetAll()
     }
   },

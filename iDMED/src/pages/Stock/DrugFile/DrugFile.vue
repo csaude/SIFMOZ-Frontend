@@ -102,7 +102,7 @@
           </span>
         </div -->
         <div >
-          <span v-for="lote in drug.stocks" :key="lote.id" >
+          <span v-for="lote in stocks " :key="lote.id" >
           <lote-info-container :stockInfo="lote"  @updateDrugFileAdjustment ="updateDrugFileAdjustment"  />
         </span>
         </div>
@@ -126,6 +126,7 @@ import Stock from '../../../store/models/stock/Stock'
 import Clinic from '../../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import DrugFile from '../../../store/models/drugFile/DrugFile'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 const columns = [
   { name: 'eventDate', required: true, label: 'Data Movimento', field: 'eventDate', align: 'center', sortable: true },
@@ -140,7 +141,7 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Resumo das Notas', sortable: false }
 ]
 export default {
-   mixins: [mixinplatform],
+   mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       alert: ref({
@@ -194,40 +195,23 @@ export default {
       this.$q.loading.hide()
     },
    async generateDrugEventSummary () {
-      if (this.mobile) {
-// 1 criar drugFile
-this.showloading()
-this.drugEventList = await DrugFile.getDrugFileSummary(this.drug)
-this.hideLoading()
-
-     /* this.drugFile = DrugFile.query().where('drugId', this.drug.id).first()
-               // busca do local base e faz insert no VueX ORM
-              db.newDb().collection('drugFile').get().then(drugFile => {
-                DrugFile.insert(
-                  {
-                    data: drugFile
-                  })
-              }).then(drugFile => {
-                // query().where('id', this.batchS.stockId).first()
-                 console.log('Drug ID: ', this.drug.id)
-                 console.log('VueX ORM: ', DrugFile.all())
-                 this.drugEventList = this.drugFile.drugFileSummary
-                 this.drugEventListBatch = this.drugFile.drugFileSummaryBatch // DrugFile.all()[1].drugFileSummaryBatch
-               }) */
+      if (!this.isOnline) {
+        this.showloading()
+        this.drugEventList = await DrugFile.getDrugFileSummary(this.drug)
+        this.hideLoading()
           } else {
               this.showloading()
               Stock.apiGetDrugSummary(this.clinic.id, this.drug.id).then(resp => {
                 console.log(resp.response.data)
                 const t = resp.response.data
-                /* t.sort((a, b) => {
-                  const d1 = new Date(a.eventDate)
-                  const d2 = new Date(b.eventDate)
-                  return d2 - d1
-                }) */
                 this.drugEventList = t
                 this.hideLoading()
               })
           }
+    },
+    async getStocksByDrug (drug) {
+      const items = await Stock.localDbGetByDrug(drug)
+      return items
     },
      updateDrugFileAdjustment (adjustment) {
         // Actualiza o resumo por Drug
@@ -269,10 +253,12 @@ this.hideLoading()
   },
   computed: {
     drug () {
-      return Drug.query()
+      console.log('DRUG: ', SessionStorage.getItem('selectedDrug'))
+     const d = Drug.query()
                  .with('stocks.entrance')
                  .where('id', SessionStorage.getItem('selectedDrug').id)
                  .first()
+                 return d
     },
     clinic () {
       return Clinic.query()
@@ -281,6 +267,19 @@ this.hideLoading()
     },
     drugFile () {
       return DrugFile.query().where('drugId', this.drug.id).first()
+    },
+    stocks () {
+      if (!this.isOnline) {
+      const obj = Stock.query()
+                 .where('drug_id', SessionStorage.getItem('selectedDrug').id).all()
+                 return obj
+      } else {
+        const drug = Drug.query()
+                 .with('stocks.entrance')
+                 .where('id', SessionStorage.getItem('selectedDrug').id)
+                 .first()
+                 return drug.stocks
+      }
     }
   },
   components: {
