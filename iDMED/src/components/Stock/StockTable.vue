@@ -82,17 +82,17 @@ import { SessionStorage } from 'quasar'
 import Report from 'src/store/models/report/Report'
 import { ref } from 'vue'
 import Clinic from '../../store/models/clinic/Clinic'
-import Drug from '../../store/models/drug/Drug'
 import mixincrypt from 'src/mixins/mixin-encryption'
-import db from 'src/store/localbase'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import StockAlert from '../../store/models/stockAlert/StockAlert'
 import mixinutils from 'src/mixins/mixin-utils'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+import Drug from 'src/store/models/drug/Drug'
 
 // import CryptoJS from 'crypto-js'
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
-  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
+  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drugName, format: val => `${val}` },
   { name: 'avgConsuption', required: true, label: 'Média de Consumo Mensal', align: 'left', field: row => row.avgConsuption, format: val => `${val}` },
   { name: 'balance', required: true, label: 'Saldo actual', align: 'left', field: row => row.balance, format: val => `${val}` },
   { name: 'state', required: true, label: 'Estado', align: 'left', field: row => row.state, format: val => `${val}` },
@@ -100,7 +100,7 @@ const columns = [
 ]
 export default {
    props: ['isCharts', 'dataLoaded', 'serviceCode'],
-   mixins: [mixincrypt, mixinplatform, mixinutils],
+   mixins: [mixincrypt, mixinplatform, mixinutils, mixinIsOnline],
   data () {
     const filter = ref('')
     return {
@@ -113,9 +113,11 @@ export default {
   },
   methods: {
     openDrugFile (drugInfo) {
-      const drug = Drug.find(drugInfo.id)
-      console.log(drug)
-      SessionStorage.set('selectedDrug', drug)
+     // const drug = drugInfo.drug
+      console.log(drugInfo.drug)
+      const drugObj = Drug.query()
+                 .where('id', drugInfo.id).first()
+      SessionStorage.set('selectedDrug', drugObj)
       this.$router.push('/stock/drugFile')
     },
     getStickyHeaderClass () {
@@ -134,21 +136,18 @@ export default {
          return ''
       }
     },
-    getStockAlert () {
-      if (this.website) {
+   async getStockAlert () {
+      if (this.isOnline) {
         this.showloading()
       Report.apiGetStockAlertAll(this.clinic.id).then(resp => {
         this.rowData = resp.response.data
         this.hideLoading()
       })
       } else {
-          db.newDb().collection('stockAlert').get().then(stockAlert => {
-                StockAlert.insert(
-                  {
-                    data: stockAlert
-                  })
-              })
-              this.rowData = StockAlert.all()
+        this.showloading()
+       const list = await StockAlert.localDbGetStockAlert()
+       this.hideLoading()
+       this.rowData = list
       }
     },
     getConsuptionRelatedColor (state) {

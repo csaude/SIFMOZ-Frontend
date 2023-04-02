@@ -136,10 +136,22 @@ export default class Drug extends Model {
 
   static localDbGetAll () {
    return nSQL(this.entity).query('select').exec().then(result => {
-      console.log(result)
-     return Drug.insertOrUpdate({ data: result })
+      Drug.insertOrUpdate({ data: result })
+      return result
       })
   }
+
+  static async hasStock (drug) {
+    return nSQL('drugs').query('select').where(['id', '=', drug.id])
+    .join({
+      type: 'inner',
+      table: 'stocks',
+      where: ['stocks.drug_id', '=', 'drugs.id']
+  })
+  .exec().then(result => {
+    return result.length > 0
+  })
+}
 
   static localDbGetById (drug) {
    return nSQL(this.entity).query('select').where(['id', '=', drug.id]).exec().then(result => {
