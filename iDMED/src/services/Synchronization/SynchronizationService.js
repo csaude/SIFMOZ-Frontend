@@ -131,6 +131,12 @@ export default {
     await StockCenter.apiGetAll(offset, max).then(resp => {
         StockCenter.localDbAdd(resp.response.data)
     })
+    StockOperationType.apiGetAll(offset, max).then(resp => {
+      resp.response.data.forEach((item) => {
+        StockOperationType.localDbAdd(item)
+      })
+    })
+    /*
     Stock.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Stock.localDbAddOrUpdate(item)
@@ -138,11 +144,6 @@ export default {
     })
     await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
         InventoryStockAdjustment.localDbAddOrUpdate(resp.response.data)
-    })
-    StockOperationType.apiGetAll(offset, max).then(resp => {
-      resp.response.data.forEach((item) => {
-        StockOperationType.localDbAdd(item)
-      })
     })
     ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
@@ -152,6 +153,7 @@ export default {
     await DestroyedStock.apiGetAll(offset, max).then(resp => {
         DestroyedStock.localDbAdd(resp.response.data)
     })
+    */
     await ClinicSectorType.apiGetAll(offset, max).then(resp => {
         ClinicSectorType.localDbAdd(resp.response.data)
     })

@@ -39,8 +39,9 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   data () {
     return {
       showAddPrescription: false,
@@ -53,7 +54,7 @@ export default {
   methods: {
     async init () {
       console.log('On PrescriptionInfo initialization')
-      if (this.mobile) {
+      if (!this.isOnline) {
             PatientVisit.localDbGetAll()
             this.flagGoReady = true
       }
@@ -61,7 +62,7 @@ export default {
             this.flagGoReady = true
       } else {
         this.identifiers.forEach(identifier => {
-          if (this.mobile) {
+          if (!this.isOnline) {
             /*
             const episodeList = Episode.query()
                                         .with('startStopReason')

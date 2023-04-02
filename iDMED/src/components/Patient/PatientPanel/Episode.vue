@@ -32,7 +32,14 @@
             dense unelevated
             color="orange-5"
             label="Editar"
-            class="float-right" />
+            class="float-right q-ml-md" />
+            <q-btn
+            v-if="canEdit"
+            @click="$emit('closeEpisode', currEpisode)"
+            dense unelevated
+            color="blue-grey-8"
+            label="Fechar"
+            class="float-right q-ml-md" />
         </div>
       </q-card-section>
     </q-card>

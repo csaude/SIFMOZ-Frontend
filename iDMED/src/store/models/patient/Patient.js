@@ -231,10 +231,22 @@ export default class Patient extends Model {
         })
     }
 
+    static async localDbGetByPatientId (patientId) {
+      return nSQL(this.entity).query('select').where(['id', '=', patientId]).exec().then(result => {
+        return result
+          })
+      }
+
     static loadPatientWithIdentifiersEpisodeAndVisitFromServer (selectedPatient) {
       console.log(JSON.parse(JSON.stringify(selectedPatient)))
       Patient.localDbAddOrUpdate(JSON.parse(JSON.stringify(selectedPatient)))
       PatientServiceIdentifier.localDbAddOrUpdate(JSON.parse(JSON.stringify(selectedPatient.identifiers)))
+      const endEpisodeType = EpisodeType.query().where('code', 'FIM').first()
+      const startEpisodeType = EpisodeType.query().where('code', 'INICIO').first()
+      const stopReason = StartStopReason.query().where('code', 'REFERIDO_PARA_SECTOR').first()
+      const startReason = StartStopReason.query().where('code', 'MANUNTENCAO').first()
+      const clinicSectorNormal = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', 'NORMAL').first()
+      const clinicSectorUser = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', localStorage.getItem('clinic_sectors')).first()
 
       selectedPatient.identifiers.forEach(identifier => {
         Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
@@ -242,44 +254,45 @@ export default class Patient extends Model {
               identifier.episodes = resp.response.data
               const lastEpisode = identifier.episodes[0]
               Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(lastEpisode)))
-
               const endEpispde = new Episode()
               endEpispde.episodeDate = moment()
-              endEpispde.notes = 'Carregamento na Paragem Unica'
               endEpispde.creationDate = moment()
-              endEpispde.episodeType = EpisodeType.query().where('code', 'FIM').first()
+              endEpispde.notes = 'Carregamento na Paragem Unica'
+              endEpispde.episodeType = {}
+              endEpispde.episodeType.id = endEpisodeType.id
+              endEpispde.episodeType_id = endEpisodeType.id
               endEpispde.patientServiceIdentifier = {}
               endEpispde.patientServiceIdentifier.id = identifier.id
-              endEpispde.clinicSector = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', 'NORMAL').first()
-              endEpispde.startStopReason = StartStopReason.query().where('code', 'OUTRO').first()
+              endEpispde.patientServiceIdentifier_id = identifier.id
+              endEpispde.clinicSector = {}
+              endEpispde.clinicSector.id = clinicSectorNormal.id
+              endEpispde.clinicSector_id = clinicSectorNormal.id
+              endEpispde.startStopReason = {}
+              endEpispde.startStopReason.id = stopReason.id
+              endEpispde.startStopReason_id = stopReason.id
               endEpispde.syncStatus = 'R'
 
               Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(endEpispde)))
 
               const startEpisode = new Episode()
               startEpisode.episodeDate = moment()
-              startEpisode.notes = 'Carregamento na Paragem Unica'
               startEpisode.creationDate = moment()
-              startEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
+              startEpisode.notes = 'Carregamento na Paragem Unica'
+              startEpisode.episodeType = {}
+              startEpisode.episodeType.id = startEpisodeType.id
+              startEpisode.episodeType.id = startEpisodeType.id
               startEpisode.patientServiceIdentifier = {}
               startEpisode.patientServiceIdentifier.id = identifier.id
-              console.log(localStorage.getItem('clinic_sectors'))
-              startEpisode.clinicSector = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', localStorage.getItem('clinic_sectors')).first()
-              startEpisode.startStopReason = StartStopReason.query().where('code', 'TRANSFERIDO_DE').first()
+              startEpisode.patientServiceIdentifier_id = identifier.id
+              startEpisode.clinicSector = {}
+              startEpisode.clinicSector.id = clinicSectorUser.id
+              startEpisode.clinicSector_id = clinicSectorUser.id
+              startEpisode.startStopReason = {}
+              startEpisode.startStopReason.id = startReason.id
+              startEpisode.startStopReason_id = startReason.id
               startEpisode.syncStatus = 'R'
 
               Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(startEpisode)))
-          /*
-              identifier.episodes.forEach(episode => {
-                PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                  console.log(resp.response.data)
-                  if (resp.response.data) {
-                    episode.patientVisitDetails[0] = resp.response.data
-                    this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-                  } // else this.flagGoReady = true
-                })
-            })
-*/
 }
 })
 })

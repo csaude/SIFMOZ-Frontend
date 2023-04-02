@@ -78,6 +78,7 @@ import PatientVisitDetails from '../../../store/models/patientVisitDetails/Patie
 import Pack from 'src/store/models/packaging/Pack'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import Prescription from '../../../store/models/prescription/Prescription'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'lastDispenseDate', align: 'left', label: 'Data da Última Dispensa', sortable: false },
@@ -88,7 +89,7 @@ const columns = [
 ]
 export default {
   props: ['packHeaders'],
-  mixins: [mixinutils],
+  mixins: [mixinutils, mixinIsOnline],
   data () {
     return {
       grupPacks: ref([]),
@@ -131,7 +132,8 @@ export default {
       return headers
     },
     removePackHeader (groupPackHeader) {
-     GroupPackHeader.apiDelete(groupPackHeader).then(resp => {
+      if (this.isOnline) {
+        GroupPackHeader.apiDelete(groupPackHeader).then(resp => {
       const packsToDelete = GroupPack.query().with('pack').where('header_id', groupPackHeader.id).get()
       console.log(packsToDelete)
       packsToDelete.forEach(packToDelete => {
@@ -149,6 +151,7 @@ export default {
       this.$emit('getGroupMembers')
           this.displayAlert('info', 'Operação efectuada com sucesso.')
      })
+      } // implementaar delete no mobile
     }
   },
   computed: {
