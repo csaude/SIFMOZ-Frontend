@@ -98,6 +98,15 @@ export default class Stock extends Model {
         })
     }
 
+    static localDbGetUsedStock (reportParams) {
+      return nSQL(this.entity).query('select').exec().then(result => {
+         console.log(result)
+         return result
+       })
+       //  'AND',
+       // ['stock.drug.clinicalService.id]', '=', reportParams.clinicalService
+   }
+
     static async localDbGetById (stock) {
      return nSQL(this.entity).query('select').where(['id', '=', stock.id]).exec().then(result => {
         console.log(result)

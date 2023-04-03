@@ -13,7 +13,7 @@
         :addVisible="false"
         :doneVisible="false"
         :mainContainer="true"
-        bgColor="bg-primary">{{drug.name}}
+        bgColor="bg-primary">{{ drug.name}}
       </ListHeader>
       <div class="box-border q-pb-md">
       <div class="row q-pa-md">
@@ -274,6 +274,7 @@ export default {
                  .where('drug_id', SessionStorage.getItem('selectedDrug').id).all()
                  return obj
       } else {
+        console.log('Drug: ', SessionStorage.getItem('selectedDrug'))
         const drug = Drug.query()
                  .with('stocks.entrance')
                  .where('id', SessionStorage.getItem('selectedDrug').id)

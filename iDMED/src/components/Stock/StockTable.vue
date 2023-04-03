@@ -47,7 +47,7 @@
                 <q-td key="order" :props="props" v-if="false">
                 </q-td>
                 <q-td key="drug" :props="props">
-                  {{props.row.drug}}
+                  {{isOnline? props.row.drug : props.row.drugName }}
                 </q-td>
                 <q-td key="avgConsuption" :props="props">
                   {{props.row.avgConsuption}}
@@ -116,7 +116,7 @@ export default {
      // const drug = drugInfo.drug
       console.log(drugInfo.drug)
       const drugObj = Drug.query()
-                 .where('id', drugInfo.id).first()
+                 .where('id', this.isOnline ? drugInfo.id : drugInfo.drug.id).first()
       SessionStorage.set('selectedDrug', drugObj)
       this.$router.push('/stock/drugFile')
     },
