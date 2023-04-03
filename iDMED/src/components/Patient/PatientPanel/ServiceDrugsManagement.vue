@@ -84,6 +84,7 @@ import PatientVisitDetails from '../../../store/models/patientVisitDetails/Patie
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Drug from '../../../store/models/drug/Drug'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
   { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
@@ -93,7 +94,7 @@ const columns = [
 ]
 export default {
   props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'stepp', 'visitClone', 'isAlreadyEdited'],
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   data () {
     return {
       columns,
@@ -194,7 +195,7 @@ export default {
       this.$emit('updatePrescribedDrugs', this.prescribedDrugs, pickupDate, nextPDate, duration)
     },
     async loadParams () {
-      if (this.mobile) {
+      if (!this.isOnline) {
         await Drug.localDbGetAll()
       }
     }

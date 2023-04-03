@@ -358,8 +358,9 @@ import StartStopReason from '../../../store/models/startStopReason/StartStopReas
 import EpisodeType from '../../../store/models/episodeType/EpisodeType'
 import ClinicSector from '../../../store/models/clinicSector/ClinicSector'
 // import StockEntrance from '../../../store/models/stockentrance/StockEntrance'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   props: ['selectedVisitDetails', 'stepp', 'service', 'member'],
   data () {
     return {
@@ -460,7 +461,7 @@ export default {
       console.log('Init Step', this.stepp)
       this.setStep(this.stepp)
       this.clearPrescriptionSession()
-      if (this.mobile && !this.isOnline) {
+      if (!this.isOnline) {
         ClinicalServiceAttribute.deleteAll()
         await ClinicalServiceAttribute.localDbGetAll()
       }
@@ -469,7 +470,7 @@ export default {
       } else {
         this.getPatientActiveClinicalServices()
       }
-      if (this.website) {
+      if (this.isOnline) {
         this.doDispenseModeGetAll(0)
       } else {
       //  this.loadParamsToVueX()
@@ -722,14 +723,14 @@ export default {
           pvd = patientVDetails
         }
       })
-      if (this.mobile) { // change later
+      if (!this.isOnline) { // change later
         this.doMobileSave()
       } else {
         this.doWebSave()
       }
     },
     doOnNo (object) {
-      if (this.mobile) {
+      if (!this.isOnline) {
         this.doMobileSave()
       } else {
         this.doWebSave()
@@ -992,7 +993,7 @@ export default {
                                                                                                         .where('active', true)
                                                                                                         .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                                                                                         .first()
-          if (this.mobile) {
+          if (!this.isOnline) {
             memberPrescription.prescription.doctor_id = memberPrescription.prescription.doctor.id
             memberPrescription.prescription.clinic_id = memberPrescription.prescription.clinic.id
             memberPrescription.prescription.duration_id = memberPrescription.prescription.duration.id
@@ -1063,7 +1064,7 @@ export default {
         this.patientVisit.patient = this.simplePatient
         this.patientVisit.clinic = this.currClinic
         const packDateError = this.setRelationIdentifiers()
-        if (this.mobile) {
+        if (!this.isOnline) {
           if (!packDateError) this.doMobileSave()
         } else {
           /* this.patientVisit.patientVisitDetails.forEach((pvd) => {
@@ -1099,7 +1100,7 @@ export default {
       this.patientVisit.clinic_id = this.patientVisit.clinic.id
     //  this.patientVisit.visitDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
           this.patientVisit.patient_id = this.patientVisit.patient.id
-          if (this.mobile) {
+          if (!this.isOnline) {
             if (this.patientVisit.syncStatus === 'S' && this.isEditPackStep) {
               this.patientVisit.syncStatus = 'U'
             } else {

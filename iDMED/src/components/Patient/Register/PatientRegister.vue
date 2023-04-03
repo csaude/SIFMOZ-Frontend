@@ -202,6 +202,7 @@ import Prescription from 'src/store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 // import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
 // import { getMode } from 'cordova-plugin-nano-sqlite/lib/sqlite-adapter'
 // import { nSQL } from 'nano-sql'
@@ -210,7 +211,7 @@ import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/
 export default {
     props: ['clinic', 'selectedPatient', 'newPatient', 'transferencePatientData', 'stepp', 'openMrsPatient'],
     emits: ['update:newPatient'],
-    mixins: [mixinplatform, mixinutils],
+    mixins: [mixinplatform, mixinutils, mixinIsOnline],
     data () {
         return {
             dateOfBirth: '',
@@ -389,7 +390,7 @@ async saveDate () {
                                 .where('id', this.patientReg.clinic.id)
                                 .first()
         this.patientReg.clinic = clinicAux
-        if (this.mobile) {
+        if (!this.isOnline) {
           this.patientReg.syncStatus = (this.isEditStep && this.patientReg.syncStatus === 'S') ? 'U' : 'R'
           this.patientReg.province_id = this.patientReg.province.id
           this.patientReg.district_id = this.patientReg.district.id
@@ -533,8 +534,9 @@ async saveDate () {
             })
       },
       initParams () {
+        console.log('ONLINE' + this.isOnline)
         this.setStep(this.stepp)
-        if (this.website) {
+        if (this.isOnline) {
           const offset = 0
           const max = 100
           Province.apiGetAll(offset, max)

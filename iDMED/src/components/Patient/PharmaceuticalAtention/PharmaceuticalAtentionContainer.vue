@@ -116,6 +116,7 @@ import { ref } from 'vue'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'vitalSigns', required: true, field: 'row.vitalSigns', label: 'Dados Vitais', align: 'left', sortable: false },
   { name: 'tb', align: 'left', field: 'row.tbScreening', label: 'Rastreio TB', sortable: false },
@@ -126,7 +127,7 @@ const columns = [
 ]
 export default {
   props: ['selectedPatientVisit'],
-    mixins: [mixinplatform, mixinutils],
+    mixins: [mixinplatform, mixinutils, mixinIsOnline],
   data () {
     return {
         alert: ref({
@@ -159,7 +160,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.website) {
+      if (this.isOnline) {
         PatientVisit.apiFetchById(this.selectedPatientVisit.id)
       }
     },
@@ -170,7 +171,7 @@ export default {
     },
     promptToConfirm (patientVisit) {
             this.$q.dialog({ title: 'Confirmação', message: 'Deseja Apagar a atenção farmaceutica?', cancel: true, persistent: true }).onOk(() => {
-              if (this.website) {
+              if (this.isOnline) {
                 if (patientVisit.patientVisitDetails.length === 0) {
         PatientVisit.apiRemove(patientVisit.id).then(resp => {
             PatientVisit.delete(patientVisit.id)

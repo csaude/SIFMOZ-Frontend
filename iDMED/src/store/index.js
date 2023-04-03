@@ -98,14 +98,14 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-    // baseURL: 'http://172.104.236.126:5110/api'
-  // baseURL: 'http://10.10.2.215:8884/api'
+     baseURL: 'http://172.104.236.126:5110/api'
+ //  baseURL: 'http://10.10.12.78:8884/api'
       // baseURL: 'http://idartzambezia.fgh.org.mz:3000/api'
     //  baseURL: 'http://192.168.100.1:3000/api'
    // baseURL: 'http://192.168.100.51:3000/api'
    //  baseURL: 'http://10.0.1.56:3000/api'
- //  baseURL: 'http://10.0.0.21:3000/api'
-    baseURL: 'http://localhost:8884/api'
+ //  baseURL: 'http://192.168.18.9:8884/api'
+  //  baseURL: 'http://localhost:8884/api'
 })
 let numTries = 0
 // Request interceptor for API calls

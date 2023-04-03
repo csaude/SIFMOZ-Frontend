@@ -227,9 +227,9 @@ import User from 'src/store/models/userLogin/User'
 import mixinEncryption from 'src/mixins/mixin-encryption'
 import bcrypt from 'bcryptjs'
 import Menu from 'src/store/models/userLogin/Menu'
-// import PatientVisit from '../../store/models/patientVisit/PatientVisit'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-  mixins: [mixinplatform, mixinutils, mixinEncryption],
+  mixins: [mixinplatform, mixinutils, mixinEncryption, mixinIsOnline],
   data () {
     const $q = useQuasar()
     return {
@@ -443,7 +443,7 @@ export default {
       this.$refs.password.validate()
       if (!this.$refs.user.hasError && !this.$refs.password.hasError) {
         this.submitting = true
-        if (this.website) {
+        if (this.isOnline) {
           this.loginOnline(encodedStringBtoA)
         } else {
           localStorage.setItem('isSyncronizing', 'false')

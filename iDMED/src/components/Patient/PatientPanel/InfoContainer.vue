@@ -50,6 +50,7 @@
             <Episode
               @editEpisode="editEpisode"
               @removeEpisode="removeEpisode"
+              @closeEpisode="closeEpisode"
               :episode="episode"/>
           </span>
         </div>
@@ -137,6 +138,13 @@ export default {
         this.selectedEpisode = Object.assign({}, episode)
         this.showAddEditEpisode = true
       }
+    },
+    closeEpisode (episode) {
+      // const eps = Episode.query().withAll().where('id', episode.id).first()
+      this.step = 'close'
+        this.changeToCloseStep()
+        this.selectedEpisode = Object.assign({}, episode)
+        this.showAddEditEpisode = true
     },
     removeEpisode (episode) {
       const eps = Episode.query().withAll().where('id', episode.id).first()
