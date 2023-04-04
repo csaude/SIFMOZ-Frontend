@@ -106,7 +106,6 @@
                     @click="goToPatientPanel(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                   </q-btn>
-
                   <q-btn flat round v-if="this.selectedDataSources.id.length > 4"
                     class="q-ml-md"
                     color="green-8"
@@ -163,6 +162,7 @@ import mixinEncryption from 'src/mixins/mixin-encryption'
 import Prescription from '../../store/models/prescription/Prescription'
 import Pack from 'src/store/models/packaging/Pack'
 // import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   { name: 'identifier', align: 'left', label: 'Identificador', sortable: false },
@@ -172,7 +172,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-    mixins: [mixinplatform, mixinutils, mixinEncryption],
+    mixins: [mixinplatform, mixinutils, mixinEncryption, mixinIsOnline],
     data () {
       return {
         searchField: '',
@@ -227,7 +227,7 @@ export default {
       this.$q.loading.hide()
     },
     async init () {
-        if (this.mobile) {
+        if (!this.isOnline) {
         await Patient.localDbGetAll()
         }
       },
@@ -268,7 +268,7 @@ export default {
         this.newPatient = true
         this.openMrsPatient = true
       },
-      goToPatientPanel (selectedPatient, isImported) {
+      async goToPatientPanel (selectedPatient, isImported) {
          this.$q.loading.show({
           message: 'Carregando ...',
           spinnerColor: 'grey-4',
@@ -276,10 +276,13 @@ export default {
         })
       //  if (isImported) {
           console.log(JSON.parse(JSON.stringify(selectedPatient)))
-      //   Patient.loadPatientWithIdentifiersEpisodeAndVisitFromServer(selectedPatient)
+           const newPatient = await Patient.localDbGetByPatientId(selectedPatient.id)
+          if (!this.isOnline && newPatient.length === 0) {
+            Patient.loadPatientWithIdentifiersEpisodeAndVisitFromServer(selectedPatient)
+          }
          setTimeout(() => {
           this.$q.loading.hide()
-        }, 5000)
+        }, 86000)
       // }
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
@@ -380,7 +383,7 @@ export default {
       },
       async localSearch () {
         this.showloading()
-        if (this.website) {
+        if (this.isOnline) {
           console.log('Performing website search')
           Patient.deleteAll()
           this.currPatient.clinic = this.clinic
@@ -398,6 +401,11 @@ export default {
             return this.filterPatient(patient)
           })
           if (this.patients.length === 0) {
+            this.$q.loading.show({
+          message: 'Carregando ...',
+          spinnerColor: 'grey-4',
+          spinner: QSpinnerBall
+        })
             const userPass = localStorage.getItem('sync_pass')
           const decryptedPass = this.decryptPlainText(userPass)
            this.loginToBackend(decryptedPass).then(result => {
@@ -405,10 +413,9 @@ export default {
               Patient.deleteAll()
               this.currPatient.clinic = this.clinic
               Patient.apiSearch(this.currPatient).then(resp => {
-            // this.patientList = resp.response.data
-
           if (resp.response.data.length >= 0) {
             this.patients = this.getPatientsVuex()
+            this.$q.loading.hide()
             }
           })
             }

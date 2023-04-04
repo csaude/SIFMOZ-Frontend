@@ -204,6 +204,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import Drug from '../../store/models/drug/Drug'
 import moment from 'moment'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -214,7 +215,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   props: ['group', 'defaultPickUpDate'],
   data () {
     return {
@@ -240,7 +241,7 @@ export default {
       if (this.defaultPickUpDate !== null) {
         this.pickupDate = this.getDDMMYYYFromJSDate(this.defaultPickUpDate)
       }
-      if (this.mobile) {
+      if (!this.isOnline) {
         await Drug.localDbGetAll()
         await Duration.localDbGetAll()
         await DispenseMode.localDbGetAll()
@@ -454,7 +455,7 @@ export default {
       }
     },
     savePatientVisitDetails (groupPacks, i) {
-      if (this.mobile) {
+      if (!this.isOnline) {
         if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
           const patientVisit = JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0].patientVisit))
 

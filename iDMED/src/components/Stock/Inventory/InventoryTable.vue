@@ -77,6 +77,7 @@ import { SessionStorage } from 'quasar'
 import Inventory from '../../../store/models/stockinventory/Inventory'
 import { ref } from 'vue'
 import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/InventoryStockAdjustment'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: false },
@@ -87,6 +88,7 @@ const columns = [
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
+  mixins: [mixinIsOnline],
   data () {
     const filter = ref('')
     return {
@@ -96,7 +98,7 @@ export default {
   },
   methods: {
     openFile (inventory) {
-      if (this.mobile) {
+      if (!this.isOnline) {
         // Inserir no VueX inventory e InvstockAdj
         Inventory.localDbGetAll()
         InventoryStockAdjustment.localDbGetAll()
@@ -106,7 +108,7 @@ export default {
     }
   },
   mounted () {
-   if (this.website) {
+   if (this.isOnline) {
     Inventory.apiGetAll(0, 300)
     }
   },

@@ -81,12 +81,12 @@ export default class StockEntrance extends Model {
   })
 }
 
-    static async syncStockEntrance (stockEntrance) {
-      if (stockEntrance.syncStatus === 'R') await this.apiSave(stockEntrance)
-      if (stockEntrance.syncStatus === 'U') await this.apiUpdate(stockEntrance)
-    }
+static async syncStockEntrance (stockEntrance) {
+  if (stockEntrance.syncStatus === 'R') await this.apiSave(stockEntrance)
+  if (stockEntrance.syncStatus === 'U') await this.apiUpdate(stockEntrance)
+}
 
-    static getClassName () {
+  static getClassName () {
       return 'stockEntrance'
     }
 }

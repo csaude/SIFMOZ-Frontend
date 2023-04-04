@@ -102,7 +102,7 @@
                   </q-input>
                   <div class="col q-ml-md"/>
               </div>
-              <span v-if="isEditStep">
+              <span v-if="isCloseStep">
                 <div class="q-mt-md">
                   <div class="row items-center q-mb-sm">
                       <span class="text-subtitle2">Dados do Novo Episódio</span>
@@ -115,7 +115,7 @@
                         outlined
                         class="col"
                         v-model="stopDate"
-                        :disable="episode.id !== null && !isEditStep"
+                        :disable="(episode.id !== null && !isCloseStep)"
                         ref="stopDate"
                         label="Data *">
                         <template v-slot:append>
@@ -132,7 +132,7 @@
                     </q-input>
                   <q-select
                       class="col q-ml-md"
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && !isCloseStep"
                       dense outlined
                       ref="stopReason"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
@@ -148,7 +148,7 @@
                       class="col" dense outlined
                       v-model="selectedProvince"
                       use-input
-                      :disable="(episode.id !== null && !isEditStep) || isReferenceEpisode"
+                      :disable="(episode.id !== null && !isCloseStep) || isReferenceEpisode"
                       ref="province"
                       input-debounce="0"
                       :options="provinces"
@@ -159,7 +159,7 @@
                       class="col q-ml-md" dense outlined
                       v-model="selectedDistrict"
                       use-input
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && !isCloseStep"
                       ref="district"
                       input-debounce="0"
                       :options="districts"
@@ -169,7 +169,7 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && !isCloseStep"
                       ref="referralClinic"
                       :rules="[ val => !!val || 'Por favor indicar o destino do paciente.']"
                       v-model="closureEpisode.referralClinic"
@@ -183,7 +183,7 @@
                       class="col" dense outlined
                       v-model="selectedClinicSectorType"
                       use-input
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && !isCloseStep"
                       ref="clinicSectorType"
                       input-debounce="0"
                       :options="clinicSectorTypes"
@@ -193,11 +193,35 @@
                   <q-select
                       class="col q-ml-md"
                       dense outlined
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && !isCloseStep"
                       ref="referealClinicSector"
                       :rules="[ val => !!val || 'Por favor indicar o sector de dispensa.']"
                       v-model="selectedClinicSector"
                       :options="referealClinicSectors"
+                      option-value="id"
+                      option-label="description"
+                      label="Sector de Dispensa" />
+                      <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      :disable="episode.id !== null && !isCloseStep"
+                      ref="referealClinicSector"
+                      :rules="[ val => !!val || 'Por favor indicar o sector de dispensa.']"
+                      v-model="selectedClinicSector"
+                      :options="clinicSerctors"
+                      option-value="id"
+                      option-label="description"
+                      label="Sector de Dispensa" />
+                </div>
+                <div class="row" v-if="isReferenceSectorEpisode">
+                      <q-select
+                      class="col q-ml-md"
+                      dense outlined
+                      :disable="episode.id !== null && !isCloseStep"
+                      ref="referealClinicSector"
+                      :rules="[ val => !!val || 'Por favor indicar o sector de dispensa.']"
+                      v-model="selectedClinicSector"
+                      :options="clinicSerctorsToRefer"
                       option-value="id"
                       option-label="description"
                       label="Sector de Dispensa" />
@@ -206,7 +230,7 @@
                     <TextInput
                       v-model="closureEpisode.notes"
                       label="Outras notas do episódio"
-                      :disable="episode.id !== null && !isEditStep"
+                      :disable="episode.id !== null && !isCloseStep"
                       ref="endNotes"
                       :rules="[ val => !!val || 'Por favor indicar a nota de fim']"
                       dense
@@ -276,10 +300,11 @@ export default {
       },
       async init () {
         this.setStep(this.stepp)
+        console.log(this.isCloseStep)
         this.identifier = new PatientServiceIdentifier(this.curIdentifier)
         this.episode = Object.assign({}, this.episodeToEdit)
         this.episode.patientServiceIdentifier = this.identifier
-        if (this.isEditStep) {
+        if (this.isEditStep || this.isCloseStep) {
           this.startDate = this.getDDMMYYYFromJSDate(this.episode.episodeDate)
           this.episode.patientServiceIdentifier.episodes = []
           this.episode.clinicSector.clinic = Clinic.query()
@@ -300,7 +325,7 @@ export default {
       },
      submitForm () {
         this.submitting = true
-        if (this.isCreateStep || this.isEditStep) {
+        if (this.isCreateStep || this.isEditStep || this.isCloseStep) {
           this.$refs.startReason.validate()
           this.$refs.clinicSerctor.validate()
           this.$refs.startDate.validate()
@@ -353,7 +378,7 @@ export default {
                     this.closureEpisode.episodeType = EpisodeType.query().where('code', 'FIM').first()
                     this.closureEpisode.clinic = this.currClinic
                     this.closureEpisode.episodeDate = this.extractHyphenDateFromDMYConvertYMD(this.stopDate)
-                    this.closureEpisode.creationDate = moment().format('DD-MM-YYYY')
+                    this.closureEpisode.creationDate = moment().format('YYYY-MM-DD')
                     this.closureEpisode.patientServiceIdentifier = this.identifier
 
                     if (!this.isValidDate(String(this.getDateFromHyphenDDMMYYYY(this.stopDate)))) {
@@ -408,7 +433,7 @@ export default {
                         //  Episode.insert({ data: this.closureEpisode })
                           this.displayAlert('info', 'Operação efectuada com sucesso.')
                         } else {
-                          Episode.apiSave(this.closureEpisode).then(resp => {
+                          Episode.apiSave(this.closureEpisode, true).then(resp => {
                             this.closureEpisode.patientServiceIdentifier.patient = this.patient
                             this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.patient.clinic.facilityTypeId)
                             this.closureEpisode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.closureEpisode.patientServiceIdentifier.clinic.facilityTypeId)
@@ -510,6 +535,25 @@ export default {
             transReference.patientTransReferenceTypeId = transReference.operationType.id
           } else {
             setTimeout(this.doTransReference(transReference), 2)
+          }
+        } else if (this.isReferenceSectorEpisode) {
+          const newEpisode = new Episode({
+            syncStatus: 'P',
+            episodeDate: this.closureEpisode.episodeDate,
+            creationDate: moment().format('YYYY-MM-DD'),
+            startStopReason: StartStopReason.query().where('code', 'MANUNTENCAO').first(),
+            episodeType: EpisodeType.query().where('code', 'INICIO').first(),
+            clinicSector: this.selectedClinicSector,
+            patientServiceIdentifier: this.closureEpisode.patientServiceIdentifier,
+            notes: 'Referido De Sector Clinico'
+          })
+          if (!this.isOnline) {
+            newEpisode.startStopReason_id = newEpisode.startStopReason.id
+            newEpisode.patientServiceIdentifier_id = newEpisode.identifier.id
+            newEpisode.episodeType_id = newEpisode.episodeType.id
+            newEpisode.clinicSector_id = newEpisode.clinicSector.id
+          } else {
+            Episode.apiSave(newEpisode, true)
           }
         }
       },
@@ -620,6 +664,11 @@ export default {
         if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
         return this.closureEpisode.startStopReason.code === 'TRANSFERIDO_PARA'
       },
+      isReferenceSectorEpisode () {
+        if (this.closureEpisode === null || this.closureEpisode === undefined) return false
+        if (this.closureEpisode.startStopReason === null || this.closureEpisode.startStopReason === undefined) return false
+        return this.closureEpisode.startStopReason.code === 'REFERIDO_PARA_SECTOR'
+      },
       identifierstartDate: {
         get () {
           return this.getDDMMYYYFromJSDate(this.identifier.startDate)
@@ -635,6 +684,19 @@ export default {
                                     .get()
         const sectorList = sectors.filter((sector) => {
           return sector.clinicSectorType.code === 'PARAGEM_UNICA' || sector.clinicSectorType.code === 'NORMAL'
+        })
+       console.log(sectorList)
+        return sectorList
+      },
+      clinicSerctorsToRefer () {
+        const sectors = ClinicSector.query()
+                                    .with('clinic.*')
+                                    .with('clinicSectorType')
+                                    .where((sector) => { return sector.clinic_id === this.currClinic.id && sector.active === true })
+                                    .orderBy('code', 'asc')
+                                    .get()
+        const sectorList = sectors.filter((sector) => {
+          return (sector.clinicSectorType.code === 'PARAGEM_UNICA' || sector.clinicSectorType.code === 'NORMAL') && this.episode.clinicSector.code !== sector.code
         })
        console.log(sectorList)
         return sectorList
