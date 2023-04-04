@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import Patient from '../../../store/models/patient/Patient'
+import Patient from 'src/store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Pack from '../../../store/models/packaging/Pack'
@@ -39,8 +39,9 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinutils from 'src/mixins/mixin-utils'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   data () {
     return {
       showAddPrescription: false,
@@ -53,21 +54,15 @@ export default {
   methods: {
     async init () {
       console.log('On PrescriptionInfo initialization')
-      if (this.mobile) {
-            PatientVisit.localDbGetAll().then(visitList => {
-              visitList.forEach((visit) => {
-                if (visit.patient.id === this.patient.id) {
-                  PatientVisit.insert({ data: visit })
-                }
-              })
-            })
+      if (!this.isOnline) {
+            PatientVisit.localDbGetAll()
             this.flagGoReady = true
       }
       if (this.identifiers.length <= 0) {
             this.flagGoReady = true
       } else {
         this.identifiers.forEach(identifier => {
-          if (this.mobile) {
+          if (!this.isOnline) {
             /*
             const episodeList = Episode.query()
                                         .with('startStopReason')

@@ -106,7 +106,6 @@
                     @click="goToPatientPanel(props.row)">
                     <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                   </q-btn>
-
                   <q-btn flat round v-if="this.selectedDataSources.id.length > 4"
                     class="q-ml-md"
                     color="green-8"
@@ -157,6 +156,13 @@ import Patient from 'src/store/models/patient/Patient'
 import TransferenceService from 'src/services/Transferences/TransferenceService'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import mixinEncryption from 'src/mixins/mixin-encryption'
+// import Episode from '../../store/models/episode/Episode'
+// import PatientVisitDetails from '../../store/models/patientVisitDetails/PatientVisitDetails'
+import Prescription from '../../store/models/prescription/Prescription'
+import Pack from 'src/store/models/packaging/Pack'
+// import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   { name: 'identifier', align: 'left', label: 'Identificador', sortable: false },
@@ -166,7 +172,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-    mixins: [mixinplatform, mixinutils],
+    mixins: [mixinplatform, mixinutils, mixinEncryption, mixinIsOnline],
     data () {
       return {
         searchField: '',
@@ -221,7 +227,7 @@ export default {
       this.$q.loading.hide()
     },
     async init () {
-        if (this.mobile) {
+        if (!this.isOnline) {
         await Patient.localDbGetAll()
         }
       },
@@ -262,16 +268,22 @@ export default {
         this.newPatient = true
         this.openMrsPatient = true
       },
-      goToPatientPanel (selectedPatient) {
-        /* this.$q.loading.show({
+      async goToPatientPanel (selectedPatient, isImported) {
+         this.$q.loading.show({
           message: 'Carregando ...',
           spinnerColor: 'grey-4',
           spinner: QSpinnerBall
         })
-
-        setTimeout(() => {
+      //  if (isImported) {
+          console.log(JSON.parse(JSON.stringify(selectedPatient)))
+           const newPatient = await Patient.localDbGetByPatientId(selectedPatient.id)
+          if (!this.isOnline && newPatient.length === 0) {
+            Patient.loadPatientWithIdentifiersEpisodeAndVisitFromServer(selectedPatient)
+          }
+         setTimeout(() => {
           this.$q.loading.hide()
-        }, 1000) */
+        }, 86000)
+      // }
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
        proccedToPatientPanel (patient) {
@@ -352,7 +364,7 @@ export default {
       },
       localSearch () {
         this.showloading()
-        if (this.website) {
+        if (this.isOnline) {
           console.log('Performing website search')
           Patient.deleteAll()
           this.currPatient.clinic = this.clinic
@@ -393,6 +405,27 @@ export default {
           this.patients = patients.filter((patient) => {
             return this.filterPatient(patient)
           })
+          if (this.patients.length === 0) {
+            this.$q.loading.show({
+          message: 'Carregando ...',
+          spinnerColor: 'grey-4',
+          spinner: QSpinnerBall
+        })
+            const userPass = localStorage.getItem('sync_pass')
+          const decryptedPass = this.decryptPlainText(userPass)
+           this.loginToBackend(decryptedPass).then(result => {
+            if (result === 'Success') {
+              Patient.deleteAll()
+              this.currPatient.clinic = this.clinic
+              Patient.apiSearch(this.currPatient).then(resp => {
+          if (resp.response.data.length >= 0) {
+            this.patients = this.getPatientsVuex()
+            this.$q.loading.hide()
+            }
+          })
+            }
+           })
+          }
         }
       },
       openMRSSerach (his) {

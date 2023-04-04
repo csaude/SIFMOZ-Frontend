@@ -117,14 +117,15 @@ import Clinic from '../../store/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
  import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 // import { initDatabase } from 'src/store/models/createDatabase'
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   components: {},
   methods: {
     init () {
       // this.showloading()
-      if (this.website) {
+      if (this.isOnline) {
         this.loadWebRegimensToVueX()
         this.loadWebDrugsToVueX()
         this.loadWebStockToVueX()
@@ -158,7 +159,7 @@ export default {
     this.init()
   // initDatabase()
     setTimeout(() => {
-      if (this.mobile) {
+      if (!this.isOnline) {
         console.log(this.isAppSyncDone)
         if (!this.isAppSyncDone) {
           SynchronizationService.start(this.$q, this.currClinic.id)

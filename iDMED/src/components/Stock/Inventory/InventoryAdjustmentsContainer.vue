@@ -132,6 +132,7 @@ import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Drug from '../../../store/models/drug/Drug'
  import Inventory from '../../../store/models/stockinventory/Inventory'
+ import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'center', sortable: false },
@@ -142,7 +143,7 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Notas', sortable: false }
 ]
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   props: ['drug', 'inventory'],
   data () {
     return {
@@ -165,7 +166,7 @@ export default {
       this.infoContainerVisible = !value
     },
     async init () {
-        if (this.mobile) {
+        if (!this.isOnline) {
           await InventoryStockAdjustment.localDbGetAll()
           await Drug.localDbGetAll()
           this.prepareInit()
@@ -241,7 +242,7 @@ export default {
           this.displayAlert('error', 'Por favor indicar um Numero Valido para o campo Quantidade Contada.')
         } else {
           console.log(this.adjustments[i]) // devolver ajustes ao salvar
-          if (this.website) {
+          if (this.isOnline) {
             InventoryStockAdjustment.apiFetchById(this.adjustments[i].id).then(resp1 => {
               if (resp1.response.data.length === 0) {
                 InventoryStockAdjustment.apiSave(this.adjustments[i]).then(resp => {

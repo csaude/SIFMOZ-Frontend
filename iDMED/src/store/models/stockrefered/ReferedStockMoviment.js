@@ -40,23 +40,8 @@ export default class StockReferedStockMoviment extends Model {
       return await this.api().get('/referedStockMoviment?offset=' + offset + '&max=' + max)
     }
 
-    static localDbAdd (referedStockMoviment) {
-      return nSQL(this.entity).query('upsert',
-      referedStockMoviment
-       ).exec().then(
-        StockReferedStockMoviment.insertOrUpdate({ data: referedStockMoviment })
-       )
-    }
-
     static localDbGetById (id) {
       return db.newDb().collection('referedStockMoviments').doc({ id: id }).get()
-    }
-
-    static async localDbGetAll () {
-      return nSQL(this.entity).query('select').exec().then(result => {
-        console.log(result)
-        StockReferedStockMoviment.insertOrUpdate({ data: result })
-        })
     }
 
     static localDbUpdate (referedStockMoviment) {
@@ -77,6 +62,22 @@ export default class StockReferedStockMoviment extends Model {
 
     static localDbDeleteById (id) {
       return db.newDb().collection('referedStockMoviments').doc({ id: id }).delete()
+    }
+
+    static localDbAddOrUpdate (targetCopy) {
+      return nSQL().onConnected(() => {
+        nSQL(this.entity).query('upsert',
+        targetCopy
+      ).exec()
+      StockReferedStockMoviment.insertOrUpdate({ data: targetCopy })
+    })
+    }
+
+    static localDbGetAll () {
+      return nSQL(this.entity).query('select').exec().then(result => {
+        console.log(result)
+        StockReferedStockMoviment.insertOrUpdate({ data: result })
+        })
     }
 
     static async syncReferedStock (referedStock) {

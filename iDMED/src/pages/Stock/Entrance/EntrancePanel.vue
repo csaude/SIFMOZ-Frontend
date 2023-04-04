@@ -408,7 +408,7 @@ import Clinic from '../../../store/models/clinic/Clinic'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
-// import { v4 as uuidv4 } from 'uuid'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 const columns = [
   { name: 'order', required: true, label: 'Ordem', field: 'index', align: 'left', sortable: false },
@@ -420,7 +420,7 @@ const columns = [
   { name: 'options', align: 'center', label: 'Opções', sortable: false }
 ]
 export default {
-   mixins: [mixinplatform],
+   mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       alert: ref({
@@ -465,7 +465,7 @@ export default {
     },
     async init () {
       this.dateReceived = this.getDDMMYYYFromJSDate(this.currStockEntrance.dateReceived)
-      if (this.mobile) {
+      if (!this.isOnline) {
         await Drug.localDbGetAll()
         this.loadStockList()
       }
@@ -483,7 +483,7 @@ export default {
           this.currStockEntrance.dateReceived = this.getJSDateFromDDMMYYY(this.dateReceived) // this.getJSDateFromDDMMYYY()
           console.log(this.currStockEntrance)
           this.currStockEntrance.clinic = this.currClinic
-          if (this.website) {
+          if (this.isOnline) {
             if (this.guiaStep === 'create') {
              StockEntrance.apiSave(this.currStockEntrance).then(resp => {
             SessionStorage.set('currStockEntrance', resp.response.data)
@@ -547,7 +547,7 @@ export default {
       }
     },
     doRemoveGuia () {
-      if (this.website) {
+      if (this.isOnline) {
       StockEntrance.apiRemove(this.currStockEntrance.id).then(resp => {
         StockEntrance.delete(this.currStockEntrance.id)
         this.goBack()
@@ -597,7 +597,7 @@ export default {
     },
    async doRemoveStock () {
       this.step = 'delete'
-      if (this.website) {
+      if (this.isOnline) {
           Stock.apiRemove(this.selectedStock.id).then(resp => {
           Stock.delete(this.selectedStock.id)
           this.removeFromList(this.selectedStock)
@@ -698,7 +698,7 @@ export default {
     },
     async doSave (stock) {
       stock.stockMoviment = stock.unitsReceived
-      if (this.website) {
+      if (this.isOnline) {
         if (this.isCreationStep) {
               await Stock.apiSave(stock).then(resp => {
                 stock.id = resp.response.data.id
@@ -834,7 +834,7 @@ export default {
     },
     getCurrStockEntrance () {
       const e = new StockEntrance(SessionStorage.getItem('currStockEntrance'))
-      if (this.mobile) return e
+      if (!this.isOnline) return e
       return StockEntrance.query()
                           .with('stocks')
                           .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])

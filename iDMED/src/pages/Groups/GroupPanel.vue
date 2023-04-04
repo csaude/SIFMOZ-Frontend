@@ -117,8 +117,9 @@ import GroupMemberPrescription from '../../store/models/group/GroupMemberPrescri
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import GroupMember from 'src/store/models/groupMember/GroupMember'
 import GroupPackHeader from '../../store/models/group/GroupPackHeader'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       showGroupInfo: ref(false),
@@ -194,7 +195,7 @@ export default {
     },
     async loadMemberInfo () {
       this.showloading()
-      if (this.mobile) {
+      if (!this.isOnline) {
         await this.group.members.forEach((member) => {
            GroupMemberPrescription.localDbGetAll().then(memberPrescriptions => {
             memberPrescriptions.forEach((mPre) => {
@@ -284,7 +285,7 @@ export default {
        this.group.endDate = new Date()
        const group = Object.assign({}, this.group)
        group.packHeaders = []
-       if (this.mobile) {
+       if (!this.isOnline) {
         if (this.group.syncStatus !== 'R') this.group.syncStatus = 'U'
         const groupUpdate = new Group(JSON.parse(JSON.stringify((this.group))))
         Group.localDbUpdate(groupUpdate).then(group => {

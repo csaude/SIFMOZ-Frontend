@@ -185,7 +185,7 @@ import { date, QSpinnerBall, SessionStorage } from 'quasar'
 import DispenseMode from '../../store/models/dispenseMode/DispenseMode'
 import Duration from '../../store/models/Duration/Duration'
 import Group from '../../store/models/group/Group'
-import Patient from '../../store/models/patient/Patient'
+import Patient from 'src/store/models/patient/Patient'
 import Episode from '../../store/models/episode/Episode'
 import GroupPackHeader from '../../store/models/group/GroupPackHeader'
 import GroupPack from '../../store/models/group/GroupPack'
@@ -204,6 +204,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import Drug from '../../store/models/drug/Drug'
 import moment from 'moment'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -214,7 +215,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 export default {
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   props: ['group', 'defaultPickUpDate'],
   data () {
     return {
@@ -240,16 +241,10 @@ export default {
       if (this.defaultPickUpDate !== null) {
         this.pickupDate = this.getDDMMYYYFromJSDate(this.defaultPickUpDate)
       }
-      if (this.mobile) {
-        await Drug.localDbGetAll().then(drugs => {
-          Drug.insertOrUpdate({ data: drugs })
-        })
-        await Duration.localDbGetAll().then(drugs => {
-          Duration.insertOrUpdate({ data: drugs })
-        })
-        await DispenseMode.localDbGetAll().then(drugs => {
-          DispenseMode.insertOrUpdate({ data: drugs })
-        })
+      if (!this.isOnline) {
+        await Drug.localDbGetAll()
+        await Duration.localDbGetAll()
+        await DispenseMode.localDbGetAll()
       }
     },
       date: ref(moment(date).format('YYYY/MM/DD')),
@@ -455,7 +450,7 @@ export default {
       }
     },
     savePatientVisitDetails (groupPacks, i) {
-      if (this.mobile) {
+      if (!this.isOnline) {
         if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
           const patientVisit = JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0].patientVisit))
 

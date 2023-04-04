@@ -3,10 +3,12 @@ import { Model } from '@vuex-orm/core'
  import ClinicSector from '../clinicSector/ClinicSector'
  import UserClinics from './UserClinic'
  import UserClinicSectors from './UserClinicSector'
+ // import RoleMenu from './RoleMenu'
 // import Role from './Role'
 // import UserRole from './UserRole'
 // import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
+import Role from './Role'
 
 export default class User extends Model {
   static entity = 'users'
@@ -28,12 +30,12 @@ export default class User extends Model {
       refresh_token: this.attr(''),
       firstNames: this.attr(''),
       lastNames: this.attr(''),
-      accountLocked: this.attr(''),
+      accountLocked: this.boolean(''),
       contact: this.attr(''),
       email: this.attr(''),
       roles: this.attr(null),
       syncStatus: this.attr(''),
-      authorities: this.attr(null),
+      authorities: this.hasMany(Role, 'role_id'),
         clinics: this.belongsToMany(Clinic, UserClinics, 'user_id', 'clinic_id'),
       clinicSectors: this.belongsToMany(ClinicSector, UserClinicSectors, 'user_id', 'clinic_sector_id')
     }
@@ -58,7 +60,8 @@ export default class User extends Model {
   static localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
-     return User.insert({ data: result })
+      User.insertOrUpdate({ data: result })
+     return result
       })
   }
 

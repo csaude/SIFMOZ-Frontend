@@ -132,18 +132,19 @@ export default {
     await StockCenter.apiGetAll(offset, max).then(resp => {
         StockCenter.localDbAdd(resp.response.data)
     })
-    /* Stock.apiGetAll(offset, max).then(resp => {
+    StockOperationType.apiGetAll(offset, max).then(resp => {
+      resp.response.data.forEach((item) => {
+        StockOperationType.localDbAdd(item)
+      })
+    })
+    /*
+    Stock.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
         Stock.localDbAddOrUpdate(item)
       })
     })
     await InventoryStockAdjustment.apiGetAll(offset, max).then(resp => {
         InventoryStockAdjustment.localDbAddOrUpdate(resp.response.data)
-    }) */
-    StockOperationType.apiGetAll(offset, max).then(resp => {
-      resp.response.data.forEach((item) => {
-        StockOperationType.localDbAdd(item)
-      })
     })
     ReferedStockMoviment.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((item) => {
@@ -153,6 +154,7 @@ export default {
     await DestroyedStock.apiGetAll(offset, max).then(resp => {
         DestroyedStock.localDbAdd(resp.response.data)
     })
+    */
     await ClinicSectorType.apiGetAll(offset, max).then(resp => {
         ClinicSectorType.localDbAdd(resp.response.data)
     })
@@ -426,29 +428,22 @@ async apiSendEntrances (entrancesToSync, i) {
  const entrance = entrancesToSync[i]
  if (entrance !== undefined) {
    entrance.clinic = SessionStorage.getItem('currClinic')
-   let toUpdates = []
-   Stock.localDbGetAll().then((stocks) => {
-   toUpdates = stocks.filter((stock) => stock.entrance_id === entrance.id)
+  const toUpdates = Stock.localDbGetByStockEntranceId(entrance)
    entrance.stocks = toUpdates
    StockEntrance.syncStockEntrance(entrance).then(resp => {
       i = i + 1
       entrance.syncStatus = 'S'
       toUpdates.forEach(toUpdate => {
         toUpdate.syncStatus = 'S'
-        Stock.localDbUpdate(toUpdate)
+        Stock.localDbAddOrUpdate(toUpdate)
       })
-      StockEntrance.localDbUpdate(entrance).then(entr => {
-        StockEntrance.insert(
-          { data: entrance })
-
-        setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
-      })
+      StockEntrance.localDbAddOrUpdate(entrance)
+       setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
       // Get Childs TO Update
   }).catch(error => {
     console.log(error)
     i = i + 1
     setTimeout(this.apiSendEntrances(entrancesToSync, i), 200)
-  })
   })
  } else {
   this.sendInventory()
@@ -801,7 +796,7 @@ login (username, password) {
       })
       localStorage.setItem('isSyncronizing', 'true')
       this.syncronizeAudit()
-  //  this.sendEntrances()
+      this.sendEntrances()
  //   this.getRolesToSend()
   //    this.getUsersToSend()
       this.getPatientsToSend()

@@ -100,14 +100,14 @@ import Stock from '../../../store/models/stock/Stock'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
 import moment from 'moment'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import { v4 as uuidv4 } from 'uuid'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 
 const columns = [
   { name: 'code', required: true, label: 'Código FNM', field: 'fnmCode', align: 'left', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', field: 'name', sortable: true }
 ]
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   data () {
     return {
       filter: ref(''),
@@ -168,7 +168,7 @@ export default {
       }
       this.currInventory.clinic = SessionStorage.getItem('currClinic') // this.currClinic
 
-      if (this.website) {
+      if (this.isOnline) {
       await Inventory.apiSave(this.currInventory).then(resp => {
         SessionStorage.set('currInventory', resp.response.data)
       console.log(resp.response)
@@ -191,7 +191,6 @@ export default {
         })
         } else {
           this.currInventory.syncStatus = 'R'
-          this.currInventory.id = uuidv4()
           this.currInventory.clinic = this.currClinic
           this.currInventory.clinic_id = this.currClinic.id
 
@@ -199,7 +198,6 @@ export default {
             const item = this.currInventory.adjustments[k]
             item.inventory_id = this.currInventory.id
             item.adjusted_stock_id = item.adjustedStock.id
-            item.id = uuidv4()
         }.bind(this))
 
           const targetCopy = JSON.parse(JSON.stringify(this.currInventory))

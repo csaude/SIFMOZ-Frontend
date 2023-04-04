@@ -74,8 +74,9 @@ import IdentifierType from '../../../store/models/identifierType/IdentifierType'
 import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
 import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-    mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinIsOnline],
   props: ['visitDetails', 'hasTherapeuticalRegimen'],
   data () {
     return {

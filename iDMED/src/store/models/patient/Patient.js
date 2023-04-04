@@ -14,6 +14,13 @@ import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import moment from 'moment'
 import { nSQL } from 'nano-sql'
+import EpisodeType from '../episodeType/EpisodeType'
+import ClinicSector from '../clinicSector/ClinicSector'
+import StartStopReason from '../startStopReason/StartStopReason'
+import Episode from '../episode/Episode'
+import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
+import Prescription from '../prescription/Prescription'
+import Pack from '../packaging/Pack'
 
 export default class Patient extends Model {
   static entity = 'patients'
@@ -221,5 +228,110 @@ export default class Patient extends Model {
     return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
       return result
         })
+    }
+
+    static async localDbGetByPatientId (patientId) {
+      return nSQL(this.entity).query('select').where(['id', '=', patientId]).exec().then(result => {
+        return result
+          })
+      }
+
+    static loadPatientWithIdentifiersEpisodeAndVisitFromServer (selectedPatient) {
+      console.log(JSON.parse(JSON.stringify(selectedPatient)))
+      Patient.localDbAddOrUpdate(JSON.parse(JSON.stringify(selectedPatient)))
+      PatientServiceIdentifier.localDbAddOrUpdate(JSON.parse(JSON.stringify(selectedPatient.identifiers)))
+      const endEpisodeType = EpisodeType.query().where('code', 'FIM').first()
+      const startEpisodeType = EpisodeType.query().where('code', 'INICIO').first()
+      const stopReason = StartStopReason.query().where('code', 'REFERIDO_PARA_SECTOR').first()
+      const startReason = StartStopReason.query().where('code', 'MANUNTENCAO').first()
+      const clinicSectorNormal = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', 'NORMAL').first()
+      const clinicSectorUser = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', localStorage.getItem('clinic_sectors')).first()
+
+      selectedPatient.identifiers.forEach(identifier => {
+        Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
+            if (resp.response.data.length > 0) {
+              identifier.episodes = resp.response.data
+              const lastEpisode = identifier.episodes[0]
+              Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(lastEpisode)))
+              const endEpispde = new Episode()
+              endEpispde.episodeDate = moment()
+              endEpispde.creationDate = moment()
+              endEpispde.notes = 'Carregamento na Paragem Unica'
+              endEpispde.episodeType = {}
+              endEpispde.episodeType.id = endEpisodeType.id
+              endEpispde.episodeType_id = endEpisodeType.id
+              endEpispde.patientServiceIdentifier = {}
+              endEpispde.patientServiceIdentifier.id = identifier.id
+              endEpispde.patientServiceIdentifier_id = identifier.id
+              endEpispde.clinicSector = {}
+              endEpispde.clinicSector.id = clinicSectorNormal.id
+              endEpispde.clinicSector_id = clinicSectorNormal.id
+              endEpispde.startStopReason = {}
+              endEpispde.startStopReason.id = stopReason.id
+              endEpispde.startStopReason_id = stopReason.id
+              endEpispde.syncStatus = 'R'
+
+              Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(endEpispde)))
+
+              const startEpisode = new Episode()
+              startEpisode.episodeDate = moment()
+              startEpisode.creationDate = moment()
+              startEpisode.notes = 'Carregamento na Paragem Unica'
+              startEpisode.episodeType = {}
+              startEpisode.episodeType.id = startEpisodeType.id
+              startEpisode.episodeType.id = startEpisodeType.id
+              startEpisode.patientServiceIdentifier = {}
+              startEpisode.patientServiceIdentifier.id = identifier.id
+              startEpisode.patientServiceIdentifier_id = identifier.id
+              startEpisode.clinicSector = {}
+              startEpisode.clinicSector.id = clinicSectorUser.id
+              startEpisode.clinicSector_id = clinicSectorUser.id
+              startEpisode.startStopReason = {}
+              startEpisode.startStopReason.id = startReason.id
+              startEpisode.startStopReason_id = startReason.id
+              startEpisode.syncStatus = 'R'
+
+              Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(startEpisode)))
+}
+})
+})
+            let i = 0
+            let iP = 0
+            let iPa = 0
+            PatientVisit.apiGetLastVisitOfPatient(selectedPatient.id).then(resp => {
+              if (resp.response.data) {
+                resp.response.data.patientVisitDetails.forEach(pvd => {
+                  PatientVisitDetails.apiFetchById(pvd.id).then(resp1 => {
+                   // resp.response.data.patientVisitDetails[0] = resp1.response.data
+                    if (pvd.id === resp1.response.data.id && resp.response.data.patientVisitDetails[i] !== undefined) {
+                      console.log(i)
+                      resp.response.data.patientVisitDetails[i] = resp1.response.data
+                      Prescription.apiFetchById(resp.response.data.patientVisitDetails[i].prescription.id).then(respPre => {
+                        resp.response.data.patientVisitDetails[iP].prescription = respPre.response.data
+                        console.log(JSON.parse(JSON.stringify(resp.response.data)))
+                        iP++
+                        PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
+                        if (resp.response.data.patientVisitDetails[iPa].pack !== null) {
+                          Pack.apiFetchById(resp.response.data.patientVisitDetails[i].pack.id).then(respPack => {
+                            resp.response.data.patientVisitDetails[iPa].pack = respPack.response.data
+                            console.log(JSON.parse(JSON.stringify(resp.response.data)))
+                            PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
+                           // this.flagGoReady = true
+                           console.log(i)
+                           iPa++
+                          })
+                        } else {
+                        //  this.flagGoReady = true
+                        }
+                        i++
+                       // PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
+                      })
+                   //   PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
+                    }
+                  })
+                  console.log(resp.response.data)
+                })
+              }
+            })
     }
 }

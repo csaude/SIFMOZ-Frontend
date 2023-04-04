@@ -132,7 +132,7 @@
 <script>
 import { SessionStorage } from 'quasar'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
-import Patient from '../../../store/models/patient/Patient'
+import Patient from 'src/store/models/patient/Patient'
 import { ref } from 'vue'
 import VitalSignsScreening from '../../../store/models/screening/VitalSignsScreening'
 import TBScreening from '../../../store/models/screening/TBScreening'
@@ -144,8 +144,9 @@ import mixinutils from 'src/mixins/mixin-utils'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import moment from 'moment'
 import { v4 as uuidv4 } from 'uuid'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-    mixins: [mixinplatform, mixinutils],
+    mixins: [mixinplatform, mixinutils, mixinIsOnline],
     props: ['editPatientVisit', 'editMode'],
     data () {
         return {
@@ -293,9 +294,9 @@ export default {
              if (this.rAMScreening.adverseReactionMedicine === 'true' && this.rAMScreening.adverseReaction === '') {
                 this.displayAlert('error', 'Por Favor Indique as reações adversas')
              } else {
-              if (this.mobile) {
-                this.patientVisit.clinic = this.currClinic
-                this.patientVisit.patient = this.patient
+              if (!this.isOnline) {
+             //   this.patientVisit.clinic = this.currClinic
+             //   this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
 
                 PatientVisitDetails.localDbGetAll().then(pvds => {

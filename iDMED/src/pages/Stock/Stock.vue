@@ -19,15 +19,17 @@ import Drug from '../../store/models/drug/Drug'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Inventory from '../../store/models/stockinventory/Inventory'
 import PackagedDrugStock from '../../store/models/packagedDrug/PackagedDrugStock'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+
 export default {
-  mixins: [mixinplatform],
+  mixins: [mixinplatform, mixinIsOnline],
   components: {
     Index: require('components/Stock/Index.vue').default
   },
   methods: {
     init () {
    // copoia o stock do localbase para o VueX
-     if (this.mobile) {
+     if (!this.isOnline) {
         Stock.localDbGetAll()
         Inventory.localDbGetAll()
         StockEntrance.localDbGetAll()

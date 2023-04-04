@@ -32,8 +32,9 @@ import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import PregnancyScreening from '../../../store/models/screening/PregnancyScreening'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-    mixins: [mixinplatform, mixinutils],
+    mixins: [mixinplatform, mixinutils, mixinIsOnline],
   props: ['selectedPatient'],
   data () {
     return {
@@ -45,7 +46,7 @@ export default {
   },
   methods: {
     init () {
-      if (this.website) {
+      if (this.isOnline) {
         this.patientVisits.forEach(patientVisit => {
           PregnancyScreening.apiGetAllByPatientVisitId(patientVisit.id).then(resp => {
             this.flagGo = true
