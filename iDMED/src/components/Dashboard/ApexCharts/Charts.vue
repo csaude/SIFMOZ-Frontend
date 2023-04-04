@@ -59,10 +59,7 @@ import { ref } from 'vue'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-// import { nSQL } from '@nano-sql/core'
 import { nSQL } from 'nano-sql'
-import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
-import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 export default {
     mixins: [mixinplatform],
      props: ['dataLoaded'],
@@ -95,74 +92,27 @@ export default {
       },
       getDashboardServiceButton () {
         if (this.mobile) {
-          // nSQL([
-          //   { a: 1, b: 10 },
-          //   { a: 2, b: 20 },
-          //   { a: 1, b: 40 }
-          // ])
-          // .query('select', ['a', 'SUM(b) AS b'])
-          // .groupBy(['a ASC'])
-          // .exec().then(function (result) {
-          //   console.log(result)
-          // })
-          // nSQL('patientVisits')
-          // // Ver como usar distinct; CASE
-          // .query('select', ['patients[id] AS patient_id', 'patientVisits[visitDate] AS visit_date', 'patients[gender] AS gender', 'identifiers[startDate] AS start_date', 'patientVisitDetails[prescription_id] AS prescription_id'])
-          // .join(
-          //   [{
-          //     type: 'inner',
-          //     table: 'patients',
-          //     where: ['patientVisits.patient_id', '=', 'patients.id']
-          //   },
-          //   {
-          //     type: 'inner',
-          //     table: 'identifiers',
-          //     where: ['identifiers.patient_id', '=', 'patients.id']
-          //   },
-          //   {
-          //     type: 'inner',
-          //     table: 'episodes',
-          //     where: ['episodes.patientServiceIdentifier_id', '=', 'identifiers.id']
-          //   },
-          //   {
-          //     type: 'inner',
-          //     table: 'patientVisitDetails',
-          //     where: ['patientVisitDetails.episode_id', '=', 'episodes.id']
-          //   }]
-          // )
-          // .exec().then(function (result1) {
-          //   console.log('patientVisits_1: ', result1)
-          // })
+          const dateStr = this.year + '-12-20'
+          const parts = dateStr.split('-')
+          const endDateObject = new Date(parts[0], parts[1] - 1, parts[2])
+          console.log(endDateObject)
 
-          nSQL(PatientServiceIdentifier.entity).query('select', ['service_id AS service_ident'])
-          // .where(['identifiers.clinic_id', '=', this.clinic.id])
-          // .where(['identifiers.endDate', '<=', endDateObj])
-          .exec().then(result => {
-            console.log('RESULT_1: ', result)
-          })
-
-          nSQL(ClinicalService.entity).query('select', ['id AS service'])
-          // .where(['identifiers.clinic_id', '=', this.clinic.id])
-          // .where(['identifiers.endDate', '<=', endDateObj])
-          .exec().then(result => {
-            console.log('RESULT_2: ', result)
-          })
-
-          // Butoes de Servico de Saude
-          nSQL('identifiers').query('select', ['clinicalServices.code As service', 'COUNT(*) As quantity'])
+          nSQL('identifiers')
+          .query('select', ['clinicalServices[code] AS service', 'count(clinicalServices[code]) AS quantity', 'identifiers.clinic.id AS clinicId', 'identifiers.startDate AS startDate'])
+          .where(['clinic.id', '=', this.clinic.id])
+          // .where([['clinic.id', '=', this.clinic.id], 'AND', ['identifiers.startDate', '<=', endDateObject]]) // identifiers.startDate e' uma string
           .join({
-            type: 'inner',
-            table: 'clinicalServices',
-            where: ['identifiers.service_id', '=', 'clinicalServices.id']
+              type: 'inner',
+              table: 'clinicalServices',
+              where: ['clinicalServices.id', '=', 'identifiers.service.id']
           })
-          .groupBy({ 'clinicalServices.code': 'ASC' })
-          // .where(['identifiers.clinic_id', '=', this.clinic.id])
-          // .where(['identifiers.endDate', '<=', endDateObj])
-          .exec().then(result => {
-            console.log('RESULT: ', result)
-            this.clinicalServiceReports = result
-            if (this.clinicalServiceReports.length > 0) {
-              this.clinicalServiceReports.forEach((item) => {
+          .groupBy({
+            'clinicalServices.code': 'asc'
+           })
+          .exec().then(rows => {
+            console.log('RESULT: ', rows)
+            this.clinicalServiceReports = rows
+            this.clinicalServiceReports.forEach((item) => {
                 if (item.service === 'TARV') {
                   item.colour = 'green'
                   item.icon = 'medication'
@@ -179,7 +129,6 @@ export default {
                   item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
                 }
               })
-            }
             this.loading = false
           })
         } else {
