@@ -166,7 +166,6 @@ export default class Patient extends Model {
   }
 
   static async apiSave (patient, isNew) {
-    console.log('patient3' + patient, isNew)
     if (isNew) {
       return await this.api().post('/patient', patient)
     } else {
@@ -217,8 +216,8 @@ export default class Patient extends Model {
   }
 
   static async syncPatient (patient) {
-    if (patient.syncStatus === 'R') await this.apiSave(patient, true)
-    if (patient.syncStatus === 'U') await this.apiSave(patient, false)
+    if (patient.syncStatus === 'R') await this.apiSave(patient, false)
+    if (patient.syncStatus === 'U') await this.apiSave(patient, true)
   }
 
   static getClassName () {

@@ -271,10 +271,9 @@ import Prescription from '../../../store/models/prescription/Prescription'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
 import moment from 'moment'
-import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
     props: ['episodeToEdit', 'curIdentifier', 'stepp'],
-    mixins: [mixinplatform, mixinutils, mixinIsOnline],
+    mixins: [mixinplatform, mixinutils],
     emits: ['update:submitting'],
     data () {
         return {
@@ -315,8 +314,8 @@ export default {
                                                   .first()
         } else {
           if (this.identifier.lastEpisode() !== null && this.identifier.lastEpisode().isStartEpisode() && (this.episode !== null || this.episode !== undefined)) {
-           // this.episode = new Episode(this.identifier.lastEpisode())
-           // this.changeToCloseStep()
+            this.episode = new Episode(this.identifier.lastEpisode())
+            this.changeToCloseStep()
           }
         }
         if (this.mobile) {
@@ -421,7 +420,7 @@ export default {
                                                                           .where('id', this.selectedClinicSector.id)
                                                                           .first()
                         }
-                        if (this.mobile && !this.isOnline) {
+                        if (this.mobile) {
                           this.closureEpisode.referralClinic_id = this.closureEpisode.referralClinic !== null ? this.closureEpisode.referralClinic.id : null
                           this.closureEpisode.startStopReason_id = this.closureEpisode.startStopReason.id
                           this.closureEpisode.patientServiceIdentifier_id = this.closureEpisode.patientServiceIdentifier.id
@@ -461,7 +460,7 @@ export default {
           this.episode.patientServiceIdentifier.clinic.facilityType = FacilityType.find(this.episode.patientServiceIdentifier.clinic.facilityTypeId)
           this.episode.patientServiceIdentifier.episodes = []
           const lastEpisodeCopy = JSON.parse(JSON.stringify(this.episode))
-          if (this.mobile && !this.isOnline) {
+          if (this.mobile) {
             lastEpisodeCopy.referralClinic_id = lastEpisodeCopy.referralClinic !== null ? lastEpisodeCopy.referralClinic.id : null
             lastEpisodeCopy.startStopReason_id = lastEpisodeCopy.startStopReason.id
             lastEpisodeCopy.patientServiceIdentifier_id = lastEpisodeCopy.patientServiceIdentifier.id
@@ -509,7 +508,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.mobile && !this.isOnline) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -528,7 +527,7 @@ export default {
             identifier: this.closureEpisode.patientServiceIdentifier,
             patient: this.patient
           })
-          if (this.mobile && !this.isOnline) {
+          if (this.mobile) {
             transReference.originId = transReference.origin.id
             transReference.identifierId = transReference.identifier.id
             transReference.patientId = transReference.patient.id
@@ -577,10 +576,10 @@ export default {
         return false
       },
       doTransReference (transReference) {
-        if (this.mobile && !this.isOnline) {
+        if (this.mobile) {
           transReference.syncStatus = 'R'
-          PatientTransReference.localDbAddOrUpdate(transReference)
-       //  PatientTransReference.insert({ data: transReference })
+          PatientTransReference.localDbAdd(transReference)
+          PatientTransReference.insert({ data: transReference })
         } else {
           PatientTransReference.apiSave(transReference)
         }

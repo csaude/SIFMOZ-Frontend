@@ -49,8 +49,6 @@ import Doctor from 'src/store/models/doctor/Doctor'
 import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization'
 import GroupType from 'src/store/models/groupType/GroupType'
 import Group from 'src/store/models/group/Group'
-import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
-import GroupPackHeader from 'src/store/models/group/GroupPackHeader'
 
 export default {
   // mixins: [mixinEncryption],
@@ -87,6 +85,9 @@ export default {
     })
     await StartStopReason.apiGetAll(offset, max).then(resp => {
         StartStopReason.localDbAdd(resp.response.data)
+        resp.response.data.forEach((item) => {
+          StartStopReason.localDbAdd(item)
+        })
     })
     await ClinicalServiceAttribute.apiGetAll(offset, max).then(resp => {
       resp.response.data.forEach((cs) => {
@@ -168,6 +169,9 @@ export default {
       })
       await Doctor.apiFetchByClinicId(clinicId).then(resp => {
         Doctor.localDbAdd(resp.response.data)
+        resp.response.data.forEach((item) => {
+          Doctor.localDbAdd(item)
+        })
       })
       DispenseMode.apiGetAll().then(resp => {
         resp.response.data.forEach((item) => {
@@ -187,6 +191,9 @@ export default {
         console.log(resp.response.data)
           Role.localDbAdd(resp.response.data)
      })
+    await User.apiGetAll(offset, max).then(resp => {
+    User.localDbAddOrUpdate(resp.response.data)
+  })
     await User.apiGetAll(offset, max).then(resp => {
     User.localDbAddOrUpdate(resp.response.data)
   })
@@ -241,7 +248,7 @@ export default {
     doPatientGet (clinicId, offset, max) {
       Patient.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
           resp.response.data.forEach((item) => {
-            Patient.localDbAdd(item)
+            Patient.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doPatientGet(clinicId, offset, max), 2)
@@ -275,7 +282,7 @@ export default {
       PatientVisitDetails.apiGetAllLastOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
-            PatientVisitDetails.localDbAdd(item)
+            PatientVisitDetails.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doPatientLastVisitDetailsGet(clinicId, offset, max), 2)
@@ -285,8 +292,9 @@ export default {
     doPatientVisitGet (clinicId, offset, max) {
       PatientVisit.apiGetAllLastWithScreeningOfClinic(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
+          console.log('PatientVISIT: ', resp.response.data)
           resp.response.data.forEach((item) => {
-            PatientVisit.localDbAdd(item)
+            PatientVisit.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doPatientVisitGet(clinicId, offset, max), 2)
@@ -322,7 +330,7 @@ export default {
       PatientServiceIdentifier.apiGetAllByClinicId(clinicId, offset, max).then(resp => {
         if (resp.response.data.length > 0) {
           resp.response.data.forEach((item) => {
-            PatientServiceIdentifier.localDbAdd(item)
+            PatientServiceIdentifier.localDbAddOrUpdate(item)
           })
           offset = offset + max
           setTimeout(this.doIdentifiersGet(clinicId, offset, max), 2)
@@ -342,7 +350,7 @@ export default {
     },
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
-      /*
+
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
       this.doIdentifiersGet(clinicId, 0, 100)
@@ -355,7 +363,7 @@ export default {
       this.doInventoryGet(clinicId, 0, 100)
       this.doGetAllStockAlert(clinicId, 0, 100)
       this.doGetDrugFileMobile(clinicId, 0, 100)
-      */
+
       await this.loadAndSaveAppParameters(clinicId)
       await this.loadAndSaveRolesAndUsers()
         LocalStorage.set('system-sync-status', 'done')
@@ -371,7 +379,7 @@ export default {
           localStorage.setItem('isSyncronizing', 'false')
         // }
      })
-  },
+    },
 
   async getRolesToSend () {
     Role.localDbGetAll().then((roles) => {
@@ -381,8 +389,8 @@ export default {
     }).then(rolesToSync => {
         console.log(rolesToSync[0])
         this.apiSendRoles(rolesToSync, 0)
-})
-},
+    })
+  },
     async getUsersToSend () {
         User.localDbGetAll().then((users) => {
           const usersToSync = users.filter((user) =>
@@ -409,9 +417,9 @@ export default {
            setTimeout(this.apiSendUsers(usersToSync, i), 2)
      }).catch(error => {
        console.log(error)
-   })
-}
-    },
+     })
+    }
+  },
     async sendEntrances () {
    const entrancesToSync = await StockEntrance.localDbGetByStockEntranceId()
     this.apiSendEntrances(entrancesToSync, 0)
@@ -540,10 +548,10 @@ async getPatientsToSend () {
   Patient.localDbGetBySyncStatusToSychronize().then((patientsToSync) => {
   //  const patientsToSync = patients.filter((patient) =>
  //   (patient.syncStatus === 'R' || patient.syncStatus === 'U'))
-   console.log('patients' + patientsToSync.length)
+   console('patients' + patientsToSync.length)
     return patientsToSync
   }).then(patientsToSync => {
-      console.log('patient1' + patientsToSync[0])
+      console.log(patientsToSync[0])
      this.apiSendPatients(patientsToSync, 0)
 })
 },
@@ -551,7 +559,7 @@ async getPatientServiceIdentifierToSend () {
   PatientServiceIdentifier.localDbGetBySyncStatusToSychronize().then((identifiersToSync) => {
    // const identifiersToSync = identifiers.filter((identifier) =>
    // (identifier.syncStatus === 'R' || identifier.syncStatus === 'U'))
-   console.log('identifiersToSync' + identifiersToSync.length)
+   console('identifiersToSync' + identifiersToSync.length)
     return identifiersToSync
   }).then(identifiersToSync => {
       console.log(identifiersToSync[0])
@@ -569,31 +577,13 @@ async getEpisodeToSend () {
 })
 },
 async getGroupsToSend () {
-  Group.localDbGetBySyncStatusToSychronize().then((groupsToSync) => {
-  //  const groupsToSync = groups.filter((group) =>
-  //  (group.syncStatus === 'R' || group.syncStatus === 'U'))
+  Group.localDbGetAll().then((groups) => {
+    const groupsToSync = groups.filter((group) =>
+    (group.syncStatus === 'R' || group.syncStatus === 'U'))
     return groupsToSync
   }).then(groupsToSync => {
     console.log('Groups_To_Sync: ', groupsToSync)
     this.apiSendGroups(groupsToSync, 0)
-  })
-},
-
-async getGroupsMemberPrescriptionToSend () {
-  GroupMemberPrescription.localDbGetBySyncStatusToSychronize().then((groupMemPrescriptionToSync) => {
-    return groupMemPrescriptionToSync
-  }).then(groupMemPrescriptionToSync => {
-    console.log('Groups_To_Sync: ', groupMemPrescriptionToSync)
-    this.apiSendGroupsMemberPrescriptions(groupMemPrescriptionToSync, 0)
-  })
-},
-
-async getGroupsPackHeaderToSend () {
-  GroupPackHeader.localDbGetBySyncStatusToSychronize().then((groupPackHeaderToSync) => {
-    return groupPackHeaderToSync
-  }).then(groupPackHeaderToSync => {
-    console.log('Groups_To_Sync: ', groupPackHeaderToSync)
-    this.apiSendGroupsPackHeader(groupPackHeaderToSync, 0)
   })
 },
 
@@ -604,7 +594,7 @@ async apiSendGroups (groupsToSync, i) {
     await Group.apiSave(group).then(resp => {
       i = i + 1
       group.syncStatus = 'S'
-      Group.localDbAddOrUpdate(group).then((group) => {
+      Group.localDbUpdate(group).then((group) => {
         console.log('Group_Syncronized: ', group)
         setTimeout(this.apiSendGroups(groupsToSync, i), 200)
       })
@@ -621,67 +611,6 @@ async apiSendGroups (groupsToSync, i) {
         }
       }
       console.log('error', listErrors)
-      localStorage.setItem('isSyncronizing', 'false')
-    })
-  } else {
-    this.getGroupsMemberPrescriptionToSend()
-  }
-},
-
-async apiSendGroupsMemberPrescriptions (groupMemPrescriptionToSync, i) {
-  const groupMembPre = groupMemPrescriptionToSync[i]
-  if (groupMembPre !== undefined) {
-   // groupMembPre.clinic = SessionStorage.getItem('currClinic')
-    await Group.apiSave(groupMembPre).then(resp => {
-      i = i + 1
-      groupMembPre.syncStatus = 'S'
-      GroupMemberPrescription.localDbAdd(groupMembPre).then((group) => {
-        setTimeout(this.apiSendGroupsMemberPrescriptions(groupMemPrescriptionToSync, i), 500)
-      })
-    }).catch(error => {
-      const listErrors = []
-      if (error.request.response != null) {
-        const arrayErrors = JSON.parse(error.request.response)
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message)
-        } else {
-          arrayErrors._embedded.errors.forEach(element => {
-            listErrors.push(element.message)
-          })
-        }
-      }
-      console.log('error', listErrors)
-      localStorage.setItem('isSyncronizing', 'false')
-    })
-  } else {
-    this.getGroupsPackHeaderToSend()
-  }
-},
-
-async apiSendGroupsPackHeader (groupPackHeaderToSync, i) {
-  const groupPackHeader = groupPackHeaderToSync[i]
-  if (groupPackHeader !== undefined) {
-   // groupMembPre.clinic = SessionStorage.getItem('currClinic')
-    await GroupPackHeader.apiSave(groupPackHeader).then(resp => {
-      i = i + 1
-      groupPackHeader.syncStatus = 'S'
-      GroupPackHeader.localDbAdd(groupPackHeader).then((group) => {
-        setTimeout(this.apiSendGroupsPackHeader(groupPackHeaderToSync, i), 500)
-      })
-    }).catch(error => {
-      const listErrors = []
-      if (error.request.response != null) {
-        const arrayErrors = JSON.parse(error.request.response)
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message)
-        } else {
-          arrayErrors._embedded.errors.forEach(element => {
-            listErrors.push(element.message)
-          })
-        }
-      }
-      console.log('error', listErrors)
-      localStorage.setItem('isSyncronizing', 'false')
     })
   } else {
     localStorage.setItem('isSyncronizing', 'false')
@@ -698,9 +627,10 @@ async apiSendGroupsPackHeader (groupPackHeaderToSync, i) {
     })
   }
 },
-
 getPatientVisitToSend () {
   PatientVisit.localDbGetBySyncStatusToSychronize().then((patientVisitToSync) => {
+   // const patientVisitToSync = patientVisit.filter((patientVisit) =>
+   // (patientVisit.syncStatus === 'R' || patientVisit.syncStatus === 'U'))
    return patientVisitToSync
   }).then(patientVisitToSync => {
     console.log(patientVisitToSync[0])
@@ -710,7 +640,6 @@ getPatientVisitToSend () {
 async apiSendPatients (patientsToSync, i) {
   const patient = patientsToSync[i]
 if (patient !== undefined) {
-  console.log('patient2' + patient)
 await Patient.syncPatient(patient).then(resp => {
     i = i + 1
     patient.syncStatus = 'S'

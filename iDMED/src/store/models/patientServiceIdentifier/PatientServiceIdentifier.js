@@ -207,6 +207,26 @@ static getServiceFatById (identifier) {
   .where('id', identifier.id).first()
 }
 
+  static getDashboardServiceButton (endYear, clinicId) {
+    const endDateObj = new Date(endYear, 11, 20) // Cria um objeto Date com o dia 20 de dezembro
+    console.log(endDateObj)
+    console.log(this.entity)
+    nSQL('identifiers').query('select', ['clinicalServices.code'])
+    .join({
+      type: 'inner',
+      table: 'clinicalServices',
+      where: ['identifiers.service_id', '=', 'clinicalServices.id']
+    })
+    // .where(['identifiers.clinic_id', '=', clinicId])
+    // .where(['identifiers.endDate', '<=', endDateObj])
+    .exec().then(result => {
+      // console.log('WWWWW: ', result)
+      // console.log(result)
+      // PatientVisit.insertOrUpdate({ data: result[0] })
+      return result
+    })
+  }
+
 static async localDbGetBySyncStatusToSychronize () {
   return nSQL(this.entity).query('select').where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']]).exec().then(result => {
     return result

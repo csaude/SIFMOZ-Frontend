@@ -139,6 +139,14 @@ export default class Episode extends Model {
       })
   }
 
+  static localDbUpdate (episode) {
+    return db.newDb().collection('episodes').doc({ id: episode.id }).set(episode)
+  }
+
+  static localDbUpdateAll (episodes) {
+    return db.newDb().collection('episodes').set(episodes)
+  }
+
   static localDbDelete (episode) {
      nSQL(this.entity).query('delete').where(['id', '=', episode.id]).exec()
       Episode.delete(episode.id)

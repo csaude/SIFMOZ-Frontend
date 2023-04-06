@@ -228,8 +228,6 @@ import PatientServiceIdentifier from '../../store/models/patientServiceIdentifie
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import Episode from 'src/store/models/episode/Episode'
 import mixinutils from 'src/mixins/mixin-utils'
-import PatientVisit from '../../store/models/patientVisit/PatientVisit'
-import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -237,7 +235,7 @@ const columns = [
 ]
 export default {
   props: ['step', 'stepp'],
-  mixins: [mixinplatform, mixinutils, mixinIsOnline],
+  mixins: [mixinplatform, mixinutils],
   data () {
     return {
       columns,
@@ -344,7 +342,7 @@ export default {
           this.hideLoading()
           this.displayAlert('error', 'O paciente selecionado ja se encontra associado a este grupo [' + this.curGroup.service.code + '].')
        } else {
-         if (!this.isOnline) {
+         if (this.mobile) { // Depois mudar para mobile
           // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
           let lastEpisode = {}
           patient.identifiers.forEach((identifier) => {
@@ -355,9 +353,6 @@ export default {
               lastEpisode = this.lastEpisode(identifier)
             }
           })
-          const patientVisits = PatientVisit.query().where('patient_id', patient.id)
-          console.log(patientVisits)
-          patient.patientVisits = patientVisits
 
           if (!patient.hasEpisodes()) {
             this.displayAlert('error', 'O paciente selecionado não possui episódios.')
@@ -365,8 +360,6 @@ export default {
             this.displayAlert('error', 'O Último episódio do paciente não é de inicio')
           } else if (this.isMemberOfGroupOnService(patient, this.curGroup.service.code)) {
             this.displayAlert('error', 'O paciente selecionado ja se encontra associado a um grupo activo do serviço ', this.curGroup.service.code)
-          } else if (patient.patientVisits.length === 0) {
-            this.displayAlert('error', 'O paciente selecionado não possui visitas efectuadas.')
           } else {
             this.curGroup.members.push(this.initNewMember(patient))
           }
@@ -405,10 +398,10 @@ export default {
     },
     search () {
       this.showloading()
-      if (!this.isOnline) { // Depois mudar para mobile
+      if (this.mobile) { // Depois mudar para mobile
         const patients = Patient.query()
                                   .has('identifiers')
-                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province', 'identifiers.episodes'])
+                                  .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
                                   .with('province')
                                   .with('members.group.service')
                                   .with('district.province')
@@ -501,14 +494,14 @@ export default {
           member.syncStatus = 'R'
           member.group = null
         })
-      if (!this.isOnline) {
+      if (this.mobile) {
         if (this.isCreateStep) {
           this.curGroup.syncStatus = 'R'
           this.curGroup.clinic_id = this.clinic.id
           this.curGroup.clinical_service_id = this.curGroup.service.id
           this.curGroup.groupType_id = this.curGroup.groupType.id
-          await Group.localDbAddOrUpdate(JSON.parse(JSON.stringify(this.curGroup)))
-         // await Group.insert({ data: this.curGroup })
+          await Group.localDbAdd(JSON.parse(JSON.stringify(this.curGroup)))
+          await Group.insert({ data: this.curGroup })
         } else {
           if (this.curGroup.syncStatus !== 'R') this.curGroup.syncStatus = 'U'
           this.curGroup.clinic_id = this.clinic.id
@@ -519,7 +512,9 @@ export default {
             if (member.syncStatus !== 'R') member.syncStatus = 'U'
             member.patient.identifiers = []
             const groupUpdate = new Group(JSON.parse(JSON.stringify((this.curGroup))))
-            Group.localDbAddOrUpdate(groupUpdate)
+            Group.localDbUpdate(groupUpdate).then(groupRes => {
+              Group.update({ data: groupUpdate })
+            })
           })
         }
         this.displayAlert('info', 'Operação efectuada com sucesso.')

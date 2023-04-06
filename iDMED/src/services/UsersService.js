@@ -62,7 +62,7 @@ export default {
         } else {
           Notify.create({
             icon: 'announcement',
-            message: 'Problemas ao conectar-se com o Servidor / Sem Conexao com o Servidor ',
+            message: 'Problemas ao conectar-se com o Servidor. ',
             type: 'negative',
             progress: true,
             timeout: 3000,

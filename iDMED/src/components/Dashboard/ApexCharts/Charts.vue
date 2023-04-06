@@ -1,51 +1,51 @@
 <template>
 <div>
-  <div class="row q-mt-lg">
-    <div class="col">
+  <div class='row q-mt-lg'>
+    <div class='col'>
     </div>
-    <div class="col-10">
-     <div class="row justify-center ">
-      <div class="q-ml-md" v-for="(item) in this.clinicalServiceReports" :key="item.id">
-        <q-btn :color=item.colour @click="setServiceCode(item.service)" :style=item.style>
-          <q-icon left size="6em" :name=item.icon  />
+    <div class='col-10'>
+     <div class='row justify-center '>
+      <div class='q-ml-md' v-for='(item) in this.clinicalServiceReports' :key='item.id'>
+        <q-btn :color=item.colour @click='setServiceCode(item.service)' :style=item.style>
+          <q-icon left size='6em' :name=item.icon  />
           <div >Serviço  {{item.service}} <br> {{item.quantity}} Pacientes Activos ao Levantamento </div>
         </q-btn>
       </div>
     </div>
     </div>
-    <div class="col q-mt-lg">
+    <div class='col q-mt-lg'>
       <q-input
-        class="col q-mr-md"
+        class='col q-mr-md'
           dense
           outlined
-          v-model="year"
-          type="number"
-          label="Ano"
+          v-model='year'
+          type='number'
+          label='Ano'
       />
     </div>
   </div>
-  <div class="q-mt-lg">
-  <p align="center"> <strong>Serviço {{serviceCode}} </strong></p>
+  <div class='q-mt-lg'>
+  <p align='center'> <strong>Serviço {{serviceCode}} </strong></p>
   </div>
-        <div class="q-mt-lg">
-          <BarByDispenseType class="graph-conainer" v-bind:serviceCode=serviceCode :year="year" />
+        <div class='q-mt-lg'>
+          <BarByDispenseType class='graph-conainer' v-bind:serviceCode=serviceCode :year='year' />
         <div
-      class=""
-      key="allCharts"
+      class=''
+      key='allCharts'
     >
-    <div class="row">
-      <LineByAge class="col graph-conainer" :serviceCode=serviceCode :year="year" > </LineByAge>
-      <PieGenderChart class="col graph-conainer" :serviceCode=serviceCode :year="year" > </PieGenderChart>
-      <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year" v-if="this.website"> </LineBySex>
+    <div class='row'>
+      <LineByAge class='col graph-conainer' :serviceCode=serviceCode :year='year' > </LineByAge>
+      <PieGenderChart class='col graph-conainer' :serviceCode=serviceCode :year='year' > </PieGenderChart>
+      <LineBySex class='col graph-conainer' :serviceCode=serviceCode :year='year' v-if='this.website'> </LineBySex>
     </div>
-    <div class="row" v-if="this.mobile">
-      <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year"> </LineBySex>
-      <DispenseTypeByGenderTable class="col-6 " :serviceCode=serviceCode :year="year"/>
+    <div class='row' v-if='this.mobile'>
+      <LineBySex class='col graph-conainer' :serviceCode=serviceCode :year='year'> </LineBySex>
+      <DispenseTypeByGenderTable class='col-6 ' :serviceCode=serviceCode :year='year'/>
     </div>
-      <div class="row q-mb-xl q-ma-md" >
-        <DispenseTypeByAgeTable class="col-4 " :serviceCode=serviceCode :year="year" />
-        <StockAlert class="col q-mx-md" :serviceCode=serviceCode :year="year" />
-        <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year" v-if="this.website"/>
+      <div class='row q-mb-xl q-ma-md' >
+        <DispenseTypeByAgeTable class='col-4 ' :serviceCode=serviceCode :year='year' />
+        <StockAlert class='col q-mx-md' :serviceCode=serviceCode :year='year' />
+        <DispenseTypeByGenderTable class='col-3 ' :serviceCode=serviceCode :year='year' v-if='this.website'/>
       </div>
     </div>
          </div>
@@ -53,13 +53,16 @@
 </template>
 
 <script>
+// import patientServiceIdentifier from '../../../store/models/patientServiceIdentifier/patientServiceIdentifier'
 import Clinic from '../../../store/models/clinic/Clinic'
 import { ref } from 'vue'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import { nSQL } from 'nano-sql'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-    mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinIsOnline],
      props: ['dataLoaded'],
     data () {
       const loading = ref(false)
@@ -85,34 +88,84 @@ export default {
         this.getDashboardServiceButton()
       },
       setServiceCode (code) {
-        console.log(code)
         this.serviceCode = code
       },
       getDashboardServiceButton () {
-        Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
-          console.log(resp.response.data)
-          this.clinicalServiceReports = resp.response.data
-          if (this.clinicalServiceReports.length > 0) {
-            this.clinicalServiceReports.forEach((item) => {
-              if (item.service === 'TARV') {
-                item.colour = 'green'
-                item.icon = 'medication'
-              } else if (item.service === 'TPT') {
-                item.colour = 'red'
-                item.icon = 'vaccines'
-              } else if (item.service === 'PREP') {
-                item.colour = 'teal'
-                item.icon = 'health_and_safety'
-              } else {
-                item.icon = 'health_and_safety'
-                const randomColor = require('randomcolor') // import the script
-                const color = randomColor() // a hex code for an attractive color
-                item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
-              }
+        if (!this.isOnline) {
+          const dateStr = this.year + '-12-20'
+          const parts = dateStr.split('-')
+          const endDateObject = new Date(parts[0], parts[1] - 1, parts[2])
+
+          nSQL('identifiers')
+          .query('select', ['clinicalServices[code] AS service', '0 AS quantity', 'identifiers.clinic.id AS clinicId', 'identifiers.startDate AS startDate'])
+          .where(['clinic.id', '=', this.clinic.id])
+          .join({
+              type: 'inner',
+              table: 'clinicalServices',
+              where: ['clinicalServices.id', '=', 'identifiers.service.id']
+          })
+          .exec().then(rows => {
+            // filtrar por datas
+            rows = rows.filter(function (value) {
+                return new Date(value.startDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
             })
-            }
-          this.loading = false
-        })
+
+            this.clinicalServiceReports = rows.reduce((acc, obj) => {
+              const key = obj.service
+              const matchingObj = acc.find(item => item.service === key)
+              if (!matchingObj) {
+                acc.push({ service: key, startDate: obj.startDate, quantity: 1 })
+              } else {
+                matchingObj.quantity++
+              }
+              return acc
+            }, [])
+
+            // this.clinicalServiceReports = result
+            this.clinicalServiceReports.forEach((item) => {
+                if (item.service === 'TARV') {
+                  item.colour = 'green'
+                  item.icon = 'medication'
+                } else if (item.service === 'TPT') {
+                  item.colour = 'red'
+                  item.icon = 'vaccines'
+                } else if (item.service === 'PREP') {
+                  item.colour = 'teal'
+                  item.icon = 'health_and_safety'
+                } else {
+                  item.icon = 'health_and_safety'
+                  const randomColor = require('randomcolor') // import the script
+                  const color = randomColor() // a hex code for an attractive color
+                  item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                }
+              })
+            this.loading = false
+          })
+        } else {
+          Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
+            this.clinicalServiceReports = resp.response.data
+            if (this.clinicalServiceReports.length > 0) {
+              this.clinicalServiceReports.forEach((item) => {
+                if (item.service === 'TARV') {
+                  item.colour = 'green'
+                  item.icon = 'medication'
+                } else if (item.service === 'TPT') {
+                  item.colour = 'red'
+                  item.icon = 'vaccines'
+                } else if (item.service === 'PREP') {
+                  item.colour = 'teal'
+                  item.icon = 'health_and_safety'
+                } else {
+                  item.icon = 'health_and_safety'
+                  const randomColor = require('randomcolor') // import the script
+                  const color = randomColor() // a hex code for an attractive color
+                  item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                }
+              })
+              }
+            this.loading = false
+          })
+        }
       }
     },
     computed: {
@@ -145,7 +198,6 @@ export default {
    watch: {
       year: function (newVal, oldVal) {
         this.reload()
-        console.log('Prop changed: ', newVal, ' | was: ', oldVal)
         // this.getClinicalServicesOptions()
         // this.serviceCode = 'TARV'
         // this.setServiceCode('TARV')
@@ -154,7 +206,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang='scss'>
     .graph-conainer {
       border: 1px solid $grey-13;
       border-radius: 10px;

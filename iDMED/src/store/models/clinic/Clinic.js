@@ -8,6 +8,7 @@ import FacilityType from '../facilityType/FacilityType'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
+// import StockEntrance from '../stockentrance/StockEntrance'
 
 export default class Clinic extends Model {
   static entity = 'clinics'
@@ -97,4 +98,12 @@ export default class Clinic extends Model {
   static localDbDeleteAll () {
     return db.newDb().collection('clinics').delete()
   }
+
+  static getClinicsNSql () {
+    nSQL().onConnected(() => {
+      nSQL(this.entity).query('select').exec().then(result => {
+        Clinic.insertOrUpdate({ data: result })
+      })
+    })
+   }
 }

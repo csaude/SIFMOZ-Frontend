@@ -326,7 +326,7 @@
 <script>
 import { ref } from 'vue'
 import { SessionStorage, date } from 'quasar'
-import Patient from '../../../store/models/patient/Patient'
+import Patient from 'src/store/models/patient/Patient'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
 import Prescription from '../../../store/models/prescription/Prescription'
@@ -957,7 +957,7 @@ export default {
       }
       this.patientVisit.patientVisitDetails = []
       if (this.member !== null && this.member !== undefined) {
-        this.curPatientVisitDetails[0].prescription.prescriptionDate = this.getDDMMYYYFromJSDate(this.curPatientVisitDetail.prescription.prescriptionDate)
+        this.curPatientVisitDetails[0].prescription.prescriptionDate = this.getJSDateFromDDMMYYY(this.prescriptionDate)
         const duration = Number((this.curPatientVisitDetails[0].prescription.duration.weeks / 4))
         this.curPatientVisitDetails[0].prescription.leftDuration = duration
           const memberPrescription = new GroupMemberPrescription({
@@ -1008,9 +1008,6 @@ export default {
               pDrug.prescription_id = memberPrescription.prescription.id
               pDrug.drug_id = pDrug.drug.id
             })
-            memberPrescription.member_id = SessionStorage.getItem('selectedMember').id
-            memberPrescription.prescription_id = this.curPatientVisitDetails[0].prescription.id
-            memberPrescription.syncStatus = 'R'
             Prescription.localDbAdd(memberPrescription.prescription)
             memberPrescription.prescription.prescribedDrugs = []
             GroupMemberPrescription.localDbAdd(memberPrescription)

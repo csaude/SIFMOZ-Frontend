@@ -286,28 +286,9 @@ export default {
       // }
         setTimeout(this.proccedToPatientPanel(selectedPatient), 5000)
       },
-      loadVisitDetailsInfo (visitDetails, i) {
-      if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
-        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
-          visitDetails[i].prescription = resp.response.data
-          if (visitDetails[i].pack !== null) {
-            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-              visitDetails[i].pack = resp.response.data
-             // this.flagGoReady = true
-            })
-          } else {
-          //  this.flagGoReady = true
-          }
-        })
-      } else {
-       // this.flagGoReady = true
-      }
-    },
        proccedToPatientPanel (patient) {
          SessionStorage.set('selectedPatient', patient)
         this.$router.push('/patientpanel')
-      },
-      buildPatientVisitToLocalDB () {
       },
       filterPatient (patient) {
         console.log(patient.firstNames)
@@ -381,7 +362,7 @@ export default {
             }, 400)
         }
       },
-      async localSearch () {
+      localSearch () {
         this.showloading()
         if (this.isOnline) {
           console.log('Performing website search')
@@ -391,12 +372,36 @@ export default {
             // this.patientList = resp.response.data
 
           if (resp.response.data.length >= 0) {
-            this.patients = this.getPatientsVuex()
+            this.patients = Patient.query()
+                                      .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                      .with('province')
+                                      .with('attributes')
+                                      .with('appointments')
+                                      .with('district.*')
+                                      .with('postoAdministrativo')
+                                      .with('bairro')
+                                      .with(['clinic.province', 'clinic.district.province'])
+                                      .where('clinic_id', this.clinic.id)
+                                      .orderBy('firstNames')
+                                      .orderBy('identifiers.value', 'asc')
+                                      .get()
             }
           })
         } else {
           console.log('Performing local search')
-          const patients = this.getPatientsVuex()
+          const patients = Patient.query()
+                                .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
+                                .with('province')
+                                .with('attributes')
+                                .with('appointments')
+                                .with('district.*')
+                                .with('postoAdministrativo')
+                                .with('bairro')
+                                .with(['clinic.province', 'clinic.district.province'])
+                                .where('clinic_id', this.clinic.id)
+                                .orderBy('firstNames')
+                                .orderBy('identifiers.value', 'asc')
+                                .get()
           this.patients = patients.filter((patient) => {
             return this.filterPatient(patient)
           })
@@ -542,24 +547,6 @@ export default {
               // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
               // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
               return localpatient
-      },
-      searchPatientsBackend () {
-
-      },
-      getPatientsVuex () {
-        return Patient.query()
-                                .with(['identifiers.identifierType', 'identifiers.service.identifierType', 'identifiers.clinic.province'])
-                                .with('province')
-                                .with('attributes')
-                                .with('appointments')
-                                .with('district.*')
-                                .with('postoAdministrativo')
-                                .with('bairro')
-                                .with(['clinic.province', 'clinic.district.province'])
-                                .where('clinic_id', this.clinic.id)
-                                .orderBy('firstNames')
-                                .orderBy('identifiers.value', 'asc')
-                                .get()
       }
     },
     computed: {

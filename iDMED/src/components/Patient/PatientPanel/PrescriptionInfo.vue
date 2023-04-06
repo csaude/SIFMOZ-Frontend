@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import Patient from '../../../store/models/patient/Patient'
+import Patient from 'src/store/models/patient/Patient'
 import Episode from '../../../store/models/episode/Episode'
 import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Pack from '../../../store/models/packaging/Pack'

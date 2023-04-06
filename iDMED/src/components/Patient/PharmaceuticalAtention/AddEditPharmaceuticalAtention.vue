@@ -132,7 +132,7 @@
 <script>
 import { SessionStorage } from 'quasar'
 import PatientVisit from '../../../store/models/patientVisit/PatientVisit'
-import Patient from '../../../store/models/patient/Patient'
+import Patient from 'src/store/models/patient/Patient'
 import { ref } from 'vue'
 import VitalSignsScreening from '../../../store/models/screening/VitalSignsScreening'
 import TBScreening from '../../../store/models/screening/TBScreening'
@@ -141,6 +141,7 @@ import AdherenceScreening from '../../../store/models/screening/AdherenceScreeni
 import RAMScreening from '../../../store/models/screening/RAMScreening'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import moment from 'moment'
 import { v4 as uuidv4 } from 'uuid'
 import mixinIsOnline from 'src/mixins/mixin-is-online'
@@ -298,56 +299,76 @@ export default {
              //   this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
 
+                PatientVisitDetails.localDbGetAll().then(pvds => {
+                  pvds.forEach((p) => {
+                    if (p.patientVisit.patient_id === this.patient.id && new Date(this.patientVisit.visitDate) === new Date(p.patientVisit.visitDate)) {
+                      this.patientVisit.id = p.patientVisit.id
+                    }
+                  })
+                })
+
                 this.vitalSigns.patient_visit_id = this.patientVisit.id
                 this.TBScreening.patient_visit_id = this.patientVisit.id
                 this.pregnancyScreening.patient_visit_id = this.patientVisit.id
                 this.adherenceScreening.patient_visit_id = this.patientVisit.id
                 this.rAMScreening.patient_visit_id = this.patientVisit.id
 
-                /*
                 this.vitalSigns.syncStatus = this.isCreateStep ? 'R' : 'U'
                 this.TBScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
                 this.pregnancyScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
                 this.adherenceScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
                 this.rAMScreening.syncStatus = this.isCreateStep ? 'R' : 'U'
-*/
-                this.patientVisit.syncStatus = this.patientVisit.syncStatus === 'S' ? 'U' : 'R'
+
+                this.patientVisit.syncStatus = this.isCreateStep ? 'R' : 'U'
 
                 if (this.pregnancyScreening.pregnant === '') this.pregnancyScreening.pregnant = false
                 if (this.pregnancyScreening.menstruationLastTwoMonths === '') this.pregnancyScreening.menstruationLastTwoMonths = false
-                /*
                 this.patientVisit.vitalSigns.push(this.vitalSigns)
                 this.patientVisit.tbScreening.push(this.TBScreening)
                 this.patientVisit.pregnancyScreening.push(this.pregnancyScreening)
                 this.patientVisit.adherenceScreening.push(this.adherenceScreening)
                 this.patientVisit.ramScreening.push(this.rAMScreening)
-                */
 
                 this.patientVisit.clinic_id = this.currClinic.id
                 this.patientVisit.patient_id = this.patient.id
-               // this.patientVisit.patient.identifiers = []
+                this.patientVisit.patient.identifiers = []
 
-                this.buildPharmaceuticalAttentitonToOffline()
-                this.validateToOnlySaveOne()
                 const targetCopy = new PatientVisit(JSON.parse(JSON.stringify(this.patientVisit)))
 
                 if (this.isCreateStep) {
-                  await PatientVisit.localDbAddOrUpdate(targetCopy).then(res => {
-                  //  PatientVisit.insert({ data: targetCopy })
+                  await PatientVisit.localDbAdd(targetCopy).then(res => {
+                    PatientVisit.insert({ data: targetCopy })
                     this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                   })
                 } else {
-                  await PatientVisit.localDbAddOrUpdate(targetCopy).then(res => {
-                   // PatientVisit.update({ data: targetCopy })
+                  await PatientVisit.localDbAdd(targetCopy).then(res => {
+                    PatientVisit.update({ data: targetCopy })
                     this.displayAlert('info', 'Atenção Farmaceutica efectuada com sucesso.')
                   })
                 }
               } else {
-                this.validateToOnlySaveOne()
+                if (this.TBScreening.id === null || this.TBScreening.id === undefined) {
+                  this.TBScreening.id = uuidv4()
+                }
+                if (this.vitalSigns.distort !== null && this.vitalSigns.distort !== undefined && this.vitalSigns.distort !== '') this.patientVisit.vitalSigns.length === 0 ? this.patientVisit.vitalSigns.push(this.vitalSigns) : this.patientVisit.vitalSigns[0] = this.vitalSigns
+
+                if (this.TBScreening.cough !== null && this.TBScreening.cough !== undefined && this.TBScreening.cough !== '') this.patientVisit.tbScreening.length === 0 ? this.patientVisit.tbScreening.push(this.TBScreening) : this.patientVisit.tbScreening[0] = this.TBScreening
+
+                if (this.pregnancyScreening.pregnant !== null && this.pregnancyScreening.pregnant !== undefined && this.pregnancyScreening.pregnant !== '') this.patientVisit.pregnancyScreening.length === 0 ? this.patientVisit.pregnancyScreening.push(this.pregnancyScreening) : this.patientVisit.pregnancyScreening[0] = this.pregnancyScreening
+
+                if (this.adherenceScreening.hasPatientCameCorrectDate !== null && this.adherenceScreening.hasPatientCameCorrectDate !== undefined && this.adherenceScreening.hasPatientCameCorrectDate !== '') this.patientVisit.adherenceScreening.length === 0 ? this.patientVisit.adherenceScreening.push(this.adherenceScreening) : this.patientVisit.adherenceScreening[0] = this.adherenceScreening
+
+                if (this.rAMScreening.adverseReactionMedicine !== null && this.rAMScreening.adverseReactionMedicine !== undefined && this.rAMScreening.adverseReactionMedicine !== '') this.patientVisit.ramScreening.length === 0 ? this.patientVisit.ramScreening.push(this.rAMScreening) : this.patientVisit.ramScreening[0] = this.rAMScreening
 
                 this.patientVisit.clinic = this.currClinic
                 this.patientVisit.patient = this.patient
                 this.patientVisit.visitDate = this.getJSDateFromDDMMYYY(this.visitDate)
+
+                if (this.patientVisit.vitalSigns.length > 1) this.patientVisit.vitalSigns.pop()
+                if (this.patientVisit.tbScreening.length > 1) this.patientVisit.tbScreening.pop()
+                if (this.patientVisit.pregnancyScreening.length > 1) this.patientVisit.pregnancyScreening.pop()
+                if (this.patientVisit.adherenceScreening.length > 1) this.patientVisit.adherenceScreening.pop()
+                if (this.patientVisit.ramScreening.length > 1) this.patientVisit.ramScreening.pop()
 
                 console.log('Responde Antes', this.patientVisit)
 
@@ -390,33 +411,7 @@ export default {
                            this.hasVisitSameDay = false
                           }
                        }
-         },
-         validateToOnlySaveOne () {
-          if (this.TBScreening.id === null || this.TBScreening.id === undefined) {
-                  this.TBScreening.id = uuidv4()
-                }
-                if (this.vitalSigns.distort !== null && this.vitalSigns.distort !== undefined && this.vitalSigns.distort !== '') this.patientVisit.vitalSigns.length === 0 ? this.patientVisit.vitalSigns.push(this.vitalSigns) : this.patientVisit.vitalSigns[0] = this.vitalSigns
-
-                if (this.TBScreening.cough !== null && this.TBScreening.cough !== undefined && this.TBScreening.cough !== '') this.patientVisit.tbScreening.length === 0 ? this.patientVisit.tbScreening.push(this.TBScreening) : this.patientVisit.tbScreening[0] = this.TBScreening
-
-                if (this.pregnancyScreening.pregnant !== null && this.pregnancyScreening.pregnant !== undefined && this.pregnancyScreening.pregnant !== '') this.patientVisit.pregnancyScreening.length === 0 ? this.patientVisit.pregnancyScreening.push(this.pregnancyScreening) : this.patientVisit.pregnancyScreening[0] = this.pregnancyScreening
-
-                if (this.adherenceScreening.hasPatientCameCorrectDate !== null && this.adherenceScreening.hasPatientCameCorrectDate !== undefined && this.adherenceScreening.hasPatientCameCorrectDate !== '') this.patientVisit.adherenceScreening.length === 0 ? this.patientVisit.adherenceScreening.push(this.adherenceScreening) : this.patientVisit.adherenceScreening[0] = this.adherenceScreening
-
-                if (this.rAMScreening.adverseReactionMedicine !== null && this.rAMScreening.adverseReactionMedicine !== undefined && this.rAMScreening.adverseReactionMedicine !== '') this.patientVisit.ramScreening.length === 0 ? this.patientVisit.ramScreening.push(this.rAMScreening) : this.patientVisit.ramScreening[0] = this.rAMScreening
-
-                if (this.patientVisit.vitalSigns.length > 1) this.patientVisit.vitalSigns.pop()
-                if (this.patientVisit.tbScreening.length > 1) this.patientVisit.tbScreening.pop()
-                if (this.patientVisit.pregnancyScreening.length > 1) this.patientVisit.pregnancyScreening.pop()
-                if (this.patientVisit.adherenceScreening.length > 1) this.patientVisit.adherenceScreening.pop()
-                if (this.patientVisit.ramScreening.length > 1) this.patientVisit.ramScreening.pop()
-         },
-         buildPharmaceuticalAttentitonToOffline () {
-      this.patientVisit.clinic = {}
-      this.patientVisit.patient = {}
-      this.patientVisit.clinic.id = this.patientVisit.clinic_id
-      this.patientVisit.patient.id = this.patientVisit.patient_id
-      }
+         }
     },
     components: {
        TextInput: require('components/Shared/Input/TextField.vue').default,
