@@ -63,43 +63,4 @@ export default class StockAlert extends Model {
 }
   return listStockAlert
  }
-
-// drug_id from (select drug_id, entrance_id FROM stock) a
-
- static async localDbGetStockAlertBackUPP () {
-  const drugs = await Drug.localDbGetAll()
-  for (let i = 0; i < drugs.length; i++) {
-   await this.localGetConsuptionByDrug(drugs[i])
-    // console.log(total)
-  }
-  /* return nSQL().onConnected(() => {
-    nSQL('stocks').query('select')
- .exec().then(result => {
- // console.log('Resultado: ', result)
-  return result
-  })
-}) */
- }
-
- //  'packagedDrugStocks[quantitySupplied]'
- static async localGetConsuptionByDrug (drug) {
-  return nSQL('stocks').query('select', ['stocks.id', 'drugs.id', 'SUM(stocks.stockMoviment) AS total'])
-  .join({
-    type: 'inner', // Supported join types are left, inner, right, cross and outer.
-    table: 'drugs',
-    where: ['stocks.drug_id', '=', 'drugs.id'] // any valid WHERE statement works here
-}).groupBy({ 'drugs.id': 'asc' })
-/* .join({
-  type: 'inner', // Supported join types are left, inner, right, cross and outer.
-  table: 'packagedDrugStocks',
-  where: ['packagedDrugStocks.packagedDrug_id', '=', 'packagedDrugs.id'] // any valid WHERE statement works here
-}) */
-  .exec().then(result => {
-     if (result.length > 0) {
-      console.log('ResultadoDrug: ', result)
-     // Stock.insert({ data: result })
-     return result
-     }
-   })
- }
 }
