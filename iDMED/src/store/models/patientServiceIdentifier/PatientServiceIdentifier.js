@@ -152,11 +152,6 @@ export default class PatientServiceIdentifier extends Model {
       })
   }
 
-   static async localDbGetById (id) {
-   const identifier = await db.newDb().collection('identifiers').doc({ id: id }).get()
-   return identifier
-  }
-
   static async localDbGetAll () {
     nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
@@ -212,4 +207,11 @@ static async localDbGetBySyncStatusToSychronize () {
     return result
       })
   }
+
+static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+      console.log(result)
+      return result
+    })
+   }
 }

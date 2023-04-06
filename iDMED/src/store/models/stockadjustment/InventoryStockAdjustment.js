@@ -47,10 +47,11 @@ export class InventoryStockAdjustment extends StockAdjustment {
     })
     }
 
-    static localDbGetAll () {
-       nSQL(this.entity).query('select').exec().then(result => {
+    static async localDbGetAll () {
+      return nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
         InventoryStockAdjustment.insertOrUpdate({ data: result })
+        return result
         })
     }
 

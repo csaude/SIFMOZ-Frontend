@@ -6,7 +6,6 @@ import GroupMemberPrescription from '../group/GroupMemberPrescription'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail'
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 
@@ -118,32 +117,15 @@ export default class Prescription extends Model {
     }
 
     static async localDbGetById (id) {
-     return await db.newDb().collection('prescriptions').doc({ id: id }).get()
-    }
+      return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+         console.log(result)
+         return result[0]
+       })
+   }
 
     static localDbGetAll () {
       return nSQL(this.entity).query('select').exec().then(result => {
         Prescription.insertOrUpdate({ data: result })
           })
-    }
-
-    static localDbUpdate (prescription) {
-      return db.newDb().collection('prescriptions').doc({ id: prescription.id }).set(prescription)
-    }
-
-    static localDbUpdateAll (prescriptions) {
-      return db.newDb().collection('prescriptions').set(prescriptions)
-    }
-
-    static localDbDelete (prescription) {
-      return db.newDb().collection('prescriptions').doc({ id: prescription.id }).delete()
-    }
-
-    static localDbDeleteAll () {
-      return db.newDb().collection('prescriptions').delete()
-    }
-
-    static localDbDeleteById (prescriptionId) {
-      return db.newDb().collection('prescriptions').doc({ id: prescriptionId }).delete()
     }
 }

@@ -65,18 +65,17 @@ export default class StockReferedStockMoviment extends Model {
     }
 
     static localDbAddOrUpdate (targetCopy) {
-      return nSQL().onConnected(() => {
         nSQL(this.entity).query('upsert',
         targetCopy
       ).exec()
       StockReferedStockMoviment.insertOrUpdate({ data: targetCopy })
-    })
     }
 
     static localDbGetAll () {
       return nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
         StockReferedStockMoviment.insertOrUpdate({ data: result })
+        return result
         })
     }
 

@@ -43,15 +43,16 @@ import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.t
 import reportDatesParams from '../../../reports/ReportDatesParams'
 // import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
 // import Pack from 'src/store/models/packaging/Pack'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
 import Patient from '../../../store/models/patient/Patient'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
   export default {
     name: 'AbsentPatients',
     props: ['selectedService', 'menuSelected', 'id', 'params'],
-    mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinIsOnline],
     setup () {
       return {
         totalRecords: ref(0),
@@ -84,7 +85,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
         SessionStorage.remove(this.id)
       },
       initReportProcessing (params) {
-        if (params.localOrOnline === 'online') {
+        if (this.isOnline) {
           Report.api().post('/absentPatientsReport/initReportProcess', params).then((response) => {
          setTimeout(this.getProcessingStatus(params), 2)
       })
@@ -105,61 +106,48 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
         })
       }
       },
-      generateReport (id, fileType) {
-            Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
-              if (!resp.response.data[0]) {
-              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
-            } else {
-              const patientAux = resp.response.data[0]
-              if (fileType === 'PDF') {
-                absentPatientsTs.downloadPDF(
-                  patientAux.clinic,
-                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  resp.response.data
-                )
-              } else {
-                absentPatientsTs.downloadExcel(
-                  patientAux.clinic,
-                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  resp.response.data
-                )
-              }
-            }
-            })
+      generateReport (id, fileType, params) {
+        if (fileType === 'PDF') {
+          absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
+        } else if (fileType === 'XLS') {
+          absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
+                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+               })
+        }
       },
-      getDataLocalDb (params) {
+      async getDataLocalDb (params) {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
-        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
-          console.log(patientVisitDetails)
-       const result = patientVisitDetails.filter(patientVisitDetail => patientVisitDetail.pack.nextPickUpDate >= reportParams.startDate && moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() <= reportParams.endDate)
-          console.log(result)
-          return result
-        }).then(reportDatas => {
-          reportDatas.forEach(reportData => {
-          PatientServiceIdentifier.localDbGetById(reportData.episode.patientServiceIdentifier.id).then(identifier => {
-          if (identifier.service.id === reportParams.clinicalService) {
-           // console.log(reportData.pack.nextPickUpDate)
-            console.log(moment(reportData.pack.nextPickUpDate, 'YYYY-MM-DD').add(3, 'days'))
-          //  const newDate = moment(reportData.pack.nextPickUpDate).add(3, 'd')
-          //  console.log(newDate.format())
-            const absentPatientReport = new AbsentPatientReport()
-            Patient.localDbGetById(reportData.patientVisit.patient.id).then(patient => {
-              absentPatientReport.nid = identifier.value
-              absentPatientReport.firstNames = patient.firstNames + ' ' + patient.lastNames
-              absentPatientReport.cellphone = patient.cellphone
-              absentPatientReport.dateBackUs = ''
-              absentPatientReport.dateMissedPickUp = reportData.pack.nextPickUpDate
-              absentPatientReport.dateIdentifiedAbandonment = ''
-              absentPatientReport.returnedPickUp = ''
-              console.log(absentPatientReport)
-            })
+        const patientVisitList = await PatientVisit.localDbGetAllPatientVisit()
+        for (const patientVisit of patientVisitList) {
+          for (const reportData of patientVisit.patientVisitDetails) {
+           if (moment(reportData.pack.nextPickUpDate).format('YYYY/MM/DD') <= moment(reportParams.startDate).format('YYYY/MM/DD') && moment(reportData.pack.nextPickUpDate).add(3, 'd').format('YYYY/MM/DD') <= moment(reportParams.endDate).format('YYYY/MM/DD')) {
+                  const identifier = await PatientServiceIdentifier.localDbGetById(reportData.episode.patientServiceIdentifier.id)
+                if (identifier.length > 0) {
+                    if (identifier[0].service.id === reportParams.clinicalService) {
+                        const absentPatientReport = new AbsentPatientReport()
+                        const patient = await Patient.localDbGetByPatientId(patientVisit.patient.id)
+                        if (patient.length > 0) {
+                         const dateIdentifiedAbandonment = moment(reportData.pack.nextPickUpDate).add(60, 'd').format('YYYY/MM/DD')
+                        absentPatientReport.nid = identifier[0].value
+                        absentPatientReport.firstNames = patient[0].firstNames + ' ' + patient[0].lastNames
+                        absentPatientReport.cellphone = patient[0].cellphone
+                        absentPatientReport.dateBackUs = null
+                        absentPatientReport.dateMissedPickUp = reportData.pack.nextPickUpDate
+                        absentPatientReport.dateIdentifiedAbandonment = dateIdentifiedAbandonment > moment(reportParams.endDate).format('YYYY/MM/DD') ? dateIdentifiedAbandonment : ''
+                        absentPatientReport.returnedPickUp = null
+                        absentPatientReport.reportId = reportParams.id
+                        absentPatientReport.year = reportParams.year
+                        absentPatientReport.endDate = reportParams.endDate
+                        AbsentPatientReport.localDbAddOrUpdate(absentPatientReport)
+                      }
+                    }
+                  }
+      }
+        }
           }
-        })
-          })
-        })
           this.progress = 100
           params.progress = 100
       },

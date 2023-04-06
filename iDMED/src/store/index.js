@@ -86,6 +86,10 @@ import GroupMemberPrescription from './models/group/GroupMemberPrescription'
 import DrugStockFileEvent from './models/drugStockFileEvent/DrugStockFileEvent'
 import DrugFile from './models/drugFile/DrugFile'
 import StockAlert from './models/stockAlert/StockAlert'
+import StockReceivedReport from './models/report/stock/StockReceivedReport'
+import StockUsedReport from './models/report/stock/StockUsedReport'
+import AbsentPatientReport from './models/report/pharmacyManagement/AbsentPatientReport'
+import PatientHistoryReport from './models/report/pharmacyManagement/PatientHistoryReport'
 import AuditSyncronization from './models/auditSyncronization/AuditSyncronization'
 import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils'
 
@@ -255,7 +259,11 @@ const entities = () => {
   entitiesList.push(DrugStockFileEvent)
   entitiesList.push(DrugFile)
   entitiesList.push(StockAlert)
+  entitiesList.push(StockReceivedReport)
+  entitiesList.push(StockUsedReport)
+  entitiesList.push(PatientHistoryReport)
   entitiesList.push(AuditSyncronization)
+  entitiesList.push(AbsentPatientReport)
   return entitiesList
 }
 

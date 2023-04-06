@@ -160,6 +160,13 @@ export default class Drug extends Model {
     })
 }
 
+static localDbGetByDrugId (drugId) {
+  return nSQL(this.entity).query('select').where(['id', '=', drugId]).exec().then(result => {
+     console.log(result)
+     return result[0]
+   })
+}
+
 static localDbDeleteById (drug) {
     nSQL(this.entity).query('delete').where(['id', '=', drug.id]).exec()
   Stock.delete(drug.id)

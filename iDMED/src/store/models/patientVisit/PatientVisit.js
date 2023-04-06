@@ -189,4 +189,26 @@ Prescription.insertOrUpdate({ data: pvd.prescription })
       })
      })
    }
+
+   static async localDbGetPacks () {
+    const packList = []
+    return nSQL('patientVisits').query('select', ['patientVisitDetails']).exec().then(result => {
+      for (const pvd of result) {
+         for (const pvdObj of pvd.patientVisitDetails) {
+          packList.push(pvdObj.pack)
+      }
+    }
+    return packList
+     })
+    }
+
+    static async localDbGetAllPatientVisit () {
+      const patientVisitDetailList = []
+      return nSQL('patientVisits').query('select').exec().then(result => {
+        for (const pvd of result) {
+            patientVisitDetailList.push(pvd)
+      }
+      return patientVisitDetailList
+       })
+      }
 }

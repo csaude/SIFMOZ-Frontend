@@ -38,17 +38,16 @@ import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
 import UsedStockReport from 'src/reports/stock/UsedStockReport.ts'
 import Stock from 'src/store/models/stock/Stock'
-// import { v4 as uuidv4 } from 'uuid'
 import reportDatesParams from '../../../reports/ReportDatesParams'
 // import Drug from 'src/store/models/drug/Drug'
 // import StockReceivedReport from 'src/store/models/report/stock/StockReceivedReport'
 import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/InventoryStockAdjustment'
 import Drug from 'src/store/models/drug/Drug'
 import StockUsedReport from 'src/store/models/report/stock/StockUsedReport'
-import Pack from '../../../store/models/packaging/Pack'
 import DestroyedStock from '../../../store/models/stockdestruction/DestroyedStock'
 import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
 import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
+import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
   export default {
     name: 'UsedStock',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -79,7 +78,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
         this.$refs.filterUsedStockSection.remove()
       },
        initReportProcessing (params) {
-        if (params.localOrOnline === 'online') {
+        if (params.isOnline) {
           Report.apiInitUsedStockProcessing(params).then(resp => {
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
@@ -121,7 +120,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
       closeDialog () {
         this.alert.visible = false
       },
-      getDataLocalDb (params) {
+     async getDataLocalDb (params) {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
         let resultDrugsStocks = []
@@ -131,40 +130,38 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
        // let resultDrugStockReferred = []
         let resultDrugPackaged = []
         let arrayDrugStock = []
-    Stock.localDbGetAll().then(stocks => {
+     const stocks = await Stock.localDbGetUsedStock(params)
           console.log(stocks)
-       const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate) && stock.drug.clinicalService.id === reportParams.clinicalService)
+       const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate))
           console.log(result)
-           resultDrugsStocks = this.groupedMap(result, 'drugId')
+           resultDrugsStocks = this.groupedMap(result, 'drug_id')
           console.log(resultDrugsStocks)
           arrayDrugStock = Array.from(resultDrugsStocks.keys())
           console.log(arrayDrugStock)
          // return arrayDrugStock
-        }).then(
-          InventoryStockAdjustment.localDbGetAll().then(inventoryStockAdjustments => {
+        const inventoryStockAdjustments = await InventoryStockAdjustment.localDbGetAll()
             const inventoryStocks = inventoryStockAdjustments.filter(inventoryStock =>
               (inventoryStock.inventory.startDate >= reportParams.startDate && inventoryStock.inventory.endDate <= reportParams.endDate) && arrayDrugStock.includes(inventoryStock.adjustedStock.drug.id)
             )
             resultDrugStocksInventory = this.groupedMapChild(inventoryStocks, 'adjustedStock.drug.id')
             console.log(resultDrugStocksInventory)
            // return resultDrugStocksInventory
-        })
-      ).then(
-          Pack.localDbGetAll().then(packs => {
+
+       const packs = await PatientVisit.localDbGetPacks()
             const packagedDrug = []
             const packsDate = packs.filter(pack =>
               (pack.pickupDate >= reportParams.startDate && pack.pickupDate <= reportParams.endDate))
               console.log(packsDate)
               packsDate.forEach(pack => {
-                packagedDrug.push(pack.packagedDrugs)
+                pack.packagedDrugs.forEach(item => {
+                  packagedDrug.push(item)
+                })
               })
               console.log(packagedDrug)
-              resultDrugPackaged = this.groupedMapChildPack(packagedDrug, 'adjustedStock.drug.id')
+              resultDrugPackaged = this.groupedMapChildPack(packagedDrug, 'drug.id')
               console.log(resultDrugPackaged)
             //  return resultDrugPackaged
-          })
-        ).then(
-          DestroyedStock.localDbGetAll().then(destroyedStocks => {
+         const destroyedStocks = await DestroyedStock.localDbGetAll()
             const adjustedDestroyedStocks = []
           let resultDestruccted = []
             console.log(destroyedStocks)
@@ -178,9 +175,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
           resultDrugStocksDestruction = this.groupedMapChildAdjustments(adjustedDestroyedStocks, 'adjustedStock')
           console.log(resultDrugStocksDestruction)
          //  return resultDrugStocksInventory
-          })
-      ).then(
-        ReferedStockMoviment.localDbGetAll().then(referredStocks => {
+        const referredStocks = await ReferedStockMoviment.localDbGetAll()
             const adjustedReferedStocks = []
           let resultAdjustedReferred = []
             console.log(referredStocks)
@@ -194,28 +189,29 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
            resultDrugStocksReferred = this.groupedMapChildAdjustments(adjustedReferedStocks, 'adjustedStock')
           console.log(resultDrugStocksReferred)
           // return resultDrugStocksReferred
-          }).then(() => {
           const drugsIds = Array.from(resultDrugsStocks.keys())
           const stockDestructedIds = Array.from(resultDrugStocksDestruction.keys())
           const referredStocksIds = Array.from(resultDrugStocksReferred.keys())
           console.log(drugsIds)
           console.log(stockDestructedIds)
           console.log(referredStocksIds)
-          drugsIds.forEach(drug => {
-               Drug.localDbGetById(drug).then(drugObj => {
+         for (const drug of drugsIds) {
+             const drugObj = await Drug.localDbGetByDrugId(drug)
                 const usedStock = new StockUsedReport()
                 usedStock.fnmCode = drugObj.fnmCode
                 usedStock.drugName = drugObj.name
-                usedStock.balance = 0
+                usedStock.actualStock = 0
                 console.log(resultDrugsStocks.get(drugObj.id))
                  usedStock.receivedStock = 0
                  usedStock.adjustment = 0
                resultDrugsStocks.get(drugObj.id).forEach(stock => {
                 usedStock.receivedStock += stock.unitsReceived
+                usedStock.actualStock += stock.unitsReceived
                 stockDestructedIds.forEach(drugStockDestruiction => {
                   if (drugStockDestruiction === stock.id) {
                     resultDrugStocksDestruction.get(drugStockDestruiction).forEach(destructionAdjustment => {
                     usedStock.adjustment -= destructionAdjustment.adjustedValue
+                    usedStock.actualStock -= destructionAdjustment.adjustedValue
                     })
                   }
                 })
@@ -224,31 +220,39 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
                     resultDrugStocksReferred.get(drugStockReferredId).forEach(referredAdjustment => {
                       if (this.getStockOperationTypeById(referredAdjustment.operation.id).code === 'AJUSTE_POSETIVO') {
                         usedStock.adjustment += referredAdjustment.adjustedValue
+                        usedStock.actualStock += referredAdjustment.adjustedValue
                       } else if (this.getStockOperationTypeById(referredAdjustment.operation.id).code === 'AJUSTE_NEGATIVO') {
                         usedStock.adjustment -= referredAdjustment.adjustedValue
+                        usedStock.actualStock -= referredAdjustment.adjustedValue
                       }
                     })
                   }
                 })
                })
               // console.log(resultDrugStocksInventory.get(drugObj.id))
-               resultDrugStocksInventory.get(drugObj.id).forEach(inventoryAdjustment => {
+              const inventoryAdjustmentList = resultDrugStocksInventory.get(drugObj.id) === undefined ? [] : resultDrugStocksInventory.get(drugObj.id)
+               for (const inventoryAdjustment of inventoryAdjustmentList) {
                 if (inventoryAdjustment.operation.code === 'AJUSTE_POSETIVO') {
                   usedStock.adjustment += inventoryAdjustment.adjustedValue
+                  usedStock.actualStock += inventoryAdjustment.adjustedValue
                 } else if (inventoryAdjustment.operation.code === 'AJUSTE_NEGATIVO') {
                   usedStock.adjustment -= inventoryAdjustment.adjustedValue
+                  usedStock.actualStock -= inventoryAdjustment.adjustedValue
                 }
-                })
+                }
                 if (resultDrugPackaged.get(drugObj.id) !== undefined) {
                 resultDrugPackaged.get(drugObj.id).forEach(drugPackaged => {
                 usedStock.stockIssued += drugPackaged.quantitySupplied
+                usedStock.actualStock -= drugPackaged.quantitySupplied
                })
                }
                console.log(usedStock)
-               })
-               })
-          })
-      )
+               usedStock.reportId = reportParams.id
+          // patientHistory.period = reportParams.periodTypeView
+              usedStock.year = reportParams.year
+              usedStock.endDate = reportParams.endDate
+               StockUsedReport.localDbAddOrUpdate(usedStock)
+               }
           this.progress = 100
           params.progress = 100
       },
