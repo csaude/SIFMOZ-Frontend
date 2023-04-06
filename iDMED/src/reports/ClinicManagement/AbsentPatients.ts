@@ -4,6 +4,8 @@ import moment from 'moment'
 import saveAs from 'file-saver'
 import * as ExcelJS from 'exceljs'
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
+import Report from 'src/store/models/report/Report'
+import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
 
 const reportName = 'PacientesFaltosos'
 const logoTitle =
@@ -14,7 +16,7 @@ const fileName = reportName.concat(
 )
 
 export default {
-  async downloadPDF (clinic, startDate, endDate, result) {
+  async downloadPDF (id, fileType, params) {
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -38,20 +40,19 @@ export default {
       'Contacto'
     ]
 
-    const rows = result
-    const data = []
-
-    for (const row in rows) {
-      const createRow = []
-      createRow.push(rows[row].nid)
-      createRow.push(rows[row].name)
-      createRow.push(moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY'))
-      createRow.push(rows[row].dateIdentifiedAbandonment !== null ? moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY') : '')
-      createRow.push(rows[row].returnedPickUp !== null ? moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY') : '')
-      createRow.push(rows[row].contact)
-
-      data.push(createRow)
+    let data = ''
+    if (this.isOnline) {
+      const rowsAux = await Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`, { responseType: 'json' })
+      if (rowsAux.response.status === 204) return rowsAux.response.status
+      const firstReg = rowsAux.response.data[0]
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
+       data = this.createArrayOfArrayRow(rowsAux.response.data)
+    } else {
+      data = await this.getDataLocalReport(id)
+      if (data.length === 0) return 204
     }
+
     autoTable(doc, {
       margin: { top: 60 },
       bodyStyles: {
@@ -87,10 +88,10 @@ export default {
         }
       )
       doc.setFontSize(10)
-      doc.text('US: ' + clinic, width / 20, 57)
+      doc.text('US: ' + params.clinic.clinicName, width / 20, 57)
       // doc.text('US: ' + clinic, width / 2 + 80, 49)
-      doc.text('Data Início:  ' + startDate, width / 2 + 97, 49)
-      doc.text('Data Fim:    ' + endDate, width / 2 + 97, 57)
+      doc.text('Data Início:  ' + params.startDate, width / 2 + 97, 49)
+      doc.text('Data Fim:    ' + params.endDate, width / 2 + 97, 57)
 
         // Footer
         const str = 'Pagina ' + doc.internal.getNumberOfPages()
@@ -326,7 +327,7 @@ export default {
     for (const row in rows) {
       const createRow = []
       createRow.push(rows[row].nid)
-      createRow.push(rows[row].name)
+      createRow.push(rows[row].firstNames)
       createRow.push(moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY'))
       createRow.push(rows[row].dateIdentifiedAbandonment !== null ? moment(new Date(rows[row].dateIdentifiedAbandonment)).format('DD-MM-YYYY') : '')
       createRow.push(rows[row].returnedPickUp !== null ? moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY') : '')
@@ -336,5 +337,21 @@ export default {
     }
 
     return data
+  },
+  async getDataLocalReport (reportId) {
+    let data = []
+    await AbsentPatientReport.localDbGetAllByReportId(reportId).then(reports => {
+        const reportData = []
+        reports.forEach(report => {
+                if (report.reportId === reportId) {
+                 reportData.push(report)
+                }
+           })
+           // if(reportData.length === 0) return '204'
+            data = this.createArrayOfArrayRow(reportData)
+           console.log(data)
+           return data
+       })
+       return data
   }
 }

@@ -54,6 +54,7 @@ export default class DestroyedStock extends Model {
       return nSQL(this.entity).query('select').exec().then(result => {
         console.log(result)
         DestroyedStock.insertOrUpdate({ data: result })
+        return result
         })
     }
 

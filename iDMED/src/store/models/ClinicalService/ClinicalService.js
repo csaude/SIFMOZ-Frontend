@@ -6,7 +6,6 @@ import ClinicSector from '../clinicSector/ClinicSector'
 import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServiceSector'
 // import Group from '../group/Group'
 // import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import Drug from '../drug/Drug'
 import { nSQL } from 'nano-sql'
@@ -56,10 +55,6 @@ export default class ClinicalService extends Model {
      )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('clinicalServices').doc({ id: id }).get()
-  }
-
   static localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
@@ -67,19 +62,10 @@ export default class ClinicalService extends Model {
       })
   }
 
-  static localDbUpdate (clinicalService) {
-    return db.newDb().collection('clinicalServices').doc({ id: clinicalService.id }).set(clinicalService)
-  }
-
-  static localDbUpdateAll (clinicalServices) {
-    return db.newDb().collection('clinicalServices').set(clinicalServices)
-  }
-
-  static localDbDelete (clinicalService) {
-    return db.newDb().collection('clinicalServices').doc({ id: clinicalService.id }).delete()
-  }
-
-  static localDbDeleteAll () {
-    return db.newDb().collection('clinicalServices').delete()
-  }
+  static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       console.log(result)
+       return result[0]
+     })
+ }
 }

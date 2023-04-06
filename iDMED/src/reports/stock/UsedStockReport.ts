@@ -4,6 +4,7 @@ import { saveAs } from 'file-saver'
 import * as ExcelJS from 'exceljs'
 // import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/store/models/report/Report'
+import StockUsedReport from 'src/store/models/report/stock/StockUsedReport'
 
 // const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Stock Usado'
@@ -32,14 +33,19 @@ export default {
       'Ajustes',
       'Stock Actual'
     ]
-    const rowsAux = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType}`) 
+
+    let data = ''
+if (this.isOnline) {
+    const rowsAux = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType}`)
     if (rowsAux.response.status === 204) return rowsAux.response.status
     const firstReg = rowsAux.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
- 
-
-    const data = this.createArrayOfArrayRow(rowsAux.response.data)
+     data = this.createArrayOfArrayRow(rowsAux.response.data)
+} else {
+data = await this.getDataLocalReport(id)
+if (data.length === 0) return 204
+}
     autoTable(doc, {
       margin: { top: 55 },
       bodyStyles: {
@@ -318,8 +324,8 @@ export default {
        for (const row in rows) {
           const createRow = []
           createRow.push(rows[row].drugName)
-          createRow.push(rows[row].fnName)
-          createRow.push(rows[row].actualStock + rows[row].stockIssued - rows[row].adjustment)
+          createRow.push(rows[row].fnmCode)
+          createRow.push(Number(rows[row].actualStock) + Number(rows[row].stockIssued) - Number(rows[row].adjustment))
           createRow.push(rows[row].receivedStock)
           createRow.push(rows[row].stockIssued)
           createRow.push(rows[row].adjustment)
@@ -327,5 +333,21 @@ export default {
           data.push(createRow)
       }
       return data
+    },
+    async getDataLocalReport (reportId) {
+      let data = []
+      await StockUsedReport.localDbGetAllByReportId(reportId).then(reports => {
+          const reportData = []
+          reports.forEach(report => {
+                  if (report.reportId === reportId) {
+                   reportData.push(report)
+                  }
+             })
+             // if(reportData.length === 0) return '204'
+              data = this.createArrayOfArrayRow(reportData)
+             console.log(data)
+             return data
+         })
+         return data
     }
   }

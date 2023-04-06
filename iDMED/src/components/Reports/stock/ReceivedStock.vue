@@ -37,7 +37,6 @@ import ReceivedStockReport from 'src/reports/stock/ReceivedStockReport.ts'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
 import Stock from 'src/store/models/stock/Stock'
-import { v4 as uuidv4 } from 'uuid'
 import reportDatesParams from '../../../reports/ReportDatesParams'
 import StockReceivedReport from 'src/store/models/report/stock/StockReceivedReport'
   export default {
@@ -71,14 +70,13 @@ import StockReceivedReport from 'src/store/models/report/stock/StockReceivedRepo
         LocalStorage.remove(this.id)
       },
       initReportProcessing (params) {
-        if (params.localOrOnline === 'online') {
+        if (params.isOnline) {
           Report.apiInitReceivedStockProcessing(params).then(resp => {
             console.log(resp.response.data.progress)
             this.progress = resp.response.data.progress
             setTimeout(this.getProcessingStatus(params), 2)
           })
         } else {
-          reportDatesParams.determineStartEndDate(params)
           console.log(params)
           this.getDataLocalDb(params)
         }
@@ -117,9 +115,9 @@ import StockReceivedReport from 'src/store/models/report/stock/StockReceivedRepo
       getDataLocalDb (params) {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
-       Stock.localDbGetAll().then(stocks => {
+       Stock.localDbGetUsedStock(params).then(stocks => {
           console.log(stocks)
-       const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate) && stock.drug.clinicalService.id === reportParams.clinicalService)
+       const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate))
           console.log(result)
           return result
         }).then(reportDatas => {
@@ -137,8 +135,7 @@ import StockReceivedReport from 'src/store/models/report/stock/StockReceivedRepo
           stockReceived.unitsReceived = reportData.unitsReceived
           stockReceived.manufacture = reportData.manufacture
           stockReceived.batchNumber = reportData.batchNumber
-          stockReceived.id = uuidv4()
-          StockReceivedReport.localDbAdd(stockReceived)
+          StockReceivedReport.localDbAddOrUpdate(stockReceived)
          console.log(stockReceived)
         })
           })

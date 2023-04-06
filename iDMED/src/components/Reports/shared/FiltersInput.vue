@@ -88,8 +88,7 @@
                               <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                                   <q-date v-model="reportParams.endDateParam"
-                                  mask="DD-MM-YYYY"
-                                   :options="blockDataFutura">
+                                  mask="DD-MM-YYYY">
                                   <div class="row items-center justify-end">
                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                   </div>
@@ -130,13 +129,6 @@
                       @setSelectedYearAnnual="setSelectedYear"
                       @errorCount="errorCount"
                       ref="annualPeriod"/>
-
-                      <div v-if="mobile" class="row q-ml-md">
-                        <div class="col">
-                          <q-radio dense v-model="reportParams.localOrOnline" val="local" label="Local" class="col q-mr-md"/>
-                          <q-radio dense v-model="reportParams.localOrOnline" val="online" label="Online"  class="col q-mr-md" />
-                        </div>
-                      </div>
 
                     <div class="">
                       <q-btn
@@ -183,11 +175,12 @@ import { ref } from 'vue'
 import { LocalStorage, SessionStorage, date } from 'quasar'
 import moment from 'moment'
 import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 // import ReportDatesParams from '../../../reports/ReportDatesParams'
 // import moment from 'moment'
 export default {
     props: ['clinicalService', 'menuSelected', 'id', 'progress', 'reportType', 'progressValue', 'applicablePeriods', 'tabName', 'params'],
-    mixins: [mixinSystemPlatform],
+    mixins: [mixinSystemPlatform, mixinIsOnline],
     data () {
       const progress1 = ref(0)
       return {
@@ -207,7 +200,7 @@ export default {
           periodTypeView: null,
           reportType: null,
           progress: 0,
-          localOrOnline: '',
+          isOnline: '',
           startDate: null,
           endDate: null,
           online: true
@@ -231,6 +224,7 @@ export default {
       mounted () {
         console.log(this.mobile)
         console.log(this.website)
+        this.reportParams.isOnline = this.isOnline
         if (this.params) {
           this.reportParams = this.params
        //   this.progress = this.params.progress
@@ -352,11 +346,6 @@ export default {
         } else {
           this.reportParams.provinceId = this.currClinic.province.id
           this.reportParams.province = this.currClinic.province
-        }
-        if (this.mobile) {
-        this.reportParams.localOrOnline = 'local'
-        } else {
-          this.reportParams.localOrOnline = 'online'
         }
         console.log(this.reportParams)
       },

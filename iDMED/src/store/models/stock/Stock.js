@@ -98,13 +98,11 @@ export default class Stock extends Model {
         })
     }
 
-    static localDbGetUsedStock (reportParams) {
-      return nSQL(this.entity).query('select').exec().then(result => {
+    static async localDbGetUsedStock (reportParams) {
+      return nSQL(this.entity).query('select').where(['drug.clinical_service_id', '=', reportParams.clinicalService]).exec().then(result => {
          console.log(result)
          return result
        })
-       //  'AND',
-       // ['stock.drug.clinicalService.id]', '=', reportParams.clinicalService
    }
 
     static async localDbGetById (stock) {
@@ -482,7 +480,7 @@ return recordFileList
         // if (pvd.pack.pickupDate > new Date()) {
           for (const pcd of pvdObj.pack.packagedDrugs) {
             for (const pcdStockObj of pcd.packagedDrugStocks) {
-              if (pcd.stock_id === stockId) {
+              if (pcdStockObj.stock_id === stockId) {
                     const recordFile = {}
                     drugQuantitySupplied += Number(pcd.quantitySupplied)
                     recordFile.stockId = pcdStockObj.stock_id

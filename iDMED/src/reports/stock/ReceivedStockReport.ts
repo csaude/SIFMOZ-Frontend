@@ -52,9 +52,9 @@ export default {
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
     const data = this.createArrayOfArrayRow(rowsAux.response.data)
-  */   
+  */
     let data = ''
-    if (params.localOrOnline === 'online') {
+    if (params.isOnline) {
       data = await Report.api().get(`/stockReportTemp/printReport/${id}`,{ responseType: 'json' }) 
       console.log(data)
       if (data.response.status === 204) return data.response.status
@@ -362,9 +362,9 @@ export default {
       }
       return data
     },
-   async getDataLocalReport(reportId) {
+   async getDataLocalReport (reportId) {
       let data = []
-      await StockReceivedReport.localDbGetAll().then(reports => {
+      await StockReceivedReport.localDbGetAllByReportId(reportId).then(reports => {
           const reportData = []
           reports.forEach(report => {
                   if (report.reportId === reportId) {

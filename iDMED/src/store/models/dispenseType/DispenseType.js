@@ -60,30 +60,16 @@ export default class DispenseType extends Model {
      )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('dispenseTypes').doc({ id: id }).get()
-  }
-
-  static localDbGetAll () {
+    static localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
       DispenseType.insertOrUpdate({ data: result })
       })
   }
 
-  static localDbUpdate (dispenseType) {
-    return db.newDb().collection('dispenseTypes').doc({ id: dispenseType.id }).set(dispenseType)
-  }
-
-  static localDbUpdateAll (dispenseTypes) {
-    return db.newDb().collection('dispenseTypes').set(dispenseTypes)
-  }
-
-  static localDbDelete (dispenseType) {
-    return db.newDb().collection('dispenseTypes').doc({ id: dispenseType.id }).delete()
-  }
-
-  static localDbDeleteAll () {
-    return db.newDb().collection('dispenseTypes').delete()
-  }
+  static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       return result[0]
+     })
+ }
 }

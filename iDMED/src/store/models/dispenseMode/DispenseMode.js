@@ -32,30 +32,16 @@ export default class DispenseMode extends Model {
        )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('dispenseModes').doc({ id: id }).get()
-  }
+  static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       return result[0]
+     })
+ }
 
   static localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
       console.log(result)
       DispenseMode.insertOrUpdate({ data: result })
       })
-  }
-
-  static localDbUpdate (dispenseMode) {
-    return db.newDb().collection('dispenseModes').doc({ id: dispenseMode.id }).set(dispenseMode)
-  }
-
-  static localDbUpdateAll (dispenseModes) {
-    return db.newDb().collection('dispenseModes').set(dispenseModes)
-  }
-
-  static localDbDelete (dispenseMode) {
-    return db.newDb().collection('dispenseModes').doc({ id: dispenseMode.id }).delete()
-  }
-
-  static localDbDeleteAll () {
-    return db.newDb().collection('dispenseModes').delete()
   }
 }

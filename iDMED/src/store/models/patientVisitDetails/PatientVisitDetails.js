@@ -4,8 +4,8 @@ import Pack from '../packaging/Pack'
 import Prescription from '../prescription/Prescription'
 import PatientVisit from '../patientVisit/PatientVisit'
 import Clinic from '../clinic/Clinic'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
+import { nSQL } from 'nano-sql'
 
 export default class PatientVisitDetails extends Model {
   static entity = 'patientVisitDetails'
@@ -65,35 +65,11 @@ export default class PatientVisitDetails extends Model {
     return await this.api().get('/patientVisitDetails/getAllofPrecription/' + prescriptionId)
   }
 
-  static localDbAdd (patientVisitDetail) {
-    return db.newDb().collection('patientVisitDetails').add(patientVisitDetail)
-  }
-
-  static localDbGetById (id) {
-    return db.newDb().collection('patientVisitDetails').doc({ id: id }).get()
-  }
-
-  static async localDbGetAll () {
-    return await db.newDb().collection('patientVisitDetails').get()
-  }
-
-  static localDbUpdate (patientVisitDetail) {
-    return db.newDb().collection('patientVisitDetails').doc({ id: patientVisitDetail.id }).set(patientVisitDetail)
-  }
-
-  static localDbUpdateAll (patientVisitDetails) {
-    return db.newDb().collection('patientVisitDetails').set(patientVisitDetails)
-  }
-
-  static localDbDelete (patientVisitDetail) {
-    return db.newDb().collection('patientVisitDetails').doc({ id: patientVisitDetail.id }).delete()
-  }
-
-  static localDbDeleteAll () {
-    return db.newDb().collection('patientVisitDetails').delete()
-  }
-
-  static localDbDeleteById (patientVisitDetailsId) {
-    return db.newDb().collection('patientVisitDetails').doc({ id: patientVisitDetailsId }).delete()
+  static localDbGetAll () {
+    return nSQL(this.entity).query('select').exec().then(result => {
+      console.log(result)
+      PatientVisitDetails.insertOrUpdate({ data: result })
+      return result
+      })
   }
 }

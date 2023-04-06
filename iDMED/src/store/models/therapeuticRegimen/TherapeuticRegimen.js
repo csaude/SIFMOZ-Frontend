@@ -53,13 +53,14 @@ export default class TherapeuticRegimen extends Model {
      )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('therapeuticRegimens').doc({ id: id }).get()
-  }
+  static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       return result[0]
+     })
+ }
 
   static localDbGetAll () {
     return nSQL(this.entity).query('select').exec().then(result => {
-      console.log(result)
       TherapeuticRegimen.insert({ data: result })
       })
   }

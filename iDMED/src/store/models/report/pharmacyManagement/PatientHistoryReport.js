@@ -1,7 +1,9 @@
 // import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
+import { Model } from '@vuex-orm/core'
 
-export default class patientHistoryReport {
+export default class patientHistoryReport extends Model {
     static entity = 'patientHistorys'
     static fields () {
       return {
@@ -39,12 +41,6 @@ export default class patientHistoryReport {
         return db.newDb().collection('patientHistoryReports').add(patientHistory)
       }
 
-      static localDbGetByReportId (reportId) { //
-        // return db.newDb().collection('patientHistoryReports').doc({ reportId: 'report2d11bfc0-d0fa-489b-a2b9-9a1819d55a3e' }).get()
-       // return db.newDb().collection('patientHistoryReports').doc('11ed4fb992788770b2271f3fbce2746d').get()
-       return db.newDb().collection('patientHistoryReports').get()
-      }
-
       static localDbUpdateAll (districts) {
         return db.newDb().collection('patientHistoryReports').set(districts)
       }
@@ -54,6 +50,26 @@ export default class patientHistoryReport {
       }
 
       static localDbDeleteById (id) {
-        return db.newDb().collection('patientHistoryReports').doc({ id: id }).delete()
+        return nSQL().onConnected(() => {
+          nSQL(this.entity).query('delete').where(['id', '=', id]).exec()
+          patientHistoryReport.delete(id)
+      })
+    }
+
+      static localDbAddOrUpdate (targetCopy) {
+        return nSQL().onConnected(() => {
+          nSQL(this.entity).query('upsert',
+          targetCopy
+        ).exec()
+        patientHistoryReport.insertOrUpdate({ data: targetCopy })
+      })
+      }
+
+      static localDbGetAllByReportId (reportId) {
+        return nSQL(this.entity).query('select').where(['reportId', '=', reportId]).exec().then(result => {
+          console.log(result)
+          // Stock.insert({ data: result })
+          return result
+        })
       }
 }

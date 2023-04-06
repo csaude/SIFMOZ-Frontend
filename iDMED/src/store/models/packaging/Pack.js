@@ -4,7 +4,6 @@ import DispenseMode from '../dispenseMode/DispenseMode'
 import GroupPack from '../group/GroupPack'
 import PackagedDrug from '../packagedDrug/PackagedDrug'
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 
@@ -77,33 +76,10 @@ export default class Pack extends Model {
   })
     }
 
-    static localDbGetById (id) {
-      return db.newDb().collection('packs').doc({ id: id }).get()
-    }
-
     static async localDbGetAll () {
       return nSQL(this.entity).query('select').exec().then(result => {
         Pack.insertOrUpdate({ data: result })
+        return result
           })
-    }
-
-    static localDbUpdate (pack) {
-      return db.newDb().collection('packs').doc({ id: pack.id }).set(pack)
-    }
-
-    static localDbUpdateAll (packs) {
-      return db.newDb().collection('packs').set(packs)
-    }
-
-    static localDbDelete (pack) {
-      return db.newDb().collection('packs').doc({ id: pack.id }).delete()
-    }
-
-    static localDbDeleteAll () {
-      return db.newDb().collection('packs').delete()
-    }
-
-    static localDbDeleteById (packId) {
-      return db.newDb().collection('packs').doc({ id: packId }).delete()
     }
 }
