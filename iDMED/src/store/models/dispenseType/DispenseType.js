@@ -1,5 +1,4 @@
 import { Model } from '@vuex-orm/core'
-import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
 
