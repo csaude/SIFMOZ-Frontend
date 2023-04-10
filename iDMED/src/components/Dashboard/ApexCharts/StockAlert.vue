@@ -34,6 +34,9 @@
 import Clinic from '../../../store/models/clinic/Clinic'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
+import StockAlert from 'src/store/models/stockAlert/StockAlert'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+import mixinplatform from 'src/mixins/mixin-system-platform'
 
 const columnsGender = [
   { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
@@ -43,6 +46,7 @@ const columnsGender = [
 ]
 
 export default {
+  mixins: [mixinplatform, mixinIsOnline],
   props: ['serviceCode'],
   data () {
     return {
@@ -52,9 +56,14 @@ export default {
   },
   methods: {
     getStockAlert () {
-      Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then(resp => {
-        this.rowData = resp.response.data
-      })
+      if (!this.isOnline) {
+        console.log(StockAlert.localDbGetStockAlert())
+        // this.rowData = StockAlert.localDbGetStockAlert()
+      } else {
+        Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then(resp => {
+          this.rowData = resp.response.data
+        })
+      }
     },
     getConsuptionRelatedColor (state) {
       if (state === 'Sem Consumo') {

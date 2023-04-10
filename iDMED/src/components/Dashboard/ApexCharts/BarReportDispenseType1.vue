@@ -29,7 +29,11 @@ const toDateStr = str => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3
 const monthsEng = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 const latestPrescriptions = []
  let initialDataPointIndex = -1
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import { nSQL } from 'nano-sql'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
+    mixins: [mixinplatform, mixinIsOnline],
       props: ['serviceCode', 'dataLoaded'],
       emits: ['update:serviceCode'],
       mapDispenseMonthly: new Map(),

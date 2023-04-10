@@ -328,7 +328,7 @@
                 } else {
                     if (this.clinicalService.syncStatus !== 'R') this.clinicalService.syncStatus = 'U'
                     const clinicalServiceUpdate = new ClinicalService(JSON.parse(JSON.stringify((this.clinicalService))))
-                    ClinicalService.localDbUpdate(clinicalServiceUpdate)
+                    ClinicalService.localDbAdd(clinicalServiceUpdate)
                     this.closeDialog()
                     this.displayAlert('info', this.clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
                 }
