@@ -58,8 +58,10 @@ import { ref } from 'vue'
 import Report from 'src/store/models/report/Report'
 import { SessionStorage } from 'quasar'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import { nSQL } from 'nano-sql'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
-    mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinIsOnline],
      props: ['dataLoaded'],
     data () {
       const loading = ref(false)
@@ -89,30 +91,81 @@ export default {
         this.serviceCode = code
       },
       getDashboardServiceButton () {
-        Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
-          console.log(resp.response.data)
-          this.clinicalServiceReports = resp.response.data
-          if (this.clinicalServiceReports.length > 0) {
-            this.clinicalServiceReports.forEach((item) => {
-              if (item.service === 'TARV') {
-                item.colour = 'green'
-                item.icon = 'medication'
-              } else if (item.service === 'TPT') {
-                item.colour = 'red'
-                item.icon = 'vaccines'
-              } else if (item.service === 'PREP') {
-                item.colour = 'teal'
-                item.icon = 'health_and_safety'
-              } else {
-                item.icon = 'health_and_safety'
-                const randomColor = require('randomcolor') // import the script
-                const color = randomColor() // a hex code for an attractive color
-                item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
-              }
+        if (!this.isOnline) {
+          const dateStr = this.year + '-12-20'
+          const parts = dateStr.split('-')
+          const endDateObject = new Date(parts[0], parts[1] - 1, parts[2])
+
+          nSQL('identifiers')
+          .query('select', ['clinicalServices[code] AS service', '0 AS quantity', 'identifiers.clinic.id AS clinicId', 'identifiers.startDate AS startDate'])
+          .where(['clinic.id', '=', this.clinic.id])
+          .join({
+              type: 'inner',
+              table: 'clinicalServices',
+              where: ['clinicalServices.id', '=', 'identifiers.service.id']
+          })
+          .exec().then(rows => {
+            // filtrar por datas
+            rows = rows.filter(function (value) {
+                return new Date(value.startDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
             })
-            }
-          this.loading = false
-        })
+
+            this.clinicalServiceReports = rows.reduce((acc, obj) => {
+              const key = obj.service
+              const matchingObj = acc.find(item => item.service === key)
+              if (!matchingObj) {
+                acc.push({ service: key, startDate: obj.startDate, quantity: 1 })
+              } else {
+                matchingObj.quantity++
+              }
+              return acc
+            }, [])
+
+            // this.clinicalServiceReports = result
+            this.clinicalServiceReports.forEach((item) => {
+                if (item.service === 'TARV') {
+                  item.colour = 'green'
+                  item.icon = 'medication'
+                } else if (item.service === 'TPT') {
+                  item.colour = 'red'
+                  item.icon = 'vaccines'
+                } else if (item.service === 'PREP') {
+                  item.colour = 'teal'
+                  item.icon = 'health_and_safety'
+                } else {
+                  item.icon = 'health_and_safety'
+                  const randomColor = require('randomcolor') // import the script
+                  const color = randomColor() // a hex code for an attractive color
+                  item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                }
+              })
+            this.loading = false
+          })
+        } else {
+          Report.apiGetDashboardServiceButton(this.year, this.clinic.id).then(resp => {
+            this.clinicalServiceReports = resp.response.data
+            if (this.clinicalServiceReports.length > 0) {
+              this.clinicalServiceReports.forEach((item) => {
+                if (item.service === 'TARV') {
+                  item.colour = 'green'
+                  item.icon = 'medication'
+                } else if (item.service === 'TPT') {
+                  item.colour = 'red'
+                  item.icon = 'vaccines'
+                } else if (item.service === 'PREP') {
+                  item.colour = 'teal'
+                  item.icon = 'health_and_safety'
+                } else {
+                  item.icon = 'health_and_safety'
+                  const randomColor = require('randomcolor') // import the script
+                  const color = randomColor() // a hex code for an attractive color
+                  item.style = 'background-color:' + color + ';' + 'color: ##ffffff'
+                }
+              })
+              }
+            this.loading = false
+          })
+        }
       }
     },
     computed: {

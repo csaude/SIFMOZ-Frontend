@@ -25,7 +25,11 @@ import Clinic from '../../../store/models/clinic/Clinic'
 const monthsX = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEC']
 const toDateStr = str => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'))
 const monthsEng = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+import mixinplatform from 'src/mixins/mixin-system-platform'
+import { nSQL } from 'nano-sql'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 export default {
+    mixins: [mixinplatform, mixinIsOnline],
       props: ['serviceCode', 'year'],
       mapDispenseMonthly: new Map(),
       mapDispenseQuarterly: new Map(),
@@ -97,17 +101,98 @@ export default {
       }
   },
   methods: {
+    removerDuplicados (registros) {
+      const uniqueRegistros = registros.reduce((unique, registro) => {
+        if (!unique.some((r) => r.patientId === registro.patientId)) {
+          unique.push(registro)
+        }
+        return unique
+      }, [])
+      return uniqueRegistros
+    },
     getRegisteredPatientByDispenseType () {
       this.loading = true
       const dms = { name: 'Dispensa Mensal', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
       const dts = { name: 'Dispensa Trimestral', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
       const dss = { name: 'Dispensa Semestral', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
 
-      console.log(this.year)
-      console.log(this.serviceCode)
+      if (!this.isOnline) {
+          const realYear = this.year
+          const dateStr = realYear + '-12-20'
+          const yearBefore = this.year - 1
+          const dateStr1 = yearBefore + '-12-21'
+          const endDateObject = new Date(dateStr)
+          const startDateObject = new Date(dateStr1)
+          const serviceCD = this.serviceCode
 
-      Report.apiGetRegisteredPatientByDispenseType(this.year, this.clinic.id, this.serviceCode).then(resp => {
-        console.log(resp.response.data)
+          nSQL('patientVisits')
+          .query('select', ['identifiers.startDate AS startDate', 'patientVisits.visitDate AS visitDate',
+          'patientVisits.patient.id AS patientId', 'clinicalServices.code AS service', '1 AS month', '0 AS quantity',
+          'patientVisits.patientVisitDetails[0].prescription.prescriptionDetails[0].dispenseType.code AS dispenseTypeCode'])
+          .join(
+            [{
+              type: 'inner',
+              table: 'identifiers',
+              where: ['identifiers.patient.id', '=', 'patientVisits.patient.id']
+            },
+            {
+              type: 'inner',
+              table: 'episodes',
+              where: ['episodes.patientServiceIdentifier.id', '=', 'identifiers.id']
+            },
+            {
+              type: 'inner',
+              table: 'clinicalServices',
+              where: ['clinicalServices.id', '=', 'identifiers.service.id']
+            }])
+          .exec().then(rows => {
+            rows = this.removerDuplicados(rows)
+          rows.forEach((item) => {
+            if (item.startDate !== null && item.startDate !== undefined) {
+              const strtDate = new Date(item.startDate)
+              if (strtDate.getDate() > 20) {
+                item.month = strtDate.getMonth() + 2 // Adicionar 1 mes
+              }
+              if (strtDate.getDate() <= 20) {
+                item.month = strtDate.getMonth() + 1 // Considerar mes da data
+              }
+            }
+          })
+
+          rows = rows.filter(function (value) {
+              return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.visitDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
+          })
+
+          rows = rows.reduce((acc, obj) => {
+            const key = obj.dispenseTypeCode
+            const matchingObj = acc.find(item => item.dispenseTypeCode === key)
+            if (!matchingObj) {
+              acc.push({ dispenseTypeCode: key, startDate: obj.startDate, visitDate: obj.visitDate, month: obj.month, service: obj.service, quantity: 1 })
+            } else {
+              matchingObj.quantity++
+            }
+            return acc
+          }, [])
+
+          for (let i = 1; i <= 12; i++) {
+            rows.forEach((item) => {
+              if (item.dispenseTypeCode === 'DM' && item.month === i) {
+                dms.data[i - 1] = item.quantity
+              } else if (item.dispenseTypeCode === 'DT' && item.month === i) {
+                dts.data[i - 1] = item.quantity
+              } else if (item.dispenseTypeCode === 'DS' && item.month === i) {
+                dss.data[i - 1] = item.quantity
+              }
+            })
+          }
+          this.series = []
+          this.series[0] = dms
+          this.series[1] = dts
+          this.series[2] = dss
+          this.loading = false
+        })
+      } else {
+        Report.apiGetRegisteredPatientByDispenseType(this.year, this.clinic.id, this.serviceCode).then(resp => {
         for (let i = 1; i <= 12; i++) {
           resp.response.data.forEach((item) => {
             if (item.dispense_type === 'DM' && item.month === i) {
@@ -125,6 +210,7 @@ export default {
         this.series[2] = dss
         this.loading = false
       })
+      }
     },
     reload () {
       this.getRegisteredPatientByDispenseType()
