@@ -53,7 +53,7 @@
                       </q-item-label>
                     </q-item-section>
                   </q-item>
-                  <q-item clickable v-if="mobile">
+                  <q-item clickable v-if="!isOnline">
                     <q-item-section avatar clickable @click="sync()">
                       <q-avatar icon="sync">
                       </q-avatar>
@@ -140,15 +140,14 @@ export default defineComponent({
     }
   },
   mounted () {
-    console.log(this.website)
+    console.log(this.isOnline)
     if (this.website) {
     //  SystemConfigs.apiGetAll()
     }
    // this.getRolesToMenu()
-   if (this.mobile) {
+   if (!this.isOnline) {
     this.schedulerSync()
    }
-   console.log(this.isOnline)
   },
   computed: {
     activateMigration () {
@@ -173,7 +172,7 @@ export default defineComponent({
       },
       schedulerSync () {
        schedule.scheduleJob('0 * * * *', () => {
-       // this.sync()
+        this.sync()
 })
       },
       async sync () {

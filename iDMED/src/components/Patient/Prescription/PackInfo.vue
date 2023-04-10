@@ -48,6 +48,7 @@ import Pack from '../../../store/models/packaging/Pack'
 import Drug from '../../../store/models/drug/Drug'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinutils from 'src/mixins/mixin-utils'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
 const columns = [
   { name: 'drug', required: true, field: 'name', label: 'Medicamento', align: 'left', sortable: true },
   { name: 'qty', align: 'left', field: 'quantitySupplied', label: 'Quantidade', sortable: true },
@@ -55,7 +56,7 @@ const columns = [
 ]
 export default {
   props: ['pack', 'isClosed'],
-  mixins: [mixinplatform, mixinutils],
+  mixins: [mixinplatform, mixinutils, mixinIsOnline],
   setup () {
     return {
       canEdit: true,
@@ -73,9 +74,11 @@ export default {
       this.$emit('removePack')
     },
     reloadDrugs () {
-      const offset = 0
+      if (this.isOnline) {
+     const offset = 0
       const max = 100
       Drug.apiGetAll(offset, max)
+      }
     }
   },
   components: {

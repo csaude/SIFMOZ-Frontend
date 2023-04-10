@@ -396,6 +396,7 @@ export default {
           })
         } else {
           console.log('Performing local search')
+          Patient.deleteAll()
           const patients = this.getPatientsVuex()
           this.patients = patients.filter((patient) => {
             return this.filterPatient(patient)
@@ -604,8 +605,11 @@ export default {
     },
     mounted () {
       this.saveDefaultHIS()
-      this.getAllDataSources(0)
+      console.log(this.isOnline)
+      if (this.isOnline) {
+        this.getAllDataSources(0)
       this.loadProvinceDistricts()
+      }
       // this.getAllPatientsOfClinic()
       // this.loadAppParameters()
     },

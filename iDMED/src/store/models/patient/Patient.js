@@ -237,7 +237,11 @@ export default class Patient extends Model {
           })
       }
 
-    static loadPatientWithIdentifiersEpisodeAndVisitFromServer (selectedPatient) {
+      static async apiGetPatientsByClinicSectorId (clinicSectorId) {
+        return await this.api().get('/patient/clinicSector/' + clinicSectorId)
+      }
+
+    static async loadPatientWithIdentifiersEpisodeAndVisitFromServer (selectedPatient) {
       console.log(JSON.parse(JSON.stringify(selectedPatient)))
       Patient.localDbAddOrUpdate(JSON.parse(JSON.stringify(selectedPatient)))
       PatientServiceIdentifier.localDbAddOrUpdate(JSON.parse(JSON.stringify(selectedPatient.identifiers)))
@@ -255,9 +259,9 @@ export default class Patient extends Model {
               const lastEpisode = identifier.episodes[0]
               Episode.localDbAddOrUpdate(JSON.parse(JSON.stringify(lastEpisode)))
               const endEpispde = new Episode()
-              endEpispde.episodeDate = moment()
+              endEpispde.episodeDate = moment().hour(0)
               endEpispde.creationDate = moment()
-              endEpispde.notes = 'Carregamento na Paragem Unica'
+              endEpispde.notes = 'Fim - Carregamento na Paragem Unica'
               endEpispde.episodeType = {}
               endEpispde.episodeType.id = endEpisodeType.id
               endEpispde.episodeType_id = endEpisodeType.id
@@ -277,10 +281,10 @@ export default class Patient extends Model {
               const startEpisode = new Episode()
               startEpisode.episodeDate = moment()
               startEpisode.creationDate = moment()
-              startEpisode.notes = 'Carregamento na Paragem Unica'
+              startEpisode.notes = 'Inicio - Carregamento na Paragem Unica'
               startEpisode.episodeType = {}
               startEpisode.episodeType.id = startEpisodeType.id
-              startEpisode.episodeType.id = startEpisodeType.id
+              startEpisode.episodeType_id = startEpisodeType.id
               startEpisode.patientServiceIdentifier = {}
               startEpisode.patientServiceIdentifier.id = identifier.id
               startEpisode.patientServiceIdentifier_id = identifier.id
@@ -296,43 +300,28 @@ export default class Patient extends Model {
 }
 })
 })
-            let i = 0
-            let iP = 0
-            let iPa = 0
-            PatientVisit.apiGetLastVisitOfPatient(selectedPatient.id).then(resp => {
-              if (resp.response.data) {
-                resp.response.data.patientVisitDetails.forEach(pvd => {
-                  PatientVisitDetails.apiFetchById(pvd.id).then(resp1 => {
-                   // resp.response.data.patientVisitDetails[0] = resp1.response.data
-                    if (pvd.id === resp1.response.data.id && resp.response.data.patientVisitDetails[i] !== undefined) {
-                      console.log(i)
-                      resp.response.data.patientVisitDetails[i] = resp1.response.data
-                      Prescription.apiFetchById(resp.response.data.patientVisitDetails[i].prescription.id).then(respPre => {
-                        resp.response.data.patientVisitDetails[iP].prescription = respPre.response.data
-                        console.log(JSON.parse(JSON.stringify(resp.response.data)))
-                        iP++
-                        PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
-                        if (resp.response.data.patientVisitDetails[iPa].pack !== null) {
-                          Pack.apiFetchById(resp.response.data.patientVisitDetails[i].pack.id).then(respPack => {
-                            resp.response.data.patientVisitDetails[iPa].pack = respPack.response.data
-                            console.log(JSON.parse(JSON.stringify(resp.response.data)))
-                            PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
-                           // this.flagGoReady = true
-                           console.log(i)
-                           iPa++
-                          })
-                        } else {
-                        //  this.flagGoReady = true
-                        }
-                        i++
-                       // PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
-                      })
-                   //   PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
+            const resp = await PatientVisit.apiGetLastVisitOfPatient(selectedPatient.id)
+            if (resp.response.data && resp.response.data.patientVisitDetails) {
+              for (let i = 0; i < resp.response.data.patientVisitDetails.length; i++) {
+                const pvd = resp.response.data.patientVisitDetails[i]
+                const resp1 = await PatientVisitDetails.apiFetchById(pvd.id)
+
+                if (resp1.response.data) {
+                  resp.response.data.patientVisitDetails[i] = resp1.response.data
+                  const respPre = await Prescription.apiFetchById(resp.response.data.patientVisitDetails[i].prescription.id)
+                  if (respPre.response.data) {
+                    resp.response.data.patientVisitDetails[i].prescription = respPre.response.data
+                  }
+                  if (resp.response.data.patientVisitDetails[i].pack !== null) {
+                    const respPack = await Pack.apiFetchById(resp.response.data.patientVisitDetails[i].pack.id)
+                    if (respPack.response.data) {
+                      resp.response.data.patientVisitDetails[i].pack = respPack.response.data
                     }
-                  })
-                  console.log(resp.response.data)
-                })
+                  }
+                }
               }
-            })
+            }
+            console.log(JSON.parse(JSON.stringify(resp.response.data)))
+            await PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(resp.response.data)))
     }
 }
