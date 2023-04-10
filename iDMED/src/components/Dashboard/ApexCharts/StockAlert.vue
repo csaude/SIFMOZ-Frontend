@@ -37,6 +37,8 @@ import { SessionStorage } from 'quasar'
 import StockAlert from 'src/store/models/stockAlert/StockAlert'
 import mixinIsOnline from 'src/mixins/mixin-is-online'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import Drug from 'src/store/models/drug/Drug'
+import Stock from 'src/store/models/stock/Stock'
 
 const columnsGender = [
   { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
@@ -55,10 +57,33 @@ export default {
     }
   },
   methods: {
-    getStockAlert () {
+    async getStockAlert () {
       if (!this.isOnline) {
-        console.log(StockAlert.localDbGetStockAlert())
-        // this.rowData = StockAlert.localDbGetStockAlert()
+        const listStockAlert = []
+        const drugList = await Drug.localDbGetAll()
+        for (const drug of drugList) {
+          const hasStock = await Drug.hasStock(drug)
+          if (hasStock) {
+            const stockAlert = new StockAlert()
+            const balance = await Stock.localDbGetStockBalanceByDrug(drug)
+            const drugQuantitySupplied = await Stock.localDbGetQuantitySuppliedByDrug(drug)
+            stockAlert.balance = balance
+            stockAlert.drugName = drug.name
+            stockAlert.drug = drug.name
+            stockAlert.avgConsuption = drugQuantitySupplied / 3
+            if (drugQuantitySupplied === 0) {
+              stockAlert.state = 'Sem Consumo'
+            } else if (stockAlert.balance > (drugQuantitySupplied / 3)) {
+              stockAlert.state = 'Acima do Consumo Máximo'
+            } else if (stockAlert.balance > (drugQuantitySupplied / 3)) {
+              stockAlert.state = 'Ruptura de Stock'
+            }
+            listStockAlert.push(stockAlert)
+          //   return listStockAlert
+          }
+        }
+        this.rowData = listStockAlert
+        console.log('StockAlert.localDbGetStockAlert(): ', this.rowData)
       } else {
         Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then(resp => {
           this.rowData = resp.response.data
