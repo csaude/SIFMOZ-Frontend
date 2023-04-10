@@ -340,12 +340,65 @@ export default {
         }
       })
     },
+
+    doEpisodesBySectorGet () {
+      const clinicSectorUser = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', localStorage.getItem('clinic_sectors')).first()
+      Episode.apiGetLastByClinicSectorId(clinicSectorUser.id).then(resp => {
+        if (resp.response.data.length > 0) {
+          resp.response.data.forEach((item) => {
+            Episode.localDbAddOrUpdate(item)
+            console.log(item)
+             PatientServiceIdentifier.localDbAddOrUpdate(item.patientServiceIdentifier)
+             let i = 0
+             PatientVisitDetails.apiGetLastByEpisodeId(item.id).then(resp => {
+              if (resp.response.data) {
+                const pv = resp.response.data.patientVisit
+                resp.response.data.patientVisit = {}
+                pv.patientVisitDetails[0] = resp.response.data
+                console.log(pv)
+                Prescription.apiFetchById(resp.response.data.prescription.id).then(respPre => {
+                  pv.patientVisitDetails[0].prescription = respPre.response.data
+                  PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(pv)))
+                  if (resp.response.data.pack !== null) {
+                    Pack.apiFetchById(resp.response.data.pack.id).then(respPack => {
+                      pv.patientVisitDetails[0].pack = respPack.response.data
+                      PatientVisit.localDbAddOrUpdate(JSON.parse(JSON.stringify(pv)))
+                     console.log(i)
+                    })
+                  }
+                  i++
+                })
+              }
+            })
+          })
+         // offset = offset + max
+         // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
+        }
+      })
+    },
+    doPatientsBySectorGet () {
+      const clinicSectorUser = ClinicSector.query().with('clinic.*').with('clinicSectorType').where('code', localStorage.getItem('clinic_sectors')).first()
+      Patient.apiGetPatientsByClinicSectorId(clinicSectorUser.id).then(resp => {
+        if (resp.response.data.length > 0) {
+          /*
+          resp.response.data.forEach((item) => {
+            item.identifiers = []
+            item.patientVisits = []
+            Patient.localDbAddOrUpdate(item)
+          })
+          */
+          Patient.localDbAddOrUpdate(resp.response.data)
+         // offset = offset + max
+         // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
+        }
+      })
+    },
     async start ($q, clinicId) {
       console.log('Clinica:' + clinicId)
       /*
       this.doPatientGet(clinicId, 0, 100)
       this.doStockEntranceGet(clinicId, 0, 100)
-      this.doIdentifiersGet(clinicId, 0, 100)
+    this.doIdentifiersGet(clinicId, 0, 100)
       this.doPatientLastVisitDetailsGet(clinicId, 0, 100)
       this.doPatientVisitGet(clinicId, 0, 100)
       this.doPackGet(clinicId, 0, 100)
@@ -358,6 +411,8 @@ export default {
       */
       await this.loadAndSaveAppParameters(clinicId)
       await this.loadAndSaveRolesAndUsers()
+      await this.doPatientsBySectorGet()
+       await this.doEpisodesBySectorGet()
         LocalStorage.set('system-sync-status', 'done')
       $q.loading.hide()
     },
@@ -867,7 +922,7 @@ login (username, password) {
       })
       localStorage.setItem('isSyncronizing', 'true')
       this.syncronizeAudit()
-      this.sendEntrances()
+    //  this.sendEntrances()
  //   this.getRolesToSend()
   //    this.getUsersToSend()
       this.getPatientsToSend()

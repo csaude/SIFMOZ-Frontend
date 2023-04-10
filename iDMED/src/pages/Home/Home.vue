@@ -162,6 +162,7 @@ export default {
       if (!this.isOnline) {
         console.log(this.isAppSyncDone)
         if (!this.isAppSyncDone) {
+          this.showloading()
           SynchronizationService.start(this.$q, this.currClinic.id)
         } else {
           this.hideLoading()

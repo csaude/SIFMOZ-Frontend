@@ -118,6 +118,10 @@ export default class Episode extends Model {
     return await this.api().get('/episode/identifier/' + identifierId + '?offset=0&max=100')
   }
 
+  static async apiGetLastByClinicSectorId (clinicSectorId) {
+    return await this.api().get('/episode/clinicSector/' + clinicSectorId)
+  }
+
   static localDbAddOrUpdate (episode) {
     return nSQL(this.entity).query('upsert',
     episode
