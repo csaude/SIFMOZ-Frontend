@@ -83,11 +83,8 @@ export default class PatientVisit extends Model {
      PatientVisit.insertOrUpdate({ data: patientVisit })
      patientVisit.patientVisitDetails.forEach((pvd) => {
       PatientVisitDetails.insertOrUpdate({ data: pvd })
-  Prescription.insertOrUpdate({ data: pvd.prescription })
- //   Pack.delete(pvd.pack.id)
-   // PackagedDrug.deleteAll()
-    Pack.insertOrUpdate({ data: pvd.pack })
- // Pack.insert({ data: pvd.pack })
+     if (pvd.prescription !== undefined) Prescription.insertOrUpdate({ data: pvd.prescription })
+     if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack })
   })
     }
     )
@@ -107,8 +104,8 @@ export default class PatientVisit extends Model {
           PatientVisit.insertOrUpdate({ data: result })
           result.patientVisitDetails.forEach((pvd) => {
            PatientVisitDetails.insertOrUpdate({ data: pvd })
-        Prescription.insertOrUpdate({ data: pvd.prescription })
-         Pack.insertOrUpdate({ data: pvd.pack })
+           if (pvd.prescription !== undefined) Prescription.insertOrUpdate({ data: pvd.prescription })
+           if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack })
         })
          })
       }
@@ -146,8 +143,8 @@ static getPatientNSql () {
        PatientVisit.insertOrUpdate({ data: result[0] })
        result[0].patientVisitDetails.forEach((pvd) => {
         PatientVisitDetails.insertOrUpdate({ data: pvd })
-    Prescription.insertOrUpdate({ data: pvd.prescription })
-      Pack.insertOrUpdate({ data: pvd.pack })
+        if (pvd.prescription !== undefined) Prescription.insertOrUpdate({ data: pvd.prescription })
+     if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack })
     })
        })
    }
@@ -156,20 +153,12 @@ static getPatientNSql () {
    return nSQL(this.entity).query('select').orderBy({ visitDate: 'desc' }).where(['patient[id]', '=', patient.id]).exec().then(result => {
      console.log(result)
      if (result.length > 0) {
-      /*
-      PatientVisit.insertOrUpdate({ data: result[0] })
-     result[0].patientVisitDetails.forEach((pvd) => {
-      PatientVisitDetails.insertOrUpdate({ data: pvd })
-  Prescription.insertOrUpdate({ data: pvd.prescription })
-    Pack.insertOrUpdate({ data: pvd.pack })
-  })
-  */
  result.forEach(result => {
   PatientVisit.insertOrUpdate({ data: result })
   result.patientVisitDetails.forEach((pvd) => {
    PatientVisitDetails.insertOrUpdate({ data: pvd })
-Prescription.insertOrUpdate({ data: pvd.prescription })
- Pack.insertOrUpdate({ data: pvd.pack })
+   if (pvd.prescription !== undefined) Prescription.insertOrUpdate({ data: pvd.prescription })
+   if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack })
 })
  })
      }
