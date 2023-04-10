@@ -111,7 +111,6 @@ export default {
               return value.service === serviceCD && new Date(value.pickupDate) >= startDateObject && new Date(value.pickupDate) <= endDateObject && value.clinicID === this.clinic.id // Apenas o true sera mantido, o resto sera removido
           })
           rows = this.agruparRegistros(rows)
-          console.log(rows)
           this.rowData = rows
         })
     } else {

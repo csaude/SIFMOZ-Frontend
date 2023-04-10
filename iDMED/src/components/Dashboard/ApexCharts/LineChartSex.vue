@@ -174,7 +174,6 @@ tooltip: {
             }
           })
           rows = this.agruparRegistrosPorDispenseTypeCodeMonthGender(rows)
-          console.log(rows)
             for (let i = 1; i <= 12; i++) {
               rows.forEach((item) => {
                 if (item.gender === 'Feminino' && item.month === i) {
@@ -191,7 +190,6 @@ tooltip: {
           })
         } else {
           Report.apiGetPatientsFirstDispenseByGender(this.year, this.clinic.id, this.serviceCode).then(resp => {
-            console.log(resp.response.data)
             for (let i = 1; i <= 12; i++) {
               resp.response.data.forEach((item) => {
                 if (item.gender === 'Feminino' && item.month === i) {

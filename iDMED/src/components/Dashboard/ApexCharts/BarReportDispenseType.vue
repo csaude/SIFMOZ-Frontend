@@ -147,17 +147,17 @@ export default {
             }])
           .exec().then(rows => {
             rows = this.removerDuplicados(rows)
-          rows.forEach((item) => {
-            if (item.startDate !== null && item.startDate !== undefined) {
-              const strtDate = new Date(item.startDate)
-              if (strtDate.getDate() > 20) {
-                item.month = strtDate.getMonth() + 2 // Adicionar 1 mes
+            rows.forEach((item) => {
+              if (item.startDate !== null && item.startDate !== undefined) {
+                const strtDate = new Date(item.startDate)
+                if (strtDate.getDate() > 20) {
+                  item.month = strtDate.getMonth() + 2 // Adicionar 1 mes
+                }
+                if (strtDate.getDate() <= 20) {
+                  item.month = strtDate.getMonth() + 1 // Considerar mes da data
+                }
               }
-              if (strtDate.getDate() <= 20) {
-                item.month = strtDate.getMonth() + 1 // Considerar mes da data
-              }
-            }
-          })
+            })
 
           rows = rows.filter(function (value) {
               return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.visitDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido

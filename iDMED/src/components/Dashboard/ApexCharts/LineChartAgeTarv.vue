@@ -197,15 +197,12 @@ tooltip: {
             return acc
           }, [])
 
-          console.log(rows)
-
           for (let i = 1; i <= 12; i++) {
           rows.forEach((item) => {
             if (item.faixa === 'MENOR' && item.month === i) {
               fm.data[i - 1] = item.quantity
             } else if (item.faixa === 'ADULTO' && item.month === i) {
               ms.data[i - 1] = item.quantity
-              console.log(ms.data[i - 1])
             }
           })
         }
@@ -216,7 +213,6 @@ tooltip: {
         })
       } else {
       Report.apiGetPatientsFirstDispenseByAge(this.year, this.clinic.id, this.serviceCode).then(resp => {
-        console.log(resp.response.data)
         for (let i = 1; i <= 12; i++) {
           resp.response.data.forEach((item) => {
             if (item.faixa === 'MENOR' && item.month === i) {

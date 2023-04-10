@@ -204,7 +204,6 @@ export default {
           })
         } else {
           Report.apiGetActivePatientPercentage(this.year, this.clinic.id, this.serviceCode).then(resp => {
-            console.log(resp.response.data)
             if (resp.response.data.length > 0) {
               this.series[0] = resp.response.data[0] !== undefined ? resp.response.data[0].quantity : 0
               this.series[1] = resp.response.data[1] !== undefined ? resp.response.data[1].quantity : 0

@@ -132,7 +132,6 @@ export default {
             }
           })
           rows = this.agruparRegistros(rows)
-          console.log(rows)
           this.rowData = rows
         })
     } else {
