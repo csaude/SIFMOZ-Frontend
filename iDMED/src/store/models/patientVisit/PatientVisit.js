@@ -13,6 +13,7 @@ import Clinic from '../clinic/Clinic'
 import db from 'src/store/localbase'
 import { v4 as uuidv4 } from 'uuid'
 import { nSQL } from 'nano-sql'
+import moment from 'moment'
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits'
@@ -203,12 +204,27 @@ Prescription.insertOrUpdate({ data: pvd.prescription })
     }
 
     static async localDbGetAllPatientVisit () {
-      const patientVisitDetailList = []
+      const patientVisitlList = []
       return nSQL('patientVisits').query('select').exec().then(result => {
         for (const pvd of result) {
-            patientVisitDetailList.push(pvd)
+          patientVisitlList.push(pvd)
       }
-      return patientVisitDetailList
+      return patientVisitlList
        })
       }
-}
+
+      static async countPacksByDispenseTypeAndServiceOnPeriod (dispenseType, service, startDate, endDate) {
+        let counter = 0
+          return nSQL('patientVisits').query('select').exec().then(result => {
+            for (const pv of result) {
+              for (const pvd of pv.patientVisitDetails) {
+                const pickupDate = moment(pvd.pack.pickupDate)
+                if (pickupDate >= startDate && pickupDate <= endDate && pvd.episode.patientServiceIdentifier.service.id === service && pvd.prescription.prescriptionDetails[0].dispenseType.code === dispenseType) {
+                  counter++
+                }
+              }
+          }
+          return counter
+           })
+        }
+      }
