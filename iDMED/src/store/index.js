@@ -90,6 +90,10 @@ import StockReceivedReport from './models/report/stock/StockReceivedReport'
 import StockUsedReport from './models/report/stock/StockUsedReport'
 import AbsentPatientReport from './models/report/pharmacyManagement/AbsentPatientReport'
 import PatientHistoryReport from './models/report/pharmacyManagement/PatientHistoryReport'
+import MmiaStockReport from './models/report/pharmacyManagement/MmiaStockReport'
+import MmiaReport from './models/report/pharmacyManagement/MmiaReport'
+import MmiaRegimenSubReport from './models/report/pharmacyManagement/MmiaRegimenSubReport'
+import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegisterTempReport'
 import AuditSyncronization from './models/auditSyncronization/AuditSyncronization'
 import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils'
 
@@ -102,14 +106,14 @@ VuexORM.use(VuexORMAxios, {
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   },
-     baseURL: 'http://172.104.236.126:5110/api'
+    // baseURL: 'http://172.104.236.126:5110/api'
  //  baseURL: 'http://10.10.12.78:8884/api'
       // baseURL: 'http://idartzambezia.fgh.org.mz:3000/api'
     //  baseURL: 'http://192.168.100.1:3000/api'
    // baseURL: 'http://192.168.100.51:3000/api'
    //  baseURL: 'http://10.0.1.56:3000/api'
  //  baseURL: 'http://192.168.18.9:8884/api'
-  //  baseURL: 'http://localhost:8884/api'
+   baseURL: 'http://localhost:8884/api'
 })
 let numTries = 0
 // Request interceptor for API calls
@@ -264,6 +268,10 @@ const entities = () => {
   entitiesList.push(PatientHistoryReport)
   entitiesList.push(AuditSyncronization)
   entitiesList.push(AbsentPatientReport)
+  entitiesList.push(MmiaReport)
+  entitiesList.push(MmiaStockReport)
+  entitiesList.push(MmiaRegimenSubReport)
+  entitiesList.push(ArvDailyRegisterTempReport)
   return entitiesList
 }
 

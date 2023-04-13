@@ -1,8 +1,9 @@
-// import { Model } from '@vuex-orm/core'
+ import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
 // import DrugQuantityTemp from './DrugQuantityTemp'
 
-export default class ArvDailyRegisterTempReport {
+export default class ArvDailyRegisterTempReport extends Model {
     static entity = 'arvDailyRegisterTempReports'
     static fields () {
       return {
@@ -36,7 +37,7 @@ export default class ArvDailyRegisterTempReport {
         startReason: this.attr(''),
         prep: this.attr(''),
         ppe: this.attr(''),
-        drugQuantityTemps: this.attr('')
+        drugQuantityTemps: this.hasMany(ArvDailyRegisterTempReport, 'id')
       }
     }
 
@@ -59,4 +60,19 @@ export default class ArvDailyRegisterTempReport {
       static localDbDeleteById (id) {
         return db.newDb().collection('arvDailyRegisterTempReports').doc({ id: id }).delete()
       }
+
+  static localDbAddOrUpdate (targetCopy) {
+    nSQL(this.entity).query('upsert',
+    targetCopy
+  ).exec()
+  ArvDailyRegisterTempReport.insertOrUpdate({ data: targetCopy })
+  }
+
+  static localDbGetAllByReportId (reportId) {
+  return nSQL(this.entity).query('select').where(['reportId', '=', reportId]).exec().then(result => {
+    console.log(result)
+    // Stock.insert({ data: result })
+    return result
+  })
+}
 }

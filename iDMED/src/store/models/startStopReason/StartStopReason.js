@@ -38,9 +38,12 @@ export default class StartStopReason extends Model {
      )
   }
 
-  static localDbGetById (id) {
-    return db.newDb().collection('startStopReasons').doc({ id: id }).get()
-  }
+  static async localDbGetById (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       console.log(result)
+       return result[0]
+     })
+ }
 
   static localDBGetByIdNanoSQL (id) {
     return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {

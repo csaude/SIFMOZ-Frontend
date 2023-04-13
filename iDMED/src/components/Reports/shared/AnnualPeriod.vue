@@ -10,7 +10,7 @@
                 label="Ano"
                 @blur="setSelectedYearAnnual()"
                 :rules="[val => !!val || ' Por favor indique o ano']"
-                ref="annualPeriod"
+                ref="yearAnnualPeriod"
             />
        </div>
     </form>
@@ -37,7 +37,7 @@
                 let errorCountAux = 0
                 this.$refs.yearAnnualPeriod.validate()
                 if (this.$refs.yearAnnualPeriod.hasError) errorCountAux++
-              this.$emit('errorCount', errorCountAux)
+              this.$emit('errorCount', errorCountAux) // annualPeriod
               }
             }
            }
