@@ -39,17 +39,11 @@ import activePatients from '../../../reports/Patients/ActivePatients.ts'
 import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
-// import Episode from 'src/store/models/episode/Episode'
 import reportDatesParams from '../../../reports/ReportDatesParams'
 import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
-// import ReportDatesParams from '../../../reports/ReportDatesParams'
  import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Patient from '../../../store/models/patient/Patient'
-// import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
-// import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
-// import Prescription from 'src/store/models/prescription/Prescription'
-// import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinIsOnline from 'src/mixins/mixin-is-online'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
@@ -196,7 +190,6 @@ import { nSQL } from 'nano-sql'
               activePatient.startDate = reportParams.startDate
               activePatient.endDate = reportParams.endDate
               activePatient.province = reportParams.clinic.province.description
-              activePatient.description = reportParams.clinic.province.description
               PatientServiceIdentifier.localDbGetById(reportData[0].episode.patientServiceIdentifier.id).then(async identifier => {
                 const startStopReasonType = await this.getStartStopReasonTypeById(reportData[0].episode.startStopReason.id)
                 if (identifier[0].service.id === reportParams.clinicalService && startStopReasonType.isStartReason) {
@@ -220,6 +213,7 @@ import { nSQL } from 'nano-sql'
                     activePatient.therapeuticLine = therapeuticLine.description
                     activePatient.age = this.idadeCalculator(patient.dateOfBirth)
                     activePatient.id = uuidv4()
+                    console.log('activePatient: ', activePatient)
                     await ActiveInDrugStore.localDbAddOrUpdate(activePatient)
                 }
               })

@@ -36,7 +36,7 @@ export default class ActiveInDrugStore extends Model {
         return db.newDb().collection('activeInDrugStores').add(activeInDrugStore)
       }
 
-      static localDbGetAll () { //
+      static localDbGetAll () {
        return db.newDb().collection('activeInDrugStores').get()
       }
 
@@ -55,7 +55,7 @@ export default class ActiveInDrugStore extends Model {
       static localDbAddOrUpdate (targetCopy) {
         return nSQL().onConnected(() => {
           nSQL(this.entity).query('upsert', targetCopy).exec()
-        ActiveInDrugStore.insertOrUpdate({ data: targetCopy })
+          ActiveInDrugStore.insertOrUpdate({ data: targetCopy })
       })
       }
 
