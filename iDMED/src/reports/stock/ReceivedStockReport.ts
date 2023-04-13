@@ -109,7 +109,8 @@ export default {
           ? pageSize.height
           : pageSize.getHeight()
         doc.text(str, data.settings.margin.right, pageHeight - 10)
- },
+
+     },
       theme: 'grid',
       head: [cols],
       body: data
