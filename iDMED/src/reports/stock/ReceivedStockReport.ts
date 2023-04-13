@@ -128,13 +128,21 @@ export default {
   },
 
   async downloadExcel (id, fileType2, params) {
-  const rows = await Report.api().get(`/stockReportTemp/printReport/${id}`,{ responseType: 'json' }) 
+    let data = []
+    if (params.isOnline) {
+      const rows = await Report.api().get(`/stockReportTemp/printReport/${id}`,{ responseType: 'json' })
     if (rows.response.status === 204) return rows.response.status
     const firstReg = rows.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
- 
-      const data = this.createArrayOfArrayRow(rows.response.data)
+    data = this.createArrayOfArrayRow(rows.response.data)
+    } else {
+    data = await this.getDataLocalReport(id)
+    params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate)
+   params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate)
+    if (data.length === 0) return 204
+    }
+
       const workbook = new ExcelJS.Workbook()
       workbook.creator = 'FGH'
       workbook.lastModifiedBy = 'FGH'

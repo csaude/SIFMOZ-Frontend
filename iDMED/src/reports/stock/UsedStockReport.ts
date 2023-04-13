@@ -34,7 +34,7 @@ export default {
       'Stock Actual'
     ]
 
-    let data = ''
+    let data = []
 if (params.isOnline) {
     const rowsAux = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType}`)
     if (rowsAux.response.status === 204) return rowsAux.response.status
@@ -44,6 +44,8 @@ if (params.isOnline) {
      data = this.createArrayOfArrayRow(rowsAux.response.data)
 } else {
 data = await this.getDataLocalReport(id)
+params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate)
+   params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate)
 if (data.length === 0) return 204
 }
     autoTable(doc, {
@@ -102,14 +104,19 @@ if (data.length === 0) return 204
   },
 
   async downloadExcel (id, fileType2, params) {
+    let data = []
+    if (params.isOnline) {
     const rows = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType2}`) 
     if (rows.response.status === 204) return rows.response.status
     const firstReg = rows.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
+    data = this.createArrayOfArrayRow(rows.response.data)
+    } else {
+      data = await this.getDataLocalReport(id)
+      if (data.length === 0) return 204
+    }
 
- 
-      const data = this.createArrayOfArrayRow(rows.response.data)
       const workbook = new ExcelJS.Workbook()
       workbook.creator = 'FGH'
       workbook.lastModifiedBy = 'FGH'
