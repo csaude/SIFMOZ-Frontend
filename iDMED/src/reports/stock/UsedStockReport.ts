@@ -91,7 +91,14 @@ if (data.length === 0) return 204
       body: data
     })
 
-    return doc.save(fileName.concat('.pdf'))
+    if(typeof cordova === 'undefined') {
+      return  doc.save(fileName.concat('.pdf'))
+    } else {
+      console.log(doc)
+      var pdfOutput = doc.output()
+      console.log(pdfOutput)
+      this.downloadFile(fileName,'pdf',pdfOutput)
+    }
   },
 
   async downloadExcel (id, fileType2, params) {
@@ -318,6 +325,71 @@ if (data.length === 0) return 204
       const fileExtension = '.xlsx'
       const blob = new Blob([buffer], { type: fileType })
       saveAs(blob, fileName + fileExtension)
+
+      if (typeof cordova !== 'undefined') {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+       // var UTF8_STR = new Uint8Array(pdfOutput)
+       //   var BINARY_ARR = UTF8_STR.buffer
+       var titleFile = 'ListaDeStockUsado.xlsx'
+       console.log('result' + titleFile)
+        saveBlob2File(titleFile, blob)
+        function saveBlob2File (fileName, blob) {
+           var folder = cordova.file.externalRootDirectory + 'Download'
+          //  var folder = 'Download'
+           window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+             console.log('file system open: ' + dirEntry.name)
+              console.log('file system open11111: ' + blob)
+             createFile(dirEntry, fileName, blob)
+            // $q.loading.hide()
+           }, onErrorLoadFs)
+         }
+            function createFile (dirEntry, fileName, blob) {
+           // Creates a new file
+           dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+             writeFile(fileEntry, blob)
+           }, onErrorCreateFile)
+         }
+    
+         function writeFile (fileEntry, dataObj) {
+           // Create a FileWriter object for our FileEntry
+           fileEntry.createWriter(function (fileWriter) {
+             fileWriter.onwriteend = function () {
+               console.log('Successful file write...')
+                openFile()
+             }
+    
+             fileWriter.onerror = function (error) {
+               console.log('Failed file write: ' + error)
+             }
+             fileWriter.write(dataObj)
+           })
+         }
+         function onErrorLoadFs (error) {
+           console.log(error)
+         }
+    
+         function onErrorCreateFile (error) {
+           console.log('errorr: ' + error.toString())
+         }
+       function openFile () {
+           var strTitle = titleFile
+             console.log('file system 44444: ' + strTitle)
+            var folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+              console.log('file system 2222: ' + folder)
+              var documentURL = decodeURIComponent(folder)
+       cordova.plugins.fileOpener2.open(
+         documentURL,
+           'application/vnd.ms-excel', {
+               error: function (e) {
+                   console.log('file system open3333366: ' + e + documentURL)
+               },
+               success: function () {
+    
+               }
+           })
+       }
+      }
     },
      createArrayOfArrayRow (rows) {
       const data = []
@@ -349,5 +421,74 @@ if (data.length === 0) return 204
              return data
          })
          return data
-    }
+    },
+    downloadFile(fileName , fileType, blop) {
+      // console.log(blop)
+      // var pdfOutput = blop.output()
+     //  console.log(pdfOutput)
+     //  if (typeof cordova !== 'undefined') {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+       // var UTF8_STR = new Uint8Array(pdfOutput)
+       //   var BINARY_ARR = UTF8_STR.buffer
+          var titleFile = fileName + fileType
+          console.log('result' + titleFile)
+           saveBlob2File(titleFile, blop)
+           function saveBlob2File (fileName, blob) {
+              var folder = cordova.file.externalRootDirectory + 'Download'
+             //  var folder = 'Download'
+              window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+                console.log('file system open: ' + dirEntry.name)
+                 console.log('file system open11111: ' + blob)
+                createFile(dirEntry, fileName, blob)
+               // $q.loading.hide()
+              }, onErrorLoadFs)
+            }
+               function createFile (dirEntry, fileName, blob) {
+              // Creates a new file
+              dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+                writeFile(fileEntry, blob)
+              }, onErrorCreateFile)
+            }
+      
+            function writeFile (fileEntry, dataObj) {
+              // Create a FileWriter object for our FileEntry
+              fileEntry.createWriter(function (fileWriter) {
+                fileWriter.onwriteend = function () {
+                  console.log('Successful file write...')
+                   openFile()
+                }
+      
+                fileWriter.onerror = function (error) {
+                  console.log('Failed file write: ' + error)
+                }
+                fileWriter.write(dataObj)
+              })
+            }
+            function onErrorLoadFs (error) {
+              console.log(error)
+            }
+      
+            function onErrorCreateFile (error) {
+              console.log('errorr: ' + error.toString())
+            }
+          function openFile () {
+              var strTitle = titleFile
+                console.log('file system 44444: ' + strTitle)
+               var folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+                 console.log('file system 2222: ' + folder)
+                 var documentURL = decodeURIComponent(folder)
+          cordova.plugins.fileOpener2.open(
+            documentURL,
+              'application/pdf', {
+                  error: function (e) {
+                      console.log('file system open3333366: ' + e + documentURL)
+                  },
+                  success: function () {
+      
+                  }
+              })
+          }
+       // }
+  }
   }

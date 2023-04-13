@@ -142,13 +142,11 @@ export default class Drug extends Model {
   }
 
   static async hasStock (drug) {
-    return nSQL('drugs').query('select').where(['id', '=', drug.id])
-    .join({
-      type: 'inner',
-      table: 'stocks',
-      where: ['stocks.drug_id', '=', 'drugs.id']
-  })
+    return nSQL('stocks').query('select').where(['drug_id', '=', drug.id])
   .exec().then(result => {
+    if (result.length > 0) {
+      console.log('ssd', result)
+    }
     return result.length > 0
   })
 }
