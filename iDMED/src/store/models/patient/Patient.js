@@ -193,6 +193,12 @@ export default class Patient extends Model {
     return db.newDb().collection('patients').doc({ id: id }).get()
   }
 
+  static localDBGetByIdNanoSQL (id) {
+    return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
+      return result[0]
+    })
+  }
+
   static async localDbGetAll () {
   return nSQL(this.entity).query('select').exec().then(result => {
     console.log('patientsSearch' + result)

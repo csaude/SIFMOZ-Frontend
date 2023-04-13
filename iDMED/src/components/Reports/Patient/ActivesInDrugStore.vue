@@ -41,20 +41,23 @@ import { v4 as uuidv4 } from 'uuid'
 import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
 // import Episode from 'src/store/models/episode/Episode'
 import reportDatesParams from '../../../reports/ReportDatesParams'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+import PatientVisitDetails from 'src/store/models/patientVisitDetails/PatientVisitDetails'
 // import ReportDatesParams from '../../../reports/ReportDatesParams'
  import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore'
 import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import Patient from '../../../store/models/patient/Patient'
 // import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
-import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
-import Prescription from 'src/store/models/prescription/Prescription'
-import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
+// import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
+// import Prescription from 'src/store/models/prescription/Prescription'
+// import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
 import mixinplatform from 'src/mixins/mixin-system-platform'
+import mixinIsOnline from 'src/mixins/mixin-is-online'
+import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
+import { nSQL } from 'nano-sql'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
-    mixins: [mixinplatform],
+    mixins: [mixinplatform, mixinIsOnline],
     setup () {
      return {
         totalRecords: ref(0),
@@ -101,14 +104,52 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
           }
         })
       },
-      generateReport (id, fileType) {
-        if (this.website) {
+      async getDataLocalReport (reportId) {
+        let data = []
+        await ActiveInDrugStore.localDbGetAllByReportId(reportId).then(async reports => {
+          const reportData = []
+            if (reports !== null) {
+              reports.forEach(report => {
+                if (report.reportId === reportId) {
+                  reportData.push(report)
+                }
+              })
+            }
+            data = reportData
+          })
+          return data
+      },
+      async generateReport (id, fileType) {
+        let data = []
+        if (!this.isOnline) {
+          data = await this.getDataLocalReport(id)
+          if (data.length === 0) {
+              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            } else {
+              const patientAux = data[0]
+
+              if (fileType === 'PDF') {
+                activePatients.downloadPDF(
+                  patientAux.province,
+                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                  data
+                )
+              } else {
+                activePatients.downloadExcel(
+                  patientAux.province,
+                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                  data
+                )
+              }
+            }
+        } else {
           Report.api().get(`/activePatientReport/printReport/${id}`, { responseType: 'json' }).then(resp => {
             if (!resp.response.data[0]) {
               this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
             } else {
               const patientAux = resp.response.data[0]
-
               if (fileType === 'PDF') {
                 activePatients.downloadPDF(
                   patientAux.province,
@@ -125,25 +166,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
                 )
               }
             }
-        })
-        } else {
-          ActiveInDrugStore.localDbGetAll().then(reports => {
-         const reportData = []
-         reports.forEach(report => {
-                 if (report.reportId === id) {
-                  reportData.push(report)
-                 }
-            })
-             const firstReg = reportData[0]
-             if (fileType === 'PDF') {
-                activePatients.downloadPDF(
-                  firstReg.province,
-                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  reportData
-                )
-              }
-        })
+          })
         }
       },
        displayAlert (type, msg) {
@@ -156,62 +179,118 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
       },
       getDataLocalDb (params) {
         const reportParams = reportDatesParams.determineStartEndDate(params)
-        console.log(reportParams)
-        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
-          console.log(patientVisitDetails)
-       const result = patientVisitDetails.filter(patientVisitDetail => moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() >= reportParams.endDate)
-          console.log(result)
-          const sortedArray = result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
-          console.log(sortedArray)
-       const resultGroupedPatientVisits = this.groupedMapChild(sortedArray)
-           console.log(resultGroupedPatientVisits)
-          return resultGroupedPatientVisits
-        }).then(reportDatas => {
-          reportDatas.forEach(reportData => {
-            const activePatient = new ActiveInDrugStore()
-            activePatient.reportId = reportParams.id
-          activePatient.year = reportParams.year
-          activePatient.startDate = reportParams.startDate
-          activePatient.endDate = reportParams.endDate
-          activePatient.province = reportParams.clinic.province.description
-          activePatient.description = reportParams.clinic.province.description
-          PatientServiceIdentifier.localDbGetById(reportData[0].episode.patientServiceIdentifier.id).then(identifier => {
-              if (identifier.service.id === reportParams.clinicalService && this.getStartStopReasonTypeById(reportData[0].episode.startStopReason.id).isStartReason === true) {
-              const pack = reportData[0].pack
-          const clinic = reportData[0].clinic
-          activePatient.clinic = clinic.clinicName
-          Patient.localDbGetById(reportData[0].patientVisit.patient.id).then(patient => {
-           Prescription.localDbGetById(reportData[0].prescription.id).then(prescription => {
-          TherapeuticRegimen.localDbGetById(prescription.prescriptionDetails[0].therapeuticRegimen.id).then(therapeuticRegimen => {
-            TherapeuticLine.localDbGetById(prescription.prescriptionDetails[0].therapeuticLine.id).then(therapeuticLine => {
-         activePatient.nid = identifier.value
-         activePatient.firstNames = patient.firstNames
-         activePatient.middleNames = patient.middleNames
-          activePatient.lastNames = patient.lastNames
-          activePatient.cellphone = patient.cellphone
-        activePatient.patientType = prescription.patientType
-         activePatient.pickupDate = pack.pickupDate
-         activePatient.nextPickUpDate = pack.nextPickUpDate
-         activePatient.therapeuticRegimen = therapeuticRegimen.description
-         activePatient.therapeuticLine = therapeuticLine.description
-         activePatient.age = this.idadeCalculator(patient.dateOfBirth)
-         activePatient.id = uuidv4()
-         ActiveInDrugStore.localDbAdd(activePatient)
-         console.log(activePatient)
+        if (!this.isOnline) {
+          const patientVisitDetails = []
+          PatientVisit.localDbGetAllPatientVisit().then(patientVisits => {
+            patientVisits.forEach(pvisit => {
+              pvisit.patientVisitDetails.forEach(pVisitDetail => {
+                patientVisitDetails.push(pVisitDetail)
+              })
+            })
+            return this.groupedPatientVisits(patientVisitDetails, reportParams)
+          }).then(reportDatas => {
+              reportDatas.forEach(reportData => {
+              const activePatient = new ActiveInDrugStore()
+              activePatient.reportId = reportParams.id
+              activePatient.year = reportParams.year
+              activePatient.startDate = reportParams.startDate
+              activePatient.endDate = reportParams.endDate
+              activePatient.province = reportParams.clinic.province.description
+              activePatient.description = reportParams.clinic.province.description
+              PatientServiceIdentifier.localDbGetById(reportData[0].episode.patientServiceIdentifier.id).then(async identifier => {
+                const startStopReasonType = await this.getStartStopReasonTypeById(reportData[0].episode.startStopReason.id)
+                if (identifier[0].service.id === reportParams.clinicalService && startStopReasonType.isStartReason) {
+                  const pack = reportData[0].pack
+                  const clinic = reportData[0].clinic
+                  const patient = reportData[0].patientVisit.patient
+                  const prescription = reportData[0].prescription
+                  const therapeuticRegimen = prescription.prescriptionDetails[0].therapeuticRegimen
+                  const therapeuticLine = prescription.prescriptionDetails[0].therapeuticLine
+                    activePatient.clinic = clinic.clinicName
+                    activePatient.district = clinic.district.description
+                    activePatient.nid = identifier[0].value
+                    activePatient.firstNames = patient.firstNames
+                    activePatient.middleNames = patient.middleNames
+                    activePatient.lastNames = patient.lastNames
+                    activePatient.cellphone = patient.cellphone
+                    activePatient.patientType = prescription.patientType
+                    activePatient.pickupDate = pack.pickupDate
+                    activePatient.nextPickUpDate = pack.nextPickUpDate
+                    activePatient.therapeuticRegimen = therapeuticRegimen.description
+                    activePatient.therapeuticLine = therapeuticLine.description
+                    activePatient.age = this.idadeCalculator(patient.dateOfBirth)
+                    activePatient.id = uuidv4()
+                    await ActiveInDrugStore.localDbAddOrUpdate(activePatient)
+                }
+              })
             })
           })
-               })
+        } else {
+          PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
+            console.log(patientVisitDetails)
+            const result = patientVisitDetails.filter(patientVisitDetail => moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() >= reportParams.endDate)
+            console.log(result)
+            const sortedArray = result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
+            console.log(sortedArray)
+            const resultGroupedPatientVisits = this.groupedMapChild(sortedArray)
+            console.log(resultGroupedPatientVisits)
+            return resultGroupedPatientVisits
+          }).then(reportDatas => {
+              reportDatas.forEach(reportData => {
+              const activePatient = new ActiveInDrugStore()
+              activePatient.reportId = reportParams.id
+              activePatient.year = reportParams.year
+              activePatient.startDate = reportParams.startDate
+              activePatient.endDate = reportParams.endDate
+              activePatient.province = reportParams.clinic.province.description
+              activePatient.description = reportParams.clinic.province.description
+              PatientServiceIdentifier.localDbGetById(reportData[0].episode.patientServiceIdentifier.id).then(identifier => {
+                if (identifier.service.id === reportParams.clinicalService && this.getStartStopReasonTypeById(reportData[0].episode.startStopReason.id).isStartReason === true) {
+                  const pack = reportData[0].pack
+                  const clinic = reportData[0].clinic
+                  activePatient.clinic = clinic.clinicName
+                  Patient.localDBGetByIdNanoSQL(reportData[0].patientVisit.patient.id).then(patient => {
+                    const prescription = reportData[0].prescription
+                    const therapeuticRegimen = prescription.prescriptionDetails[0].therapeuticRegimen
+                    const therapeuticLine = prescription.prescriptionDetails[0].therapeuticLine
+
+                    activePatient.nid = identifier.value
+                    activePatient.firstNames = patient.firstNames
+                    activePatient.middleNames = patient.middleNames
+                    activePatient.lastNames = patient.lastNames
+                    activePatient.cellphone = patient.cellphone
+                    activePatient.patientType = prescription.patientType
+                    activePatient.pickupDate = pack.pickupDate
+                    activePatient.nextPickUpDate = pack.nextPickUpDate
+                    activePatient.therapeuticRegimen = therapeuticRegimen.description
+                    activePatient.therapeuticLine = therapeuticLine.description
+                    activePatient.age = this.idadeCalculator(patient.dateOfBirth)
+                    activePatient.id = uuidv4()
+                    ActiveInDrugStore.localDbAddOrUpdate(activePatient)
+                  })
+                }
+              })
+            })
           })
-      }
-      })
-          })
-          this.progress = 100
-          params.progress = 100
-          }
-          )
+        }
+        this.progress = 100
+        params.progress = 100
+      },
+      async groupedPatientVisits (patientVisitDetails, reportParams) {
+        const result = patientVisitDetails.filter(patientVisitDetail => moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() >= reportParams.endDate)
+        for (const pvd of result) {
+          pvd.patientVisit = await nSQL('patientVisits').query('select').where(['id', '=', pvd.patient_visit_id]).exec().then(rows => { return rows.length > 0 ? rows[0] : null })
+        }
+        const sortedArray = result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
+        const resultGroupedPatientVisits = this.groupedMapChild(sortedArray)
+        return resultGroupedPatientVisits
       },
       getStartStopReasonTypeById (id) {
-        return StartStopReason.query().where('id', id).first()
+        if (!this.isOnline) {
+          return StartStopReason.localDBGetByIdNanoSQL(id)
+        } else {
+          return StartStopReason.query().where('id', id).first()
+        }
       },
       getStartStopReasonsToVuex () {
        StartStopReason.localDbGetAll().then(startStopReasons => {
@@ -219,7 +298,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
        })
       },
       groupedMapChild (items) {
-    return items.reduce(
+       return items.reduce(
         (entryMap, e) => entryMap.set(e.patientVisit.patient.id, [...(entryMap.get(e.patientVisit.patient.id) || []), e], console.log(e.patientVisit.patient.id)),
         new Map()
       )

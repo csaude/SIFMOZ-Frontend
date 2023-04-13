@@ -1,7 +1,8 @@
-// import { Model } from '@vuex-orm/core'
+import { Model } from '@vuex-orm/core'
 import db from 'src/store/localbase'
+import { nSQL } from 'nano-sql'
 
-export default class ActiveInDrugStore {
+export default class ActiveInDrugStore extends Model {
     static entity = 'activeInDrugStores'
     static fields () {
       return {
@@ -17,6 +18,7 @@ export default class ActiveInDrugStore {
 
        // fields
         nid: this.attr(''),
+        clinic: this.attr(''),
         firstNames: this.attr(''),
         middleNames: this.attr(''),
         lastNames: this.attr(''),
@@ -48,5 +50,21 @@ export default class ActiveInDrugStore {
 
       static localDbDeleteById (id) {
         return db.newDb().collection('activeInDrugStores').doc({ id: id }).delete()
+      }
+
+      static localDbAddOrUpdate (targetCopy) {
+        return nSQL().onConnected(() => {
+          nSQL(this.entity).query('upsert', targetCopy).exec()
+        ActiveInDrugStore.insertOrUpdate({ data: targetCopy })
+      })
+      }
+
+      static localDbGetAllByReportId (reportId) {
+        return nSQL(this.entity).query('select').where(['reportId', '=', reportId]).exec().then(async result => {
+          if (result !== undefined) {
+            return result
+          }
+          return null
+        })
       }
 }

@@ -92,7 +92,6 @@ export default class PatientVisit extends Model {
 
   static async localDbGetById (id) {
     return nSQL(this.entity).query('select').where(['id', '=', id]).exec().then(result => {
-      console.log(result)
       return result[0]
     })
   }
