@@ -115,14 +115,14 @@ export default class MmiaReport extends Model {
       this.prep++
   }
 
- static localDbAddOrUpdate (targetCopy) {
+ static async localDbAddOrUpdate (targetCopy) {
           nSQL(this.entity).query('upsert',
           targetCopy
         ).exec()
         MmiaReport.insertOrUpdate({ data: targetCopy })
       }
 
-      static localDbGetAllByReportId (reportId) {
+      static async localDbGetAllByReportId (reportId) {
         return nSQL(this.entity).query('select').where(['reportId', '=', reportId]).exec().then(result => {
           console.log(result)
           // Stock.insert({ data: result })
