@@ -360,7 +360,7 @@ export default {
         //  const bytes = new Uint8Array(materialEducativo.blop)
        // var UTF8_STR = new Uint8Array(pdfOutput)
        //   var BINARY_ARR = UTF8_STR.buffer
-       var titleFile = 'PacientesFaltosos.xlsx'
+       var titleFile = 'ListaDeStockRecebido.xlsx'
        console.log('result' + titleFile)
         saveBlob2File(titleFile, blob)
         function saveBlob2File (fileName, blob) {
@@ -418,7 +418,7 @@ export default {
                }
            })
        }
-      }
+    }
     },
      createArrayOfArrayRow (rows) {
       const data = []
