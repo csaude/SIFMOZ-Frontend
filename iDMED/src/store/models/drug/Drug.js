@@ -158,7 +158,7 @@ export default class Drug extends Model {
     })
 }
 
-static localDbGetByDrugId (drugId) {
+static async localDbGetByDrugId (drugId) {
   return nSQL(this.entity).query('select').where(['id', '=', drugId]).exec().then(result => {
      console.log(result)
      return result[0]
