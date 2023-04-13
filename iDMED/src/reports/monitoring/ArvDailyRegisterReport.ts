@@ -5,7 +5,6 @@ import autoTable from 'jspdf-autotable'
  import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/store/models/report/Report'
 import ArvDailyRegisterTempReport from 'src/store/models/report/monitoring/ArvDailyRegisterTempReport'
-import SystemPlatform from '../SystemPlatform'
 
 const img = new Image()
 img.src = require('src/assets/MoHLogo.png')
@@ -20,7 +19,7 @@ export default {
 
     let rowsAux = [];
     let data = [];
-    if(SystemPlatform.isWebsite()) {
+    if(params.isOnline) {
     rowsAux = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType}`)
    if (rowsAux.response.status === 204) return rowsAux.response.status
    const firstReg = rowsAux.response.data[0]
@@ -187,7 +186,7 @@ export default {
  didDrawCell: function (data) {
  if (data.row.section === 'body' && data.column.dataKey === 10) {
       console.log(rowsAux)
-      const dataRow = rowsAux.response.data[data.row.index]
+      const dataRow = params.isOnline ? rowsAux.response.data[data.row.index] : rowsAux[0]
       if (dataRow !== undefined) {
         const dataAux2 = (dataRow.drugQuantityTemps) //  cell.row.index
         const datax = []
@@ -710,18 +709,12 @@ export default {
 
 
 
-    async getDataLocalReport(reportId) {
-      const reportData = []
-      await ArvDailyRegisterTempReport.localDbGetAll().then(reports => {
-          reports.forEach(report => {
-                  if (report.reportId === reportId) {
+    async getDataLocalReport (reportId) {
+      const reports = await ArvDailyRegisterTempReport.localDbGetAllByReportId(reportId)
+          const reportData = []
+          for (const report of reports) {
                    reportData.push(report)
-                  }
-             })
-             //console.log(data)
-         })
-         if(reportData.length === 0) return '204'
-         return reportData
-       //  return reportData
+             }
+             return reportData
     }
   }

@@ -35,7 +35,7 @@ export default {
     ]
 
     let data = ''
-if (this.isOnline) {
+if (params.isOnline) {
     const rowsAux = await Report.api().get(`/usedStockReportTemp/printReport/${id}/${fileType}`)
     if (rowsAux.response.status === 204) return rowsAux.response.status
     const firstReg = rowsAux.response.data[0]

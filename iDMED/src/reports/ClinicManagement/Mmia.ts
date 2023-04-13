@@ -6,6 +6,9 @@ import * as ExcelJS from 'exceljs'
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/store/models/report/Report'
 import moment from 'moment'
+import MmiaReport from 'src/store/models/report/pharmacyManagement/MmiaReport'
+import MmiaRegimenSubReport from 'src/store/models/report/pharmacyManagement/MmiaRegimenSubReport'
+import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStockReport'
 
 const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS'
 const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV'
@@ -15,7 +18,7 @@ const reportName = 'MMIA'
 
 export default {
   async downloadPDF (
-    id
+    id, params
   ) {
     const doc = new JsPDF({
       orientation: 'p',
@@ -42,18 +45,30 @@ export default {
       'Validade'
     ]
 
+    let mmiaData = []
+    let mmiaRegimenData = []
+    let mmiaStockData = []
+    if (params.isOnline) {
       const mmiaReport = await Report.api().get(`/mmiaReport/${id}`)
       if(mmiaReport.response.status === 204) return mmiaReport.response.status
+    } else {
+      mmiaStockData = await this.getDataLocalReportStock(id)
+      mmiaRegimenData = await this.getDataLocalReportRegimen(id)
+      mmiaData = await this.getDataLocalReportMmia(id)
+      if (mmiaData.length === 0) return 204
+    }
 
-      const mmiaData = mmiaReport.response.data
-      const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
-      const regimendata = this.createRegimenArrayOfArrayRow(mmiaData.mmiaRegimenSubReportList)
+ 
+
+      
+      const stockdata = this.createArrayOfArrayRow(mmiaStockData)
+      const regimendata = this.createRegimenArrayOfArrayRow(mmiaRegimenData)
       const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
       const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
       const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
-      const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'PDF')
-      const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaData.mmiaRegimenSubReportList, 'PDF')
-      const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'PDF')
+      const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaRegimenData, 'PDF')
+      const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaRegimenData, 'PDF')
+      const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaRegimenData, 'PDF')
       const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
       const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
       const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
@@ -88,23 +103,23 @@ export default {
       })
 
       row2.push({
-        content: 'Unidade Sanitária: ' + mmiaData.clinic.clinicName,
+        content: 'Unidade Sanitária: ' + params.clinic.clinicName,
         colSpan: 3,
         styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
       })
 
       row3.push({
         colSpan: 2,
-        content: 'Distrito: ' + mmiaData.clinic.district.description,
+        content: 'Distrito: ' + params.clinic.district.description,
         styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
       })
       row3.push({
-        content: 'Província: ' + mmiaData.clinic.province.description,
+        content: 'Província: ' + params.clinic.province.description,
         styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
       })
       row2.push({
         rowSpan: 2,
-        content: 'Ano: ' + mmiaData.year,
+        content: 'Ano: ' + params.year,
         styles: { valign: 'middle', halign: 'center', fontStyle: 'bold', textColor: 0 }
       })
 
@@ -1138,7 +1153,7 @@ export default {
         createRow.push(rows[row].outcomes)
         createRow.push(rows[row].lossesAdjustments)
         createRow.push(rows[row].inventory)
-        createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'))
+        createRow.push(rows[row].expireDate)
 
         data.push(createRow)
       }
@@ -1242,8 +1257,8 @@ export default {
       let cumunitaryClinic = 0
 
       for (const row in rows) {
-        totalPatients += rows[row].totalPatients
-        cumunitaryClinic += rows[row].cumunitaryClinic
+        totalPatients += Number(rows[row].totalPatients)
+        cumunitaryClinic += Number(rows[row].cumunitaryClinic)
       }
       const createRow = []
       if (fileType == 'PDF') {
@@ -1273,14 +1288,14 @@ export default {
 
       for (const row in rows) {
         if (rows[row].lineCode === '1') {
-          totallinha1Nr += rows[row].totalPatients
-          totallinha1DC += rows[row].cumunitaryClinic
+          totallinha1Nr += Number(rows[row].totalPatients)
+          totallinha1DC += Number(rows[row].cumunitaryClinic)
         } else if (rows[row].lineCode === '2') {
-          totallinha2Nr += rows[row].totalPatients
-          totallinha2DC += rows[row].cumunitaryClinic
+          totallinha2Nr += Number(rows[row].totalPatients)
+          totallinha2DC += Number(rows[row].cumunitaryClinic)
         } else if (rows[row].lineCode === '3') {
-          totallinha3Nr += rows[row].totalPatients
-          totallinha3DC += rows[row].cumunitaryClinic
+          totallinha3Nr += Number(rows[row].totalPatients)
+          totallinha3DC += Number(rows[row].cumunitaryClinic)
         }
       }
       const createRow1 = []
@@ -1334,8 +1349,8 @@ export default {
       let totallinhaDC = 0
 
       for (const row in rows) {
-          totallinhaNr += rows[row].totalPatients
-          totallinhaDC += rows[row].cumunitaryClinic
+          totallinhaNr += Number(rows[row].totalPatients)
+          totallinhaDC += Number(rows[row].cumunitaryClinic)
       }
       const createRow1 = []
       if (fileType == 'PDF') {
@@ -1378,7 +1393,7 @@ export default {
       createRow7.push('No Mês')
       createRow7.push(rows.dsM0)
       createRow8.push('Total')
-      createRow8.push(rows.dsM5 + rows.dsM4 + rows.dsM3 + rows.dsM2 + rows.dsM1 + rows.dsM0)
+      createRow8.push(Number(rows.dsM5) + Number(rows.dsM4) + Number(rows.dsM3) + Number(rows.dsM2) + Number(rows.dsM1) + Number(rows.dsM0))
 
       data.push(createRow2)
       data.push(createRow3)
@@ -1401,7 +1416,7 @@ export default {
       createRow5.push(rows.dtM2)
       createRow6.push(rows.dtM1)
       createRow7.push(rows.dtM0)
-      createRow8.push(rows.dtM2 + rows.dtM1 + rows.dtM0)
+      createRow8.push(Number(rows.dtM2) + Number(rows.dtM1) + Number(rows.dtM0))
 
       data.push(createRow5)
       data.push(createRow6)
@@ -1416,10 +1431,10 @@ export default {
       const createRow5 = []
       const createRow8 = []
 
-      createRow5.push(rows.dM)
-      createRow5.push(rows.dM + rows.dsM0 + rows.dtM0)
-      createRow8.push(rows.dM)
-      createRow8.push(rows.dM + rows.dtM2 + rows.dtM1 + rows.dtM0 + rows.dsM5 + rows.dsM4 + rows.dsM3 + rows.dsM2 + rows.dsM1 + rows.dsM0)
+      createRow5.push(Number(rows.dM))
+      createRow5.push(Number(rows.dM) + Number(rows.dsM0) + Number(rows.dtM0))
+      createRow8.push(Number(rows.dM))
+      createRow8.push(Number(rows.dM) + Number(rows.dtM2) + Number(rows.dtM1) + Number(rows.dtM0) + Number(rows.dsM5)+ Number(rows.dsM4) + Number(rows.dsM3) + Number(rows.dsM2) + Number(rows.dsM1) + Number(rows.dsM0))
 
       data.push(createRow5)
       data.push(createRow8)
@@ -1432,7 +1447,9 @@ export default {
       const createRow1 = []
 
       createRow1.push('Ajuste')
-      createRow1.push(Math.round(((rows.dM + rows.dtM2 + rows.dtM1 + rows.dtM0 + rows.dsM5 + rows.dsM4 + rows.dsM3 + rows.dsM2 + rows.dsM1 + rows.dsM0) / (rows.dM + rows.dsM0 + rows.dtM0)) * 100) + '%')
+      const value = Math.round(((Number(rows.dM) + Number(rows.dtM2) + Number(rows.dtM1) + Number(rows.dtM0) + Number(rows.dsM5) + Number(rows.dsM4) + Number(rows.dsM3) + Number(rows.dsM2) + Number(rows.dsM1) + Number(rows.dsM0)) / (Number(rows.dM) + Number(rows.dsM0) + Number(rows.dtM0))) * 100) 
+
+      createRow1.push((Number.isNaN(value)? 0: value)+ '%')
 
       data.push(createRow1)
 
@@ -1454,4 +1471,32 @@ export default {
     getFormatDDMMYYYY(date) {
       return moment(date).format('DD-MM-YYYY');
     },
+    async getDataLocalReportStock (reportId) {
+      let data = []
+      const reports = await MmiaStockReport.localDbGetAllByReportId(reportId)
+          const reportData = []
+          for (const report of reports ) {
+                   reportData.push(report)
+             }
+             
+             return reportData
+          
+    },
+    async getDataLocalReportRegimen (reportId) {
+      let data = []
+      const reports = await MmiaRegimenSubReport.localDbGetAllByReportId(reportId)
+          const reportData = []
+          for (const report of reports ) {
+                   reportData.push(report)
+             }
+             
+             return reportData
+          
+    },
+    async getDataLocalReportMmia (reportId) {
+      let data = []
+      const reportData = await MmiaReport.localDbGetAllByReportId(reportId)
+      return reportData
+          
+    }
   }

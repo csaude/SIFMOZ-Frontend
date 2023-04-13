@@ -88,7 +88,8 @@
                               <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                                   <q-date v-model="reportParams.endDateParam"
-                                  mask="DD-MM-YYYY">
+                                  mask="DD-MM-YYYY"
+                                  :options="blockDataFutura">
                                   <div class="row items-center justify-end">
                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                   </div>
