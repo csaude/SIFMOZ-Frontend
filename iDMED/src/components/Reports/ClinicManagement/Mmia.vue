@@ -90,10 +90,12 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
           this.displayAlert('error', 'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
         }
       } else {
-      const ab = await this.getMmiaStockReport(params)
-      console.log(ab)
-      const listRegimenSubReport = await this.getMmiaRegimenSubReport(params)
-       await this.getMmiaReport(params, listRegimenSubReport)
+      const reportParams = await this.getMmiaStockReport(params)
+      console.log(reportParams)
+      const listRegimenSubReport = await this.getMmiaRegimenSubReport(reportParams)
+      console.log('Regimen: ', listRegimenSubReport)
+       const beta = await this.getMmiaReport(reportParams, listRegimenSubReport)
+       console.log('MMia: ', beta)
       }
       },
       getProcessingStatus (params) {
@@ -119,8 +121,8 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
         }
       },
       async getMmiaStockReport (params) {
-        const reportParams = reportDatesParams.determineStartEndDate(params)
-        console.log(reportParams)
+        const reportParams = await reportDatesParams.determineStartEndDate(params)
+        console.log('PARAMETROSS STOCK:', reportParams)
         let resultDrugsStocks = []
         let resultDrugStocksInventory = []
         let resultDrugStocksDestruction = []
@@ -256,10 +258,11 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
                }
           this.progress = 100
           params.progress = 100
+          return reportParams
       },
-      async getMmiaRegimenSubReport (params) {
+      async getMmiaRegimenSubReport (reportParams) {
         const listRegimeReports = []
-        const reportParams = reportDatesParams.determineStartEndDate(params)
+        // const reportParams = reportDatesParams.determineStartEndDate(params)
         const patientVisitList = await PatientVisit.localDbGetAllPatientVisit()
         for (const patientVisit of patientVisitList) {
           if ((patientVisit.visitDate >= reportParams.startDate && patientVisit.visitDate <= reportParams.endDate)) {
@@ -282,8 +285,8 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
           }
           return listRegimeReports
       },
-      async getMmiaReport (params, listRegimenSubReport) {
-        const reportParams = reportDatesParams.determineStartEndDate(params)
+      async getMmiaReport (reportParams, listRegimenSubReport) {
+       // const reportParams = reportDatesParams.determineStartEndDate(params)
         const patientVisitList = await PatientVisit.localDbGetAllPatientVisit()
         let totalDM = 0
         let totalDsM0 = 0

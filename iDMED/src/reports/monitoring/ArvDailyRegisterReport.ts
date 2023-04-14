@@ -255,10 +255,10 @@ if (data.length === 0) return 204
      // Force workbook calculation on load
     // workbook.calcProperties.fullCalcOnLoad = true
     const worksheet = workbook.addWorksheet(reportName)
-      const imageId = workbook.addImage({
+   /*   const imageId = workbook.addImage({
       base64: 'data:image/pngbase64,' + MOHIMAGELOG,
       extension: 'png'
-    })
+    }) */
     // Get Cells
     const cellRepublica = worksheet.getCell('A8')
     const cellTitle = worksheet.getCell('A9')
@@ -473,11 +473,11 @@ if (data.length === 0) return 204
           bold: true
         }
     // Add Image
-    worksheet.addImage(imageId, {
+    /* worksheet.addImage(imageId, {
       tl: { col: 0, row: 1 },
       ext: { width: 144, height: 98 }
     })
-
+*/
       // Cereate Table
       worksheet.addTable({
       name: reportName,
@@ -689,7 +689,7 @@ if (data.length === 0) return 204
       //  const bytes = new Uint8Array(materialEducativo.blop)
      // var UTF8_STR = new Uint8Array(pdfOutput)
      //   var BINARY_ARR = UTF8_STR.buffer
-     var titleFile = 'LivroDiarioDeArvs.xlsx'
+     var titleFile = 'ArvDailyListReport.xlsx'
      console.log('result' + titleFile)
       saveBlob2File(titleFile, blob)
       function saveBlob2File (fileName, blob) {

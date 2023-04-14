@@ -12,6 +12,7 @@
             :rules="[val => !!val || 'Por favor indique o Mês']"
             lazy-rules
             @blur="setSelectedMonth()"
+            @focus="setSelectedMonth()"
             label="Mês"
             :disable="initProcessing"
             />
