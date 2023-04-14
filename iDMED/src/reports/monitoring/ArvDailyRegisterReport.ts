@@ -231,6 +231,7 @@ export default {
 
   async downloadExcel (id, fileType2, params) {
 let data = []
+let rowsAux = []
 if (params.isOnline) {
   const rows = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType2}`) 
   if (rows.response.status === 204) return rows.response.status
@@ -239,10 +240,12 @@ if (params.isOnline) {
   params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
    data = this.createArrayOfArrayRow(rows.response.data)
 } else {
-data = await this.getDataLocalReport(id)
-params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate)
-   params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate)
+  rowsAux = await this.getDataLocalReport(id)
+params.startDateParam = Report.getFormatDDMMYYYY(rowsAux[0].startDate)
+   params.endDateParam = Report.getFormatDDMMYYYY(rowsAux[0].endDate)
+   data = this.createArrayOfArrayRow(rowsAux)
 if (data.length === 0) return 204
+
 }
 
     console.log('DADOS: ', data)
@@ -255,10 +258,10 @@ if (data.length === 0) return 204
      // Force workbook calculation on load
     // workbook.calcProperties.fullCalcOnLoad = true
     const worksheet = workbook.addWorksheet(reportName)
-   /*   const imageId = workbook.addImage({
+      const imageId = workbook.addImage({
       base64: 'data:image/pngbase64,' + MOHIMAGELOG,
       extension: 'png'
-    }) */
+    })
     // Get Cells
     const cellRepublica = worksheet.getCell('A8')
     const cellTitle = worksheet.getCell('A9')
@@ -473,11 +476,11 @@ if (data.length === 0) return 204
           bold: true
         }
     // Add Image
-    /* worksheet.addImage(imageId, {
+    worksheet.addImage(imageId, {
       tl: { col: 0, row: 1 },
       ext: { width: 144, height: 98 }
     })
-*/
+
       // Cereate Table
       worksheet.addTable({
       name: reportName,
@@ -638,12 +641,18 @@ if (data.length === 0) return 204
       })
     }
     let p = 15
-    console.log('(rows.response.data).length: ', (rows).length)
      // Loop through all table's row
-     for (let j = 0; j <= (rows.response.data).length; j++) {
+     let dataAux = {}
+
+     if (params.isOnline) {
+      dataAux = rows.response.data
+    } else {
+      dataAux = rowsAux
+    }
+     for (let j = 0; j <= (dataAux).length; j++) {
      // const row = worksheet.getRow(i)
       // Now loop through every row's cell and finally set alignment
-       const reportData = (rows.response.data)[j]
+       const reportData = (dataAux)[j]
       //  console.log('ReportDataLenght: ', (rows.response.data).length)
        if (reportData !== undefined) {
      // const subReport = this.createArraySubReport(reportData.drugQuantityTemps)
@@ -657,23 +666,6 @@ if (data.length === 0) return 204
             const cell = worksheet.getCell('K' + p)
             cell.value = drugDetails
             p++
-          // Modify/Add individual cell
-            /*   worksheet.addTable({
-                  name: reportName,
-                  ref: 'K' + p,
-                  headerRow: false,
-                  totalsRow: false,
-                  style: {
-                    showRowStripes: false
-                  },
-                  columns: [
-                    { name: 'drugName' },
-                    { name: 'quantity' }
-                  ],
-                  rows: subReport
-                })
-                p++ */
-            //    p += 3
               }
   }
 
@@ -689,7 +681,7 @@ if (data.length === 0) return 204
       //  const bytes = new Uint8Array(materialEducativo.blop)
      // var UTF8_STR = new Uint8Array(pdfOutput)
      //   var BINARY_ARR = UTF8_STR.buffer
-     var titleFile = 'ArvDailyListReport.xlsx'
+     var titleFile = 'LivroDiarioDeArvs.xlsx'
      console.log('result' + titleFile)
       saveBlob2File(titleFile, blob)
       function saveBlob2File (fileName, blob) {
@@ -775,8 +767,6 @@ if (data.length === 0) return 204
       }
       return data
     },
-
-
 
     async getDataLocalReport (reportId) {
       const reports = await ArvDailyRegisterTempReport.localDbGetAllByReportId(reportId)
