@@ -115,7 +115,7 @@ export default class MmiaReport extends Model {
       this.prep++
   }
 
- static async localDbAddOrUpdate (targetCopy) {
+ static localDbAddOrUpdate (targetCopy) {
           nSQL(this.entity).query('upsert',
           targetCopy
         ).exec()
