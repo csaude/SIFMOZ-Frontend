@@ -145,8 +145,8 @@ export default {
               table: 'clinicalServices',
               where: ['clinicalServices.id', '=', 'identifiers.service.id']
             }])
-          .exec().then(rows => {
-            rows = this.removerDuplicados(rows)
+          .exec().then(async rows => {
+            rows = await this.removerDuplicados(rows)
             rows.forEach((item) => {
               if (item.startDate !== null && item.startDate !== undefined) {
                 const strtDate = new Date(item.startDate)
@@ -160,6 +160,7 @@ export default {
             })
 
           rows = rows.filter(function (value) {
+            console.log('value.service: ', new Date(value.startDate))
               return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.visitDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
           })
 

@@ -108,7 +108,7 @@ export default {
           .exec()
         .then(rows => {
           rows = rows.filter(value => {
-              return value.service === serviceCD && new Date(value.pickupDate) >= startDateObject && new Date(value.pickupDate) <= endDateObject && value.clinicID === this.clinic.id // Apenas o true sera mantido, o resto sera removido
+              return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.pickupDate) >= startDateObject && new Date(value.pickupDate) <= endDateObject && value.clinicID === this.clinic.id // Apenas o true sera mantido, o resto sera removido
           })
           rows = this.agruparRegistros(rows)
           this.rowData = rows

@@ -10,8 +10,8 @@
            >
         <template v-slot:body="props">
             <q-tr :props="props">
-            <q-td key="drug" :props="props">
-                {{ props.row.drug }}
+            <q-td key="drugName" :props="props">
+                {{ props.row.drugName }}
             </q-td>
             <q-td key="avgConsuption" :props="props">
                 {{ props.row.avgConsuption }}
@@ -37,15 +37,15 @@ import { SessionStorage } from 'quasar'
 import StockAlert from 'src/store/models/stockAlert/StockAlert'
 import mixinIsOnline from 'src/mixins/mixin-is-online'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import Drug from 'src/store/models/drug/Drug'
-import Stock from 'src/store/models/stock/Stock'
+// import Drug from 'src/store/models/drug/Drug'
+// import Stock from 'src/store/models/stock/Stock'
 
 const columnsGender = [
-  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
-  { name: 'avgConsuption', required: true, label: 'Média de Consumo Mensal', align: 'left', field: row => row.avgConsuption, format: val => `${val}` },
-  { name: 'balance', required: true, label: 'Saldo actual', align: 'left', field: row => row.balance, format: val => `${val}` },
-   { name: 'state', required: true, label: 'Estado', align: 'left', field: row => row.state, format: val => `${val}` }
-]
+    { name: 'drugName', required: true, label: 'Medicamento', align: 'left', field: row => row.drugName, format: val => `${val}` },
+    { name: 'avgConsuption', required: true, label: 'Média de Consumo Mensal', align: 'left', field: row => row.avgConsuption, format: val => `${val}` },
+    { name: 'balance', required: true, label: 'Saldo actual', align: 'left', field: row => row.balance, format: val => `${val}` },
+    { name: 'state', required: true, label: 'Estado', align: 'left', field: row => row.state, format: val => `${val}` }
+  ]
 
 export default {
   mixins: [mixinplatform, mixinIsOnline],
@@ -59,33 +59,35 @@ export default {
   methods: {
     async getStockAlert () {
       if (!this.isOnline) {
-        const listStockAlert = []
-        const drugList = await Drug.localDbGetAll()
-        for (const drug of drugList) {
-          const hasStock = await Drug.hasStock(drug)
-          if (hasStock) {
-            const stockAlert = new StockAlert()
-            const balance = await Stock.localDbGetStockBalanceByDrug(drug)
-            const drugQuantitySupplied = await Stock.localDbGetQuantitySuppliedByDrug(drug)
-            stockAlert.balance = balance
-            stockAlert.drugName = drug.name
-            stockAlert.drug = drug.name
-            stockAlert.avgConsuption = drugQuantitySupplied / 3
-            if (drugQuantitySupplied === 0) {
-              stockAlert.state = 'Sem Consumo'
-            } else if (stockAlert.balance > (drugQuantitySupplied / 3)) {
-              stockAlert.state = 'Acima do Consumo Máximo'
-            } else if (stockAlert.balance > (drugQuantitySupplied / 3)) {
-              stockAlert.state = 'Ruptura de Stock'
-            }
-            listStockAlert.push(stockAlert)
-          //   return listStockAlert
-          }
-        }
-        this.rowData = listStockAlert
-        console.log('StockAlert.localDbGetStockAlert(): ', this.rowData)
+        // const listStockAlert = []
+        // const drugList = await Drug.localDbGetAll()
+        // for (const drug of drugList) {
+        //   const hasStock = await Drug.hasStock(drug)
+        //   if (hasStock) {
+        //     const stockAlert = new StockAlert()
+        //     const balance = await Stock.localDbGetStockBalanceByDrug(drug)
+        //     const drugQuantitySupplied = await Stock.localDbGetQuantitySuppliedByDrug(drug)
+        //     stockAlert.balance = balance
+        //     stockAlert.drugName = drug.name
+        //     stockAlert.drug = drug.name
+        //     stockAlert.avgConsuption = drugQuantitySupplied / 3
+        //     if (drugQuantitySupplied === 0) {
+        //       stockAlert.state = 'Sem Consumo'
+        //     } else if (stockAlert.balance > (drugQuantitySupplied / 3)) {
+        //       stockAlert.state = 'Acima do Consumo Máximo'
+        //     } else if (stockAlert.balance > (drugQuantitySupplied / 3)) {
+        //       stockAlert.state = 'Ruptura de Stock'
+        //     }
+        //     listStockAlert.push(stockAlert)
+        //   //   return listStockAlert
+        //   }
+        // }
+        // this.rowData = listStockAlert
+        this.rowData = await StockAlert.localDbGetStockAlert()
+        console.log('DRUGS: ', this.rowData)
+        // console.log('StockAlert.localDbGetStockAlert(): ', this.rowData)
       } else {
-        Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then(resp => {
+        Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then(async resp => {
           this.rowData = resp.response.data
         })
       }

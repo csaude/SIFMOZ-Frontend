@@ -159,7 +159,7 @@ tooltip: {
         .then(rows => {
           rows = this.removerDuplicados(rows)
           rows = rows.filter(function (value) {
-              return value.service === serviceCD && new Date(value.visitDate) >= startDateObject && new Date(value.visitDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
+              return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.visitDate) >= startDateObject && new Date(value.visitDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
           })
 
           rows.forEach((item) => {

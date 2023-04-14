@@ -96,6 +96,7 @@ import MmiaRegimenSubReport from './models/report/pharmacyManagement/MmiaRegimen
 import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegisterTempReport'
 import AuditSyncronization from './models/auditSyncronization/AuditSyncronization'
 import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils'
+import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore'
 
 // Vue.use(Vuex)
 // import { NanoSQL } from '@nano-sql/core';
@@ -272,6 +273,7 @@ const entities = () => {
   entitiesList.push(MmiaStockReport)
   entitiesList.push(MmiaRegimenSubReport)
   entitiesList.push(ArvDailyRegisterTempReport)
+  entitiesList.push(ActiveInDrugStore)
   return entitiesList
 }
 
