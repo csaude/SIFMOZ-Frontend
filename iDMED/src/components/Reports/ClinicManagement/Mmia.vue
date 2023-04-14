@@ -90,7 +90,8 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
           this.displayAlert('error', 'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
         }
       } else {
-       await this.getMmiaStockReport(params)
+      const ab = await this.getMmiaStockReport(params)
+      console.log(ab)
       const listRegimenSubReport = await this.getMmiaRegimenSubReport(params)
        await this.getMmiaReport(params, listRegimenSubReport)
       }

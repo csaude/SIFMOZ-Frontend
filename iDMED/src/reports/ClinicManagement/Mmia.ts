@@ -1546,7 +1546,6 @@ export default {
       return moment(date).format('DD-MM-YYYY');
     },
     async getDataLocalReportStock (reportId) {
-      let data = []
       const reports = await MmiaStockReport.localDbGetAllByReportId(reportId)
           const reportData = []
           for (const report of reports ) {
@@ -1557,7 +1556,6 @@ export default {
           
     },
     async getDataLocalReportRegimen (reportId) {
-      let data = []
       const reports = await MmiaRegimenSubReport.localDbGetAllByReportId(reportId)
           const reportData = []
           for (const report of reports ) {
@@ -1568,7 +1566,6 @@ export default {
           
     },
     async getDataLocalReportMmia (reportId) {
-      let data = []
       const reportData = await MmiaReport.localDbGetAllByReportId(reportId)
       return reportData
           

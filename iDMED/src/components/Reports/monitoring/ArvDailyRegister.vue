@@ -130,8 +130,7 @@ import moment from 'moment'
 
             if ((patientVisit.visitDate >= reportParams.startDate && patientVisit.visitDate <= reportParams.endDate) ||
             (newDate >= moment(params.startDate) && newDate <= moment(params.endDate))) {
-              PatientServiceIdentifier.localDbGetById(patientVisitDetail.episode.patientServiceIdentifier.id).then(item => {
-                const identifier = item[0]
+                const identifier = patientVisitDetail.episode.patientServiceIdentifier
             if (identifier.service.id === reportParams.clinicalService) {
             const arvDailyRegisterReport = new ArvDailyRegisterTempReport()
             arvDailyRegisterReport.reportId = reportParams.id
@@ -173,13 +172,12 @@ import moment from 'moment'
             arvDailyRegisterReport.drugQuantityTemps = JSON.parse(JSON.stringify(drugQuantityTemps))
            ArvDailyRegisterTempReport.localDbAddOrUpdate(arvDailyRegisterReport)
             }
-          })
+          }
           this.progress = 100
           params.progress = 100
             }
           }
        }
-        }
     }
   }
 </script>
