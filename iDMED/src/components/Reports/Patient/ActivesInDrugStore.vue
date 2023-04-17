@@ -47,7 +47,7 @@ import Patient from '../../../store/models/patient/Patient'
 import mixinplatform from 'src/mixins/mixin-system-platform'
 import mixinIsOnline from 'src/mixins/mixin-is-online'
 import PatientVisit from 'src/store/models/patientVisit/PatientVisit'
-import { nSQL } from 'nano-sql'
+// import { nSQL } from 'nano-sql'
   export default {
     name: 'DrugStore',
     props: ['selectedService', 'menuSelected', 'id'],
@@ -117,27 +117,34 @@ import { nSQL } from 'nano-sql'
         let data = []
         if (!this.isOnline) {
           data = await this.getDataLocalReport(id)
+          console.log('DATA: ', data)
+          console.log('fileType: ', fileType)
           if (data.length === 0) {
               this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
-            } else {
-              const patientAux = data[0]
+          } else {
+            const patientAux = data[0]
 
-              if (fileType === 'PDF') {
-                activePatients.downloadPDF(
-                  patientAux.province,
-                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  data
-                )
-              } else {
-                activePatients.downloadExcel(
-                  patientAux.province,
-                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  data
-                )
-              }
+            if (fileType === 'PDF') {
+              console.log(patientAux.province)
+              console.log(moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'))
+              console.log(moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'))
+              console.log(data)
+              activePatients.downloadPDF(
+                patientAux.province,
+                moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                data
+              )
+            } else {
+              console.log('Printing XLS')
+              activePatients.downloadExcel(
+                patientAux.province,
+                moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+                moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+                data
+              )
             }
+          }
         } else {
           Report.api().get(`/activePatientReport/printReport/${id}`, { responseType: 'json' }).then(resp => {
             if (!resp.response.data[0]) {
@@ -180,6 +187,7 @@ import { nSQL } from 'nano-sql'
               pvisit.patientVisitDetails.forEach(pVisitDetail => {
                 patientVisitDetails.push(pVisitDetail)
               })
+              pvisit.patientVisitDetails[0].patientVisit = pvisit
             })
             return this.groupedPatientVisits(patientVisitDetails, reportParams)
           }).then(reportDatas => {
@@ -190,9 +198,10 @@ import { nSQL } from 'nano-sql'
               activePatient.startDate = reportParams.startDate
               activePatient.endDate = reportParams.endDate
               activePatient.province = reportParams.clinic.province.description
-              PatientServiceIdentifier.localDbGetById(reportData[0].episode.patientServiceIdentifier.id).then(async identifier => {
-                const startStopReasonType = await this.getStartStopReasonTypeById(reportData[0].episode.startStopReason.id)
-                if (identifier[0].service.id === reportParams.clinicalService && startStopReasonType.isStartReason) {
+
+                const identifier = reportData[0].episode.patientServiceIdentifier
+                const startStopReasonType = reportData[0].episode.startStopReason
+                if (identifier.service.id === reportParams.clinicalService && startStopReasonType.isStartReason) {
                   const pack = reportData[0].pack
                   const clinic = reportData[0].clinic
                   const patient = reportData[0].patientVisit.patient
@@ -201,7 +210,7 @@ import { nSQL } from 'nano-sql'
                   const therapeuticLine = prescription.prescriptionDetails[0].therapeuticLine
                     activePatient.clinic = clinic.clinicName
                     activePatient.district = clinic.district.description
-                    activePatient.nid = identifier[0].value
+                    activePatient.nid = identifier.value
                     activePatient.firstNames = patient.firstNames
                     activePatient.middleNames = patient.middleNames
                     activePatient.lastNames = patient.lastNames
@@ -214,20 +223,15 @@ import { nSQL } from 'nano-sql'
                     activePatient.age = this.idadeCalculator(patient.dateOfBirth)
                     activePatient.id = uuidv4()
                     console.log('activePatient: ', activePatient)
-                    await ActiveInDrugStore.localDbAddOrUpdate(activePatient)
+                    ActiveInDrugStore.localDbAddOrUpdate(activePatient)
                 }
-              })
             })
           })
         } else {
           PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
-            console.log(patientVisitDetails)
             const result = patientVisitDetails.filter(patientVisitDetail => moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() >= reportParams.endDate)
-            console.log(result)
             const sortedArray = result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
-            console.log(sortedArray)
             const resultGroupedPatientVisits = this.groupedMapChild(sortedArray)
-            console.log(resultGroupedPatientVisits)
             return resultGroupedPatientVisits
           }).then(reportDatas => {
               reportDatas.forEach(reportData => {
@@ -272,10 +276,17 @@ import { nSQL } from 'nano-sql'
       },
       async groupedPatientVisits (patientVisitDetails, reportParams) {
         const result = patientVisitDetails.filter(patientVisitDetail => moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() >= reportParams.endDate)
-        for (const pvd of result) {
-          pvd.patientVisit = await nSQL('patientVisits').query('select').where(['id', '=', pvd.patient_visit_id]).exec().then(rows => { return rows.length > 0 ? rows[0] : null })
-        }
-        const sortedArray = result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
+        console.log('RESULT: ', result)
+        // for (const pvd of result) {
+        //   pvd.patientVisit = await nSQL('patientVisits').query('select').where(['id', '=', pvd.patient_visit_id]).exec().then(rows => { return rows.length > 0 ? rows[0] : null })
+        //   console.log(pvd.patientVisit)
+        // }
+        // result.forEach(async pvd => {
+        //   pvd.patientVisit = await nSQL('patientVisits').query('select').where(['id', '=', pvd.patient_visit_id]).exec().then(rows => { return rows.length > 0 ? rows[0] : null })
+        // })
+        console.log('RESULT: ', result)
+        const sortedArray = await result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
+        console.log('SORTEDARRAY: ', sortedArray)
         const resultGroupedPatientVisits = this.groupedMapChild(sortedArray)
         return resultGroupedPatientVisits
       },
@@ -292,6 +303,7 @@ import { nSQL } from 'nano-sql'
        })
       },
       groupedMapChild (items) {
+        console.log(items)
        return items.reduce(
         (entryMap, e) => entryMap.set(e.patientVisit.patient.id, [...(entryMap.get(e.patientVisit.patient.id) || []), e], console.log(e.patientVisit.patient.id)),
         new Map()
