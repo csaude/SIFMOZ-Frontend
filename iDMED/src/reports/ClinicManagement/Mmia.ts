@@ -75,7 +75,7 @@ export default {
       const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData)
       const footer = this.createFotterTableRow()
 
-    const month = months[new Date(mmiaData.endDate).getMonth()]
+    const month = months[new Date(params.endDate).getMonth()]
 
     const regimenCols = [
       'Código',
@@ -576,7 +576,7 @@ export default {
         this.downloadFile(fileName,'pdf',pdfOutput)
       }
   },
-    async downloadExcel(id) {
+    async downloadExcel(id, params) {
 
 
       let mmiaData = []
@@ -591,18 +591,15 @@ export default {
         mmiaData = await this.getDataLocalReportMmia(id)
         if (mmiaData.length === 0) return 204
       }
-  
-   
-  
         
         const stockdata = this.createArrayOfArrayRow(mmiaStockData)
         const regimendata = this.createRegimenArrayOfArrayRow(mmiaRegimenData)
         const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
         const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
         const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
-        const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaRegimenData, 'PDF')
-        const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaRegimenData, 'PDF')
-        const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaRegimenData, 'PDF')
+        const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaRegimenData, 'XLS')
+        const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaRegimenData, 'XLS')
+        const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaRegimenData, 'XLS')
         const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
         const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
         const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
@@ -686,11 +683,11 @@ export default {
       // Assign Value to Cell
       cellRepublica.value = logoTitle;
       cellTitle.value = title;
-      cellPeriodo.value = 'Mês: ' + months[new Date(mmiaData.endDate).getMonth()];
-      cellYear.value = 'Ano: ' + mmiaData.year
-      cellPharm.value = 'Unidade Sanitária: ' + mmiaData.clinic.clinicName
-      cellDistrict.value = 'Distrito: ' + mmiaData.clinic.district.description
-      cellProvince.value = 'Província: ' + mmiaData.clinic.province.description
+      cellPeriodo.value = 'Mês: ' + months[new Date(params.endDate).getMonth()];
+      cellYear.value = 'Ano: ' + params.year
+      cellPharm.value = 'Unidade Sanitária: ' +  params.clinic.clinicName
+      cellDistrict.value = 'Distrito: ' + params.clinic.district.description
+      cellProvince.value = 'Província: ' + params.clinic.province.description
 
       // merge a range of cells
       worksheet.mergeCells('A1:A7');
