@@ -36,7 +36,6 @@
 import Report from 'src/store/models/report/Report'
 import ArvDailyRegisterReport from 'src/reports/monitoring/ArvDailyRegisterReport.ts'
 import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
-import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
 import ArvDailyRegisterTempReport from 'src/store/models/report/monitoring/ArvDailyRegisterTempReport'
 import reportDatesParams from '../../../reports/ReportDatesParams'
  import { LocalStorage } from 'quasar'
