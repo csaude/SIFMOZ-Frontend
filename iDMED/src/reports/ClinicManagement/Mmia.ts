@@ -75,7 +75,7 @@ export default {
       const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData)
       const footer = this.createFotterTableRow()
 
-    const month = months[new Date(mmiaData.endDate).getMonth()]
+    const month = months[new Date(params.endDate).getMonth()]
 
     const regimenCols = [
       'Código',
@@ -576,26 +576,36 @@ export default {
         this.downloadFile(fileName,'pdf',pdfOutput)
       }
   },
-    async downloadExcel(id) {
-      const mmiaReport = await Report.api().get(`/mmiaReport/${id}`)
+    async downloadExcel(id, params) {
 
-      if(mmiaReport.response.status === 204) return mmiaReport.response.status
+
+      let mmiaData = []
+      let mmiaRegimenData = []
+      let mmiaStockData = []
+      if (params.isOnline) {
+        const mmiaReport = await Report.api().get(`/mmiaReport/${id}`)
+        if(mmiaReport.response.status === 204) return mmiaReport.response.status
+      } else {
+        mmiaStockData = await this.getDataLocalReportStock(id)
+        mmiaRegimenData = await this.getDataLocalReportRegimen(id)
+        mmiaData = await this.getDataLocalReportMmia(id)
+        if (mmiaData.length === 0) return 204
+      }
+        
+        const stockdata = this.createArrayOfArrayRow(mmiaStockData)
+        const regimendata = this.createRegimenArrayOfArrayRow(mmiaRegimenData)
+        const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
+        const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
+        const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
+        const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaRegimenData, 'XLS')
+        const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaRegimenData, 'XLS')
+        const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaRegimenData, 'XLS')
+        const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
+        const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
+        const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
+        const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData)
+
       
-      const mmiaData = mmiaReport.response.data
-      const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
-      const regimendata = this.createRegimenArrayOfArrayRow(mmiaData.mmiaRegimenSubReportList)
-      const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
-      const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
-      const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
-      const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'XLS')
-      const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaData.mmiaRegimenSubReportList, 'XLS')
-      const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'XLS')
-      const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
-      const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
-      const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
-      const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData)
-      const footer = this.createFotterTableRow()
-
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'FGH';
       workbook.lastModifiedBy = 'FGH';
@@ -673,11 +683,11 @@ export default {
       // Assign Value to Cell
       cellRepublica.value = logoTitle;
       cellTitle.value = title;
-      cellPeriodo.value = 'Mês: ' + months[new Date(mmiaData.endDate).getMonth()];
-      cellYear.value = 'Ano: ' + mmiaData.year
-      cellPharm.value = 'Unidade Sanitária: ' + mmiaData.clinic.clinicName
-      cellDistrict.value = 'Distrito: ' + mmiaData.clinic.district.description
-      cellProvince.value = 'Província: ' + mmiaData.clinic.province.description
+      cellPeriodo.value = 'Mês: ' + months[new Date(params.endDate).getMonth()];
+      cellYear.value = 'Ano: ' + params.year
+      cellPharm.value = 'Unidade Sanitária: ' +  params.clinic.clinicName
+      cellDistrict.value = 'Distrito: ' + params.clinic.district.description
+      cellProvince.value = 'Província: ' + params.clinic.province.description
 
       // merge a range of cells
       worksheet.mergeCells('A1:A7');

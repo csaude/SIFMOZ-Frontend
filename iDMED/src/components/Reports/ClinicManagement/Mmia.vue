@@ -195,8 +195,9 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
           console.log(drugsIds)
           console.log(stockDestructedIds)
           console.log(referredStocksIds)
-         for (const drug of drugsIds) {
-             const drugObj = await Drug.localDbGetByDrugId(drug)
+         for (const drugId of drugsIds) {
+          const allDrugs = await Drug.localDbGetAll()
+          const drugObj = allDrugs.filter(drug => drug.id === drugId)[0]
                 const mmiaReport = new MmiaStockReport()
                 mmiaReport.unit = drugObj.packSize
                 mmiaReport.fnmCode = drugObj.fnmCode
@@ -303,7 +304,7 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
                     const age = moment(reportParams.endDate, 'YYYY/MM/DDDD').diff(birthDate, 'years')
                     console.log('IDADE', moment(reportParams.endDate, 'YYYY/MM/DDDD').diff(birthDate, 'years'))
                     if (age >= 18) {
-                        curMmiaReport.addTotalPacientesAdulto()
+                        curMmiaReport.totalPacientesAdulto++
                     } else if (age >= 0 && age <= 4) {
                       //  println(adult++)
                         curMmiaReport.totalPacientes04++
