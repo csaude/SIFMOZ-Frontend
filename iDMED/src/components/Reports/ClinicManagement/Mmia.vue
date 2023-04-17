@@ -304,7 +304,7 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
                     const age = moment(reportParams.endDate, 'YYYY/MM/DDDD').diff(birthDate, 'years')
                     console.log('IDADE', moment(reportParams.endDate, 'YYYY/MM/DDDD').diff(birthDate, 'years'))
                     if (age >= 18) {
-                        curMmiaReport.addTotalPacientesAdulto()
+                        curMmiaReport.totalPacientesAdulto++
                     } else if (age >= 0 && age <= 4) {
                       //  println(adult++)
                         curMmiaReport.totalPacientes04++
