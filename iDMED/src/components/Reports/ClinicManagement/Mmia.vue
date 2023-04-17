@@ -195,8 +195,9 @@ import MmiaStockReport from 'src/store/models/report/pharmacyManagement/MmiaStoc
           console.log(drugsIds)
           console.log(stockDestructedIds)
           console.log(referredStocksIds)
-         for (const drug of drugsIds) {
-             const drugObj = await Drug.localDbGetByDrugId(drug)
+         for (const drugId of drugsIds) {
+          const allDrugs = await Drug.localDbGetAll()
+          const drugObj = allDrugs.filter(drug => drug.id === drugId)[0]
                 const mmiaReport = new MmiaStockReport()
                 mmiaReport.unit = drugObj.packSize
                 mmiaReport.fnmCode = drugObj.fnmCode
