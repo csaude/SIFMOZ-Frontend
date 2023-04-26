@@ -114,19 +114,22 @@ export default {
     },
     getDrugs () {
       let drugs = []
+      let validDrugs = []
       if (this.showOnlyOfRegimen) {
-        drugs = this.therapeuticRegimen.drugs
+        validDrugs = this.therapeuticRegimen.drugs
       } else {
         drugs = Drug.query()
                    .with('form')
                    .with('stocks')
                    .with('clinicalService.identifierType')
-                    .where('active', true)
+                   .where('active', true)
                     .get()
-      }
-      const validDrugs = drugs.filter((drug) => {
+
+        validDrugs = drugs.filter((drug) => {
         return drug.clinicalService !== null && (drug.clinicalService.code === this.visitDetails.episode.patientServiceIdentifier.service.code && drug.active === true && drug.hasStock())
       })
+      }
+
       return validDrugs
     },
     loadDefaultParameters () {
